@@ -1,0 +1,213 @@
+{
+  "build_date": "2026-07-05T09:54:32.818935+00:00",
+  "script_path": "C:\\Users\\apexb\\Downloads\\LINCS Project\\07_build_x_base_lincs.py",
+  "script_sha256": "84a13e7a2eb7590932ce773dd967d90856d4cfc13c7b8e619da3dd15d08b2509",
+  "source_file_manifest": {
+    "PATHWAY_LANDMARK_GENES": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\Network Data\\pathway_landmark_genes.txt",
+      "exists": true,
+      "size_bytes": 5975,
+      "mtime": 1782645821.1531298
+    },
+    "LINCS_GENE_INFO": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\Lincs metadata\\GSE92742_Broad_LINCS_gene_info.txt\\GSE92742_Broad_LINCS_gene_info.txt",
+      "exists": true,
+      "size_bytes": 621887,
+      "mtime": 1486548048.0
+    },
+    "LINCS_P1_SIG_INFO": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\Lincs metadata\\GSE92742_Broad_LINCS_sig_info.txt\\GSE92742_Broad_LINCS_sig_info.txt",
+      "exists": true,
+      "size_bytes": 105013164,
+      "mtime": 1493780336.0
+    },
+    "LINCS_P1_INST_INFO": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\Lincs metadata\\GSE92742_Broad_LINCS_inst_info.txt\\GSE92742_Broad_LINCS_inst_info.txt",
+      "exists": true,
+      "size_bytes": 148492374,
+      "mtime": 1493780116.0
+    },
+    "LINCS_P1_LEVEL3_GCTX": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\phase 1\\GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx",
+      "exists": true,
+      "size_bytes": 65110137212,
+      "mtime": 1509747402.0
+    },
+    "LINCS_P2_GENE_INFO": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\Lincs metadata\\GSE70138_Broad_LINCS_gene_info_2017-03-06.txt\\GSE92742_Broad_LINCS_gene_info.txt",
+      "exists": true,
+      "size_bytes": 621887,
+      "mtime": 1486548048.0
+    },
+    "LINCS_P2_SIG_INFO": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\Lincs metadata\\GSE70138_Broad_LINCS_sig_info_2017-03-06.txt\\GSE70138_Broad_LINCS_sig_info.txt",
+      "exists": true,
+      "size_bytes": 18260895,
+      "mtime": 1498545772.0
+    },
+    "LINCS_P2_INST_INFO": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\Lincs metadata\\GSE70138_Broad_LINCS_inst_info_2017-03-06.txt\\GSE70138_Broad_LINCS_inst_info.txt",
+      "exists": true,
+      "size_bytes": 45803669,
+      "mtime": 1498545990.0
+    },
+    "LINCS_P2_LEVEL3_GCTX": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\phase 2\\GSE70138_Level3.gctx",
+      "exists": true,
+      "size_bytes": 13540497238,
+      "mtime": 1781443936.7036734
+    },
+    "CCLE_EXPRESSION_CSV": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\CCLE\\OmicsExpressionTPMLogp1HumanProteinCodingGenes.csv",
+      "exists": true,
+      "size_bytes": 305007605,
+      "mtime": 1782644924.0334444
+    },
+    "CCLE_MODEL_METADATA": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\CCLE\\Model.csv",
+      "exists": true,
+      "size_bytes": 697455,
+      "mtime": 1782644851.8380778
+    },
+    "HGNC_SOURCE": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\hgnc_complete_set.txt",
+      "exists": true,
+      "size_bytes": 16905758,
+      "mtime": 1783071960.5464642
+    },
+    "CCLE_ALLGENES_EXPRESSION": {
+      "path": "c:\\Users\\apexb\\Downloads\\LINCS Project\\CCLE\\OmicsExpressionTPMLogp1AllGenes.csv",
+      "exists": false
+    }
+  },
+  "preflight_phase_inputs": {
+    "p1_sig_info_rows": 473647,
+    "p1_inst_info_rows": 1319138,
+    "p2_sig_info_rows": 118050,
+    "p2_inst_info_rows": 345976,
+    "p1_sig_info_sha256": "1065dcd8588f6987541160670ff557b5712d4d3799d33c46ac2b10b5243baa5a",
+    "p1_inst_info_sha256": "9794b00b427a4058763e48f7ce94e0b3286618e9221bf12968f15edb419c12d8",
+    "p2_sig_info_sha256": "ece171da59cacf27fcf16c2ca34203a1c3e984d01c0914ea85497bfc800c9c79",
+    "p2_inst_info_sha256": "62e7181d2d30f665764e4b9652d730d858cb63a3ce628122b978a16ac1be05b5",
+    "p1_p2_sig_info_paths_differ": true,
+    "p1_p2_inst_info_paths_differ": true,
+    "p1_p2_sig_info_hashes_differ": true,
+    "p1_p2_inst_info_hashes_differ": true,
+    "p2_sig_info_row_count_not_473647": true
+  },
+  "sig_cells_breakdown": {
+    "count_phase1_only": 53,
+    "count_phase2_only": 12,
+    "count_in_both": 18,
+    "count_union_total": 83
+  },
+  "n_lincs_cell_lines": 83,
+  "n_direct_match": 57,
+  "n_variant_copy": 0,
+  "n_lincs_dmso_fallback": 26,
+  "n_lincs_dmso_fallback_phase2": 15,
+  "n_lincs_dmso_fallback_phase1": 11,
+  "n_unresolved_escalated": 0,
+  "resolution_breakdown": {
+    "direct_match_ccle": 57,
+    "variant_suffix_match_ccle": 0,
+    "lincs_dmso_fallback": 26,
+    "lincs_dmso_fallback_phase2": 15,
+    "lincs_dmso_fallback_phase1": 11,
+    "unresolved_escalated": 0
+  },
+  "standardscaler_fit_population": "full_ccle_background",
+  "gene_axis_summary": {
+    "n_matched_entrez": 978,
+    "n_matched_symbol": 0,
+    "n_excluded_non_protein_coding": 0,
+    "n_unmatched_unexplained": 0,
+    "G_resolved": 978
+  },
+  "landmark_genes_found_in_ccle": 978,
+  "landmark_genes_missing_from_ccle": [],
+  "X_base_shape": [
+    83,
+    978
+  ],
+  "X_base_dtype": "float32",
+  "X_base_mean_range": [
+    -1.8534125089645386,
+    4.087016582489014
+  ],
+  "X_base_std_range": [
+    0.641868531703949,
+    5.651979923248291
+  ],
+  "nan_count_raw": 0,
+  "nan_count_scaled": 0,
+  "canonical_gene_order_source": "pathway_landmark_genes.txt (frozen)",
+  "duplicate_modelid_summary": {
+    "group_count": 54,
+    "rows_dropped": 56,
+    "tie_break_count": 54
+  },
+  "level3_integrity": {
+    "phase1_rows": 12328,
+    "phase1_cols": 1319138,
+    "phase2_rows": 12328,
+    "phase2_cols": 345976
+  },
+  "named_line_resolution": {
+    "MCF10A": {
+      "resolution_category": "lincs_dmso_fallback",
+      "depmap_ach_id": "",
+      "matched_name_field": "",
+      "normalization_rule_used": "ccle_metadata_match_absent_from_expression_matrix",
+      "dmso_phase_used": "phase2",
+      "n_dmso_instances": 295,
+      "notes": "resolved via own-line ctl_vehicle; CCLE metadata hit ACH-001357 absent from expression matrix"
+    },
+    "NPC": {
+      "resolution_category": "lincs_dmso_fallback",
+      "depmap_ach_id": "",
+      "matched_name_field": "",
+      "normalization_rule_used": "ctl_vehicle_own_line",
+      "dmso_phase_used": "phase2",
+      "n_dmso_instances": 216,
+      "notes": "resolved via own-line ctl_vehicle"
+    },
+    "NPC.CAS9": {
+      "resolution_category": "not_in_union_sig_info",
+      "notes": "not present in phase1/phase2 sig_info union"
+    }
+  },
+  "cell_split_test_lines": {
+    "MCF10A": {
+      "resolution_category": "lincs_dmso_fallback",
+      "depmap_ach_id": "",
+      "matched_name_field": "",
+      "normalization_rule_used": "ccle_metadata_match_absent_from_expression_matrix",
+      "dmso_phase_used": "phase2",
+      "n_dmso_instances": 295,
+      "notes": "resolved via own-line ctl_vehicle; CCLE metadata hit ACH-001357 absent from expression matrix"
+    },
+    "NPC": {
+      "resolution_category": "lincs_dmso_fallback",
+      "depmap_ach_id": "",
+      "matched_name_field": "",
+      "normalization_rule_used": "ctl_vehicle_own_line",
+      "dmso_phase_used": "phase2",
+      "n_dmso_instances": 216,
+      "notes": "resolved via own-line ctl_vehicle"
+    },
+    "NPC.CAS9": {
+      "resolution_category": "not_in_union_sig_info",
+      "notes": "not present in phase1/phase2 sig_info union"
+    }
+  },
+  "resolution_notes": {
+    "normalization_rules": [
+      "uppercase_strip_non_alphanumeric",
+      "exact_match_on_StrippedCellLineName_CellLineName_CCLEName",
+      "phase2_then_phase1_dmso_priority"
+    ],
+    "engineered_derivative_policy": "do not substitute parental CCLE baseline; use own-line DMSO fallback only"
+  },
+  "background_file": "c:\\Users\\apexb\\Downloads\\LINCS Project\\output\\ccle_baseline_lincs_v5\\ccle_full_background.npy"
+}

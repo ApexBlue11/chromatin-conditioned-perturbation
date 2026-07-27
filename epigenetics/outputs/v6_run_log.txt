@@ -1,0 +1,143 @@
+﻿Loading v5 coverage report...
+Loading cell_info.txt...
+Loading Cistrome JSON...
+Loading EpiMap TSV...
+Loading ENCODE v5 cache...
+
+=== BUILDING DOT-SUFFIX INVESTIGATION TABLE ===
+Saved C:\Projects\LINCS\Epigenetics\dot_suffix_investigation.tsv
+
+=== PART 1: NPC.CAS9 -> NPC PRE-AUTHORIZED SUBSTITUTION ===
+  NPC.CAS9/ATAC-seq: NPC base is unresolved -- cannot propagate
+  NPC.CAS9/H3K27ac: Resolved via NPC (source=cistrome, build=hg38)
+  NPC.CAS9/H3K27me3: Resolved via NPC (source=cistrome, build=hg38)
+
+=== PART 1B: ALIAS RE-MATCHING FOR STILL-UNRESOLVED ROWS ===
+  ASC.C/ATAC-seq: Resolved via Cistrome alias 'ASC'
+  HUES3/ATAC-seq: Resolved via Cistrome alias 'hESC'
+  HUES3/H3K27ac: Resolved via Cistrome alias 'hESC'
+  HUES3/H3K27me3: Resolved via Cistrome alias 'hESC'
+  MCH58/ATAC-seq: Resolved via Cistrome alias 'fibroblast'
+  MCH58/H3K27ac: Resolved via Cistrome alias 'fibroblast'
+  MCH58/H3K27me3: Resolved via Cistrome alias 'fibroblast'
+  MNEU.E/ATAC-seq: Resolved via Cistrome alias 'motor neuron'
+  NKDBA/ATAC-seq: Resolved via EpiMap alias 'kidney epithelial'
+  NKDBA/H3K27ac: Resolved via EpiMap alias 'kidney epithelial'
+  NKDBA/H3K27me3: Resolved via Cistrome alias 'kidney epithelial'
+  NPC.TAK/H3K27ac: Resolved via Cistrome alias 'NPC'
+  NPC.TAK/H3K27me3: Resolved via Cistrome alias 'NPC'
+  SKB/ATAC-seq: Resolved via Cistrome alias 'myoblast'
+  SKB/H3K27ac: Resolved via Cistrome alias 'myoblast'
+  SKB/H3K27me3: Resolved via EpiMap alias 'myoblast'
+  SKL/ATAC-seq: Resolved via Cistrome alias 'skeletal muscle'
+  SKL/H3K27ac: Resolved via Cistrome alias 'skeletal muscle'
+  SKL/H3K27me3: Resolved via Cistrome alias 'skeletal muscle'
+  SKL.C/ATAC-seq: Resolved via Cistrome alias 'skeletal muscle'
+  SKL.C/H3K27ac: Resolved via Cistrome alias 'skeletal muscle'
+  SKL.C/H3K27me3: Resolved via Cistrome alias 'skeletal muscle'
+
+=== PART 2: SUBSTITUTE ASSAYS FOR STILL-UNRESOLVED ROWS ===
+  Still unresolved after Part 1: 134 (cell,mark) pairs
+  [Cistrome sub] AGS/ATAC-seq -> H3K4me3 ChIP-seq: 1 sample(s), class=PENDING_CISTROME_AUDIT
+  [Cistrome sub] H1299/ATAC-seq -> H3K4me3 ChIP-seq: 11 sample(s), class=PENDING_CISTROME_AUDIT
+  [ENCODE sub] NCIH1694/ATAC-seq -> DNase-seq: found 2 exp(s)
+  [ENCODE sub] NOMO1/ATAC-seq -> DNase-seq: found 4 exp(s)
+  [Cistrome sub] NPC/ATAC-seq -> H3K4me3 ChIP-seq: 5 sample(s), class=PENDING_CISTROME_AUDIT
+  [Cistrome sub] NPC.CAS9/ATAC-seq -> H3K4me3 ChIP-seq: 5 sample(s), class=PENDING_CISTROME_AUDIT
+  [Cistrome sub] NPC.TAK/ATAC-seq -> H3K4me3 ChIP-seq: 5 sample(s), class=PENDING_CISTROME_AUDIT
+  [Cistrome sub] PHH/ATAC-seq -> H3K4me3 ChIP-seq: 2 sample(s), class=PENDING_CISTROME_AUDIT
+  [ENCODE sub] SKM1/ATAC-seq -> DNase-seq: found 2 exp(s)
+  [Cistrome sub] SKMEL28/ATAC-seq -> H3K4me3 ChIP-seq: 1 sample(s), class=PENDING_CISTROME_AUDIT
+
+  Substitute assay rows found: 10
+  Flagged rows (needing review): 7
+
+=== WRITING OUTPUTS ===
+Saved C:\Projects\LINCS\Epigenetics\coverage_report_v6.tsv (249 rows)
+Saved C:\Projects\LINCS\Epigenetics\substitute_assay_results.tsv (10 rows)
+Saved C:\Projects\LINCS\Epigenetics\v6_flagged_contamination.tsv (7 flagged rows)
+
+=== SUMMARY ===
+Total (cell,mark) pairs:           249
+Resolved in v5:                     91
+Resolved in v6 (primary assay):     115
+  New resolutions this round:       24
+Substitute-assay rows added:        10
+Still unresolved (primary assay):   134
+Flagged for review:                 7
+
+Changed rows:
+  ASC.C/ATAC-seq: RESOLVED via Cistrome alias='ASC'
+    source=cistrome, build=hg38
+    notes=[alias='ASC' (base_cell_id from cell_info)] Cistrome sample ID(s): 90459,90460,90461,93235,93236,93237,93238,93239,93240
+  HUES3/ATAC-seq: RESOLVED via Cistrome alias='hESC'
+    source=cistrome, build=hg38
+    notes=[alias='hESC' (type alias)] Cistrome sample ID(s): 35742,40513,40603,40692,40694,40706,40711,40715,40745,40751,40767,407
+  HUES3/H3K27ac: RESOLVED via Cistrome alias='hESC'
+    source=cistrome, build=hg38
+    notes=[alias='hESC' (type alias)] Cistrome sample ID(s): 864,867,1025,1026,6412,6413,6414,6415,6416,6437,6438,6439,6494,6531,6
+  HUES3/H3K27me3: RESOLVED via Cistrome alias='hESC'
+    source=cistrome, build=hg38
+    notes=[alias='hESC' (type alias)] Cistrome sample ID(s): 868,869,870,871,874,875,1029,1030,1031,2939,6386,6387,6417,6418,6440,
+  MCH58/ATAC-seq: RESOLVED via Cistrome alias='fibroblast'
+    source=cistrome, build=hg38
+    notes=[alias='fibroblast' (type alias)] Cistrome sample ID(s): 1798,1799,1800,1801,1890,1898,1899,1900,5021,40693,40695,40696,
+  MCH58/H3K27ac: RESOLVED via Cistrome alias='fibroblast'
+    source=cistrome, build=hg38
+    notes=[alias='fibroblast' (type alias)] Cistrome sample ID(s): 1820,1821,1822,1891,6383,6384,6385,34298,39825,39828,39837,4127
+  MCH58/H3K27me3: RESOLVED via Cistrome alias='fibroblast'
+    source=cistrome, build=hg38
+    notes=[alias='fibroblast' (type alias)] Cistrome sample ID(s): 537,1823,1824,1892,1901,6388,6389,8502,8503,8504,8505,33359,333
+  MNEU.E/ATAC-seq: RESOLVED via Cistrome alias='motor neuron'
+    source=cistrome, build=hg38
+    notes=[alias='motor neuron' (cell type)] Cistrome sample ID(s): 61668,61669,61670,61671,61672,61673,106569,106570,106571
+  NKDBA/ATAC-seq: RESOLVED via EpiMap alias='kidney epithelial'
+    source=epimap, build=hg19
+    notes=[alias='kidney epithelial' (type alias)] EpiMap imputed track, biosample ID: BSS01080 [perturb=null confirmed]
+  NKDBA/H3K27ac: RESOLVED via EpiMap alias='kidney epithelial'
+    source=epimap, build=hg19
+    notes=[alias='kidney epithelial' (type alias)] EpiMap imputed track, biosample ID: BSS01080 [perturb=null confirmed]
+  NKDBA/H3K27me3: RESOLVED via Cistrome alias='kidney epithelial'
+    source=cistrome, build=hg19
+    notes=[alias='kidney epithelial' (type alias)] Cistrome sample ID(s): 44711
+  NPC.CAS9/H3K27ac: RESOLVED via NPC pre-authorized sharing (source: cistrome)
+    source=cistrome [via NPC pre-authorized], build=hg38
+    notes=[NPC.CAS9 pre-authorized: Cas9 transgene does not alter chromatin state.] Inherited from NPC/H3K27ac: Cistrome sample ID
+  NPC.CAS9/H3K27me3: RESOLVED via NPC pre-authorized sharing (source: cistrome)
+    source=cistrome [via NPC pre-authorized], build=hg38
+    notes=[NPC.CAS9 pre-authorized: Cas9 transgene does not alter chromatin state.] Inherited from NPC/H3K27me3: Cistrome sample I
+  NPC.TAK/H3K27ac: RESOLVED via Cistrome alias='NPC'
+    source=cistrome, build=hg38
+    notes=[alias='NPC' (base_cell_id from cell_info)] Cistrome sample ID(s): 6416,6439,6494,36224,36869,84956
+  NPC.TAK/H3K27me3: RESOLVED via Cistrome alias='NPC'
+    source=cistrome, build=hg38
+    notes=[alias='NPC' (base_cell_id from cell_info)] Cistrome sample ID(s): 6495,6496,36219,36851
+  SKB/ATAC-seq: RESOLVED via Cistrome alias='myoblast'
+    source=cistrome, build=hg38
+    notes=[alias='myoblast' (type alias)] Cistrome sample ID(s): 7921,78636,78637,78689,78690,91385,91387,91388,91389,91390,91391,
+  SKB/H3K27ac: RESOLVED via Cistrome alias='myoblast'
+    source=cistrome, build=hg38
+    notes=[alias='myoblast' (type alias)] Cistrome sample ID(s): 62060,68382
+  SKB/H3K27me3: RESOLVED via EpiMap alias='myoblast'
+    source=epimap, build=hg19
+    notes=[alias='myoblast' (type alias)] EpiMap imputed track, biosample ID: BSS01344 [perturb=null confirmed]
+  SKL/ATAC-seq: RESOLVED via Cistrome alias='skeletal muscle'
+    source=cistrome, build=hg38
+    notes=[alias='skeletal muscle' (type alias)] Cistrome sample ID(s): 7921,91385,91387,91388,91389,91390,91391,91392,91393,91394
+  SKL/H3K27ac: RESOLVED via Cistrome alias='skeletal muscle'
+    source=cistrome, build=hg19
+    notes=[alias='skeletal muscle' (type alias)] Cistrome sample ID(s): 38011
+  SKL/H3K27me3: RESOLVED via Cistrome alias='skeletal muscle'
+    source=cistrome, build=hg19
+    notes=[alias='skeletal muscle' (type alias)] Cistrome sample ID(s): 3438,3439,3444
+  SKL.C/ATAC-seq: RESOLVED via Cistrome alias='skeletal muscle'
+    source=cistrome, build=hg38
+    notes=[alias='skeletal muscle' (type alias)] Cistrome sample ID(s): 7921,91385,91387,91388,91389,91390,91391,91392,91393,91394
+  SKL.C/H3K27ac: RESOLVED via Cistrome alias='skeletal muscle'
+    source=cistrome, build=hg19
+    notes=[alias='skeletal muscle' (type alias)] Cistrome sample ID(s): 38011
+  SKL.C/H3K27me3: RESOLVED via Cistrome alias='skeletal muscle'
+    source=cistrome, build=hg19
+    notes=[alias='skeletal muscle' (type alias)] Cistrome sample ID(s): 3438,3439,3444
+
+All deliverables written successfully.

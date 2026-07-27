@@ -1,0 +1,10 @@
+{
+  "n": 21220,
+  "total_atom_tokens": 703851,
+  "dim": 512,
+  "max_atoms": 96,
+  "remove_hs": true,
+  "mols_ok": 21220,
+  "gpus": 2,
+  "mean_tokens_per_mol": 33.16922714420358
+}

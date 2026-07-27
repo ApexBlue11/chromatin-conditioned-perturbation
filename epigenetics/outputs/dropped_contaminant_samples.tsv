@@ -1,0 +1,17 @@
+cell	mark	dropped	reason
+HEK293T	ATAC-seq	94772	GENUINE_CONTAMINATION independent-line sample removal
+HEK293T	H3K27ac	43073,66496	GENUINE_CONTAMINATION independent-line sample removal
+HL60	ATAC-seq	92929	GENUINE_CONTAMINATION independent-line sample removal
+JURKAT	H3K27ac	43040	GENUINE_CONTAMINATION independent-line sample removal
+JURKAT	H3K27me3	74122,74123	GENUINE_CONTAMINATION independent-line sample removal
+LNCAP	ATAC-seq	65849,65850,65851	GENUINE_CONTAMINATION independent-line sample removal
+MCF10A	H3K27me3	71100,71101	GENUINE_CONTAMINATION independent-line sample removal
+MDAMB231	H3K27ac	54187	GENUINE_CONTAMINATION independent-line sample removal
+MDAMB231	H3K27me3	54404	GENUINE_CONTAMINATION independent-line sample removal
+NPC	ATAC-seq	84955	substitute-assay pool contaminant removal
+NPC	H3K27ac	84956	GENUINE_CONTAMINATION independent-line sample removal
+NPC.CAS9	ATAC-seq	84955	inherited-from-NPC contaminant removal (HK-1/NPC-HK1)
+NPC.CAS9	H3K27ac	84956	inherited-from-NPC contaminant removal (HK-1/NPC-HK1)
+NPC.TAK	ATAC-seq	84955	inherited-from-NPC contaminant removal (HK-1/NPC-HK1)
+NPC.TAK	H3K27ac	84956	inherited-from-NPC contaminant removal (HK-1/NPC-HK1)
+THP1	H3K27ac	99714	GENUINE_CONTAMINATION independent-line sample removal

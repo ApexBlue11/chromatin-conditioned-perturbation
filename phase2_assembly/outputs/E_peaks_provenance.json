@@ -1,0 +1,20 @@
+{
+ "cells": 83,
+ "genes": 978,
+ "marks": [
+  "ATAC-seq",
+  "H3K27ac",
+  "H3K27me3"
+ ],
+ "windows": {
+  "ATAC-seq": 2000,
+  "H3K27ac": 2000,
+  "H3K27me3": 10000
+ },
+ "slots_with_peaks": 86,
+ "coverage_per_mark": [
+  32,
+  35,
+  19
+ ]
+}

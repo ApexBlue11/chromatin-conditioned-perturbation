@@ -1,0 +1,30 @@
+{
+  "test_coldcell": {
+    "label": "unseen CELL",
+    "n": 1200,
+    "differential": {
+      "pcc": 0.45064905285835266,
+      "r2": 0.28050166368484497
+    },
+    "absolute_style": {
+      "pcc": 0.49034422636032104,
+      "r2": 0.49746960401535034
+    },
+    "pcc_inflation": 0.039695173501968384,
+    "basal_delta_var_ratio": 0.5740134716033936
+  },
+  "test_colddrug": {
+    "label": "unseen COMPOUND",
+    "n": 1200,
+    "differential": {
+      "pcc": 0.4913172125816345,
+      "r2": 0.19458913803100586
+    },
+    "absolute_style": {
+      "pcc": 0.49726948142051697,
+      "r2": 0.38783615827560425
+    },
+    "pcc_inflation": 0.005952268838882446,
+    "basal_delta_var_ratio": 0.43759685754776
+  }
+}

@@ -1,0 +1,250 @@
+lincs_cell_id	assay_target	status	resolution_tier	assay_used	is_primary_assay	source_used	genome_build	identity_confidence	contamination_status	model_confidence_flag	sample_ids_used	sample_ids_dropped	notes
+A375	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		78261,78465		Cistrome sample ID(s): 78261,78465
+A375	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		61838,69519,81762,83677,87813,105159		Cistrome sample ID(s): 61838,69519,81762,83677,87813,105159
+A375	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+A549	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR265ZXX,ENCSR139OYS,ENCSR288YMH,ENCSR074AHH,ENCSR220ASC,ENCSR032RGS
+A549	H3K27ac	resolved	direct_measurement	H3K27ac	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR000AVF,ENCSR325VCV,ENCSR778NQS,ENCSR480OHP,ENCSR864KVZ,ENCSR340NAL,ENCSR614NPG,ENCSR569IBY,ENCSR435JKM,ENCSR000AUI,ENCSR242TBH,ENCSR543ZVZ,ENCSR783SNV,ENCSR250EHC,ENCSR027BPE,ENCSR734FLK,ENCSR102XUM,ENCSR180YHA,ENCSR350EFV,ENCSR716XDB
+A549	H3K27me3	resolved	direct_measurement	H3K27me3	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR000AUK,ENCSR000AUJ
+A673	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	epimap	hg19	name_verified	clean				EpiMap imputed track, biosample ID: BSS00035 [perturb=null confirmed]
+A673	H3K27ac	resolved	direct_measurement	H3K27ac	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR714TJD
+A673	H3K27me3	resolved	direct_measurement	H3K27me3	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR747BYL
+AGS	ATAC-seq	resolved	substitute_assay	H3K4me3 ChIP-seq	False	cistrome	hg38	name_verified	clean	substitute: H3K4me3 ChIP-seq used for missing ATAC-seq	89057		Cistrome sample ID(s): 89057
+AGS	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		61989,81493		Cistrome sample ID(s): 61989,81493
+AGS	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+ASC	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		90459,90460,90461,93235,93236,93237,93238,93239,93240,93241,93242,93243,93244		Cistrome sample ID(s): 90459,90460,90461,93235,93236,93237,93238,93239,93240,93241,93242,93243,93244
+ASC	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+ASC	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+ASC.C	ATAC-seq	resolved	related_line_inheritance	ATAC-seq	True	cistrome	hg38	related_line	clean	lot_variant ('.C' = different lot of ASC; not a perturbation)	90459,90460,90461,93235,93236,93237,93238,93239,93240,93241,93242,93243,93244		Inherited from ASC/ATAC-seq (clean primary adipocyte, zero-CVCL).
+ASC.C	H3K27ac	unresolved	unresolved										ASC has no resolved H3K27ac/H3K27me3 to inherit.
+ASC.C	H3K27me3	unresolved	unresolved										ASC has no resolved H3K27ac/H3K27me3 to inherit.
+BT20	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+BT20	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+BT20	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+CD34	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		3183,3195,3196,3197,3200,3202,3203,3206,3207,3208,3209,3214,3216,3217,3219,40531,41023,41052,44908,55174		Cistrome sample ID(s): 3183,3195,3196,3197,3200,3202,3203,3206,3207,3208,3209,3214,3216,3217,3219,40531,41023,41052,44908,55174
+CD34	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		8147,8162,8171,66900		Cistrome sample ID(s): 8147,8162,8171,66900
+CD34	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		3431,3442,3451,3466,3467,3477,3478,6603,8227,8376,8377,74058,74059,75057		Cistrome sample ID(s): 3431,3442,3451,3466,3467,3477,3478,6603,8227,8376,8377,74058,74059,75057
+CL34	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+CL34	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+CL34	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+CORL23	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+CORL23	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+CORL23	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+COV644	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+COV644	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+COV644	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+DV90	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+DV90	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+DV90	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+EFO27	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+EFO27	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+EFO27	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+FIBRNPC	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+FIBRNPC	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+FIBRNPC	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+H1299	ATAC-seq	resolved	substitute_assay	H3K4me3 ChIP-seq	False	cistrome	hg19	name_verified	clean	substitute: H3K4me3 ChIP-seq used for missing ATAC-seq	76236,76238,76240,76242,76244,76246,81439,81740,81743,84938,85272		Cistrome sample ID(s): 76236,76238,76240,76242,76244,76246,81439,81740,81743,84938,85272
+H1299	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg19	name_verified	clean		81435,81442,81747,85269,85579		Cistrome sample ID(s): 81435,81442,81747,85269,85579
+H1299	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg19	name_verified	clean		76235,76237,76239,76241,76243,76245,81434,81441,81746,85270,85580		Cistrome sample ID(s): 76235,76237,76239,76241,76243,76245,81434,81441,81746,85270,85580
+HA1E	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HA1E	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HA1E	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HCC15	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HCC15	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		108167,108168,108169,108170		Cistrome sample ID(s): 108167,108168,108169,108170
+HCC15	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		108159,108160,108161,108162		Cistrome sample ID(s): 108159,108160,108161,108162
+HCC515	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HCC515	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HCC515	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HCT116	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR872WGW,ENCSR389WJO,ENCSR182JAI,ENCSR059BAR,ENCSR260SWI,ENCSR441BDP,ENCSR477YZA,ENCSR816PPJ,ENCSR874GXS,ENCSR302NVX,ENCSR328JGW,ENCSR780PLN,ENCSR445VYQ,ENCSR135OML,ENCSR988ITF,ENCSR998BBI,ENCSR345XUN
+HCT116	H3K27ac	resolved	direct_measurement	H3K27ac	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR000EUT,ENCSR661KMA
+HCT116	H3K27me3	resolved	direct_measurement	H3K27me3	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR810BDB
+HEC108	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HEC108	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HEC108	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HEK293T	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	40986,53817,53818,53819,53820,53821,53822,53823,53824,53825,53826,53827,53828,53829,53830,53831,53832,53833,53834,53835,53836,53837,53838,53839,53840,53841,53842,53843,53844,53845,53846,53847,53848,53849,53850,53851,53852,53853,53854,53855,53856,53857,53858,53859,53860,53861,53862,53863,79294,79326,80454,80455	94772	Dominant identity correct; 1 contaminant sample(s) dropped, 52 clean kept. MULTIPLEXED sample(s) among dropped (title names >1 line).
+HEK293T	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified_low_confidence	contaminant_samples_removed	decontaminated LOW_CONFIDENCE_single_clean_sample	50458	43073,66496	Dominant identity correct; 2 contaminant sample(s) dropped, 1 clean kept.
+HEK293T	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		8557,90447,90448,92294		Cistrome sample ID(s): 8557,90447,90448,92294
+HELA	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		5020,35747,44959,44960,52053,54408,56223,56224,90182,91330,91395,93085,93086,94385,94387,94388,94389,94390,100148,100149		Cistrome sample ID(s): 5020,35747,44959,44960,52053,54408,56223,56224,90182,91330,91395,93085,93086,94385,94387,94388,94389,94390,100148,100149
+HELA	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		45283,45285,55457,55458,55459,55460,55461,55462,55463,55464,56227,56228,62013,62014,62015,62016,62017,70085,70088,89600,90889,91483,94625,94626,94627,94628		Cistrome sample ID(s): 45283,45285,55457,55458,55459,55460,55461,55462,55463,55464,56227,56228,62013,62014,62015,62016,62017,70085,70088,89600,90889,91483,94625,94626,94627,94628
+HELA	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		1239,1240,70084,70087,88888,88889,88890,88891,88996,89605,90949,91468,104618		Cistrome sample ID(s): 1239,1240,70084,70087,88888,88889,88890,88891,88996,89605,90949,91468,104618
+HEPG2	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR042AWH,ENCSR291GJU
+HEPG2	H3K27ac	resolved	direct_measurement	H3K27ac	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR000AMO
+HEPG2	H3K27me3	resolved	direct_measurement	H3K27me3	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR000AOL,ENCSR000DUE
+HL60	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	44971,44972,65308,66077,66078,66171,66172,66173	92929	Dominant identity correct; 1 contaminant sample(s) dropped, 8 clean kept.
+HL60	H3K27ac	resolved	direct_measurement	H3K27ac	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR919WLM
+HL60	H3K27me3	resolved	direct_measurement	H3K27me3	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR198IHT
+HME1	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg19	name_verified	clean		106053,106054,106055,106056,106057,106058,106059,106060,106061,106062,106063,106064		Cistrome sample ID(s): 106053,106054,106055,106056,106057,106058,106059,106060,106061,106062,106063,106064
+HME1	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HME1	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HS27A	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		44900		Cistrome sample ID(s): 44900
+HS27A	H3K27ac	resolved	imputed	H3K27ac	True	epimap	hg19	imputed	imputed_track	imputed_track (EpiMap predicted, not measured; biosample name-verified)	BSS00704		EpiMap imputed track, biosample BSS00704 [perturb=null, exact-name verified].
+HS27A	H3K27me3	resolved	imputed	H3K27me3	True	epimap	hg19	imputed	imputed_track	imputed_track (EpiMap predicted, not measured; biosample name-verified)	BSS00704		EpiMap imputed track, biosample BSS00704 [perturb=null, exact-name verified].
+HS578T	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HS578T	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HS578T	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HT115	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HT115	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HT115	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+HT29	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		78449		Cistrome sample ID(s): 78449
+HT29	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		43640,61966,62025,62026,62027,62028,62029,62030,62031,62032,62033,62034		Cistrome sample ID(s): 43640,61966,62025,62026,62027,62028,62029,62030,62031,62032,62033,62034
+HT29	H3K27me3	resolved	imputed	H3K27me3	True	epimap	hg19	imputed	imputed_track	imputed_track (EpiMap predicted, not measured; biosample name-verified)	BSS00708		EpiMap imputed track, biosample BSS00708 [perturb=null, exact-name verified].
+HUES3	ATAC-seq	resolved	tissue_type_match	ATAC-seq	True	cistrome	hg38	tissue_type_only	clean	tissue_type_only	35742,40513,40603,40692,40694,40706,40711,40715,40745,40751,40767,40783,40784,40785,40786,40873,40997,44923,44924,44925,44926,44927,44928,44929,44930,44931,61678,61679,61680,78236,78318,78433,78434,78435,78436,78437,78852,78853,78854,78855,78856,78857,79091,79092,79239,79431,80434,80435,80436,80437,80438,90693,90694,90695,90696,90697,90698,90699,90700,93790,93795,93796,93948,104896,106252,106253,106254,106255,106256,107640,107641,107642,107643,107644,107645,107646,107647,107648,107649,107650,107651,107652,107653		[alias='hESC' (type alias)] Cistrome sample ID(s): 35742,40513,40603,40692,40694,40706,40711,40715,40745,40751,40767,40783,40784,40785,40786,40873,40997,44923,44924,44925,44926,44927,44928,44929,44930,44931,61678,61679,61680,78236,78318,78433,78434,78435,78436,78437,78852,78853,78854,78855,78856,78857,79091,79092,79239,79431,80434,80435,80436,80437,80438,90693,90694,90695,90696,90697,90698,90699,90700,93790,93795,93796,93948,104896,106252,106253,106254,106255,106256,107640,107641,107642,107643,107644,107645,107646,107647,107648,107649,107650,107651,107652,107653
+HUES3	H3K27ac	resolved	tissue_type_match	H3K27ac	True	cistrome	hg38	tissue_type_only	clean	tissue_type_only	864,867,1025,1026,6412,6413,6414,6415,6416,6437,6438,6439,6494,6531,6534,6535,36224,36644,36869,43368,45227,45243,93191,93193,93194,93195,102861,102862,102871,102872		[alias='hESC' (type alias)] Cistrome sample ID(s): 864,867,1025,1026,6412,6413,6414,6415,6416,6437,6438,6439,6494,6531,6534,6535,36224,36644,36869,43368,45227,45243,93191,93193,93194,93195,102861,102862,102871,102872
+HUES3	H3K27me3	resolved	tissue_type_match	H3K27me3	True	cistrome	hg38	tissue_type_only	clean	tissue_type_only	868,869,870,871,874,875,1029,1030,1031,2939,6386,6387,6417,6418,6440,6441,6495,6496,6532,6536,8501,35354,36219,36222,36619,36620,36851,38293,43369,72044,72046,72048,74798,82987,82991,84271,102859,102860,102869,102870		[alias='hESC' (type alias)] Cistrome sample ID(s): 868,869,870,871,874,875,1029,1030,1031,2939,6386,6387,6417,6418,6440,6441,6495,6496,6532,6536,8501,35354,36219,36222,36619,36620,36851,38293,43369,72044,72046,72048,74798,82987,82991,84271,102859,102860,102869,102870
+HUH7	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg19	name_verified	clean		40761,40770		Cistrome sample ID(s): 40761,40770
+HUH7	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		66908,66909,66910,87149		Cistrome sample ID(s): 66908,66909,66910,87149
+HUH7	H3K27me3	resolved	imputed	H3K27me3	True	epimap	hg19	imputed	imputed_track	imputed_track (EpiMap predicted, not measured; biosample name-verified)	BSS00718		EpiMap imputed track, biosample BSS00718 [perturb=null, exact-name verified].
+HUVEC	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		35744,40904,45014,45015,61548,61549		Cistrome sample ID(s): 35744,40904,45014,45015,61548,61549
+HUVEC	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		33473,33479,35414,35421,37086,41620,41621,44344,44345,44346,44347,44384,44385,45360,45373,48063,48064,48065		Cistrome sample ID(s): 33473,33479,35414,35421,37086,41620,41621,44344,44345,44346,44347,44384,44385,45360,45373,48063,48064,48065
+HUVEC	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		35396,35443,81588		Cistrome sample ID(s): 35396,35443,81588
+JHUEM2	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+JHUEM2	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+JHUEM2	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+JURKAT	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg19	name_verified	clean		45018,45019,78812,78813,78814,78815,78816,78817,78818,78819,80028,80029,80030,80031		Cistrome sample ID(s): 45018,45019,78812,78813,78814,78815,78816,78817,78818,78819,80028,80029,80030,80031
+JURKAT	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	43591,49282,49283,50564,50568,50572,53708,53709,54237	43040	Dominant identity correct; 1 contaminant sample(s) dropped, 9 clean kept.
+JURKAT	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	34269,49284,67368,67369,74124,74125,74126,74127,74128,74129	74122,74123	Dominant identity correct; 2 contaminant sample(s) dropped, 10 clean kept.
+LNCAP	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	5026,5027,7638,7639,8495,8496,43138,43139,43140,43141,43142,43143,43144,43145,43146,43147,43148,43149,43150,43151,43152,43153,43154,43155,43159,43160,45026,45027,65846,65847,65848,93386,93388,93908,93909,93916,93917,93918,93919,105655,105656,105657,105658,105659,105660,105661,105662	65849,65850,65851	Dominant identity correct; 3 contaminant sample(s) dropped, 47 clean kept.
+LNCAP	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		2199,2200,43059,43060,61919,61920,61921,61922,61923,61924,61925,61926,61927,61928,61929,61930,61931,61932,61933,61934,61935,61936,62198,62210,66488,66495,67071,67072,68393,69366,69367,83855,83856,84175,84179,84180,90914,90917,93912,93913,101515,101516		Cistrome sample ID(s): 2199,2200,43059,43060,61919,61920,61921,61922,61923,61924,61925,61926,61927,61928,61929,61930,61931,61932,61933,61934,61935,61936,62198,62210,66488,66495,67071,67072,68393,69366,69367,83855,83856,84175,84179,84180,90914,90917,93912,93913,101515,101516
+LNCAP	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		2201,2202,34325,34328,39738,70757,70758,76143,76144,84175,84179,84180,90915,92449,93914,94709,105664,105665		Cistrome sample ID(s): 2201,2202,34325,34328,39738,70757,70758,76143,76144,84175,84179,84180,90915,92449,93914,94709,105664,105665
+LOVO	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		78500		Cistrome sample ID(s): 78500
+LOVO	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		66756		Cistrome sample ID(s): 66756
+LOVO	H3K27me3	resolved	direct_measurement	H3K27me3	True	epimap	hg19	name_verified	clean				EpiMap imputed track, biosample ID: BSS01179 [perturb=null confirmed]
+MCF10A	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		79427,79428,79429,79430,106852,106853,106854,106855,106856,106857,106858,106859,106860,106861,106862,106863,106864,106865,106866,106867,106868,106869,106870,106871		Cistrome sample ID(s): 79427,79428,79429,79430,106852,106853,106854,106855,106856,106857,106858,106859,106860,106861,106862,106863,106864,106865,106866,106867,106868,106869,106870,106871
+MCF10A	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		58594,66273,66274,66493,66494,81964,81965,82209,82210,82229,82231,82232,84832,84833,84834,84835,84836,86068,86069,86070,86071,86072,86073,86074,86075,86076,86077,86327,86328,86332,86333,105307,105309,108302		Cistrome sample ID(s): 58594,66273,66274,66493,66494,81964,81965,82209,82210,82229,82231,82232,84832,84833,84834,84835,84836,86068,86069,86070,86071,86072,86073,86074,86075,86076,86077,86327,86328,86332,86333,105307,105309,108302
+MCF10A	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	48604,68301,68302,82211,82212,82223,82224,82225,82226,82227,82228,82230,84304,86569	71100,71101	Dominant identity correct; 2 contaminant sample(s) dropped, 14 clean kept.
+MCF7	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR422SUG
+MCF7	H3K27ac	resolved	direct_measurement	H3K27ac	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR000EWR,ENCSR752UOD
+MCF7	H3K27me3	resolved	direct_measurement	H3K27me3	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR000EWP,ENCSR761DLU
+MCH58	ATAC-seq	resolved	tissue_type_match	ATAC-seq	True	cistrome	hg38	tissue_type_only	clean	tissue_type_only	1798,1799,1800,1801,1890,1898,1899,1900,5021,40693,40695,40696,40697,40701,40705,40709,40710,40716,40723,40737,40742,40753,40842,40858,40949,40981,41009,41025,41048,41063,42141,42142,42143,42144,42145,42146,43791,43793,43795,44611,44612,44613,44614,44886,44887,44898,44899,44967,44968,45085,45086,59655,59656,61659,61660,61661,61662,61663,61664,61665,61666,65329,65330,65331,65332,65333,65334,65335,65336,78084,78097,78101,78207,78219,78221,78451,78630,78631,78632,78633,78634,78635,78655,78726,79223,79224,79267,79269,79283,79284,79285,79286,79292,79414,79415,79416,79417,79418,79419,79702,79703,79704,79705,79706,80549,80550,80850,89083,89084,90278,90279,90280,90281,90282,90283,90284,90285,90520,90526,90527,90713,90714,90715,90716,90717,90718,90719,90720,90726,90941,90945,90946,90947,90948,91943,91944,91945,91946,91947,91948,91949,91950,91951,91952,92239,92241,92242,92243,93025,93616,93617,93618,93619,93620,93824,94255,94256,94257,94647,94772,107564,107565,107566,107567,107568,107569,107570,107571,107572,107573		[alias='fibroblast' (type alias)] Cistrome sample ID(s): 1798,1799,1800,1801,1890,1898,1899,1900,5021,40693,40695,40696,40697,40701,40705,40709,40710,40716,40723,40737,40742,40753,40842,40858,40949,40981,41009,41025,41048,41063,42141,42142,42143,42144,42145,42146,43791,43793,43795,44611,44612,44613,44614,44886,44887,44898,44899,44967,44968,45085,45086,59655,59656,61659,61660,61661,61662,61663,61664,61665,61666,65329,65330,65331,65332,65333,65334,65335,65336,78084,78097,78101,78207,78219,78221,78451,78630,78631,78632,78633,78634,78635,78655,78726,79223,79224,79267,79269,79283,79284,79285,79286,79292,79414,79415,79416,79417,79418,79419,79702,79703,79704,79705,79706,80549,80550,80850,89083,89084,90278,90279,90280,90281,90282,90283,90284,90285,90520,90526,90527,90713,90714,90715,90716,90717,90718,90719,90720,90726,90941,90945,90946,90947,90948,91943,91944,91945,91946,91947,91948,91949,91950,91951,91952,92239,92241,92242,92243,93025,93616,93617,93618,93619,93620,93824,94255,94256,94257,94647,94772,107564,107565,107566,107567,107568,107569,107570,107571,107572,107573
+MCH58	H3K27ac	resolved	tissue_type_match	H3K27ac	True	cistrome	hg38	tissue_type_only	clean	tissue_type_only	1820,1821,1822,1891,6383,6384,6385,34298,39825,39828,39837,41276,41277,41622,45467,45497,49412,49413,50354,50355,53130,55895,61976,61977,61978,62055,62056,62057,62068,62069,62070,62071,62072,62199,62200,62201,66287,66288,66289,66290,66291,66292,66293,66294,66454,66460,66461,66462,66463,66464,66465,67030,67031,69207,81285,81374,81377,81698,81699,81701,81824,82521,82522,82646,82647,83596,85522,86651,86652,86653,86654,87498,88629,93646,104544,104545,104546,104547,105552,105553,105566,105567,105568,105569,105730,108515,109843		[alias='fibroblast' (type alias)] Cistrome sample ID(s): 1820,1821,1822,1891,6383,6384,6385,34298,39825,39828,39837,41276,41277,41622,45467,45497,49412,49413,50354,50355,53130,55895,61976,61977,61978,62055,62056,62057,62068,62069,62070,62071,62072,62199,62200,62201,66287,66288,66289,66290,66291,66292,66293,66294,66454,66460,66461,66462,66463,66464,66465,67030,67031,69207,81285,81374,81377,81698,81699,81701,81824,82521,82522,82646,82647,83596,85522,86651,86652,86653,86654,87498,88629,93646,104544,104545,104546,104547,105552,105553,105566,105567,105568,105569,105730,108515,109843
+MCH58	H3K27me3	resolved	tissue_type_match	H3K27me3	True	cistrome	hg38	tissue_type_only	clean	tissue_type_only	537,1823,1824,1892,1901,6388,6389,8502,8503,8504,8505,33359,33363,34316,34437,34439,34453,34456,34459,34645,34646,34648,34651,34652,34654,34656,34661,34666,34667,34672,34673,35709,35721,35925,35926,35927,35930,35932,35933,35935,36117,39806,43564,43565,43574,43575,43579,51797,52578,55900,68032,68033,68034,69209,69410,69413,69416,71311,71312,71313,71314,71315,71316,71317,71318,71328,71329,71749,71750,71751,71752,71753,71754,72002,72004,72006,81286,81331,81338,81375,81642,83073,83074,83297,85140,85434,85445,85514,85516,85517,85519,86655,86656,86659,86660,86981,86985,86986,87330,87497,87499,88630,88966,88970,91053,93961,93962		[alias='fibroblast' (type alias)] Cistrome sample ID(s): 537,1823,1824,1892,1901,6388,6389,8502,8503,8504,8505,33359,33363,34316,34437,34439,34453,34456,34459,34645,34646,34648,34651,34652,34654,34656,34661,34666,34667,34672,34673,35709,35721,35925,35926,35927,35930,35932,35933,35935,36117,39806,43564,43565,43574,43575,43579,51797,52578,55900,68032,68033,68034,69209,69410,69413,69416,71311,71312,71313,71314,71315,71316,71317,71318,71328,71329,71749,71750,71751,71752,71753,71754,72002,72004,72006,81286,81331,81338,81375,81642,83073,83074,83297,85140,85434,85445,85514,85516,85517,85519,86655,86656,86659,86660,86981,86985,86986,87330,87497,87499,88630,88966,88970,91053,93961,93962
+MDAMB231	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		61703,61704,61705,61706,61707,61708,61709,61710,61711,65717,65718,65719,78266,78268,104662,104663		Cistrome sample ID(s): 61703,61704,61705,61706,61707,61708,61709,61710,61711,65717,65718,65719,78266,78268,104662,104663
+MDAMB231	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	41929,41930,54186,61913,61914,61915,61916,61917,61918,62022,84597,84598,103364,103365,103366,103367,103368,103369,103370,103371,103372	54187	Dominant identity correct; 1 contaminant sample(s) dropped, 21 clean kept. MULTIPLEXED sample(s) among dropped (title names >1 line).
+MDAMB231	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	54407,68293,68294,69503,69504,69505,69506,69507,69508,69509,69510,71094,71095,82160,82161,88659,88660	54404	Dominant identity correct; 1 contaminant sample(s) dropped, 17 clean kept. MULTIPLEXED sample(s) among dropped (title names >1 line).
+MDST8	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+MDST8	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+MDST8	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+MNEU.E	ATAC-seq	unresolved	unresolved										MNEU.E terminally-differentiated motor neurons: NOT_DEFENSIBLE to inherit (locked).
+MNEU.E	H3K27ac	unresolved	unresolved										MNEU.E terminally-differentiated motor neurons: NOT_DEFENSIBLE to inherit (locked).
+MNEU.E	H3K27me3	unresolved	unresolved										MNEU.E terminally-differentiated motor neurons: NOT_DEFENSIBLE to inherit (locked).
+NCIH1694	ATAC-seq	resolved	substitute_assay	DNase-seq	False	encode	GRCh38	name_verified	clean	substitute: DNase-seq used for missing ATAC-seq	ENCODE Experiment(s): ENCSR208GRN,ENCSR965SOG		ENCODE Experiment(s): ENCSR208GRN,ENCSR965SOG
+NCIH1694	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH1694	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH1836	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH1836	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH1836	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH2073	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH2073	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH2073	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH508	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH508	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH508	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH596	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH596	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NCIH596	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NEU	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg19	name_verified	clean		66071,66072		Cistrome sample ID(s): 66071,66072
+NEU	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NEU	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NKDBA	ATAC-seq	resolved	tissue_type_match	ATAC-seq	True	epimap	hg19	tissue_type_only	clean	tissue_type_only			[alias='kidney epithelial' (type alias)] EpiMap imputed track, biosample ID: BSS01080 [perturb=null confirmed]
+NKDBA	H3K27ac	resolved	tissue_type_match	H3K27ac	True	epimap	hg19	tissue_type_only	clean	tissue_type_only			[alias='kidney epithelial' (type alias)] EpiMap imputed track, biosample ID: BSS01080 [perturb=null confirmed]
+NKDBA	H3K27me3	resolved	tissue_type_match	H3K27me3	True	cistrome	hg19	tissue_type_only	clean	tissue_type_only	44711		[alias='kidney epithelial' (type alias)] Cistrome sample ID(s): 44711
+NOMO1	ATAC-seq	resolved	substitute_assay	DNase-seq	False	encode	GRCh38	name_verified	clean	substitute: DNase-seq used for missing ATAC-seq	ENCODE Experiment(s): ENCSR144OFT,ENCSR450TDT,ENCSR407GPV,ENCSR499OMA		ENCODE Experiment(s): ENCSR144OFT,ENCSR450TDT,ENCSR407GPV,ENCSR499OMA
+NOMO1	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NOMO1	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+NPC	ATAC-seq	resolved	substitute_assay	H3K4me3 ChIP-seq	False	cistrome	hg38	name_verified	contaminant_samples_removed	substitute: H3K4me3 ChIP-seq used for missing ATAC-seq	6446,6447,6506,36954	84955	Cistrome sample ID(s): 6446,6447,6506,36954,84955
+NPC	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	6416,6439,6494,36224,36869	84956	Dominant identity correct; 1 contaminant sample(s) dropped, 5 clean kept.
+NPC	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		6495,6496,36219,36851		Cistrome sample ID(s): 6495,6496,36219,36851
+NPC.CAS9	ATAC-seq	resolved	related_line_inheritance	H3K4me3 ChIP-seq	False	cistrome	hg38	related_line	contaminant_samples_removed	pre_authorized (Cas9 transgene, chromatin-neutral)	6446,6447,6506,36954	84955	Inherited from NPC/ATAC-seq (cleaned).
+NPC.CAS9	H3K27ac	resolved	related_line_inheritance	H3K27ac	True	cistrome	hg38	related_line	contaminant_samples_removed	pre_authorized (Cas9 transgene, chromatin-neutral)	6416,6439,6494,36224,36869	84956	Inherited from NPC/H3K27ac (cleaned).
+NPC.CAS9	H3K27me3	resolved	related_line_inheritance	H3K27me3	True	cistrome	hg38	related_line	clean	pre_authorized (Cas9 transgene, chromatin-neutral)	6495,6496,36219,36851		Inherited from NPC/H3K27me3 (cleaned).
+NPC.TAK	ATAC-seq	resolved	related_line_inheritance	H3K4me3 ChIP-seq	False	cistrome	hg38	related_line	contaminant_samples_removed	possible_donor_difference (NPC.TAK maintained as distinct line from NPC; TAK not a documented perturbation)	6446,6447,6506,36954	84955	Inherited from NPC/ATAC-seq (cleaned).
+NPC.TAK	H3K27ac	resolved	related_line_inheritance	H3K27ac	True	cistrome	hg38	related_line	contaminant_samples_removed	possible_donor_difference (NPC.TAK maintained as distinct line from NPC; TAK not a documented perturbation)	6416,6439,6494,36224,36869	84956	Inherited from NPC/H3K27ac (cleaned).
+NPC.TAK	H3K27me3	resolved	related_line_inheritance	H3K27me3	True	cistrome	hg38	related_line	clean	possible_donor_difference (NPC.TAK maintained as distinct line from NPC; TAK not a documented perturbation)	6495,6496,36219,36851		Inherited from NPC/H3K27me3 (cleaned).
+OV7	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+OV7	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+OV7	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+PC3	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR499ASS
+PC3	H3K27ac	resolved	direct_measurement	H3K27ac	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR826UTD
+PC3	H3K27me3	resolved	direct_measurement	H3K27me3	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR881TWJ
+PHH	ATAC-seq	resolved	substitute_assay	H3K4me3 ChIP-seq	False	cistrome	hg19	name_verified	clean	substitute: H3K4me3 ChIP-seq used for missing ATAC-seq	105442,105443		Cistrome sample ID(s): 105442,105443
+PHH	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+PHH	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg19	name_verified	clean		105438,105439		Cistrome sample ID(s): 105438,105439
+PL21	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+PL21	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+PL21	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+RKO	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		78447		Cistrome sample ID(s): 78447
+RKO	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		81692		Cistrome sample ID(s): 81692
+RKO	H3K27me3	resolved	direct_measurement	H3K27me3	True	epimap	hg19	name_verified	clean				EpiMap imputed track, biosample ID: BSS01535 [perturb=null confirmed]
+RMGI	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+RMGI	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg19	name_verified	clean		94551,107425,107426		Cistrome sample ID(s): 94551,107425,107426
+RMGI	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+RMUGS	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+RMUGS	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+RMUGS	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SKB	ATAC-seq	resolved	tissue_type_match	ATAC-seq	True	cistrome	hg38	tissue_type_only	clean	tissue_type_only	7921,78636,78637,78689,78690,91617,91618,91619		Skeletal-muscle tissue-type match (SKL rebuilt clean skeletal-muscle pool (AT6BR LCL lymphoblastoid mis-tags excluded)).
+SKB	H3K27ac	resolved	tissue_type_match	H3K27ac	True	cistrome	hg19	tissue_type_only	clean	tissue_type_only	38011,68382		Skeletal-muscle tissue-type match (SKL rebuilt clean skeletal-muscle pool (AT6BR LCL lymphoblastoid mis-tags excluded)).
+SKB	H3K27me3	resolved	tissue_type_match	H3K27me3	True	cistrome	hg19	tissue_type_only	clean	tissue_type_only	3438,3439,3444		Skeletal-muscle tissue-type match (SKL rebuilt clean skeletal-muscle pool (AT6BR LCL lymphoblastoid mis-tags excluded)).
+SKBR3	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		78238,78239,78240		Cistrome sample ID(s): 78238,78239,78240
+SKBR3	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		87173,87174		Cistrome sample ID(s): 87173,87174
+SKBR3	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		51798,87171,87172		Cistrome sample ID(s): 51798,87171,87172
+SKL	ATAC-seq	resolved	tissue_type_match	ATAC-seq	True	cistrome	hg38	tissue_type_only	clean	tissue_type_only	7921,78636,78637,78689,78690,91617,91618,91619		Skeletal-muscle tissue-type match (SKL rebuilt clean skeletal-muscle pool (AT6BR LCL lymphoblastoid mis-tags excluded)).
+SKL	H3K27ac	resolved	tissue_type_match	H3K27ac	True	cistrome	hg19	tissue_type_only	clean	tissue_type_only	38011,68382		Skeletal-muscle tissue-type match (SKL rebuilt clean skeletal-muscle pool (AT6BR LCL lymphoblastoid mis-tags excluded)).
+SKL	H3K27me3	resolved	tissue_type_match	H3K27me3	True	cistrome	hg19	tissue_type_only	clean	tissue_type_only	3438,3439,3444		Skeletal-muscle tissue-type match (SKL rebuilt clean skeletal-muscle pool (AT6BR LCL lymphoblastoid mis-tags excluded)).
+SKL.C	ATAC-seq	resolved	tissue_type_match	ATAC-seq	True	cistrome	hg38	tissue_type_only	clean	tissue_type_only; '.C' lot variant	7921,78636,78637,78689,78690,91617,91618,91619		Skeletal-muscle tissue-type match (SKL rebuilt clean skeletal-muscle pool (AT6BR LCL lymphoblastoid mis-tags excluded)).
+SKL.C	H3K27ac	resolved	tissue_type_match	H3K27ac	True	cistrome	hg19	tissue_type_only	clean	tissue_type_only; '.C' lot variant	38011,68382		Skeletal-muscle tissue-type match (SKL rebuilt clean skeletal-muscle pool (AT6BR LCL lymphoblastoid mis-tags excluded)).
+SKL.C	H3K27me3	resolved	tissue_type_match	H3K27me3	True	cistrome	hg19	tissue_type_only	clean	tissue_type_only; '.C' lot variant	3438,3439,3444		Skeletal-muscle tissue-type match (SKL rebuilt clean skeletal-muscle pool (AT6BR LCL lymphoblastoid mis-tags excluded)).
+SKLU1	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SKLU1	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SKLU1	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SKM1	ATAC-seq	resolved	substitute_assay	DNase-seq	False	encode	GRCh38	name_verified	clean	substitute: DNase-seq used for missing ATAC-seq	ENCODE Experiment(s): ENCSR433QRR,ENCSR881NJY		ENCODE Experiment(s): ENCSR433QRR,ENCSR881NJY
+SKM1	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		57579,57580,57581,57582,57583,57584,57585,57586		Cistrome sample ID(s): 57579,57580,57581,57582,57583,57584,57585,57586
+SKM1	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		57603,57604,57605,57606,57607,57608,57609,57610		Cistrome sample ID(s): 57603,57604,57605,57606,57607,57608,57609,57610
+SKMEL1	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg19	name_verified	clean		79020		Cistrome sample ID(s): 79020
+SKMEL1	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg19	name_verified	clean		85884		Cistrome sample ID(s): 85884
+SKMEL1	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg19	name_verified	clean		85643		Cistrome sample ID(s): 85643
+SKMEL28	ATAC-seq	resolved	substitute_assay	H3K4me3 ChIP-seq	False	cistrome	hg38	name_verified	clean	substitute: H3K4me3 for missing ATAC; rehabilitated (GSM838933='SK-MEL-28', MEL-745A tag artifact)	43881		SK-MEL-28 H3K4me3 (GSM838933) as ATAC proxy; MEL-745A tag disregarded as parser artifact.
+SKMEL28	H3K27ac	unresolved	unresolved										No SK-MEL-28 H3K27ac data in ENCODE/Cistrome/EpiMap/ChIP-Atlas.
+SKMEL28	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean	rehabilitated: MEL-745A CVCL tag was Cistrome parser artifact; GEO GSM838934='SK-MEL-28'	43882		SK-MEL-28 H3K27me3 (GSM838934); MEL-745A tag disregarded as parser artifact.
+SNGM	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNGM	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNGM	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNU1040	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNU1040	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNU1040	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNUC4	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNUC4	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNUC4	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNUC5	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNUC5	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SNUC5	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SW480	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		52052,78450		Cistrome sample ID(s): 52052,78450
+SW480	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		61969,66812,84219,85655		Cistrome sample ID(s): 61969,66812,84219,85655
+SW480	H3K27me3	resolved	direct_measurement	H3K27me3	True	epimap	hg19	name_verified	clean				EpiMap imputed track, biosample ID: BSS01682 [perturb=null confirmed]
+SW620	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SW620	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	clean		81690		Cistrome sample ID(s): 81690
+SW620	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SW948	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SW948	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+SW948	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+T3M10	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+T3M10	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+T3M10	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+THP1	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg19	name_verified	clean		65797,65798,65799,65800,65801,65802,65803,65804,65805,65806,65807,65808,65809,65810,65811,65812		Cistrome sample ID(s): 65797,65798,65799,65800,65801,65802,65803,65804,65805,65806,65807,65808,65809,65810,65811,65812
+THP1	H3K27ac	resolved	direct_measurement	H3K27ac	True	cistrome	hg38	name_verified	contaminant_samples_removed	decontaminated	66631,66836,66837,66838,66839,90572,92937,94180,94181,94188,94189,94191,99715,106386,106882,107548,107549,107550,107551	99714	Dominant identity correct; 1 contaminant sample(s) dropped, 19 clean kept.
+THP1	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+TYKNU	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+TYKNU	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+TYKNU	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+U266	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg38	name_verified	clean		104515		Cistrome sample ID(s): 104515
+U266	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+U266	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+U937	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	cistrome	hg19	name_verified	clean		79496,79497		Cistrome sample ID(s): 79496,79497
+U937	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+U937	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+VCAP	ATAC-seq	resolved	direct_measurement	ATAC-seq	True	epimap	hg19	name_verified	clean				EpiMap imputed track, biosample ID: BSS01888 [perturb=null confirmed]
+VCAP	H3K27ac	resolved	direct_measurement	H3K27ac	True	encode	GRCh38	name_verified	clean				ENCODE Experiment(s): ENCSR597ULV
+VCAP	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg19	name_verified	clean		2922,2923,2924		Cistrome sample ID(s): 2922,2923,2924
+WSUDLCL2	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+WSUDLCL2	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+WSUDLCL2	H3K27me3	resolved	direct_measurement	H3K27me3	True	cistrome	hg38	name_verified	clean		40317		Cistrome sample ID(s): 40317
+YAPC	ATAC-seq	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+YAPC	H3K27ac	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.
+YAPC	H3K27me3	unresolved	unresolved										No verified data via direct, substitute, or tissue-type matching.

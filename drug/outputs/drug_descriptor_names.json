@@ -1,0 +1,22 @@
+[
+ "MolWt",
+ "LogP",
+ "TPSA",
+ "HBD",
+ "HBA",
+ "RotatableBonds",
+ "AromaticRings",
+ "AliphaticRings",
+ "RingCount",
+ "FractionCSP3",
+ "HeavyAtoms",
+ "Heteroatoms",
+ "SaturatedRings",
+ "QED",
+ "MolMR",
+ "LabuteASA",
+ "BertzCT",
+ "NumNO",
+ "FormalCharge",
+ "NumStereo"
+]

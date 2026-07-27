@@ -1,0 +1,81 @@
+﻿Loading Cistrome JSON...
+Loading EpiMap TSV...
+Loading v6 coverage report...
+
+Found 22 alias-resolved rows to retroactively classify.
+  FLAGGED: ASC.C/ATAC-seq (alias='ASC', base_cell_id from cell_info) -> PENDING_CISTROME_AUDIT
+    Sample(s): 90459,90460,90461,93235,93236,93237,93238,93239,93240,93241,93242,93243,93244
+    Note: [NAME-ALIAS MATCH] Cistrome sample 90459 ontology 'stem cell' differs from target 'ASC.C' (alias_desc='base_cell_id from cell_info') and is not a generic tissue
+  FLAGGED: HUES3/ATAC-seq (alias='hESC', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 35742,40513,40603,40692,40694,40706,40711,40715,40745,40751,40767,40783,40784,40785,40786,40873,40997,44923,44924,44925,44926,44927,44928,44929,44930,44931,61678,61679,61680,78236,78318,78433,78434,78435,78436,78437,78852,78853,78854,78855,78856,78857,79091,79092,79239,79431,80434,80435,80436,80437,80438,90693,90694,90695,90696,90697,90698,90699,90700,93790,93795,93796,93948,104896,106252,106253,106254,106255,106256,107640,107641,107642,107643,107644,107645,107646,107647,107648,107649,107650,107651,107652,107653
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 35742 ontology 'embryonic stem cell' does not match target 'HUES3' (alias_desc='type alias'); no generic-term exemption appli
+  FLAGGED: HUES3/H3K27ac (alias='hESC', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 864,867,1025,1026,6412,6413,6414,6415,6416,6437,6438,6439,6494,6531,6534,6535,36224,36644,36869,43368,45227,45243,93191,93193,93194,93195,102861,102862,102871,102872
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 864 ontology 'stem cell' does not match target 'HUES3' (alias_desc='type alias'); no generic-term exemption applies to type-a
+  FLAGGED: HUES3/H3K27me3 (alias='hESC', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 868,869,870,871,874,875,1029,1030,1031,2939,6386,6387,6417,6418,6440,6441,6495,6496,6532,6536,8501,35354,36219,36222,36619,36620,36851,38293,43369,72044,72046,72048,74798,82987,82991,84271,102859,102860,102869,102870
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 868 ontology 'stem cell' does not match target 'HUES3' (alias_desc='type alias'); no generic-term exemption applies to type-a
+  FLAGGED: MCH58/ATAC-seq (alias='fibroblast', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 1798,1799,1800,1801,1890,1898,1899,1900,5021,40693,40695,40696,40697,40701,40705,40709,40710,40716,40723,40737,40742,40753,40842,40858,40949,40981,41009,41025,41048,41063,42141,42142,42143,42144,42145,42146,43791,43793,43795,44611,44612,44613,44614,44886,44887,44898,44899,44967,44968,45085,45086,59655,59656,61659,61660,61661,61662,61663,61664,61665,61666,65329,65330,65331,65332,65333,65334,65335,65336,78084,78097,78101,78207,78219,78221,78451,78630,78631,78632,78633,78634,78635,78655,78726,79223,79224,79267,79269,79283,79284,79285,79286,79292,79414,79415,79416,79417,79418,79419,79702,79703,79704,79705,79706,80549,80550,80850,89083,89084,90278,90279,90280,90281,90282,90283,90284,90285,90520,90526,90527,90713,90714,90715,90716,90717,90718,90719,90720,90726,90941,90945,90946,90947,90948,91943,91944,91945,91946,91947,91948,91949,91950,91951,91952,92239,92241,92242,92243,93025,93616,93617,93618,93619,93620,93824,94255,94256,94257,94647,94772,107564,107565,107566,107567,107568,107569,107570,107571,107572,107573
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 1798 ontology 'fibroblast derived cell line' does not match target 'MCH58' (alias_desc='type alias'); no generic-term exempti
+  FLAGGED: MCH58/H3K27ac (alias='fibroblast', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 1820,1821,1822,1891,6383,6384,6385,34298,39825,39828,39837,41276,41277,41622,45467,45497,49412,49413,50354,50355,53130,55895,61976,61977,61978,62055,62056,62057,62068,62069,62070,62071,62072,62199,62200,62201,66287,66288,66289,66290,66291,66292,66293,66294,66454,66460,66461,66462,66463,66464,66465,67030,67031,69207,81285,81374,81377,81698,81699,81701,81824,82521,82522,82646,82647,83596,85522,86651,86652,86653,86654,87498,88629,93646,104544,104545,104546,104547,105552,105553,105566,105567,105568,105569,105730,108515,109843
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 1820 ontology 'fibroblast derived cell line' does not match target 'MCH58' (alias_desc='type alias'); no generic-term exempti
+  FLAGGED: MCH58/H3K27me3 (alias='fibroblast', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 537,1823,1824,1892,1901,6388,6389,8502,8503,8504,8505,33359,33363,34316,34437,34439,34453,34456,34459,34645,34646,34648,34651,34652,34654,34656,34661,34666,34667,34672,34673,35709,35721,35925,35926,35927,35930,35932,35933,35935,36117,39806,43564,43565,43574,43575,43579,51797,52578,55900,68032,68033,68034,69209,69410,69413,69416,71311,71312,71313,71314,71315,71316,71317,71318,71328,71329,71749,71750,71751,71752,71753,71754,72002,72004,72006,81286,81331,81338,81375,81642,83073,83074,83297,85140,85434,85445,85514,85516,85517,85519,86655,86656,86659,86660,86981,86985,86986,87330,87497,87499,88630,88966,88970,91053,93961,93962
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 537 ontology 'fibroblast' does not match target 'MCH58' (alias_desc='type alias'); no generic-term exemption applies to type-
+  FLAGGED: MNEU.E/ATAC-seq (alias='motor neuron', cell type) -> PENDING_CISTROME_AUDIT
+    Sample(s): 61668,61669,61670,61671,61672,61673,106569,106570,106571
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 61668 ontology 'motor neuron' does not match target 'MNEU.E' (alias_desc='cell type'); no generic-term exemption applies to t
+  FLAGGED: NKDBA/ATAC-seq (EpiMap, alias='kidney epithelial', type alias) -> PENDING_EPIMAP_AUDIT
+    ID: BSS01080, ct='kidney_epithelial_cell', name='kidney epithelial cell'
+  FLAGGED: NKDBA/H3K27ac (EpiMap, alias='kidney epithelial', type alias) -> PENDING_EPIMAP_AUDIT
+    ID: BSS01080, ct='kidney_epithelial_cell', name='kidney epithelial cell'
+  FLAGGED: NKDBA/H3K27me3 (alias='kidney epithelial', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 44711
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 44711 ontology 'kidney epithelium' does not match target 'NKDBA' (alias_desc='type alias'); no generic-term exemption applies
+  FLAGGED: NPC.TAK/H3K27ac (alias='NPC', base_cell_id from cell_info) -> PENDING_CISTROME_AUDIT
+    Sample(s): 6416,6439,6494,36224,36869,84956
+    Note: [NAME-ALIAS MATCH] Cistrome sample 6416 ontology 'embryonic stem cell' differs from target 'NPC.TAK' (alias_desc='base_cell_id from cell_info') and is not a gen
+  FLAGGED: NPC.TAK/H3K27me3 (alias='NPC', base_cell_id from cell_info) -> PENDING_CISTROME_AUDIT
+    Sample(s): 6495,6496,36219,36851
+    Note: [NAME-ALIAS MATCH] Cistrome sample 6495 ontology 'embryonic stem cell' differs from target 'NPC.TAK' (alias_desc='base_cell_id from cell_info') and is not a gen
+  FLAGGED: SKB/ATAC-seq (alias='myoblast', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 7921,78636,78637,78689,78690,91385,91387,91388,91389,91390,91391,91392,91393,91394,91542,91611,91612,91613,91614,91615,91616,91617,91618,91619,94124,94125,94285,94286,94287,94288,94289,94290,94291,94292,94293,94294
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 7921 ontology 'HS-MM' does not match target 'SKB' (alias_desc='type alias'); no generic-term exemption applies to type-alias 
+  FLAGGED: SKB/H3K27ac (alias='myoblast', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 62060,68382
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 62060 ontology 'myoblast' does not match target 'SKB' (alias_desc='type alias'); no generic-term exemption applies to type-al
+  FLAGGED: SKB/H3K27me3 (EpiMap, alias='myoblast', type alias) -> PENDING_EPIMAP_AUDIT
+    ID: BSS01344, ct='myotube_originated_from_skeletal_muscle_myoblast', name='myotube originated from skeletal muscle myoblast'
+  FLAGGED: SKL/ATAC-seq (alias='skeletal muscle', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 7921,91385,91387,91388,91389,91390,91391,91392,91393,91394,91542,91611,91612,91613,91614,91615,91616,91617,91618,91619,94124,94125,94285,94286,94287,94288,94289,94290,94291,94292,94293,94294
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 7921 ontology 'HS-MM' does not match target 'SKL' (alias_desc='type alias'); no generic-term exemption applies to type-alias 
+  FLAGGED: SKL/H3K27ac (alias='skeletal muscle', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 38011
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 38011 ontology 'somatic muscle' does not match target 'SKL' (alias_desc='type alias'); no generic-term exemption applies to t
+  FLAGGED: SKL/H3K27me3 (alias='skeletal muscle', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 3438,3439,3444
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 3438 ontology 'somatic muscle' does not match target 'SKL' (alias_desc='type alias'); no generic-term exemption applies to ty
+  FLAGGED: SKL.C/ATAC-seq (alias='skeletal muscle', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 7921,91385,91387,91388,91389,91390,91391,91392,91393,91394,91542,91611,91612,91613,91614,91615,91616,91617,91618,91619,94124,94125,94285,94286,94287,94288,94289,94290,94291,94292,94293,94294
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 7921 ontology 'HS-MM' does not match target 'SKL.C' (alias_desc='type alias'); no generic-term exemption applies to type-alia
+  FLAGGED: SKL.C/H3K27ac (alias='skeletal muscle', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 38011
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 38011 ontology 'somatic muscle' does not match target 'SKL.C' (alias_desc='type alias'); no generic-term exemption applies to
+  FLAGGED: SKL.C/H3K27me3 (alias='skeletal muscle', type alias) -> PENDING_CISTROME_AUDIT
+    Sample(s): 3438,3439,3444
+    Note: [TYPE-ALIAS MATCH] Cistrome sample 3438 ontology 'somatic muscle' does not match target 'SKL.C' (alias_desc='type alias'); no generic-term exemption applies to 
+
+Saved C:\Projects\LINCS\Epigenetics\retroactive_classification_v6.tsv (22 rows)
+Saved C:\Projects\LINCS\Epigenetics\flagged_raw_records_v6.json (663 flagged records)
+Saved C:\Projects\LINCS\Epigenetics\coverage_report_v6_reclassified.tsv (249 rows)
+
+=== RETROACTIVE CLASSIFICATION SUMMARY ===
+Total alias-resolved rows classified:  22
+  Type-alias rows:                      19
+  Name-based alias rows:                3
+Newly flagged (PENDING audit):          22
+Clean (CLEAN_PENDING audit):            0
+Raw records written to flagged file:    663
+

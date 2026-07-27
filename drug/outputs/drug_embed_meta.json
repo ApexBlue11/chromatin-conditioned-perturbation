@@ -1,0 +1,9 @@
+{
+  "n": 21220,
+  "chemberta_model": "DeepChem/ChemBERTa-77M-MLM",
+  "molformer_model": "ibm/MoLFormer-XL-both-10pct",
+  "gpus": 2,
+  "unimol_dim": 512,
+  "unimol_ok": 21220,
+  "chemberta_dim": 384
+}

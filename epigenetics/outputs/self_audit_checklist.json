@@ -1,0 +1,22 @@
+{
+  "checks": {
+    "no_imputation_used": true,
+    "cell_id_present_on_every_output_row": true,
+    "roster_derived_from_sig_info_trt_cp_only": true,
+    "no_ad_hoc_biological_filtering_applied": true,
+    "genome_build_checked_per_file": true,
+    "tss_definition_rule_stated_and_consistent": true,
+    "gene_matching_used_entrez_not_symbol_only": true,
+    "every_roster_cell_line_has_a_row_for_all_3_marks": true
+  },
+  "evidence": {
+    "no_imputation_used": "Confirmed: No mean or placeholder imputation used; missing values marked 'unresolved'.",
+    "cell_id_present_on_every_output_row": "Confirmed: 'lincs_cell_id' column is present on all rows of coverage_report.tsv.",
+    "roster_derived_from_sig_info_trt_cp_only": "Confirmed: Parsed from both Phase I and II sig_info where pert_type == 'trt_cp'.",
+    "no_ad_hoc_biological_filtering_applied": "Confirmed: Included MCH58, CD34, HUES3, FIBRNPC, NPC, NEU and all other lines directly from sig_info.",
+    "genome_build_checked_per_file": "Confirmed: Assemblies programmatically read and logged per file used.",
+    "tss_definition_rule_stated_and_consistent": "Confirmed: Documented MANE Select primary with Ensembl Canonical fallback + 5' upstream tie-breaker.",
+    "gene_matching_used_entrez_not_symbol_only": "Confirmed: All 978 target genes referenced by Entrez ID.",
+    "every_roster_cell_line_has_a_row_for_all_3_marks": "Confirmed: 83 cell lines * 3 marks = 249 rows in coverage_report.tsv."
+  }
+}

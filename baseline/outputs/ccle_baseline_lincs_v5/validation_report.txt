@@ -1,0 +1,25 @@
+VALIDATION REPORT
+======================================================================
+X_base_lincs.npy shape: (83, 978)
+X_base_lincs dtype: float32
+X_base_lincs_raw.npy shape: (83, 978)
+X_base_lincs_raw dtype: float32
+NaN count scaled: 0
+NaN count raw: 0
+Gene mean range: [-1.853413, 4.087017]
+Gene std range: [0.641869, 5.651980]
+
+FILE SIZES
+X_base_lincs.npy: 324824 bytes
+X_base_lincs_raw.npy: 324824 bytes
+lincs_cell_index.json: 3228 bytes
+ccle_resolution_lincs.tsv: 12202 bytes
+gene_resolution_report.tsv: 59585 bytes
+cell_list_discrepancy_report.txt: 137 bytes
+script_sha256.txt: 66 bytes
+methodology_summary.txt: 834 bytes
+self_audit_checklist.json: 2576 bytes
+ccle_baseline_provenance.json: 8022 bytes
+validation_report.txt: 344 bytes
+ccle_full_background.npy: 6724856 bytes
+ccle_expression_scaler.pkl: 23901 bytes

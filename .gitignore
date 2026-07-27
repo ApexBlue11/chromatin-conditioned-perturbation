@@ -1,0 +1,67 @@
+# ---------------------------------------------------------------------------
+# Data is NOT committed. ~32 GB of it, and all of it is either public (LINCS,
+# CCLE/DepMap, STRING, STITCH, ChEMBL, ChIP-Atlas/ENCODE) or derivable by running
+# the pipeline in METHODOLOGY.md 9. See data/README.md for exact sources + checksums.
+# ---------------------------------------------------------------------------
+
+# raw third-party downloads
+level5 data/
+Data Info/
+baseline/CCLE/
+drug/data/
+network/data/
+epigenetics/chip_atlas/downloads/
+epigenetics/data/
+
+# derived tensors (rebuild via the pipeline)
+*.gctx
+phase2_assembly/outputs/*.npy
+drug/outputs/*.npy
+baseline/outputs/**/*.npy
+network/outputs/*.npy
+
+# ...but DO keep the small, hard-won derived artifacts that are expensive to
+# recreate and cheap to store (index/mapping/reference files + the cell features)
+!baseline/outputs/ccle_baseline_lincs_v5/lincs_cell_index.json
+!baseline/outputs/cellfeat/cell_lineage.npy
+!drug/outputs/drug_feature_index.json
+!drug/outputs/splits/scaffold_split.json
+!drug/outputs/dti/dti_reference.tsv
+!phase2_assembly/outputs/sig_strength.npy
+
+# model weights -> published via GitHub Releases / LFS, not committed directly
+*.pt
+*.pth
+*.ckpt
+model/results/preds_cache.npz
+
+# environments & caches
+.venv*/
+**/.venv-*/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+
+# kaggle credentials -- never commit
+kaggle.json
+.kaggle/
+
+# os / editor
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/
+.idea/
+
+# third-party papers -- copyrighted, never redistribute
+*.pdf
+
+# large derived tables (rebuild via phase2_assembly/step6)
+phase2_assembly/outputs/*.tsv
+!phase2_assembly/outputs/E_reliability.tsv
+
+# large reference/intermediate tables (re-downloadable or rebuildable)
+baseline/hgnc_complete_set.txt
+epigenetics/outputs/flagged_raw_records_v6.json
+phase2_assembly/outputs/chip_atlas_human_epi.tab

@@ -1,0 +1,20 @@
+{
+  "script_hash_matched_reference": false,
+  "script_hash_matched_reference_evidence": "The SHA256 of 07_build_x_base_lincs.py is 31c6905d7d5a6f2ae6a317dcff5dccd26e2fc63060816d6a15e43699c22b84b6, which does not match the target 43e74d38c495cca96ba9a3ee8a40330a2c53768d2637503d6c2470c9ba1fbf09.",
+  "manual_verification_completed": true,
+  "manual_verification_completed_evidence": "A full line-by-line verification of Section 1 items was done and confirmed correct.",
+  "phase2_files_confirmed_genuine": true,
+  "phase2_files_confirmed_genuine_evidence": "Phase II sig_info row count is 118,050 and inst_info row count is 345,976, which are distinct from Phase I (473,647 and 1,319,138). Hashes and paths also differ.",
+  "phase2_aliasing_bug_fixed": true,
+  "phase2_aliasing_bug_fixed_evidence": "Variables point to the actual Phase II files under Lincs metadata (GSE70138). Runtime assertions verify they are not aliased.",
+  "discrepancy_report_path_fixed": true,
+  "discrepancy_report_path_fixed_evidence": "The comparison script points to output/ccle_baseline_lincs_v4/ccle_resolution_lincs.tsv, which contains the real prior artifact.",
+  "validation_report_file_list_updated": true,
+  "validation_report_file_list_updated_evidence": "All 13 output files are present in OUTPUT_FILES and checked for nonzero sizes in validation_report.txt.",
+  "secondary_source_merge_implemented_or_corrected": true,
+  "secondary_source_merge_implemented_or_corrected_evidence": "The column is corrected to secondary_source_available to accurately represent data availability without claiming usage.",
+  "03_build_x_base_relationship_determined": true,
+  "03_build_x_base_relationship_determined_evidence": "Determined that 03_build_x_base.py is dead scratch work that crashed, and 07_build_x_base_lincs.py does not read or import anything from it.",
+  "no_imputation_anywhere": true,
+  "no_imputation_anywhere_evidence": "Verified that no fillna, SimpleImputer, or mean imputation is present anywhere in the script."
+}

@@ -1,0 +1,250 @@
+lincs_cell_id	mark	source_used	genome_build	notes
+A375	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 78261,78465
+A375	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 61838,69519,81762,83677,87813,105159
+A375	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+A549	ATAC-seq	encode	GRCh38	ENCODE Experiment(s): ENCSR265ZXX,ENCSR139OYS,ENCSR288YMH,ENCSR074AHH,ENCSR220ASC,ENCSR032RGS
+A549	H3K27ac	encode	GRCh38	ENCODE Experiment(s): ENCSR000AVF,ENCSR325VCV,ENCSR778NQS,ENCSR480OHP,ENCSR864KVZ,ENCSR340NAL,ENCSR614NPG,ENCSR569IBY,ENCSR435JKM,ENCSR000AUI,ENCSR242TBH,ENCSR543ZVZ,ENCSR783SNV,ENCSR250EHC,ENCSR027BPE,ENCSR734FLK,ENCSR102XUM,ENCSR180YHA,ENCSR350EFV,ENCSR716XDB
+A549	H3K27me3	encode	GRCh38	ENCODE Experiment(s): ENCSR000AUK,ENCSR000AUJ
+A673	ATAC-seq	epimap	hg19	EpiMap imputed track, biosample ID: BSS00035 [perturb=null confirmed]
+A673	H3K27ac	encode	GRCh38	ENCODE Experiment(s): ENCSR714TJD
+A673	H3K27me3	encode	GRCh38	ENCODE Experiment(s): ENCSR747BYL
+AGS	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+AGS	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 61989,81493
+AGS	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+ASC	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 90459,90460,90461,93235,93236,93237,93238,93239,93240,93241,93242,93243,93244
+ASC	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+ASC	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+ASC.C	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+ASC.C	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+ASC.C	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+BT20	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+BT20	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+BT20	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+CD34	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 3183,3195,3196,3197,3200,3202,3203,3206,3207,3208,3209,3214,3216,3217,3219,40531,41023,41052,44908,55174
+CD34	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 8147,8162,8171,66900
+CD34	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 3431,3442,3451,3466,3467,3477,3478,6603,8227,8376,8377,74058,74059,75057
+CL34	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+CL34	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+CL34	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+CORL23	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+CORL23	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+CORL23	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+COV644	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+COV644	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+COV644	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+DV90	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+DV90	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+DV90	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+EFO27	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+EFO27	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+EFO27	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+FIBRNPC	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+FIBRNPC	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+FIBRNPC	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+H1299	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+H1299	H3K27ac	cistrome	hg19	Cistrome sample ID(s): 81435,81442,81747,85269,85579
+H1299	H3K27me3	cistrome	hg19	Cistrome sample ID(s): 76235,76237,76239,76241,76243,76245,81434,81441,81746,85270,85580
+HA1E	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HA1E	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HA1E	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HCC15	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HCC15	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 108167,108168,108169,108170
+HCC15	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 108159,108160,108161,108162
+HCC515	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HCC515	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HCC515	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HCT116	ATAC-seq	encode	GRCh38	ENCODE Experiment(s): ENCSR872WGW,ENCSR389WJO,ENCSR182JAI,ENCSR059BAR,ENCSR260SWI,ENCSR441BDP,ENCSR477YZA,ENCSR816PPJ,ENCSR874GXS,ENCSR302NVX,ENCSR328JGW,ENCSR780PLN,ENCSR445VYQ,ENCSR135OML,ENCSR988ITF,ENCSR998BBI,ENCSR345XUN
+HCT116	H3K27ac	encode	GRCh38	ENCODE Experiment(s): ENCSR000EUT,ENCSR661KMA
+HCT116	H3K27me3	encode	GRCh38	ENCODE Experiment(s): ENCSR810BDB
+HEC108	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HEC108	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HEC108	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HEK293T	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 40986,53817,53818,53819,53820,53821,53822,53823,53824,53825,53826,53827,53828,53829,53830,53831,53832,53833,53834,53835,53836,53837,53838,53839,53840,53841,53842,53843,53844,53845,53846,53847,53848,53849,53850,53851,53852,53853,53854,53855,53856,53857,53858,53859,53860,53861,53862,53863,79294,79326,80454,80455,94772
+HEK293T	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 43073,50458,66496
+HEK293T	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 8557,90447,90448,92294
+HELA	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 5020,35747,44959,44960,52053,54408,56223,56224,90182,91330,91395,93085,93086,94385,94387,94388,94389,94390,100148,100149
+HELA	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 45283,45285,55457,55458,55459,55460,55461,55462,55463,55464,56227,56228,62013,62014,62015,62016,62017,70085,70088,89600,90889,91483,94625,94626,94627,94628
+HELA	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 1239,1240,70084,70087,88888,88889,88890,88891,88996,89605,90949,91468,104618
+HEPG2	ATAC-seq	encode	GRCh38	ENCODE Experiment(s): ENCSR042AWH,ENCSR291GJU
+HEPG2	H3K27ac	encode	GRCh38	ENCODE Experiment(s): ENCSR000AMO
+HEPG2	H3K27me3	encode	GRCh38	ENCODE Experiment(s): ENCSR000AOL,ENCSR000DUE
+HL60	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 44971,44972,65308,66077,66078,66171,66172,66173,92929
+HL60	H3K27ac	encode	GRCh38	ENCODE Experiment(s): ENCSR919WLM
+HL60	H3K27me3	encode	GRCh38	ENCODE Experiment(s): ENCSR198IHT
+HME1	ATAC-seq	cistrome	hg19	Cistrome sample ID(s): 106053,106054,106055,106056,106057,106058,106059,106060,106061,106062,106063,106064
+HME1	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HME1	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HS27A	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 44900
+HS27A	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HS27A	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HS578T	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HS578T	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HS578T	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HT115	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HT115	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HT115	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HT29	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 78449
+HT29	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 43640,61966,62025,62026,62027,62028,62029,62030,62031,62032,62033,62034
+HT29	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HUES3	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HUES3	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HUES3	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HUH7	ATAC-seq	cistrome	hg19	Cistrome sample ID(s): 40761,40770
+HUH7	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 66908,66909,66910,87149
+HUH7	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+HUVEC	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 35744,40904,45014,45015,61548,61549
+HUVEC	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 33473,33479,35414,35421,37086,41620,41621,44344,44345,44346,44347,44384,44385,45360,45373,48063,48064,48065
+HUVEC	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 35396,35443,81588
+JHUEM2	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+JHUEM2	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+JHUEM2	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+JURKAT	ATAC-seq	cistrome	hg19	Cistrome sample ID(s): 45018,45019,78812,78813,78814,78815,78816,78817,78818,78819,80028,80029,80030,80031
+JURKAT	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 43040,43591,49282,49283,50564,50568,50572,53708,53709,54237
+JURKAT	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 34269,49284,67368,67369,74122,74123,74124,74125,74126,74127,74128,74129
+LNCAP	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 5026,5027,7638,7639,8495,8496,43138,43139,43140,43141,43142,43143,43144,43145,43146,43147,43148,43149,43150,43151,43152,43153,43154,43155,43159,43160,45026,45027,65846,65847,65848,65849,65850,65851,93386,93388,93908,93909,93916,93917,93918,93919,105655,105656,105657,105658,105659,105660,105661,105662
+LNCAP	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 2199,2200,43059,43060,61919,61920,61921,61922,61923,61924,61925,61926,61927,61928,61929,61930,61931,61932,61933,61934,61935,61936,62198,62210,66488,66495,67071,67072,68393,69366,69367,83855,83856,84175,84179,84180,90914,90917,93912,93913,101515,101516
+LNCAP	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 2201,2202,34325,34328,39738,70757,70758,76143,76144,84175,84179,84180,90915,92449,93914,94709,105664,105665
+LOVO	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 78500
+LOVO	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 66756
+LOVO	H3K27me3	epimap	hg19	EpiMap imputed track, biosample ID: BSS01179 [perturb=null confirmed]
+MCF10A	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 79427,79428,79429,79430,106852,106853,106854,106855,106856,106857,106858,106859,106860,106861,106862,106863,106864,106865,106866,106867,106868,106869,106870,106871
+MCF10A	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 58594,66273,66274,66493,66494,81964,81965,82209,82210,82229,82231,82232,84832,84833,84834,84835,84836,86068,86069,86070,86071,86072,86073,86074,86075,86076,86077,86327,86328,86332,86333,105307,105309,108302
+MCF10A	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 48604,68301,68302,71100,71101,82211,82212,82223,82224,82225,82226,82227,82228,82230,84304,86569
+MCF7	ATAC-seq	encode	GRCh38	ENCODE Experiment(s): ENCSR422SUG
+MCF7	H3K27ac	encode	GRCh38	ENCODE Experiment(s): ENCSR000EWR,ENCSR752UOD
+MCF7	H3K27me3	encode	GRCh38	ENCODE Experiment(s): ENCSR000EWP,ENCSR761DLU
+MCH58	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+MCH58	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+MCH58	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+MDAMB231	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 61703,61704,61705,61706,61707,61708,61709,61710,61711,65717,65718,65719,78266,78268,104662,104663
+MDAMB231	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 41929,41930,54186,54187,61913,61914,61915,61916,61917,61918,62022,84597,84598,103364,103365,103366,103367,103368,103369,103370,103371,103372
+MDAMB231	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 54404,54407,68293,68294,69503,69504,69505,69506,69507,69508,69509,69510,71094,71095,82160,82161,88659,88660
+MDST8	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+MDST8	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+MDST8	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+MNEU.E	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+MNEU.E	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+MNEU.E	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH1694	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH1694	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH1694	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH1836	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH1836	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH1836	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH2073	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH2073	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH2073	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH508	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH508	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH508	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH596	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH596	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NCIH596	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NEU	ATAC-seq	cistrome	hg19	Cistrome sample ID(s): 66071,66072
+NEU	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NEU	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NKDBA	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NKDBA	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NKDBA	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NOMO1	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NOMO1	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NOMO1	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NPC	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NPC	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 6416,6439,6494,36224,36869,84956
+NPC	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 6495,6496,36219,36851
+NPC.CAS9	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NPC.CAS9	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NPC.CAS9	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NPC.TAK	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NPC.TAK	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+NPC.TAK	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+OV7	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+OV7	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+OV7	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+PC3	ATAC-seq	encode	GRCh38	ENCODE Experiment(s): ENCSR499ASS
+PC3	H3K27ac	encode	GRCh38	ENCODE Experiment(s): ENCSR826UTD
+PC3	H3K27me3	encode	GRCh38	ENCODE Experiment(s): ENCSR881TWJ
+PHH	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+PHH	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+PHH	H3K27me3	cistrome	hg19	Cistrome sample ID(s): 105438,105439
+PL21	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+PL21	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+PL21	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+RKO	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 78447
+RKO	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 81692
+RKO	H3K27me3	epimap	hg19	EpiMap imputed track, biosample ID: BSS01535 [perturb=null confirmed]
+RMGI	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+RMGI	H3K27ac	cistrome	hg19	Cistrome sample ID(s): 94551,107425,107426
+RMGI	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+RMUGS	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+RMUGS	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+RMUGS	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKB	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKB	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKB	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKBR3	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 78238,78239,78240
+SKBR3	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 87173,87174
+SKBR3	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 51798,87171,87172
+SKL	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKL	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKL	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKL.C	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKL.C	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKL.C	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKLU1	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKLU1	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKLU1	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKM1	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKM1	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 57579,57580,57581,57582,57583,57584,57585,57586
+SKM1	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 57603,57604,57605,57606,57607,57608,57609,57610
+SKMEL1	ATAC-seq	cistrome	hg19	Cistrome sample ID(s): 79020
+SKMEL1	H3K27ac	cistrome	hg19	Cistrome sample ID(s): 85884
+SKMEL1	H3K27me3	cistrome	hg19	Cistrome sample ID(s): 85643
+SKMEL28	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKMEL28	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SKMEL28	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 43882
+SNGM	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNGM	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNGM	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNU1040	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNU1040	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNU1040	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNUC4	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNUC4	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNUC4	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNUC5	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNUC5	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SNUC5	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SW480	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 52052,78450
+SW480	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 61969,66812,84219,85655
+SW480	H3K27me3	epimap	hg19	EpiMap imputed track, biosample ID: BSS01682 [perturb=null confirmed]
+SW620	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SW620	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 81690
+SW620	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SW948	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SW948	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+SW948	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+T3M10	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+T3M10	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+T3M10	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+THP1	ATAC-seq	cistrome	hg19	Cistrome sample ID(s): 65797,65798,65799,65800,65801,65802,65803,65804,65805,65806,65807,65808,65809,65810,65811,65812
+THP1	H3K27ac	cistrome	hg38	Cistrome sample ID(s): 66631,66836,66837,66838,66839,90572,92937,94180,94181,94188,94189,94191,99714,99715,106386,106882,107548,107549,107550,107551
+THP1	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+TYKNU	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+TYKNU	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+TYKNU	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+U266	ATAC-seq	cistrome	hg38	Cistrome sample ID(s): 104515
+U266	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+U266	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+U937	ATAC-seq	cistrome	hg19	Cistrome sample ID(s): 79496,79497
+U937	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+U937	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+VCAP	ATAC-seq	epimap	hg19	EpiMap imputed track, biosample ID: BSS01888 [perturb=null confirmed]
+VCAP	H3K27ac	encode	GRCh38	ENCODE Experiment(s): ENCSR597ULV
+VCAP	H3K27me3	cistrome	hg19	Cistrome sample ID(s): 2922,2923,2924
+WSUDLCL2	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+WSUDLCL2	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+WSUDLCL2	H3K27me3	cistrome	hg38	Cistrome sample ID(s): 40317
+YAPC	ATAC-seq	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+YAPC	H3K27ac	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.
+YAPC	H3K27me3	unresolved	None	Checked ENCODE, Cistrome, and EpiMap. No datasets found.

@@ -1,0 +1,5 @@
+# drug env -- Python 3.12.13 (drug/.venv-drug), created with: uv venv --python 3.12
+# SMILES extraction, RDKit descriptors/ECFP4 fingerprints, Bemis-Murcko scaffold split
+rdkit==2026.3.4
+numpy==2.5.1
+pandas==3.0.3

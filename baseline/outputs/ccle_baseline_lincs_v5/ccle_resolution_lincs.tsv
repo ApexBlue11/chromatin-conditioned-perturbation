@@ -1,0 +1,84 @@
+lincs_cell_id	resolution_category	depmap_ach_id	matched_name_field	normalization_rule_used	dmso_phase_used	n_dmso_instances	notes
+A375	direct_match_ccle	ACH-000219	StrippedCellLineName=A375	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='A375'
+A549	direct_match_ccle	ACH-000681	StrippedCellLineName=A549	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='A549'
+A673	direct_match_ccle	ACH-000052	StrippedCellLineName=A673	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='A673'
+AGS	direct_match_ccle	ACH-000880	StrippedCellLineName=AGS	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='AGS'
+ASC	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	215	resolved via own-line ctl_vehicle
+ASC.C	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	214	resolved via own-line ctl_vehicle
+BT20	direct_match_ccle	ACH-000536	StrippedCellLineName=BT20	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='BT20'
+CD34	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	214	resolved via own-line ctl_vehicle
+CL34	direct_match_ccle	ACH-000895	StrippedCellLineName=CL34	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='CL34'
+CORL23	direct_match_ccle	ACH-000662	StrippedCellLineName=CORL23	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='CORL23'
+COV644	direct_match_ccle	ACH-000608	StrippedCellLineName=COV644	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='COV644'
+DV90	direct_match_ccle	ACH-000925	StrippedCellLineName=DV90	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='DV90'
+EFO27	direct_match_ccle	ACH-000936	StrippedCellLineName=EFO27	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='EFO27'
+FIBRNPC	lincs_dmso_fallback			ctl_vehicle_own_line	phase1	100	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances
+H1299	lincs_dmso_fallback			ctl_vehicle_own_line	phase1	18	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances
+HA1E	direct_match_ccle	ACH-001310	StrippedCellLineName=HA1E	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HA1E'
+HCC15	direct_match_ccle	ACH-000878	StrippedCellLineName=HCC15	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HCC15'
+HCC515	direct_match_ccle	ACH-000872	StrippedCellLineName=HCC515	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HCC515'
+HCT116	direct_match_ccle	ACH-000971	StrippedCellLineName=HCT116	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HCT116'
+HEC108	direct_match_ccle	ACH-000990	StrippedCellLineName=HEC108	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HEC108'
+HEK293T	lincs_dmso_fallback			ctl_vehicle_own_line	phase1	62	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances
+HELA	direct_match_ccle	ACH-001086	StrippedCellLineName=HELA	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HELA'
+HEPG2	direct_match_ccle	ACH-000739	StrippedCellLineName=HEPG2	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HEPG2'
+HL60	direct_match_ccle	ACH-000002	StrippedCellLineName=HL60	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HL60'
+HME1	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	366	resolved via own-line ctl_vehicle
+HS27A	lincs_dmso_fallback			ctl_vehicle_own_line	phase1	9	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances
+HS578T	direct_match_ccle	ACH-000148	StrippedCellLineName=HS578T	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HS578T'
+HT115	direct_match_ccle	ACH-000986	StrippedCellLineName=HT115	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HT115'
+HT29	direct_match_ccle	ACH-000552	StrippedCellLineName=HT29	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HT29'
+HUES3	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	66	resolved via own-line ctl_vehicle
+HUH7	direct_match_ccle	ACH-000480	StrippedCellLineName=HUH7	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='HUH7'
+HUVEC	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	213	resolved via own-line ctl_vehicle
+JHUEM2	direct_match_ccle	ACH-000909	StrippedCellLineName=JHUEM2	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='JHUEM2'
+JURKAT	direct_match_ccle	ACH-000995	StrippedCellLineName=JURKAT	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='JURKAT'
+LNCAP	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	148	resolved via own-line ctl_vehicle
+LOVO	direct_match_ccle	ACH-000950	StrippedCellLineName=LOVO	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='LOVO'
+MCF10A	lincs_dmso_fallback			ccle_metadata_match_absent_from_expression_matrix	phase2	295	resolved via own-line ctl_vehicle; CCLE metadata hit ACH-001357 absent from expression matrix
+MCF7	direct_match_ccle	ACH-000019	StrippedCellLineName=MCF7	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='MCF7'
+MCH58	lincs_dmso_fallback			ctl_untrt_own_line	phase1	8	resolved via own-line ctl_untrt; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances
+MDAMB231	direct_match_ccle	ACH-000768	StrippedCellLineName=MDAMB231	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='MDAMB231'
+MDST8	direct_match_ccle	ACH-000935	StrippedCellLineName=MDST8	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='MDST8'
+MNEU.E	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	66	resolved via own-line ctl_vehicle
+NCIH1694	direct_match_ccle	ACH-000431	StrippedCellLineName=NCIH1694	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='NCIH1694'
+NCIH1836	direct_match_ccle	ACH-000559	StrippedCellLineName=NCIH1836	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='NCIH1836'
+NCIH2073	direct_match_ccle	ACH-000590	StrippedCellLineName=NCIH2073	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='NCIH2073'
+NCIH508	direct_match_ccle	ACH-000360	StrippedCellLineName=NCIH508	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='NCIH508'
+NCIH596	direct_match_ccle	ACH-000628	StrippedCellLineName=NCIH596	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='NCIH596'
+NEU	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	212	resolved via own-line ctl_vehicle
+NKDBA	lincs_dmso_fallback			ctl_vehicle_own_line	phase1	88	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances
+NOMO1	direct_match_ccle	ACH-000168	StrippedCellLineName=NOMO1	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='NOMO1'
+NPC	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	216	resolved via own-line ctl_vehicle
+NPC.CAS9	lincs_dmso_fallback			engineered_derivative_own_line_dmso_fallback	phase2	215	engineered derivative resolved by own-line ctl_vehicle
+NPC.TAK	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	217	resolved via own-line ctl_vehicle
+OV7	direct_match_ccle	ACH-000688	StrippedCellLineName=OV7	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='OV7'
+PC3	direct_match_ccle	ACH-000090	StrippedCellLineName=PC3	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='PC3'
+PHH	lincs_dmso_fallback			ctl_vehicle_own_line	phase1	325	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances
+PL21	direct_match_ccle	ACH-000218	StrippedCellLineName=PL21	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='PL21'
+RKO	direct_match_ccle	ACH-000943	StrippedCellLineName=RKO	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='RKO'
+RMGI	direct_match_ccle	ACH-000719	StrippedCellLineName=RMGI	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='RMGI'
+RMUGS	direct_match_ccle	ACH-000701	StrippedCellLineName=RMUGS	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='RMUGS'
+SKB	lincs_dmso_fallback			ctl_vehicle_own_line	phase1	215	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances
+SKBR3	direct_match_ccle	ACH-000017	StrippedCellLineName=SKBR3	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SKBR3'
+SKL	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	208	resolved via own-line ctl_vehicle
+SKL.C	lincs_dmso_fallback			ctl_vehicle_own_line	phase2	212	resolved via own-line ctl_vehicle
+SKLU1	lincs_dmso_fallback			ccle_metadata_match_absent_from_expression_matrix	phase1	21	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances; CCLE metadata hit ACH-000309 absent from expression matrix
+SKM1	direct_match_ccle	ACH-000373	StrippedCellLineName=SKM1	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SKM1'
+SKMEL1	direct_match_ccle	ACH-000465	StrippedCellLineName=SKMEL1	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SKMEL1'
+SKMEL28	direct_match_ccle	ACH-000615	StrippedCellLineName=SKMEL28	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SKMEL28'
+SNGM	direct_match_ccle	ACH-000974	StrippedCellLineName=SNGM	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SNGM'
+SNU1040	direct_match_ccle	ACH-000999	StrippedCellLineName=SNU1040	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SNU1040'
+SNUC4	direct_match_ccle	ACH-000959	StrippedCellLineName=SNUC4	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SNUC4'
+SNUC5	direct_match_ccle	ACH-000970	StrippedCellLineName=SNUC5	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SNUC5'
+SW480	direct_match_ccle	ACH-000842	StrippedCellLineName=SW480	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SW480'
+SW620	direct_match_ccle	ACH-000651	StrippedCellLineName=SW620	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SW620'
+SW948	direct_match_ccle	ACH-000680	StrippedCellLineName=SW948	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='SW948'
+T3M10	direct_match_ccle	ACH-000813	StrippedCellLineName=T3M10	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='T3M10'
+THP1	direct_match_ccle	ACH-000146	StrippedCellLineName=THP1	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='THP1'
+TYKNU	direct_match_ccle	ACH-000430	StrippedCellLineName=TYKNU	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='TYKNU'
+U266	lincs_dmso_fallback			ctl_vehicle_own_line	phase1	56	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances
+U937	direct_match_ccle	ACH-000406	StrippedCellLineName=U937	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='U937'
+VCAP	direct_match_ccle	ACH-000115	StrippedCellLineName=VCAP	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='VCAP'
+WSUDLCL2	lincs_dmso_fallback			ccle_metadata_match_absent_from_expression_matrix	phase1	26	resolved via own-line ctl_vehicle; phase2 fallback returned zero instances; phase1 fallback succeeded after phase2 returned zero instances; CCLE metadata hit ACH-000534 absent from expression matrix
+YAPC	direct_match_ccle	ACH-000332	StrippedCellLineName=YAPC	uppercase_strip_non_alphanumeric			matched via StrippedCellLineName raw='YAPC'

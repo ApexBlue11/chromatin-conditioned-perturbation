@@ -1,0 +1,19 @@
+{
+  "drugs_total": 21220,
+  "drugs_with_cid": 19329,
+  "landmark_proteins_mapped": 950,
+  "landmark_proteins_hit": 709,
+  "edges_total": 28387,
+  "drugs_with_any_edge": 1538,
+  "genes_hit": 709,
+  "at_score_ge_400": {
+    "edges": 6740,
+    "drugs": 871,
+    "genes": 454
+  },
+  "at_score_ge_700": {
+    "edges": 4865,
+    "drugs": 687,
+    "genes": 340
+  }
+}

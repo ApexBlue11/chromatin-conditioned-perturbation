@@ -1,0 +1,5 @@
+# epi env -- Python 3.12.13 (phase2_assembly/.venv-epi), created with: uv venv --python 3.12
+# bigWig / narrowPeak extraction (no pybigtools wheel exists for Python 3.14 on Windows)
+pybigtools==0.3.0
+numpy==2.5.1
+pandas==3.0.3

@@ -1,0 +1,12 @@
+{
+  "drugs_total": 21220,
+  "unique_inchikeys": 21179,
+  "inchikeys_in_chembl": 6640,
+  "mechanism_records": 2210,
+  "unique_targets": 546,
+  "edges_total": 6020,
+  "edges_landmark": 497,
+  "drugs_with_any_target": 1363,
+  "drugs_with_landmark_target": 314,
+  "landmark_genes_hit": 82
+}

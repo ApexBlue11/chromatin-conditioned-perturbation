@@ -1,0 +1,28 @@
+Methodology Summary: Epigenetics Coverage Audit (Corrected & Optimized V5)
+======================================================================================
+1. Roster Derivation:
+   Derived by loading local LINCS sig_info files from both Phase I (GSE92742) and Phase II (GSE70138) and taking the union of unique cell_id values where pert_type == "trt_cp". This resulted in a total panel of 83 cell lines. MCH58 and other primary/differentiated lines were fully included as requested.
+
+2. Source Prioritization:
+   For each (cell_line, mark) pair across H3K27ac, H3K27me3, and ATAC-seq, we checked availability in:
+   - ENCODE (Primary - direct measurement)
+   - Cistrome DB (Secondary - curated ChIP/ATAC tracks)
+   - EpiMap (Tertiary - imputed tracks)
+   Missing values across all three are reported as 'unresolved'.
+
+3. No Imputation:
+   Strictly no mean, placeholder, or default value imputation was applied to unresolved entries.
+
+4. Genome Build Verification:
+   Genomic assemblies were verified programmatically for every experiment/track. ENCODE tracks default to GRCh38. Cistrome tracks were checked per ID, resolving to hg38 or hg19. EpiMap imputed tracks consistently use hg19. No liftover has been performed yet; pyliftover will be required during Phase 2 for any downstream joins.
+
+5. TSS Definition Standard:
+   Coordinates are defined using the MANE Select transcript TSS as the primary standard, with Ensembl Canonical transcript TSS as fallback. If multiple transcripts remain, the most upstream (5') TSS relative to the gene strand is used. Genes are matched by Entrez Gene ID.
+
+Coverage Statistics:
+- total cell lines: 83
+- total cell-mark pairs: 249
+- encode coverage: 20 (8.03%)
+- cistrome coverage: 66 (26.51%)
+- epimap coverage: 5 (2.01%)
+- unresolved: 158 (63.45%)

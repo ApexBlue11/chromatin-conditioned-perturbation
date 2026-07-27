@@ -1,0 +1,11 @@
+{
+  "pairs_total": 19174,
+  "pairs_chembl": 447,
+  "pairs_stitch": 18883,
+  "pairs_both_sources": 156,
+  "pairs_both_chembl_and_stitch_high": 128,
+  "drugs_covered": 1718,
+  "genes_covered": 729,
+  "drugs_chembl": 314,
+  "drugs_stitch": 1538
+}

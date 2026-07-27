@@ -1,0 +1,133 @@
+{
+  "conductance_mean": 0.5997138023376465,
+  "rescale_if_ablated_to_1": 1.667462039562977,
+  "unseen CELL": {
+    "full": {
+      "r2": 0.27712297439575195,
+      "pcc": 0.4384189248085022
+    },
+    "c_to_1": {
+      "r2": 0.17406272888183594,
+      "pcc": 0.4179914593696594,
+      "delta_r2": 0.10306024551391602
+    },
+    "c_to_mean": {
+      "r2": 0.2803833484649658,
+      "pcc": 0.4401574730873108,
+      "delta_r2": -0.003260374069213867
+    }
+  },
+  "unseen COMPOUND": {
+    "full": {
+      "r2": 0.1971592903137207,
+      "pcc": 0.4704087972640991
+    },
+    "c_to_1": {
+      "r2": 0.10817974805831909,
+      "pcc": 0.45716172456741333,
+      "delta_r2": 0.08897954225540161
+    },
+    "c_to_mean": {
+      "r2": 0.191389799118042,
+      "pcc": 0.4738791882991791,
+      "delta_r2": 0.005769491195678711
+    }
+  },
+  "metric_sweep": {
+    "unseen CELL": [
+      {
+        "anchor": "0 (differential = OUR metric)",
+        "basal_delta_var_ratio": 0.0,
+        "pcc": 0.4384189248085022
+      },
+      {
+        "anchor": "alpha=0.5",
+        "basal_delta_var_ratio": 0.1510763019323349,
+        "pcc": 0.3967161774635315
+      },
+      {
+        "anchor": "alpha=1",
+        "basal_delta_var_ratio": 0.6043052077293396,
+        "pcc": 0.4931362569332123
+      },
+      {
+        "anchor": "alpha=2",
+        "basal_delta_var_ratio": 2.4172208309173584,
+        "pcc": 0.6865997910499573
+      },
+      {
+        "anchor": "alpha=3",
+        "basal_delta_var_ratio": 5.438747406005859,
+        "pcc": 0.7958970069885254
+      },
+      {
+        "anchor": "alpha=5",
+        "basal_delta_var_ratio": 15.107629776000977,
+        "pcc": 0.9084542989730835
+      },
+      {
+        "anchor": "alpha=10",
+        "basal_delta_var_ratio": 60.430519104003906,
+        "pcc": 0.9757959842681885
+      },
+      {
+        "anchor": "alpha=20",
+        "basal_delta_var_ratio": 241.72207641601562,
+        "pcc": 0.9938989877700806
+      },
+      {
+        "anchor": "alpha=50",
+        "basal_delta_var_ratio": 1510.76318359375,
+        "pcc": 0.9990297555923462
+      }
+    ],
+    "unseen COMPOUND": [
+      {
+        "anchor": "0 (differential = OUR metric)",
+        "basal_delta_var_ratio": 0.0,
+        "pcc": 0.4704087972640991
+      },
+      {
+        "anchor": "alpha=0.5",
+        "basal_delta_var_ratio": 0.09808487445116043,
+        "pcc": 0.3812417984008789
+      },
+      {
+        "anchor": "alpha=1",
+        "basal_delta_var_ratio": 0.3923394978046417,
+        "pcc": 0.48903635144233704
+      },
+      {
+        "anchor": "alpha=2",
+        "basal_delta_var_ratio": 1.569357991218567,
+        "pcc": 0.6800856590270996
+      },
+      {
+        "anchor": "alpha=3",
+        "basal_delta_var_ratio": 3.531055212020874,
+        "pcc": 0.8091570734977722
+      },
+      {
+        "anchor": "alpha=5",
+        "basal_delta_var_ratio": 9.808486938476562,
+        "pcc": 0.9176626205444336
+      },
+      {
+        "anchor": "alpha=10",
+        "basal_delta_var_ratio": 39.23394775390625,
+        "pcc": 0.9777889251708984
+      },
+      {
+        "anchor": "alpha=20",
+        "basal_delta_var_ratio": 156.935791015625,
+        "pcc": 0.9944996237754822
+      },
+      {
+        "anchor": "alpha=50",
+        "basal_delta_var_ratio": 980.8487548828125,
+        "pcc": 0.9991341829299927
+      }
+    ]
+  },
+  "caveat": "Anchor is the CCLE baseline (no L1000 controls in our data). The sweep shows PCC under the absolute convention is a function of the basal:delta variance ratio; it does NOT let us infer another paper's ratio or claim parity with it."
+}

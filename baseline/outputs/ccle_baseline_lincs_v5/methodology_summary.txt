@@ -1,0 +1,8 @@
+This branch builds a LINCS-keyed baseline matrix from the union of Phase I and Phase II trt_cp cell lines.
+Phase I and Phase II metadata are read from distinct local files.
+CCLE matches are resolved by exact normalized name lookups against StrippedCellLineName, CellLineName, and CCLEName.
+If a cell line has no CCLE baseline, the script tries Phase II DMSO fallback first and then Phase I.
+Engineered derivatives never substitute the parental line; they use their own DMSO fallback only.
+The scaler is fit on the full CCLE background population.
+The gene axis is audited with HGNC hgnc_complete_set metadata and no fill-based repair is used.
+Self-audit checks: no banned fill path in the output data path, discrepancy report persisted, script hash persisted, gene report has 978 rows, cell resolution rows match union total.

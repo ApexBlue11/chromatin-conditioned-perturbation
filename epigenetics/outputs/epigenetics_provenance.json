@@ -1,0 +1,37 @@
+{
+  "roster_derivation": {
+    "method": "Union of unique cell_id values where pert_type == 'trt_cp' in local sig_info files",
+    "phase_1_file": "C:\\Projects\\LINCS\\Data Info\\GSE92742_Broad_LINCS_sig_info.txt\\GSE92742_Broad_LINCS_sig_info.txt",
+    "phase_2_file": "C:\\Projects\\LINCS\\Data Info\\GSE70138_Broad_LINCS_sig_info_2017-03-06.txt\\GSE70138_Broad_LINCS_sig_info.txt",
+    "total_cells": 83
+  },
+  "genome_builds": {
+    "encode": "GRCh38 (primary search results checked programmatically per accession)",
+    "cistrome": "hg38 or hg19 (checked per matched track)",
+    "epimap": "hg19 (consistently aligned to Roadmap hg19 reference)"
+  },
+  "tss_definition": {
+    "primary_standard": "MANE Select transcript TSS",
+    "fallback_standard": "Ensembl Canonical transcript TSS",
+    "tie_break_rule": "Most upstream (5') TSS relative to the gene strand",
+    "gene_matching_key": "NCBI Entrez ID (avoiding symbol collisions)"
+  },
+  "source_manifest": [
+    {
+      "name": "GSE92742_Broad_LINCS_sig_info.txt",
+      "path": "C:\\Projects\\LINCS\\Data Info\\GSE92742_Broad_LINCS_sig_info.txt\\GSE92742_Broad_LINCS_sig_info.txt",
+      "size_bytes": 105013164
+    },
+    {
+      "name": "GSE70138_Broad_LINCS_sig_info.txt",
+      "path": "C:\\Projects\\LINCS\\Data Info\\GSE70138_Broad_LINCS_sig_info_2017-03-06.txt\\GSE70138_Broad_LINCS_sig_info.txt",
+      "size_bytes": 18260895
+    }
+  ],
+  "coverage_breakdown": {
+    "encode": 20,
+    "cistrome": 66,
+    "epimap": 5,
+    "unresolved": 158
+  }
+}

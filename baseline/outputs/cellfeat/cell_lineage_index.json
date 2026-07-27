@@ -1,0 +1,18 @@
+{
+  "UNKNOWN": 0,
+  "Bone": 1,
+  "Bowel": 2,
+  "Breast": 3,
+  "Cervix": 4,
+  "Esophagus/Stomach": 5,
+  "Kidney": 6,
+  "Liver": 7,
+  "Lung": 8,
+  "Lymphoid": 9,
+  "Myeloid": 10,
+  "Ovary/Fallopian Tube": 11,
+  "Pancreas": 12,
+  "Prostate": 13,
+  "Skin": 14,
+  "Uterus": 15
+}

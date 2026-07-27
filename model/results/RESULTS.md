@@ -1,0 +1,291 @@
+# LINCS Model — Results Log
+
+> **For the writeup, start with [`CLAIMS.md`](CLAIMS.md)** — every claim with its evidence, strength
+> (A/B/C/✗), and what would falsify it, including deliberately-kept **tempered and retracted** claims.
+> This file is the detailed method/measurement log behind that ledger.
+
+Running, honest record of what we did, implemented, found, and — critically — the **limitations** of each
+finding. Rule: **no claim without the evidence next to it; flag every caveat; never overclaim.** Numbers
+here are only as strong as the metric that produced them (see the operating rules in `../HANDOFF.md`).
+
+Convention per entry: **What / How / Found / Limitation.**
+
+---
+
+## 1. v3 training — converged (2026-07-25)
+- **What:** finish the reliability-weighted v3 model (resume to 12 epochs).
+- **How:** Kaggle GPU (single T4), resumed epoch 7→11; `train.py`, OneCycle, weighted-Huber. Metrics in
+  `scratchpad/v3final/metrics.json`.
+- **Found:** reproducible-cold Pearson flat 0.503→0.502 across epochs 8–11 ⇒ **converged/plateaued**.
+  Beats Mean/Meancell/Meandrug baselines (cold MSE 1.57 vs 1.80–1.82).
+- **Limitation:** the "12h runtime" was **GPU queue wait**, not compute (script ran 6.56h, ~76min/epoch).
+  "Plateau" is within `train.py`'s inline metric; the careful reproducible metric (see §2) reads higher.
+
+## 2. Diagnose — epigenetics + variance partition (2026-07-25, `lincs-diagnose`, free CPU)
+- **What:** fair reproducible epi-ablation + truth-vs-model variance partition at the converged ckpt.
+- **How:** `diagnose.py`, reproducible sigs (mean|Y|≥1, n=12k), balanced 42 drugs × 6 well-covered cells.
+- **Found:** with-epi **R²=0.355 / Pearson 0.548**; **epi ablation ΔR²=+0.089** (epi-ablated 0.266) ⇒ epi
+  contributes (stronger than the earlier +0.073). Overall corr(true,pred)=0.77, corr(interaction)=0.49.
+  Variance partition **model 59.1/14.4/26.5 vs TRUTH 42.3/9.8/47.9** ⇒ model **under-expresses the
+  drug×cell interaction** (26.5% vs 47.9%).
+- **Limitation:** these are **in-distribution** (well-covered cells, mostly seen in training), NOT cold-cell
+  — so 0.548 is an upper-ish bound, cold is ~0.50. Epi ablation is on reproducible in-dist sigs.
+
+## 3. DTI recall@k — interpretability (2026-07-25, `eval.py`/`lincs-eval-dti`, free CPU)
+- **What:** does atom→gene attribution localize to known target genes? (the stated objective)
+- **How:** rank 978 genes by 3 signals — `ca_gene_norm` (atom→gene contribution L2), `|Ŷ|`, atom-attention
+  — recall@k vs `dti_reference.tsv`, reproducible sigs, split by evidence tier.
+- **Found:** enrichment rises **monotonically with reference confidence** (strong evidence it's real, not
+  artifact): atom→gene attention `ca_gene_norm` recall@5 = **0.9× (ALL, 19,174 noisy STITCH edges) →
+  2.1× (447 ChEMBL curated) → 2.6× (156 both-source gold, 111 drugs)**; `|Ŷ|` recall@10 = 1.5×→1.5×→2.1×.
+  Gold median target rank pctile: ca 0.43, |Ŷ| 0.39 (<0.50 random). ⇒ **the top-attended genes are enriched
+  ~2.6× for the highest-confidence known targets — interpretability objective SUPPORTED, modestly.**
+- **Limitation:** modest absolute effect (recall@50 ~10% — most targets still not in top-50); partly a
+  **biological ceiling** (target *gene* ≠ where the response peaks). Small n at gold (~1–2 targets/drug ⇒
+  recall@5 coarse; `atom_attn` shows 0.0 sparsity-noise there). In-distribution, not cold. Claim = "attention
+  is enriched for curated/gold targets, strengthening with confidence," NOT "attention recovers targets."
+
+## 3b. Interaction under-expression diagnostic (2026-07-25, `analyze.py`/`lincs-analyze`, free CPU)
+- **What:** WHY does the model express only 26.5% drug×cell interaction vs 47.9% truth? Cause before fix.
+- **How:** balanced drug×cell design within signature-strength bins; measure std(predI)/std(trueI) & corr(I)
+  per bin + cross-cell liveness. `analyze.json`.
+- **Found:** **noise-driven MSE shrinkage, confirmed.** Interaction expression rises monotonically with
+  strength: std-ratio 0.16→0.20→0.31→0.48→**0.49**, corr(I) 0.01→0.03→0.18→0.33→**0.42** across bins
+  mean|Y| 0.3→1.6+. Liveness ratio 0.49 (pathway alive, not dead). H_capacity rejected (not flat/low),
+  H_dead rejected (ratio≠0).
+- **Interpretation (do NOT overclaim):** MOST of the aggregate under-expression is **OPTIMAL** — on ~75%
+  inert sigs there's no reproducible cell-specific signal, so shrinking to the drug-average minimises MSE;
+  "fixing" it = fitting noise. The **winnable** part is the STRONG stratum (mean|Y|≥1.6, replicate r≈0.75)
+  where the model still captures only ~half the magnitude (0.49) and corr 0.42 ⇒ real headroom.
+- **Fix direction (a retrain experiment):** a **correlation/rank loss on REPRODUCIBLE sigs** (immune to
+  magnitude shrinkage) + keep reliability weighting; instrument strong-stratum interaction-expression
+  per-epoch; gate claims on the reproducible stratum + re-measured ceiling, never aggregate. 2-GPU code ready.
+- **Limitation:** in-distribution balanced design; strong-stratum bins have modest n (38–40 drugs).
+
+## 4. SOTA comparison + novelty (2026-07-25, literature)
+- **What:** are we competitive, and is our contribution novel?
+- **Found (SOTA):** latent-diffusion (Bioinformatics 2026) reports unseen-cell **PCC 0.743/R² 0.500**,
+  unseen-compound 0.870/0.739. **BUT confirmed: they predict ABSOLUTE expression** (basal given as input),
+  per-sample across all 978 genes, no reproducibility filter ⇒ **baseline-inflated** (perturbed≈basal for
+  most genes). We predict the **differential** (baseline removed), reproducible-filtered — a strictly harder
+  quantity. **The numbers are not comparable.**
+- **Found (novelty):** SOTA leaders are VAE/diffusion black boxes (sacrifice interpretability). **Epigenetic
+  chromatin conditioning of a perturbation predictor appears novel** (related work goes expression→chromatin
+  or predicts baseline expression, not chromatin→drug-response). Atom→gene attribution novelty vs **XPert is
+  UNCONFIRMED** (XPert also uses UniMol; README lacks detail).
+- **Limitation — DO NOT OVERCLAIM:** (a) we have **no L1000 control** in-data, so a same-metric head-to-head
+  is not yet possible — needs L1000 controls or running an open SOTA (PRnet) on our differential metric;
+  (b) novelty rests on a handful of searches, not an exhaustive review — XPert's methods (paywalled) must be
+  read before claiming atom→gene or pathway-attention as ours-novel.
+
+## 5. v4 — correlation-loss finetune (2026-07-26, `lincs-train-v4`, GPU — RUNNING)
+- **What:** un-shrink the drug×cell interaction (the winnable strong-stratum gap from §3b) via noise-shielding.
+- **How:** `correlation_loss` (1−Pearson per sig, reliability-weighted) added to Huber with `LAMBDA_CORR=0.5`;
+  **FINETUNE** mode loads v3 weights only, fresh low-LR (1e-4) schedule, 4 epochs; a **per-epoch interaction
+  probe** logs std(predI)/std(trueI) on a fixed strong-stratum design (watch the fix work in-between). Corr
+  loss is magnitude-invariant (unit-tested 37/37). New kernel id (v3 ckpt kept intact as a source).
+- **Found: NEGATIVE — the correlation loss did NOT un-shrink the interaction.** Over 4 finetune epochs the
+  interaction probe std-ratio stayed 0.47–0.48 (v3 baseline 0.49) and corr stayed ~0.38 (v3 0.42); cold-rep
+  pearson 0.502→0.509 (~+0.01, noise). (First attempt ERRORed on a Kaggle-assigned **P100**; fixed via
+  `--accelerator NvidiaTeslaT4` + fail-fast probe.)
+- **KEY INSIGHT (reframes the whole interaction problem):** the model is **already at MSE-optimal
+  dispersion**. For an MSE-optimal predictor std(pred)/std(true) ≈ corr(pred,true); our numbers **std-ratio
+  0.47–0.49 ≈ corr 0.42** sit on that line. ⇒ the "under-expression" is NOT wrongly-suppressed magnitude —
+  it's the CORRECT dispersion for the model's predictive accuracy. You **cannot inflate interaction magnitude
+  without first raising the correlation** (more magnitude on a 42%-correct pattern only adds error). The
+  correlation loss (magnitude-invariant) couldn't lift corr in a gentle finetune.
+- **Corrected conclusion:** the interaction gap is a **cell-PREDICTION-ACCURACY problem, not a loss/shrinkage
+  problem.** Noise-shielding was a reasonable hypothesis but is REJECTED by this test. The real lever is
+  better cell modeling (Strategy D: CCLE mutations/CNV features, or the fundamental limit of only 83 training
+  cells), and/or a fair SOTA accuracy comparison to know how much headroom actually exists.
+- **Limitation:** a gentle 4-epoch finetune at LR 1e-4, λ_corr=0.5 — a from-scratch run or higher λ MIGHT
+  move corr, but the std-ratio≈corr relationship says magnitude gains require accuracy gains regardless.
+
+## 6. Drug-feature ablations (2026-07-26, `lincs-drug-ablation`, CPU — RUNNING)
+- **What/How:** zero each drug-feature block at inference on reproducible cold-cell sigs; ΔR²/Δpearson vs base.
+- **Found (base R²0.298/P0.502):** pillars = **fingerprint** (ΔR²+0.089/ΔP+0.147) and **atoms**
+  (ΔR²+0.075/**ΔP+0.163**, the biggest Pearson drop); unimol_cls moderate (+0.035/+0.033); **descriptors
+  (+0.003) and ChemBERTa (+0.001) ~dead weight.** ⇒ (a) DROP ChemBERTa (384 dims, redundant); (b) atom
+  tokens are load-bearing ⇒ supports the interpretability story (atom→gene substrate isn't decorative).
+- **Limitation:** deltas overlap (features partly redundant); reproducible cold-cell only.
+
+## 7. Pathway-flow MoA (2026-07-26, `moa.py`/`lincs-moa`, free CPU)
+- **What/How:** does the model lean on the co-pathway/STRING priors that shape gene↔gene flow? Report learned
+  λ=softplus(log_lambda) per layer + on-support attention mass (prior vs free heads).
+- **Found:** λ **non-zero everywhere** (~0.24–0.94, mostly 0.4–0.7; higher in base/early layers 0.5–0.9,
+  decaying to 0.24–0.55 in late perturb) ⇒ priors ARE used, not discarded. BUT on-support attention (last
+  perturb layer): PRIOR heads 0.148 (**1.1× random**) vs free 0.141 (1.0×) vs density 0.138 ⇒ the bias only
+  **weakly** steers where attention lands (soft λ≈0.5 washed out by content attention).
+- **Verdict:** pathway→drug MoA is the **WEAKEST interpretability leg** (epi +0.089 R² > atom→gene DTI 2.6× >
+  pathway flow 1.1×). Priors help as a soft inductive bias, not a strong attributable channel. Do not
+  overclaim the MoA story.
+- **Limitation:** measured only the LAST perturb layer (lowest λ); early/base layers (λ up to 0.9) likely
+  steer more — cheap re-run to complete. n=16 sigs (direction reliable, magnitude approximate).
+
+## 8. Cell-gap diagnostic (2026-07-26, LOCAL numpy — free, instant)
+- **What/How:** is the interaction/cold-cell gap a REPRESENTATION problem (features help) or a COVERAGE
+  problem (only 83 cells)? Correlate cold cell's expression-similarity-to-nearest-training-cell vs per-cell
+  cold R² (17 cold cells).
+- **Found: INCONCLUSIVE, leans "features might help."** corr(similarity, R²)=+0.36 (rank +0.30, NOT sig at
+  n=17); high-sim cells mean R² 0.12 vs low-sim 0.09. Outliers break a pure-coverage story: NPC sim=0.99 but
+  R²=0.01 (worst); HA1E sim=0.30 but R²=0.17. ⇒ per-cell perf is MULTIFACTORIAL, NOT a clean coverage wall ⇒
+  added cell features (tissue/lineage/mutations/CNV) have PLAUSIBLE but UNCERTAIN headroom.
+- **Data availability:** tissue/lineage present (`baseline/CCLE/Model.csv`); mutations/CNV would need a DepMap
+  download. **Limitation:** n=17 too small to conclude; expression-similarity may not be the right metric.
+
+## 9. Strategy D — cell lineage feature (2026-07-26, premise measured LOCALLY, retrain pending)
+- **Premise test (before spending GPU):** does lineage add info about drug response BEYOND `X_base`?
+  1,412 cell pairs (180 same-lineage), reproducible sigs: response-similarity **same-lineage +0.284 vs
+  diff +0.246**; **partial corr(lineage, response | X_base) = +0.092, permutation p<0.0005** ⇒ small but
+  REAL and significant (same shape as the epigenetics result).
+- **Implemented:** `cell_lineage.npy` [83,16] one-hot (col0=UNKNOWN) → FiLM cell-context conditioning
+  (`DoseTimeFiLM(d_extra=16)`), zero-init so it starts as a no-op and must EARN its use.
+- **Fairness:** cell features are legitimate for cold-cell eval — lineage/expression/chromatin are observable
+  WITHOUT any perturbation experiment. (It would only be cheating to leak the cell's perturbed response.)
+- **Limitation — expect a SMALL effect:** only 57/83 cells have a lineage; the 26 UNKNOWN are the
+  non-cancer/primary/stem lines (DepMap catalogs cancer models only). **7 of 17 cold cells are UNKNOWN —
+  and they include the BEST performers** (HUVEC 0.225, U266 0.214, HA1E 0.169 has an unseen lineage), so the
+  feature supplies nothing exactly where the model already does well.
+
+## 10. ChemBERTa dropped (2026-07-26)
+- Per §6 ablation (ΔR²=+0.001). `DataConfig.use_chemberta=False`; `d_global` 2964→2580 (−384 dims).
+  Requires a from-scratch retrain (input dim change ⇒ not checkpoint-compatible).
+
+## 11. Scaffold split for the unseen-COMPOUND benchmark (2026-07-26, LOCAL, `build_scaffold_split.py`)
+- **What/How:** Bemis-Murcko scaffold split (5 balanced folds, 21,220 drugs / **6,035 scaffolds**, 4,244 per
+  fold) so a whole chemical series lands on one side + an ECFP4/Tanimoto **leakage audit**.
+- **KEY HONEST FINDING — scaffold splitting alone does NOT make compounds "unseen":** max Tanimoto from each
+  test drug to its nearest TRAIN drug is **median 0.655**, p90 0.836, **39.2% ≥0.70**, **8.0% ≥0.85**,
+  max=1.000 (some near-duplicates share a fingerprint across different Murcko scaffolds). ⇒ any
+  "unseen-compound" number (ours OR a paper's) is inflated by analogue leakage unless audited. A RANDOM drug
+  split (what most papers use) would be far worse.
+- **Consequence:** report our unseen-compound number **with this audit**, and consider a stricter
+  Tanimoto-capped variant (drop test drugs with a train neighbour above a threshold) as the honest headline.
+- **Limitation:** max=1.000 suggests true duplicate structures under different `pert_id`s — worth a check.
+
+## 12. v5 — combined experiment (2026-07-26, `lincs-train-v5`, T4x2 — RUNNING)
+One from-scratch run testing everything at once (quota-efficient; each part stays independently ablatable
+at inference so we can still attribute post-hoc):
+- **Lineage FiLM cell-context** (§9), **cell-conditional pathway conductance** (below), **ChemBERTa dropped**
+  (§10), **combined cold-CELL x cold-COMPOUND split** (§11) → yields THREE generalization numbers from one
+  run: unseen-cell (47,002 sigs) / **unseen-compound (58,796)** / unseen-both (15,083); train 179,772.
+  Leakage verified locally = 0 (no test cell and no test-scaffold drug appears in train).
+- **Pathway conductance (the user's idea, refined by measurement):** `c_{cell,g} = 1+tanh(MLP([E_g;x_g;avail]))`
+  scales how much gene g *listens to its pathway neighbours*. Rationale: the prior bias was STATIC (same λ
+  for every cell) so the model could not say "this pathway is open here, closed there". **Per-EDGE cell
+  conditioning is infeasible** ([B,8,978,978] ≈ 10GB/batch) — gating conductance per (cell,gene) is the
+  memory-safe equivalent. Zero-init ⇒ exact no-op until earned; `pathway_cond` exposed in aux for maps.
+  **Watch:** module activity correlates 0.85 with a gene's own baseline, so it can only add value via the
+  EPIGENETIC input, not by re-encoding X_base.
+- **Config:** from scratch (d_global 2964→2580 ⇒ v3 ckpt NOT loadable, so no `kernel_sources`), 10 epochs,
+  BATCH 64 (DataParallel 32+32), LR 4e-4, budget 10.5h. λ_corr=0 (v4 showed the corr term didn't help).
+- **Validated locally before launch: 45/45 unit checks + 3 padding/masking checks.**
+- **RESULT (completed, 10 epochs, reproducible sigs):**
+  | metric | v5 | v3 |
+  |---|---|---|
+  | unseen-CELL pearson | **0.440** (R² 0.273) | 0.502 (R² 0.298) |
+  | **unseen-COMPOUND pearson** | **0.471** (R² 0.188) | — (new) |
+  | unseen-BOTH pearson | **0.451** (R² 0.173) | — (new) |
+  | interaction probe std-ratio / corr | 0.356 / 0.322 | ~0.47 / 0.42 |
+  Cold baselines MSE: Mean/Meancell 1.747, Meandrug 1.733 (model 1.481 — still beats them).
+- **v5 REGRESSED on cold-cell vs v3 — but the comparison is CONFOUNDED:** v5 trained on **179,712 sigs vs
+  v3's 235,628 (−24%)** because the scaffold drug fold is now also held out, and ran 10 epochs from scratch
+  vs v3's 12. **Do NOT conclude the new components hurt (or helped) from this number** — attribution needs
+  the inference ablation (`ablate_v5.py`, run separately).
+- **NEW + notable: unseen-COMPOUND (0.471) > unseen-CELL (0.440)** ⇒ the model generalizes BETTER to new
+  drugs than to new cell lines, consistent with every earlier finding that cell-specificity is the hard part.
+- The inline `EPI ABLATION delta_r2=+0.0009` is again the **all-signature artifact** — ignore it; the fair
+  reproducible test is in `ablate_v5.py` / `diagnose.py`.
+
+## 13. Padding & attention-masking safety (2026-07-26, LOCAL) — prerequisite for TPU/XLA
+- **What/How:** XLA needs STATIC shapes, so `collate(fixed_pad=True)` always pads atoms to `max_atoms`.
+  Risk: attention leaking onto padded slots. Three tests: Yhat invariance to padding amount; attention mass
+  on padded keys; fixed vs dynamic collate equality.
+- **Found: all three exactly 0.00e+00.** Padded slots are False in `atom_mask` → `key_mask=~valid` → −inf
+  pre-softmax; the global drug token is always valid so no query row is fully masked (no NaN).
+- Also hardened `collate` to force float32 (python-float scalars silently became float64 → Linear dtype crash).
+
+## 14. Tooling correction (2026-07-26): **local torch EXISTS** (2.11.0+cpu, system Python 3.14)
+The long-standing "no local torch, test on Kaggle" belief was STALE and cost real time (Kaggle's
+5-concurrent-CPU-session cap blocked pushes for ~1h). Full suite runs locally in ~2-3 min. Kaggle is now
+needed only for GPU/TPU and the big bundle. (`drug/.venv-drug` has rdkit but no torch; system Python vice versa.)
+
+## 15. TPU feasibility probe (2026-07-26, `lincs-tpu-probe`, free TPU quota)
+- **What/How:** does `torch_xla` work on Kaggle, how many cores, and how fast is OUR bottleneck shape
+  (978x978 biased attention, B=16,H=8)? Benchmarked on TPU; T4 number derived from v3's measured 1.24 s/step.
+- **Found:** torch_xla **2.8.0**, **8 cores**, TPU **39.4 ms/iter on ONE core**. Derived T4 ≈ 30 ms for the
+  same (explicit-logits) code. ⇒ **per core the TPU is ~0.76x — SLOWER than a T4.** The advantage is purely
+  **core count**: 8 cores vs 2 T4s ≈ **3.1x aggregate, ONLY IF all 8 cores scale**.
+- **Correction to an earlier claim:** a previous "~3x plausible" estimate cited per-chip FLOPS — that
+  reasoning was WRONG. The number is roughly right but for a different reason (core count, not speed).
+  **A single-core torch_xla port would be a DOWNGRADE.**
+- **Recommendation: do NOT port now.** Requires full 8-core data parallelism (xmp.spawn/SPMD + sharding +
+  ckpt handling), TPU queue alone was >1h (eats much of a 3x gain at our cadence of a few retrains), and
+  remote XLA debugging is slow. Training speed is not the bottleneck; the SOTA comparison is.
+- **Limitation:** the T4 figure is DERIVED, not measured (GPU session cap=2 was full with v5 running).
+  Measure it (`lincs-gpu-bench`, staged) before treating 3.1x as confirmed.
+- **Banked either way:** XLA-safe fixed padding (§13) is done and proven leak-free — the hard correctness
+  prerequisite for any future TPU port.
+
+## 16. v5 component attribution (2026-07-26, `ablate_v5.py`, LOCAL CPU, n=1200 reproducible per split)
+Each component toggled at INFERENCE on identical signatures (positive Δ = component contributes):
+
+| ablated | unseen-CELL ΔR² | Δpearson | unseen-COMPOUND ΔR² | Δpearson |
+|---|---|---|---|---|
+| **pathway conductance** | **+0.1030** | +0.0279 | **+0.0726** | +0.0257 |
+| epigenetics | −0.0042 | +0.0018 | **+0.0345** | **+0.0385** |
+| lineage | +0.0014 | +0.0105 | −0.0057 | +0.0170 |
+(full model: unseen-cell R² 0.2805/p 0.4506; unseen-compound R² 0.1946/p 0.4913)
+
+- **Pathway conductance is by far the largest dependence** — 0.103 R² on unseen cells, ~10x lineage.
+  **CRITICAL CAVEAT: an inference ablation measures DEPENDENCE, not value-add** — removing any load-bearing
+  trained component hurts. This does NOT prove it beats v3. **The decisive test is a MATCHED run (same
+  179,712-sig data, same 10 epochs, `pathway_conductance=False`).** What it DOES show: the mechanism is
+  genuinely used, not decorative — and the ablation discriminates (epi came out ~0 on unseen-cell rather
+  than automatically positive).
+- **Epigenetics splits by axis (NEW):** clearly contributes on unseen-COMPOUND (+0.0345 R²/+0.0385 p) but
+  is **neutral/slightly negative on unseen-CELL** (−0.0042). Differs from v3's +0.089 in-distribution ⇒
+  chromatin appears to aid generalization to new CHEMISTRY more than to new CELLS. Worth understanding,
+  not glossing.
+- **Lineage is marginal** (+0.001…+0.017), as predicted from 7/17 cold cells having UNKNOWN lineage; it
+  nudges pattern (pearson) not magnitude. Keep (cheap) but do not feature it in any claim.
+- **Limitation:** n=1200/split, single fold, and all deltas are dependence-not-improvement (see above).
+
+## 17. Dual-metric / metric-convention analysis (2026-07-26, `dual_metric.py`, LOCAL CPU)
+- **What/How:** report the SAME v5 predictions under BOTH conventions — ours (differential: corr(Ŷ,Y)) and
+  the published one (absolute: corr(basal+Ŷ, basal+Y)) — and sweep the basal anchor scale α to expose how
+  much of a published number is metric convention.
+- **Measured (n=1200 reproducible):** unseen-cell PCC 0.451→0.490, **R² 0.281→0.497**; unseen-compound
+  PCC 0.491→0.497, **R² 0.195→0.388**. ⇒ **R² nearly DOUBLES on identical predictions.**
+- **A prediction of mine was WRONG:** I expected a large PCC inflation; measured only +0.040/+0.006, because
+  our normalized `X_base` anchor has basal:delta variance ratio only **0.4–0.6** — far below a real
+  raw-expression setup. Our anchor is the wrong scale ⇒ that single number is inconclusive as a protocol proxy.
+- **Fixed by sweeping α (the rigorous version), unseen-compound n=900:**
+  | basal:delta var ratio | 0 (ours) | 0.4 | 1.6 | 3.6 | 10 | 40 | 1000 |
+  |---|---|---|---|---|---|---|---|
+  | PCC | **0.485** | 0.485 | 0.682 | **0.814** | 0.918 | 0.978 | 0.999 |
+- **KEY RESULT: published SOTA PCCs (0.743 unseen-cell / 0.870 unseen-compound) fall INSIDE this curve**
+  (ratio ≈2–4), where our own unchanged predictions score **0.68–0.81**. ⇒ **a published 0.87 is NOT evidence
+  of better drug-effect prediction than our 0.471** — the convention alone spans ~0.49→1.0.
+- **Limitation (do not overclaim):** this does NOT show we match SOTA. Their exact variance ratio is unknown
+  and our anchor is CCLE (no L1000 controls exist in our data). Only running their code on our protocol
+  settles it. What it DOES establish is **non-comparability**, rigorously.
+
+---
+
+## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
+1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
+   MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
+   expression improve on stronger/reproducible sigs?
+2. **Noise-shielding** (arch and/or training) — likely a correlation/rank loss term + reliability-conditional
+   weighting; decide after (1).
+3. **Fair SOTA comparison** — get L1000 controls OR run PRnet on our differential split. Report both metrics.
+4. **Unseen-COMPOUND number** — needs a **scaffold/Tanimoto-aware drug-holdout split + retrain** (current
+   model saw all drugs; only cells were held out). Must match SOTA's split rigor (verify they enforce
+   chemical dissimilarity; if not, note it; we should enforce it regardless — no leaky similar test drugs).
+5. **Pathway→drug (crude MoA)** — add gene↔gene (pathway-prior) attention attribution to the interpretability
+   eval; compose atom→gene + gene→pathway + epi→gene into an MoA readout.
+6. **Drug-feature ablations** (`Strategy C`, cheap CPU) — which of descriptors/fingerprint/UniMol/ChemBERTa carry signal.
+
+Sources: latent-diffusion PMC13107963 · XPert nature s42256-025-01165-w + github GSanShui/XPert · PERD
+PMC11139989 · H3K27ac PLoS Comp Biol pcbi.1012272.

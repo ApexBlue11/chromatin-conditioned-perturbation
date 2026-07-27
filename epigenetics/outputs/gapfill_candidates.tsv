@@ -1,0 +1,7 @@
+cell	mark	strategy	source	assay_used	is_primary	verification	target_cvcl	matched_cvcl	contamination	build	sample_ids	matched_via
+HS27A	H3K27ac	S3	epimap	H3K27ac	True	IMPUTED	CVCL:3719	(EpiMap biosample)	imputed_track	hg19	BSS00704	biosample name==synonym
+HS27A	H3K27me3	S3	epimap	H3K27me3	True	IMPUTED	CVCL:3719	(EpiMap biosample)	imputed_track	hg19	BSS00704	biosample name==synonym
+HT29	H3K27me3	S3	epimap	H3K27me3	True	IMPUTED	CVCL:A8EZ	(EpiMap biosample)	imputed_track	hg19	BSS00708	biosample name==synonym
+HUH7	H3K27me3	S3	epimap	H3K27me3	True	IMPUTED	CVCL:0336	(EpiMap biosample)	imputed_track	hg19	BSS00718	biosample name==synonym
+SKMEL28	H3K27me3	S1	cistrome	H3K27me3	True	VERIFIED_CVCL_MATCH	CVCL:0526	CVCL:0526	clean	hg38	43882	synonym+CVCL
+SNUC4	H3K27ac	S1	cistrome	H3K27ac	True	UNVERIFIED_CVCL_MISMATCH	CVCL:5111	CVCL:4784	n/a		62198,66488,66495,68393	synonym

@@ -1,0 +1,30 @@
+{
+ "shape": [
+  83,
+  978,
+  3
+ ],
+ "channels": {
+  "0": "ATAC/peaks",
+  "1": "H3K27ac/peaks",
+  "2": "H3K27me3/narrowPeak(TSS+/-10kb)"
+ },
+ "cells_per_mark": [
+  32,
+  35,
+  26
+ ],
+ "h3k27me3_failed_chip_downweighted": [
+  "H1299",
+  "HEK293T",
+  "HELA",
+  "MDAMB231",
+  "NKDBA",
+  "PHH",
+  "SKMEL1",
+  "SKMEL28",
+  "VCAP"
+ ],
+ "h3k27me3_note": "narrowPeak at TSS; sparse signal is correct biology (landmark genes mostly active, not Polycomb). Only failed-ChIP (raw peaks<10) down-weighted; see E_reliability.tsv.",
+ "cells_with_any_mark": 45
+}

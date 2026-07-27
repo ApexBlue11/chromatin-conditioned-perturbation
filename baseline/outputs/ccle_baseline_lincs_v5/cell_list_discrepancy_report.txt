@@ -1,0 +1,2 @@
+prior_only: []
+new_only: ['ASC.C', 'HELA', 'HME1', 'HUES3', 'HUVEC', 'LNCAP', 'MNEU.E', 'NPC.CAS9', 'NPC.TAK', 'SKL', 'SKL.C', 'YAPC']
