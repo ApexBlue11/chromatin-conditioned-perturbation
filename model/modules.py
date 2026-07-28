@@ -185,3 +185,53 @@ class FeedForward(nn.Module):
 
     def forward(self, x):
         return self.net(x)
+
+class PathwayBottleneck(nn.Module):
+    """P-NET-style VISIBLE pathway layer: genes -> NAMED Reactome pathway nodes -> back to genes.
+
+    Why this replaces the v5 approach. v5 biased gene<->gene attention with `lambda * log1p(A_copathway)`,
+    a SOFT prior: signal may route around it, and measurement showed it does (prior heads land on-support
+    only 1.1x random). It also used A_copathway [G,G], which is the gene-gene CO-MEMBERSHIP COLLAPSE of the
+    real membership matrix M [P,G] -- discarding the named pathway axis we actually had.
+
+    Here the prior is a hard connectivity MASK, as in P-NET (Nature 2021) / DCell / DrugCell: gene g
+    contributes ONLY to pathways containing g, and a pathway returns signal ONLY to its member genes.
+    Information is forced through P named nodes, so `pathway_activation[:, p]` IS "Reactome pathway p" --
+    interpretability by construction rather than post-hoc hope.
+
+    Chromatin gates at the PATHWAY level (v5 gated per gene, where it mostly re-encoded X_base, corr 0.74).
+    Sparse by design: with 83 training cell lines the parameter reduction is itself useful regularisation.
+    Zero-init output projection => exact no-op at initialisation, so the layer must earn its contribution.
+    """
+    def __init__(self, M, d_model, d_path=64, d_epi=3, gate_with_epi=True):
+        super().__init__()
+        M = torch.as_tensor(M, dtype=torch.float32)          # [P,G] binary membership
+        if M.shape[0] > M.shape[1]:
+            M = M.t()
+        P, G = M.shape
+        self.P, self.G = P, G
+        # row/col normalised masks: mean over a pathway's genes, mean over a gene's pathways
+        self.register_buffer("M_in", M / M.sum(1, keepdim=True).clamp(min=1))       # [P,G] gene -> pathway
+        self.register_buffer("M_out", (M / M.sum(0, keepdim=True).clamp(min=1)).t())  # [G,P] pathway -> gene
+        self.register_buffer("has_pathway", (M.sum(0) > 0).float().unsqueeze(-1))   # [G,1]
+
+        self.w_in = nn.Linear(d_model, d_path)
+        self.act = nn.GELU()
+        self.norm = nn.LayerNorm(d_path)
+        self.w_out = nn.Linear(d_path, d_model)
+        nn.init.zeros_(self.w_out.weight); nn.init.zeros_(self.w_out.bias)          # no-op at init
+        self.epi_gate = nn.Sequential(nn.Linear(d_epi, 16), nn.GELU(), nn.Linear(16, 1)) if gate_with_epi else None
+        if self.epi_gate is not None:
+            nn.init.zeros_(self.epi_gate[-1].weight); nn.init.zeros_(self.epi_gate[-1].bias)  # gate == 1 at init
+
+    def forward(self, h, E=None, return_pathways=False):
+        # h:[B,G,d]  E:[B,G,d_epi] -> (h_delta [B,G,d], pathway activations [B,P,d_path])
+        a = self.act(self.w_in(h))                               # [B,G,dp]
+        a = torch.einsum("pg,bgd->bpd", self.M_in, a)            # masked gene -> pathway
+        a = self.norm(a)
+        if self.epi_gate is not None and E is not None:
+            e_path = torch.einsum("pg,bgk->bpk", self.M_in, E)   # chromatin summarised PER PATHWAY
+            a = a * (1.0 + torch.tanh(self.epi_gate(e_path)))    # in (0,2), ==1 at init
+        out = torch.einsum("gp,bpd->bgd", self.M_out, a)         # masked pathway -> gene
+        out = self.w_out(out) * self.has_pathway                 # genes in no pathway get exactly 0
+        return (out, a) if return_pathways else (out, None)
