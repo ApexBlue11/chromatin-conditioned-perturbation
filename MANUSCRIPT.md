@@ -25,15 +25,22 @@ with cell familiarity** and vanishes for unseen cells, so it is an in-distributi
 generalisation mechanism. Second, **aggregated atom→gene attention is enriched for known drug targets**,
 and the enrichment strengthens monotonically with the confidence of the reference (0.9× on all
 STITCH-inclusive edges, 2.1× on ChEMBL-curated, 2.6× on both-source gold), demonstrating that a noisy
-reference can entirely mask a real attribution signal. Third, we show that the same predictions score
-anywhere from 0.44 to 0.99 Pearson depending only on the basal-to-effect variance ratio of the evaluation
-target, so **absolute-convention correlations are not comparable across protocols** unless that ratio and
-the basal source are reported. We additionally report a negative result of methodological interest: a
-cell-conditional pathway-gating module appeared to contribute ΔR² = +0.103 under a naive ablation, but
-contributes ≈0 once the ablation preserves the module's learned scale — a 30× artefact that we trace and
-correct.
+reference can entirely mask a real attribution signal. Third, consistent with the established
+critique of control-referenced metrics in this field (*control bias*, *signal dilution*), we illustrate on
+our own predictions that the same model scores anywhere from 0.44 to 0.99 Pearson depending only on the
+basal-to-effect variance ratio of the evaluation target — we therefore report on the differential
+(delta) axis throughout, as recommended by that literature. We additionally document a negative result of
+methodological interest: a cell-conditional pathway-gating module appeared to contribute ΔR² = +0.103 under
+a naive ablation, but contributes ≈0 once the ablation preserves the module's learned scale — a 30×
+artefact we trace and correct.
 
 🔲 *Final sentence pending the protocol-matched comparison (see §6).*
+
+> **Framing note (2026-07-27).** An earlier draft positioned the metric analysis as a contribution. It is
+> **not novel** — control bias, signal dilution and delta-metric standards are established (Systema, Nat
+> Biotech 2025; Nat Methods 2025 benchmark; PerturBench; Ahlmann-Eltze et al.). We cite that work and use
+> the correct metric; we do not claim to have found the problem. **The contribution of this paper is the
+> chromatin conditioning and what it reveals — including its limits.**
 
 ---
 

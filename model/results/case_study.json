@@ -1,0 +1,204 @@
+{
+  "cases": [
+    {
+      "drug": "panobinostat",
+      "pert_id": "BRD-K02130563",
+      "target": "HDAC2",
+      "mechanism": "HDAC inhibitor",
+      "n_signatures": 8,
+      "pctile_atom_gene": 0.7556237218813906,
+      "pctile_yhat": 0.7770961145194274,
+      "rank_atom_gene": 739,
+      "rank_yhat": 760,
+      "top5_atom_gene": [
+        "FOSL1",
+        "g518",
+        "PLA2G15",
+        "SENP6",
+        "DNAJB1"
+      ]
+    },
+    {
+      "drug": "lovastatin",
+      "pert_id": "BRD-K09416995",
+      "target": "HMGCR",
+      "mechanism": "HMG-CoA reductase inhibitor",
+      "n_signatures": 5,
+      "pctile_atom_gene": 0.3210633946830266,
+      "pctile_yhat": 0.3047034764826176,
+      "rank_atom_gene": 314,
+      "rank_yhat": 298,
+      "top5_atom_gene": [
+        "PRKCQ",
+        "TBXA2R",
+        "CXCR4",
+        "NFKBIE",
+        "g271"
+      ]
+    },
+    {
+      "drug": "aspirin",
+      "pert_id": "BRD-K11433652",
+      "target": "PTGS2",
+      "mechanism": "COX inhibitor",
+      "n_signatures": 1,
+      "pctile_atom_gene": 0.7556237218813906,
+      "pctile_yhat": 0.2719836400817996,
+      "rank_atom_gene": 739,
+      "rank_yhat": 266,
+      "top5_atom_gene": [
+        "g52",
+        "FAM20B",
+        "TBXA2R",
+        "g298",
+        "BCL2"
+      ]
+    },
+    {
+      "drug": "salbutamol",
+      "pert_id": "BRD-A88254928",
+      "target": "ADRB2",
+      "mechanism": "beta-2 agonist",
+      "n_signatures": 2,
+      "pctile_atom_gene": 0.9897750511247444,
+      "pctile_yhat": 0.1983640081799591,
+      "rank_atom_gene": 968,
+      "rank_yhat": 194,
+      "top5_atom_gene": [
+        "g822",
+        "GMNN",
+        "g966",
+        "TIMELESS",
+        "NRAS"
+      ]
+    },
+    {
+      "drug": "propranolol",
+      "pert_id": "BRD-A10070317",
+      "target": "ADRB2",
+      "mechanism": "beta blocker",
+      "n_signatures": 1,
+      "pctile_atom_gene": 0.0541922290388548,
+      "pctile_yhat": 0.002044989775051125,
+      "rank_atom_gene": 53,
+      "rank_yhat": 2,
+      "top5_atom_gene": [
+        "PPARD",
+        "PEX11A",
+        "CSNK2A2",
+        "SMC3",
+        "HMGCR"
+      ]
+    },
+    {
+      "drug": "troglitazone",
+      "pert_id": "BRD-A13084692",
+      "target": "PPARG",
+      "mechanism": "PPAR-gamma agonist",
+      "n_signatures": 8,
+      "pctile_atom_gene": 0.06339468302658487,
+      "pctile_yhat": 0.6002044989775052,
+      "rank_atom_gene": 62,
+      "rank_yhat": 587,
+      "top5_atom_gene": [
+        "EIF5",
+        "g882",
+        "g7",
+        "TICAM1",
+        "DNAJB1"
+      ]
+    },
+    {
+      "drug": "clobetasol",
+      "pert_id": "BRD-K10799896",
+      "target": "NR3C1",
+      "mechanism": "glucocorticoid agonist",
+      "n_signatures": 1,
+      "pctile_atom_gene": 0.6114519427402862,
+      "pctile_yhat": 0.47137014314928427,
+      "rank_atom_gene": 598,
+      "rank_yhat": 461,
+      "top5_atom_gene": [
+        "GMNN",
+        "TCFL5",
+        "NUP133",
+        "g787",
+        "CDK2"
+      ]
+    },
+    {
+      "drug": "colchicine",
+      "pert_id": "BRD-K00259736",
+      "target": "TUBB6",
+      "mechanism": "tubulin inhibitor",
+      "n_signatures": 8,
+      "pctile_atom_gene": 0.8118609406952966,
+      "pctile_yhat": 0.17075664621676892,
+      "rank_atom_gene": 794,
+      "rank_yhat": 167,
+      "top5_atom_gene": [
+        "g745",
+        "NIT1",
+        "SOX4",
+        "BAMBI",
+        "g213"
+      ]
+    },
+    {
+      "drug": "pelitinib",
+      "pert_id": "BRD-K08799216",
+      "target": "EGFR",
+      "mechanism": "EGFR inhibitor",
+      "n_signatures": 8,
+      "pctile_atom_gene": 0.42535787321063395,
+      "pctile_yhat": 0.9059304703476483,
+      "rank_atom_gene": 416,
+      "rank_yhat": 886,
+      "top5_atom_gene": [
+        "g204",
+        "GADD45A",
+        "DNAJB1",
+        "g271",
+        "PTPN1"
+      ]
+    },
+    {
+      "drug": "danusertib",
+      "pert_id": "BRD-K07881437",
+      "target": "AURKA",
+      "mechanism": "Aurora kinase inhibitor",
+      "n_signatures": 8,
+      "pctile_atom_gene": 0.9406952965235174,
+      "pctile_yhat": 0.032719836400818,
+      "rank_atom_gene": 920,
+      "rank_yhat": 32,
+      "top5_atom_gene": [
+        "g109",
+        "CXCR4",
+        "g271",
+        "DYRK3",
+        "EGR1"
+      ]
+    },
+    {
+      "drug": "NVP-BEZ235",
+      "pert_id": "BRD-K12184916",
+      "target": "PIK3CA",
+      "mechanism": "PI3K inhibitor",
+      "n_signatures": 8,
+      "pctile_atom_gene": 0.5020449897750511,
+      "pctile_yhat": 0.20245398773006135,
+      "rank_atom_gene": 490,
+      "rank_yhat": 198,
+      "top5_atom_gene": [
+        "KEAP1",
+        "PDS5A",
+        "g765",
+        "g871",
+        "GLOD4"
+      ]
+    }
+  ],
+  "median_pctile_atom_gene": 0.6114519427402862,
+  "median_pctile_yhat": 0.2719836400817996
+}

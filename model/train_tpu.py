@@ -24,6 +24,7 @@ import torch_xla
 import torch_xla.core.xla_model as xm
 import torch_xla.distributed.parallel_loader as pl
 import torch_xla.distributed.xla_multiprocessing as xmp
+import torch_xla.runtime as xr
 from torch.utils.data import DataLoader
 from torch.utils.data.distributed import DistributedSampler
 
@@ -40,8 +41,10 @@ def _collate_static(samples, max_atoms):
 
 
 def _run(rank, args):
-    device = xm.xla_device()
-    is_master = xm.is_master_ordinal()
+    if getattr(args, "bf16", False):
+        os.environ["XLA_USE_BF16"] = "1"      # TPU MXU is bf16-native; fp32 wastes most of the chip
+    device = torch_xla.device()
+    is_master = xr.global_ordinal() == 0
     mc = ModelConfig(); dc = make_dataconfig()
     if args.fold is not None:
         dc.cell_fold = args.fold
@@ -53,12 +56,13 @@ def _run(rank, args):
     sp = build_splits(full, dc)
     train_ds = LincsDataset(dc, indices=sp["train"], _shared=shared)
     if is_master:
-        print(f"cores={xm.xrt_world_size()} fold={dc.cell_fold} "
+        print(f"cores={xr.world_size()} fold={dc.cell_fold} "
               f"splits={ {k: len(v) for k, v in sp.items() if not k.startswith('_')} }", flush=True)
 
-    sampler = DistributedSampler(train_ds, num_replicas=xm.xrt_world_size(),
-                                 rank=xm.get_ordinal(), shuffle=True, drop_last=True)
-    dl = DataLoader(train_ds, batch_size=args.batch, sampler=sampler, num_workers=2, drop_last=True,
+    sampler = DistributedSampler(train_ds, num_replicas=xr.world_size(),
+                                 rank=xr.global_ordinal(), shuffle=True, drop_last=True)
+    dl = DataLoader(train_ds, batch_size=args.batch, sampler=sampler, num_workers=4, drop_last=True,
+                    persistent_workers=True, prefetch_factor=4,
                     collate_fn=lambda s: _collate_static(s, mc.max_atoms))
     mp_dl = pl.MpDeviceLoader(dl, device)
 
@@ -67,20 +71,35 @@ def _run(rank, args):
     sched = torch.optim.lr_scheduler.OneCycleLR(opt, max_lr=args.lr, total_steps=steps, pct_start=0.05)
 
     if args.smoke:
-        model.train(); t0 = time.time(); losses = []
+        # TPU-CORRECT TIMING: the first step(s) include XLA COMPILATION (tens of seconds). Timing them
+        # together with steady-state steps is the classic TPU benchmarking error -- it made our first run
+        # look 12x slower than a T4. Warm up first, sync, THEN time.
+        model.train()
+        warm = 3
         for it, b in enumerate(mp_dl):
             opt.zero_grad(set_to_none=True)
             loss = L.weighted_huber(model(b), b["Y"], w=b.get("w"), delta=mc.huber_delta)
-            loss.backward()
-            xm.optimizer_step(opt)                      # all-reduces grads across cores
-            losses.append(loss)
-            if it + 1 >= args.smoke_steps:
+            loss.backward(); xm.optimizer_step(opt)
+            if it + 1 >= warm:
                 break
-        vals = [float(x) for x in losses]               # single sync at the end
+        torch_xla.sync(); _ = float(loss)                       # force compile + finish
+        t0 = time.time(); losses = []; n = 0
+        for b in mp_dl:
+            opt.zero_grad(set_to_none=True)
+            loss = L.weighted_huber(model(b), b["Y"], w=b.get("w"), delta=mc.huber_delta)
+            loss.backward(); xm.optimizer_step(opt)
+            losses.append(loss.detach()); n += 1
+            if n >= args.smoke_steps:
+                break
+        torch_xla.sync()
+        vals = [float(x) for x in losses]
         dt = time.time() - t0
-        print(f"SMOKE OK: {len(vals)} steps in {dt:.1f}s = {dt/max(len(vals),1)*1000:.0f} ms/step "
-              f"(batch {args.batch}/core)", flush=True)
-        print(f"  loss first {vals[0]:.4f} -> last {vals[-1]:.4f}  (finite={all(np.isfinite(vals))})", flush=True)
+        per_step = dt / max(n, 1)
+        print(f"SMOKE OK (post-warmup): {n} steps in {dt:.1f}s = {per_step*1000:.0f} ms/step "
+              f"| batch {args.batch}/core -> {per_step/args.batch*1000:.1f} ms/sample/core", flush=True)
+        print(f"  8-core projection: {per_step/args.batch/8*1000:.1f} ms/sample "
+              f"(T4 reference ~19.4 ms/sample at batch 64)", flush=True)
+        print(f"  loss {vals[0]:.4f} -> {vals[-1]:.4f} (finite={all(np.isfinite(vals))})", flush=True)
         return
 
     WORK = "/kaggle/working" if os.path.isdir("/kaggle/working") else "."
@@ -119,7 +138,8 @@ def main():
     ap.add_argument("--smoke", action="store_true")
     ap.add_argument("--smoke_steps", type=int, default=12)
     ap.add_argument("--epochs", type=int, default=10)
-    ap.add_argument("--batch", type=int, default=16)     # PER CORE (8 cores -> effective 128)
+    ap.add_argument("--batch", type=int, default=32)     # PER CORE (8 cores -> effective 256)
+    ap.add_argument("--bf16", action="store_true", help="TPU-native bfloat16 (MXU fast path)")
     ap.add_argument("--lr", type=float, default=4e-4)
     ap.add_argument("--budget_h", type=float, default=8.0)
     ap.add_argument("--fold", type=int, default=None)
