@@ -135,6 +135,23 @@ def _run(rank, args):
         print("DONE", flush=True)      # eval/probe run separately on CPU from the checkpoint [#9]
 
 
+def preflight():
+    """Fail in milliseconds instead of after a multi-hour Kaggle queue wait.
+
+    Every torch_xla symbol `_run` touches is checked HERE, before the expensive spawn. This exists because
+    a start-up AttributeError/ValueError costs an entire queue cycle: issue #13 (an `nprocs=8` that 2.8
+    rejects) burned ~5 h of wall clock to produce a traceback we could have seen instantly."""
+    import inspect
+    need = [(torch_xla, "device"), (torch_xla, "sync"), (xr, "world_size"), (xr, "global_ordinal"),
+            (xm, "optimizer_step"), (xm, "save"), (pl, "MpDeviceLoader"), (xmp, "spawn")]
+    missing = [f"{m.__name__}.{n}" for m, n in need if not hasattr(m, n)]
+    if missing:
+        raise RuntimeError(f"torch_xla {torch_xla.__version__} is missing {missing} -- API drift, see "
+                           f"TPU_NOTES.md #12/#13")
+    print(f"torch_xla {torch_xla.__version__} | xmp.spawn params={list(inspect.signature(xmp.spawn).parameters)}",
+          flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--epochs", type=int, default=10)
@@ -142,10 +159,17 @@ def main():
     ap.add_argument("--lr", type=float, default=4e-4)
     ap.add_argument("--budget_h", type=float, default=8.0)
     ap.add_argument("--fold", type=int, default=0)
-    ap.add_argument("--cores", type=int, default=8)
+    ap.add_argument("--cores", type=int, default=8,
+                    help="applied by launch_v6_tpu.py via TPU_NUM_DEVICES before torch_xla is imported; "
+                         "it CANNOT be passed to xmp.spawn (see #13). Kept so the CLI is unchanged.")
     ap.add_argument("--bf16", action="store_true")
     a = ap.parse_args()
-    xmp.spawn(_run, args=(a,), nprocs=a.cores)
+    preflight()
+    # [#13] PJRT derives the process count from the VISIBLE devices and rejects an explicit nprocs:
+    #   ValueError: Unsupported nprocs (8). Please use nprocs=1 or None (default).
+    # None => one process per available device (all 8). A core limit must be set as an env var by the
+    # launcher, before import -- the same ordering hazard as XLA_USE_BF16 in #4.
+    xmp.spawn(_run, args=(a,), nprocs=None)
 
 
 if __name__ == "__main__":

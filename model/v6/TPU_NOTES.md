@@ -1,8 +1,13 @@
 # TPU / XLA engineering notes
 
-Every issue below was hit for real on Kaggle TPU v3-8 (`torch_xla` 2.8), or is a known trap we designed
-around. Kept here because TPU failure modes are silent — you get a working run that is 10× too slow, not
-an error.
+Every issue below was hit for real on Kaggle TPU (`torch_xla` 2.8), or is a known trap we designed around.
+Kept here because TPU failure modes are silent — you get a working run that is 10× too slow, not an error.
+
+**Hardware:** the v6 kernel runs on **`TpuV5E8`** (read from `kernel-metadata.json`, not assumed — issue
+#14). The 39.4 ms/iter measurement at the bottom was taken on **v3-8** and does not carry over.
+
+**Before every launch:** `preflight()` in `train_v6_tpu.py` asserts the torch_xla API surface and prints the
+version, because a start-up error costs a whole multi-hour queue cycle (#13 cost ~5 h for a one-line fix).
 
 ## The mental model
 XLA **traces** your Python into a graph, **compiles** it per unique input shape, then executes. Everything
@@ -27,6 +32,8 @@ below follows from that:
 | 10 | **Kaggle TPU queue** can exceed an hour | looks "stuck"; easy to misread a stale poller as still-queued | check the kernel status **directly** and pull `output` — a completed run has output even if a poller says otherwise |
 | 11 | **Non-clean exit loses `/kaggle/working`** | checkpoints gone | never hard-cancel; time budget triggers a clean checkpoint + exit |
 | 12 | **`torch_xla` 2.8 API drift** — `xm.xrt_world_size` / `xm.xla_device` removed or deprecated | `AttributeError` at start-up | `xr.world_size()`, `xr.global_ordinal()`, `torch_xla.device()` |
+| 13 | **`xmp.spawn(nprocs=8)` is REJECTED under PJRT** — *"Unsupported nprocs (8). Please use nprocs=1 or None"*. **This actually happened**: the first v6 run queued for ~5 h, started, and died at start-up. #12 was not enough because we checked the symbols we call but not the *signature* of what we call | `ValueError` immediately, after the whole queue wait | `nprocs=None` ⇒ one process per visible device. A core limit becomes `TPU_NUM_DEVICES`, set by the launcher **before import** (same hazard as #4). Plus `preflight()`: assert every torch_xla symbol `_run` uses, and print the version + `xmp.spawn` signature, **before** spawning |
+| 14 | **Machine shape assumed, not read** — our notes said "v3-8"; the kernel metadata says **`TpuV5E8`** | benchmarks compared against the wrong hardware | read `machine_shape` from `kernel-metadata.json`; the 39.4 ms/iter figure below was measured on v3-8 and does **not** describe v5e |
 
 ## Rules of thumb
 - **Never** put a Python `if` on a tensor value inside the step — it forces a sync and can change the graph.

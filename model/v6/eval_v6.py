@@ -150,17 +150,28 @@ class MeanAblate:
 
 
 def metrics(yh, yt, phase=None):
-    """Exactly the quantities v5 reported, so the two are directly comparable."""
+    """Exactly the quantities v5 reported, so the two are directly comparable, plus Common-DEGs (M.5)."""
     out = {"r2_overall": L.r2_overall(yh, yt),
            "r2_gene_median": float(L.r2_per_gene(yh, yt).median()),
            "pearson_median": float(L.pearson_per_row(yh, yt).median()),
            "mse": float(((yh - yt) ** 2).mean()), "n": int(len(yt))}
+    for k in (50, 100):
+        out[f"common_degs@{k}"] = float(L.common_degs(yh, yt, k).median())
+        out[f"common_degs@{k}_chance"] = k / yt.shape[1]
     if phase is not None:
         for p in np.unique(phase):                     # residual batch effects: we do NOT model plate
             m = torch.from_numpy(phase == p)
             if int(m.sum()) > 50:
                 out[f"r2_phase_{p}"] = L.r2_overall(yh[m], yt[m])
     return out
+
+
+# Strength bins for the all-strata report (M.2). Reporting ONLY mean|Y| >= 1 makes the headline
+# unauditable: the stratum is defined by the ground truth we then score against, which Ahlmann-Eltze
+# (Nature Methods 2025) call out as inapplicable in real use. We keep the stratified metric -- LINCS is
+# ~75 % inert and dilution once inverted a real effect's sign [6.2] -- but we now show every bin, which is
+# what the in-the-wild benchmark recommends. Equal n per bin so precision is comparable across bins.
+STRATA = [(0.0, 0.5), (0.5, 1.0), (1.0, 2.0), (2.0, float("inf"))]
 
 
 def substitute(b, mode, mu):
@@ -220,6 +231,8 @@ def main():
     ap.add_argument("--headline_n", type=int, default=0,
                     help="signatures for the protocol-matched ACCURACY number. 0 = whole reproducible "
                          "stratum, which is what v5 reported (7296/6000/2998)")
+    ap.add_argument("--strata_n", type=int, default=1500,
+                    help="signatures per mean|Y| bin for the all-strata report (M.2). 0 disables it")
     ap.add_argument("--modes", default=",".join(MODES))
     ap.add_argument("--random_init", action="store_true",
                     help="mechanics check with an UNTRAINED model. Numbers are meaningless by "
@@ -285,6 +298,23 @@ def main():
               f"  R2={rec['headline']['r2_overall']:+.4f}"
               f"   |  v5: {ref['pearson']:.3f} / {ref['r2']:+.3f}"
               f"   |  delta_pearson={rec['headline']['pearson_median']-ref['pearson']:+.4f}", flush=True)
+
+        # ---------- all-strata report (M.2): the >=1 number is only auditable next to the others -------
+        rec["strata"] = {}
+        if a.strata_n:
+            print(f"  ALL STRATA (equal n per bin; the reproducible stratum is the last two)", flush=True)
+        for lo, hi in (STRATA if a.strata_n else []):
+            band = idx[(ds.strength[idx] >= lo) & (ds.strength[idx] < hi)]
+            if len(band) < 200:
+                print(f"    mean|Y| {lo}-{hi}: n={len(band)} too few, skipped", flush=True); continue
+            sn = min(a.strata_n, len(band))
+            s_idx = np.sort(np.random.default_rng(11).choice(band, sn, replace=False)) if sn < len(band) else band
+            yhs, yts, _ = run_split(model, ds, s_idx, cfg, a.batch, hooks, collect_interp=False)
+            m = metrics(yhs, yts)
+            rec["strata"][f"{lo}-{hi}"] = {**m, "n_available": int(len(band))}
+            print(f"    mean|Y| {lo:>4}-{str(hi):<4} n={sn:<5} (of {len(band):>6})  "
+                  f"pearson={m['pearson_median']:.4f}  R2={m['r2_overall']:+.4f}  "
+                  f"cDEG@100={m['common_degs@100']:.3f} (chance {m['common_degs@100_chance']:.3f})", flush=True)
 
         # ---------- ablation study: identical signatures for full and every mode ----------
         an = len(rep) if a.n in (0, None) else min(a.n, len(rep))

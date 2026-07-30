@@ -55,6 +55,20 @@ def pearson_per_row(yhat, y):
     return num / den
 
 
+def common_degs(yhat, y, k=100):
+    """Top-k differential-gene overlap per signature. yhat,y:[N,G] -> [N] in [0,1]; chance = k/G.
+
+    One of scPerturBench's six metrics and the one closest to how a prediction is actually used ("which
+    genes move?"), which R2/correlation do not answer. Ranked by |value| because our target is a SIGNED
+    differential. Added 2026-07-30 per the methodology audit (M.5 in results/CLAIMS.md 6c)."""
+    N, G = y.shape
+    k = min(k, G)
+    true_top = torch.zeros(N, G, dtype=torch.bool, device=y.device)
+    true_top.scatter_(1, y.abs().topk(k, dim=1).indices, True)
+    pred_top = yhat.abs().topk(k, dim=1).indices
+    return true_top.gather(1, pred_top).float().sum(1) / k
+
+
 def naive_baselines(Y_train, cell_train, drug_train, Y_eval, cell_eval, drug_eval):
     """MSE of the three trivial predictors on the eval set (numpy). Cell/drug are integer id arrays.
     Meancell/Meandrug fall back to the global mean for ids unseen in train (cold split)."""
