@@ -113,6 +113,22 @@ single-fold / small-n · **C** = suggestive only · **✗** = tested and NOT sup
 | L.3 | Chromatin + transcriptome jointly inform drug MoA/sensitivity | **Supported** (eLife: integrated transcriptome + chromatin state decodes MoA and sensitivity) — but that is *analysis*, not a chromatin-conditioned predictive model |
 | L.4 | **Confound NOT excluded by literature — floor/noise effect** | Repressed genes have low baseline expression ⇒ more headroom to rise, and L1000 z-scores are noisier for low-expressed genes. Our partial correlation vs `X_base` (H3K27ac −0.137) controls for this *linearly* but does not fully exclude it. **Test: stratify the epi↔response correlation by baseline-expression bin** |
 
+## 6c. Methodology audit vs the field (2026-07-30) — full detail in `../LITERATURE_PRACTICE.md`
+
+§6b audits our biology, §7 our novelty; this audits our **method** against the three adversarial
+benchmarking papers that exist to catch what we try to catch in ourselves.
+
+| # | Finding | Status |
+|---|---|---|
+| M.1 | **We have NO linear baseline** — only Mean/Meancell/Meandrug. The Nature Methods 2025 critique that no DL model beat simple baselines turns on a **ridge-style linear model on drug × cell features**, which we have never fitted. Until we do, "beats all naive baselines" is weak | **GAP — highest priority, CPU-only, minutes** |
+| M.2 | **Our stratum is defined by the ground truth we score against** (mean\|Y\| ≥ 1). Ahlmann-Eltze: selection by differential expression "cannot be applied in real-world use cases". Mitigating: our rationale is measurement *reliability* (r 0.127 → 0.509/0.619 [6.1]), and the bias direction is not clearly optimistic (large-\|Y\| rows include large-*noise* rows, which depress scores). Real problem = auditability + prospective applicability | **GAP — fix by reporting ALL strata, not only ≥1** |
+| M.3 | **One fold, one seed** ⇒ no error bars on deltas quoted to 3 dp (+0.006 … +0.089), in a project that already produced an artefactual +0.103 [3.6]. Small deltas must be quoted as "within unmeasured seed variance" until measured | **GAP — needs accelerator** |
+| M.4 | No **unseen dose/time** split, though we have nonlinear dose/time FiLM. XPert ships one | **GAP — cheap, eval-only** |
+| M.5 | Metric set lacks **Common-DEGs** (top-k DE overlap), the metric closest to biological use. Do NOT add Wasserstein/E-distance reflexively — scPerturBench documents their failure modes (variance scaling; missed gene–gene dependencies) | **GAP — cheap** |
+| M.6 | **Ahead of the field**: we compute a noise ceiling [6.1], report prediction *variance* not just correlation [6.8/6.10], report R² alongside correlation, test three generalisation axes incl. unseen-both, reliability-weight low-SNR labels, and falsified our own interpretability claim [4.1a-c] — the in-the-wild benchmark asks for most of this and notes it is usually absent | **A** |
+| M.7 | **Uni-Mol input integrity VERIFIED**: 0/21,220 conformer failures, 0 drugs truncated at the 96-atom cap, 0 missing CLS embeddings. Uni-Mol's documented downstream failure (loses on SIDER because 3D conformers fail for natural products/peptides) **does not affect us** | **A** |
+| M.8 | **Our contribution is another paper's stated future work**: the 2026 latent-diffusion L1000 paper lists what it lacks as *"additional cellular information like chromatin state or pathway activity"*. Cite as motivation — it supports the narrowed [7.1]. Pair with our own negative: scPerturBench's headline ask is cellular-context embedding for unseen contexts, and ours gives **≈0 on unseen cells** [2.3] | **A** |
+
 ## 7. Novelty (to verify before asserting)
 
 | # | Claim | Status |
@@ -137,6 +153,8 @@ single-fold / small-n · **C** = suggestive only · **✗** = tested and NOT sup
 ---
 
 ## Open items blocking stronger claims
+0. **Ridge linear baseline (M.1)** — CPU, minutes, blocks every accuracy claim. Then **report all mean|Y|
+   strata (M.2)**, **Common-DEGs (M.5)**, **unseen dose/time split (M.4)**. None need an accelerator.
 1. **Matched run** (same data/epochs, pathway off) → converts 3.1 (dependence) into 3.2 (value-add). ~3.2h GPU.
 2. **Fair SOTA comparison** — train PRnet on our split/metric (~2–4h GPU); reproduce their published number
    on their split first.

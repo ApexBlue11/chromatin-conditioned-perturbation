@@ -71,6 +71,7 @@ move it. It is a **cell × dose/time** readout: "which named pathways are chroma
 | `model/v6/test_v6.py` | 29 checks incl. the positive **and** negative control for the ablation mechanism |
 | `model/v6/TPU_NOTES.md` | 12 TPU/XLA failure modes and the fix for each |
 | `model/ARCHITECTURE_LESSONS.md` | why v5's interpretability failed; what P-NET/DCell/MOLI do instead |
+| `model/LITERATURE_PRACTICE.md` | **methodology audit vs the field** — where we're ahead, 6 ranked gaps with fixes and costs, what to take from other papers' future-work sections |
 | `model/results/CLAIMS.md` | ~60 claims: evidence, A/B/C/✗ strength, falsifiers, **retractions kept deliberately** |
 | `model/results/RESULTS.md` | detailed measurement log, 17+ numbered experiments |
 | `METHODOLOGY.md` | script-by-script workflow, environments, reproduction order |
@@ -118,6 +119,10 @@ GitHub: `ApexBlue11/chromatin-conditioned-perturbation` (private, MIT).
   accelerator work and big-bundle jobs to Kaggle.
 
 ## 8. Next steps, in order
+0. **CPU-only, nothing waits on the TPU** (from the methodology audit, `LITERATURE_PRACTICE.md` §5):
+   fit the **ridge linear baseline** — we have never fitted one, and it is the baseline that beat every deep
+   model in Nature Methods 2025, so it blocks every accuracy claim; then report **all mean|Y| strata** rather
+   than only ≥1; add **Common-DEGs**; add an **unseen dose/time split**.
 1. Collect v6 and run the two commands in §2 — the harness is written and tested, only the checkpoint is
    missing. The bottleneck is still **unmeasured** and may contribute nothing.
 2. If the pathway readout works, that is the paper's mechanistic contribution; if not, report the null.
