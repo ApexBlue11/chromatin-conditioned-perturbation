@@ -86,12 +86,20 @@ GitHub: `ApexBlue11/chromatin-conditioned-perturbation` (private, MIT).
   quartiles** — the floor-effect confound is excluded. Literature-consistent.
 - **…but it tracks cell familiarity**: +0.089 in-dist → +0.035 unseen compound → **≈0 unseen cell**. It is
   an in-distribution refinement, *not* a cold-cell generalisation mechanism.
-- v5 accuracy: unseen cell 0.440 / unseen compound 0.471 / unseen both 0.451; beats all naive baselines.
+- v5 accuracy: unseen cell 0.440 / unseen compound 0.471 / unseen both 0.451.
+- **The model's value is CHEMICAL generalisation, not cellular** (measured 2026-07-30, `baseline_linear.py`):
+  on unseen COMPOUND it beats the best linear baseline by **+0.089** pearson and the best mean by **+0.106**;
+  on unseen BOTH by **+0.120 / +0.135**.
 - Drug features: ECFP4 and atom tokens are the pillars; **ChemBERTa is dead weight** (ΔR² +0.001, removed).
 - Interaction under-expression (26.5 % vs 47.9 %) is **near-optimal under noise** — a correlation loss
   designed to fix it changed nothing.
 
 ## 5. What is FALSE (retracted — do not resurrect)
+- ~~v5 beats all naive baselines~~ — **retracted 2026-07-30 [1.1/1.8]**. That was MSE on *all* cold-cell
+  signatures. On the reproducible stratum with the metrics we report, **Meandrug (just predict the drug's
+  training mean) beats v5 on unseen-cell on all three metrics**: pearson 0.4475 vs 0.440, R² +0.2846 vs
+  +0.273, MSE 4.279 vs 4.348. A ridge on the same global inputs also edges it. **The model adds no
+  cell-specificity.** It survives only for unseen-compound / unseen-both, where it wins by a lot (§4).
 - ~~atom→gene attention localises to drug targets~~ — median target rank percentile **0.560 over 149 gold
   pairs, worse than chance**; the "target doesn't move" confound was tested and **rejected** (corr −0.045).
   The old "2.6× enrichment" was ~1–2 drugs of 111 in a top-5 ⇒ noise. **Top-k enrichment ≠ localisation.**

@@ -71,6 +71,10 @@ class V6DataConfig:
     atom_offsets_path: str = "drug/outputs/drug_atom_offsets.npy"
     scaffold_split_path: str = "drug/outputs/splits/scaffold_split.json"
 
+    # Set True to evaluate a checkpoint trained BEFORE the 2026-07-30 dose-unit fix (500 nM was parsed as
+    # 500 uM: 13,910 rows / 4.49 %, log-dose inverted). Training and evaluation must agree, or those rows
+    # get a dose the model never saw. See data.py::_dose_um.
+    legacy_dose_parsing: bool = False
     use_chemberta: bool = False        # keep in sync with V6Config.d_global
     center_epi: bool = True            # per-(cell,mark) standardise: strips the per-cell technical offset
     reliability_weighting: bool = True # LINCS is ~75% inert [6.1]

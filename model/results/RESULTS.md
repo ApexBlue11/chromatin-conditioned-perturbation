@@ -273,6 +273,83 @@ Each component toggled at INFERENCE on identical signatures (positive Δ = compo
 
 ---
 
+## 18. Linear + mean baselines, protocol-matched (2026-07-30, `baseline_linear.py`, LOCAL CPU)
+
+**Why**: the methodology audit found we had never fitted a **linear** baseline (M.1) — only Mean/Meancell/
+Meandrug, and those only ever as MSE on *all* cold-cell signatures, which is not comparable to any number we
+quote. Ahlmann-Eltze/Huber/Anders (Nature Methods 2025) showed no deep model beat a ridge-style linear model.
+
+**Protocol**: closed-form ridge, λ chosen on the same `val` split the neural models use (λ=1e4 for both
+variants, interior to the 1e2…1e6 grid). Scored with the **identical** protocol as v5/v6 — same fold-0
+splits, same reproducible stratum, same metric functions, same v5 subsampling caps. Mean baselines rescored
+with those same metrics. All numbers below use the **pre-fix dose parse**, matching how v5 was trained, so
+the comparison is apples-to-apples (see §19).
+
+| unseen **CELL** (n=7296) | pearson | R² | MSE | cDEG@100 |
+|---|---|---|---|---|
+| v5 neural | 0.440 | +0.273 | 4.348 | — |
+| ridge `full_linear` (D=3576) | **0.4470** | +0.2755 | 4.334 | 0.250 |
+| ridge `ecfp_cell` (D=2086) | 0.4235 | +0.2623 | — | 0.240 |
+| **Meandrug** (predict the drug's training-set mean) | **0.4475** | **+0.2846** | **4.279** | 0.260 |
+| Mean / Meancell | 0.3004 | +0.0412 | 5.735 | 0.170 |
+
+| unseen **COMPOUND** (n=6000) | pearson | R² | MSE |
+|---|---|---|---|
+| **v5 neural** | **0.471** | **+0.188** | **5.126** |
+| ridge `full_linear` | 0.3824 | +0.1072 | 5.636 |
+| best mean (Meancell) | 0.3649 | +0.0671 | 5.889 |
+
+| unseen **BOTH** (n=2998) | pearson | R² | MSE |
+|---|---|---|---|
+| **v5 neural** | **0.451** | **+0.173** | **6.035** |
+| ridge `full_linear` | 0.3315 | +0.0817 | 6.699 |
+| best mean (Mean) | 0.3162 | +0.0391 | 7.010 |
+
+- 🔴 **KEY NEGATIVE RESULT: on unseen CELL, v5 is beaten by predicting the drug's average response** —
+  Meandrug wins on **all three** metrics (pearson 0.4475 vs 0.440, R² +0.2846 vs +0.273, MSE 4.279 vs
+  4.348), and ridge with the same global inputs also edges it on pearson (0.4470). Not a metric artefact.
+  ⇒ **the model adds no cell-specificity.** This reproduces the Nature Methods finding inside our own project.
+- ✅ **On unseen COMPOUND and unseen BOTH the neural model is far ahead** — +0.089 and +0.120 pearson over the
+  best linear, +0.106 and +0.135 over the best mean. Chemical generalisation is real and large.
+- ⇒ **The model's value is chemical generalisation, not cellular.** This sharpens [1.5] (unseen-compound >
+  unseen-cell) from "cell-specificity is harder" to "cell-specificity is **not being achieved at all**", and
+  it is exactly consistent with chromatin's ≈0 benefit on unseen cells [2.3] and with the model sitting at
+  MSE-optimal dispersion [6.8/6.10] — i.e. hedging toward the drug mean is the optimal thing to do here.
+- **`full_linear` is the fair competitor**: all of `u_feats` (UniMol CLS + descriptors + ECFP4) + `X_base` +
+  lineage + dose + time — the same global information the neural model gets, minus per-atom tokens and
+  chromatin. It costs seconds to fit.
+
+**All-strata report** (M.2 — equal n per bin, `full_linear`, so the ≥1 headline is auditable):
+
+| mean\|Y\| bin | unseen cell | unseen compound | unseen both |
+|---|---|---|---|
+| 0.0–0.5 | 0.112 (R² −0.140) | 0.086 (−0.251) | 0.065 (−0.279) |
+| 0.5–1.0 | 0.171 (+0.008) | 0.137 (−0.046) | 0.100 (−0.087) |
+| 1.0–2.0 | 0.398 (+0.153) | 0.327 (+0.113) | 0.276 (+0.087) |
+| 2.0+ | 0.682 (+0.355) | 0.450 (+0.103) | 0.371 (+0.079) |
+
+- **R² is NEGATIVE in both weak strata** — below mean|Y| = 1 the global mean beats the model. This is signal
+  dilution quantified, and it is why rule #1 exists; but reporting only the ≥1 bin hid it. Report all bins.
+
+## 19. Dose unit parsing bug (2026-07-30, LOCAL, found while designing an unseen-dose/time split)
+
+The raw `dose` field has **110 distinct strings with mixed units** ('10 µM', '500 nM', '100 nM'). `_num()`
+took the leading number and discarded the unit, so **500 nM was parsed as 500 µM**.
+
+- **13,910 rows = 4.49 %** affected (nM only; no mM present). Error is exactly **1000×**.
+- Because it is multiplicative on a log axis it **inverted the ordering**: median z(log-dose) for nM rows was
+  **+1.710**, *above* the µM rows (+0.501). After the fix: **−1.769**, correctly below (+0.669).
+  Mis-scaling put the **lowest** doses at the **top** of the dose axis — worse than dropping them.
+- Fixed by `data.py::_dose_um` (unit-aware, normalises to µM). **Every checkpoint before 2026-07-30,
+  including v5, was trained with the bug**, so `V6DataConfig.legacy_dose_parsing` restores it: evaluating an
+  old checkpoint with the corrected parse would feed those rows a log-dose the model never saw and quietly
+  understate it. Match the flag to the checkpoint.
+- Impact bound: dose is a *conditioning* feature, not a target, and 95.5 % of rows were always correct. It
+  does not invalidate the pathway-bottleneck measurement, but it does invalidate any dose-response analysis
+  on a pre-fix checkpoint, and dose demonstrably moves the v6 pathway readout (Δ1.59, claim 4.12).
+
+---
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

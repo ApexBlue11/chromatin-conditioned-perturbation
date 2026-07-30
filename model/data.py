@@ -17,6 +17,24 @@ def _num(s):
     return float(m.group()) if m else np.nan
 
 
+def _dose_um(s):
+    """Dose in MICROMOLAR, unit-aware.
+
+    BUG FIXED 2026-07-30: the raw `dose` field mixes units ('10 uM', '500 nM' -- 110 distinct strings), and
+    reading only the leading number turned 500 nM into 500 uM. That is 1000x too large on **13,910 rows
+    (4.49 %)**, and because it is a *multiplicative* error on a log axis it placed the LOWEST doses at the
+    TOP of the standardised log-dose feature -- worse than dropping them. Only uM and nM occur (no mM)."""
+    t = str(s).lower().replace("µ", "u").replace("μ", "u")
+    v = _num(t)
+    if np.isnan(v):
+        return v
+    if "nm" in t:
+        return v / 1000.0
+    if "mm" in t:
+        return v * 1000.0
+    return v                       # uM, or a bare number taken as uM
+
+
 class LincsDataset:
     def __init__(self, dcfg, indices=None, _shared=None):
         self.dcfg = dcfg
@@ -63,6 +81,12 @@ class LincsDataset:
         den = avail.sum(-1)
         r_cell = np.where(den > 0, num / np.maximum(den, 1), 0.0).astype(np.float32)  # [83,978]
 
+        # Dose parsing. `legacy_dose_parsing=True` restores the unit-BLIND parse (500 nM -> 500 uM) that
+        # trained every checkpoint before 2026-07-30. It exists because evaluating such a checkpoint with
+        # the corrected parse would feed 13,910 rows (4.49 %) a log-dose the model never saw during
+        # training, quietly understating it. Match the flag to how the checkpoint was trained.
+        _dose = _num if getattr(dcfg, "legacy_dose_parsing", False) else _dose_um
+
         # drug features -> global u_feats + atom tokens
         dindex = json.load(open(R(dcfg.drug_index_path)))    # pert_id -> row
         desc = np.load(R(dcfg.desc_path)).astype(np.float32)
@@ -86,7 +110,7 @@ class LincsDataset:
                 if c is None or d is None:
                     continue
                 y_row.append(int(row["row"])); cell_row.append(c); drug_row.append(d)
-                dose_raw.append(_num(row["dose"])); time_raw.append(_num(row["time"]))
+                dose_raw.append(_dose(row["dose"])); time_raw.append(_num(row["time"]))
                 phase.append(row.get("phase", ""))
         y_row = np.array(y_row); cell_row = np.array(cell_row); drug_row = np.array(drug_row)
         dose = np.array(dose_raw, np.float32); time = np.array(time_raw, np.float32)

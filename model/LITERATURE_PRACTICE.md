@@ -56,7 +56,12 @@ per-prediction confidence.
 
 ## 3. Where we are weaker — ranked, each with the fix and its cost
 
-### G1. No linear baseline. Only mean-based ones. ← the one that matters
+> **STATUS 2026-07-30: G1, G2a and G5 are DONE. G1 changed a headline claim.** The linear baseline exists
+> (`baseline_linear.py`), and on unseen-cell **v5 loses to it and to Meandrug on all three metrics** — the
+> Nature Methods finding reproduced inside this project. Numbers: RESULTS §18, claims 1.8–1.10. A dose-unit
+> data bug surfaced on the way (RESULTS §19, claim M.9). G3/G6 remain open; G4 is next.
+
+### G1. No linear baseline. Only mean-based ones. ← the one that matters — **CLOSED, see status above**
 We compare against Mean / Meancell / Meandrug (cold-cell MSE 1.733–1.747 vs our 1.481). The Nature Methods
 critique is not about mean baselines — it is about a **ridge-style linear model on drug × cell features**,
 which beat every deep model tested. We have never fit one. Until we do, "beats all naive baselines" is a
@@ -133,16 +138,22 @@ genuinely open, not merely unimplemented.
 
 ## 5. Recommended order of work
 
-| # | Action | Needs accelerator? | Blocks a claim? |
-|---|---|---|---|
-| 1 | **Ridge linear baseline** (G1) | no | yes — every accuracy claim |
-| 2 | **Report all mean\|Y\| strata** (G2a) | no | yes — auditability of every number |
-| 3 | Common-DEGs metric (G5) | no | no, but expected by reviewers |
-| 4 | Independent stratifier (G2b) | no | strengthens G2 |
-| 5 | Unseen dose/time split (G4) | no (eval only) | adds a generalisation axis |
-| 6 | Seeds / k-fold (G3) | **yes** | yes — all small deltas |
+| # | Action | Needs accelerator? | Blocks a claim? | Status |
+|---|---|---|---|---|
+| 1 | **Ridge linear baseline** (G1) | no | yes — every accuracy claim | ✅ **done** — retracted 1.1, added 1.8/1.9 |
+| 2 | **Report all mean\|Y\| strata** (G2a) | no | yes — auditability of every number | ✅ **done** — added 1.10 |
+| 3 | Common-DEGs metric (G5) | no | no, but expected by reviewers | ✅ **done** — `losses.common_degs` |
+| — | *(unplanned)* dose-unit bug | no | yes — any dose analysis | ✅ **fixed** — M.9 / RESULTS §19 |
+| 4 | Unseen dose/time split (G4) | **retrain** to be a real held-out axis | adds a generalisation axis | open |
+| 5 | Independent stratifier (G2b) | no | strengthens G2 | open |
+| 6 | Seeds / k-fold (G3) | **yes** | yes — all small deltas | open |
 
-1–5 are all CPU and none of them wait on the queued TPU run.
+**The real lesson from 1–3**: they cost under an hour of CPU between them and they overturned a headline
+claim that had stood since v3. Cheap baselines before more architecture.
+
+**G4 correction**: an unseen-dose/time split cannot be added as an eval-only change — the *training* set has
+to exclude those doses/times, so it needs a retrain. Worth folding into the next training run rather than
+doing standalone.
 
 ---
 
