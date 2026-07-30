@@ -27,19 +27,48 @@ when a stale poller still says QUEUED (this cost real time; see TPU_NOTES.md #10
 **Never hard-cancel**: a cancelled Kaggle kernel's `/kaggle/working` is discarded and the checkpoint is lost.
 
 ## 2. When v6 finishes — exactly what to do
+**The evaluation is already written and tested (29/29 checks). Two commands, both local CPU, no Kaggle.**
+
 1. Pull `ckpt_v6_fold0.pt` + `metrics_v6_fold0.json`; copy the ckpt to `model/results/`.
-2. Evaluate on the **reproducible stratum only** (mean|Y| ≥ 1) on all three splits (unseen cell / unseen
-   compound / unseen both). v5 reference: **0.440 / 0.471 / 0.451** Pearson.
-3. **Ablate every component to its MEAN, never to 0 or 1** — ablating a learned multiplicative component
-   to 1 destroys its learned scale and produced a **30× artefact** last time (+0.103 vs the true +0.006).
-4. Validate the pathway readout (`aux["pathway_activations"]`, 360 named Reactome nodes) against
-   **independent** annotation. Do not inspect by eye and conclude.
-5. Judge v6 against v5 **on the same splits and stratum**, and report negatives as prominently as positives.
+2. Accuracy + attribution — steps 2 and 3 below are both built into this one command (~2 h on CPU):
+   ```bash
+   python model/v6/eval_v6.py --ckpt model/results/ckpt_v6_fold0.pt
+   ```
+   - reproducible stratum only (mean|Y| ≥ 1), all three splits, v5's own metric functions **and v5's own
+     subsampling caps**, so the comparison is signature-for-signature. v5 reference: **0.440 / 0.471 /
+     0.451** Pearson. It **refuses to claim comparability** if the split sizes don't match v5's
+     (7296 / ≥6000 / 2998).
+   - every component **ablated to its MEAN, never to 0 or 1** — ablating a learned multiplicative component
+     to 1 destroys its learned scale and produced a **30× artefact** last time (+0.103 vs the true +0.006).
+   - each mode also reports `|dY|max`, so **"delta = 0.000" can be told apart from "the ablation never took
+     effect"** — the failure mode this project keeps hitting is a valid computation of the wrong quantity.
+3. Pathway readout vs independent annotation (~10 min):
+   ```bash
+   python model/v6/probe_pathways_v6.py --ckpt model/results/ckpt_v6_fold0.pt
+   ```
+   **Read §2a first — the obvious version of this test is invalid.**
+4. Judge v6 against v5 **on the same splits and stratum**, and report negatives as prominently as positives.
+
+## 2a. ⚠️ The pathway readout is DRUG-INVARIANT (verified 2026-07-30, claim 4.12)
+`pathway_activations` is produced *before* the drug enters the forward pass. Swapping in a completely
+different molecule changes it by **exactly 0.0**; baseline (2.54), chromatin (1.28) and dose/time (1.59) all
+move it. It is a **cell × dose/time** readout: "which named pathways are chromatin-permitted in this cell".
+
+- **v6 does NOT repair the falsified drug-target claim** (§5, atom→gene attention). That was a *drug*-level
+  claim; this is a *cell*-level readout. v6 sidesteps that failure rather than fixing it.
+- **Do not score this readout against `dti_reference.tsv`.** Structurally guaranteed null, means nothing.
+- The valid annotation is the **measured LINCS response** (never an input to the readout): does pathway *p*'s
+  activation in cell *c* track how much *p*'s member genes actually move in *c*? With a gene-permutation
+  null, a **cell-shuffle null** (cell-specific, or just a global pathway prior?), and train/test-cell
+  stratification. That is what `probe_pathways_v6.py` runs.
 
 ## 3. Documentation map (all in-repo, nothing external)
 | File | Contents |
 |---|---|
-| `model/v6/ARCHITECTURE.md` | **v6: the task, provenance of every input tensor, data flow, per-component rationale + evidence, what v6 is expected NOT to fix, how it must be judged** |
+| `model/v6/ARCHITECTURE.md` | **v6: the task, provenance of every input tensor, data flow, per-component rationale + evidence, what the pathway readout is and is NOT, what v6 is expected NOT to fix, how it must be judged** |
+| `model/v6/eval_v6.py` | accuracy on the reproducible stratum (protocol-matched to v5) + ablate-to-mean for all 7 components |
+| `model/v6/probe_pathways_v6.py` | pathway readout vs measured response, with gene-permutation + cell-shuffle nulls |
+| `model/v6/test_v6.py` | 29 checks incl. the positive **and** negative control for the ablation mechanism |
 | `model/v6/TPU_NOTES.md` | 12 TPU/XLA failure modes and the fix for each |
 | `model/ARCHITECTURE_LESSONS.md` | why v5's interpretability failed; what P-NET/DCell/MOLI do instead |
 | `model/results/CLAIMS.md` | ~60 claims: evidence, A/B/C/✗ strength, falsifiers, **retractions kept deliberately** |
@@ -89,7 +118,8 @@ GitHub: `ApexBlue11/chromatin-conditioned-perturbation` (private, MIT).
   accelerator work and big-bundle jobs to Kaggle.
 
 ## 8. Next steps, in order
-1. Collect and evaluate v6 (§2). It may contribute nothing — the bottleneck is unmeasured.
+1. Collect v6 and run the two commands in §2 — the harness is written and tested, only the checkpoint is
+   missing. The bottleneck is still **unmeasured** and may contribute nothing.
 2. If the pathway readout works, that is the paper's mechanistic contribution; if not, report the null.
 3. Protocol-matched SOTA comparison — needs LINCS **Level 3** (the comparison paper uses level 3
    quantile-normalised profiles) plus paired controls; we have Level 5 only.

@@ -54,6 +54,11 @@ class V6DataConfig:
     # THE biological backbone of v6: 360 named Reactome pathways x 978 landmark genes.
     # v5 used the gene-gene COLLAPSE of this (A_copathway), discarding the named pathway axis.
     m_reactome_path: str = "network/outputs/M_reactome.npy"
+    # Row p of M_reactome <-> row p of pathway_info.tsv (pathway_id, pathway_name, member symbols).
+    # Without this the "360 NAMED nodes" claim is not checkable, so the mapping is VERIFIED at load
+    # (eval_v6._load_pathway_names re-derives each row's gene set from the symbols and asserts equality).
+    pathway_info_path: str = "network/outputs/pathway_info.tsv"
+    gene_order_path: str = "Data Info/pathway_landmark_genes.txt"   # canonical 978-gene order
     cop_path: str = "network/outputs/A_copathway.npy"     # only if use_prior_bias
     ppi_path: str = "network/outputs/STRING_adj_978.npy"  # only if use_prior_bias
 

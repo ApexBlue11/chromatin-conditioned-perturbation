@@ -124,9 +124,40 @@ Honest, so we do not repeat the pattern of hoping:
 - **A pathway bottleneck may contribute nothing**, exactly as the conductance did. It must be judged by
   ablation-to-**mean** (never to 0/1 — that measures scale destruction, a 30× artefact last time [3.6]).
 
-## 7. How v6 must be judged
-1. Reproducible stratum only, same three splits (unseen cell / unseen compound / unseen both).
-2. Every component ablated **to its mean**, on identical signatures.
-3. Pathway readout validated against **independent** annotation — not inspected by eye.
-4. Unit tests (`tests/`) pass before any accelerator time is spent.
+## 7. What the pathway readout is — and is NOT (verified 2026-07-30)
+
+The readout comes off step (4), **before the drug enters at step (5)**. Measured on a live model by
+substituting inputs one at a time, the change in `pathway_activations` is:
+
+| swapped input | change in the readout |
+|---|---|
+| **a completely different drug** | **exactly 0.0** |
+| baseline expression `X_base` | 2.54 |
+| chromatin `E` | 1.28 |
+| dose / time | 1.59 |
+
+So `pathway_activations[:, p]` is a **cell × dose/time** quantity — *"is named Reactome pathway p
+chromatin-permitted in this cell at this exposure"* — and carries **no drug information at all**.
+
+Two consequences, stated plainly because the natural reading is the wrong one:
+- **v6 does not repair the falsified drug-target claim [4.1a/4.1c].** That was a *drug*-level claim about
+  atom→gene attention. This is a *cell*-level readout. v6 sidesteps that failure; it does not fix it.
+- **Scoring this readout against drug→target annotation (`dti_reference.tsv`) is structurally guaranteed to
+  return a null that means nothing.** Do not run it and do not report it.
+
+The valid test uses the **measured LINCS response** as the independent annotation — it is never an input to
+the readout: does pathway *p*'s activation in cell *c* track how much *p*'s member genes actually move in
+*c* (reproducible signatures only)? With a gene-permutation null (preserves pathway size), a **cell-shuffle
+null** (is it cell-specific, or a global pathway prior?), and train-vs-test-cell stratification.
+Implemented in `probe_pathways_v6.py` [4.12].
+
+## 8. How v6 must be judged
+1. Reproducible stratum only, same three splits (unseen cell / unseen compound / unseen both) —
+   `eval_v6.py`, which refuses to report a v5 comparison if the split sizes do not match v5's.
+2. Every component ablated **to its mean**, on identical signatures — never to 0 or 1 [3.6].
+3. Pathway readout validated against **independent** annotation, per §7 — not inspected by eye.
+4. Unit tests (`test_v6.py`) pass before any accelerator time is spent. They include the positive **and**
+   negative control for the ablation mechanism itself: at init the pathway layer, both chromatin gates and
+   the FiLM are exact no-ops by design, so on an untrained model a broken ablation is indistinguishable
+   from a genuine null.
 5. Report negatives with the same prominence as positives.

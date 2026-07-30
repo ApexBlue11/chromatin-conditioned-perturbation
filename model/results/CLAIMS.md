@@ -68,6 +68,7 @@ single-fold / small-n · **C** = suggestive only · **✗** = tested and NOT sup
 | 4.6 | Pathway-prior ATTENTION flow is weak: prior heads only **1.1×** random on-support (λ non-zero, 0.24–0.94) | `moa.json` | **A** |
 | 4.7 | ⇒ Interpretability ranking: **epigenetics > atom→gene DTI > pathway attention**. (Note: pathway *conductance* matters far more for ACCURACY than pathway *attention* does for interpretability) | 2.1, 4.1, 4.6, 3.1 | **A** |
 | 4.8 | Measured only on the LAST perturb layer (lowest λ); early/base layers (λ up to 0.9) may steer more | `moa.py` scope | limitation |
+| 4.12 | ⚠️ **v6's pathway readout is DRUG-INVARIANT BY CONSTRUCTION — verified 2026-07-30.** `pathway_activations` is produced at forward step (4), *before* the drug is introduced at step (5). Measured on a live model: substituting a completely different molecule changes the readout by **exactly 0.0**, while baseline expression (2.54), chromatin (1.28) and dose/time (1.59) all move it. ⇒ it is a **cell × dose/time** quantity: "which named pathways are chromatin-permitted in this cell at this exposure". **v6 therefore does NOT repair 4.1a/4.1c** — those are DRUG-level claims, and scoring this readout against drug→target annotation is structurally guaranteed to return a null that means nothing. The valid test uses the measured LINCS response as the independent annotation | live-model probe; `model/v6/probe_pathways_v6.py` | **A** |
 
 ## 5. Drug features
 

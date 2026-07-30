@@ -97,6 +97,64 @@ def main():
     for k, p in watched.items():
         check(f"gradient present + finite: {k}", p.grad is not None and bool(torch.isfinite(p.grad).all()))
 
+    # --- the ABLATE-TO-MEAN mechanism used by eval_v6.py ---------------------------------------------
+    # This must be validated on a LIVE model. At init the pathway layer, both chromatin gates and the FiLM
+    # are exact no-ops BY DESIGN, so on an untrained model a silently broken ablation is indistinguishable
+    # from a genuine null result -- and "a valid computation of the wrong quantity" is this project's
+    # recurring failure mode. Positive control: every mode must move a live prediction. Negative control:
+    # on a batch of IDENTICAL signatures each component's mean IS its own value, so every mode must be an
+    # EXACT no-op -- which checks the mean VALUE, not merely that something changed.
+    from eval_v6 import MeanAblate, substitute, MODES
+
+    def live(mm):
+        with torch.no_grad():
+            for lin in [mm.pathway.w_out, mm.head.epi_head[-1], mm.film.net[-1],
+                        mm.pathway.epi_gate[-1]]:
+                lin.weight.normal_(0, 0.1); lin.bias.normal_(0, 0.1)
+            mm.fuse.epi_gate.fill_(1.0)
+        return mm
+
+    def means(bb):
+        am = bb["atom_mask"].unsqueeze(-1)
+        return {"X": bb["X"].mean(0), "E": bb["E"].mean(0), "cell_ctx": bb["cell_ctx"].mean(0),
+                "u_feats": bb["u_feats"].mean(0),
+                "atom": (bb["atoms"] * am).sum((0, 1)) / bb["atom_mask"].sum().clamp(min=1)}
+
+    torch.manual_seed(1)
+    ml = live(LincsV6(cfg, M).eval())
+    hk = {"mean_pathway": MeanAblate(ml.pathway, tuple_index=0),
+          "mean_pathway_gate": MeanAblate(ml.pathway.epi_gate, transform=torch.tanh,
+                                          inverse=lambda t: torch.atanh(t.clamp(-0.999, 0.999)))}
+
+    @torch.no_grad()
+    def ablated(bb, mode):
+        for h in hk.values():
+            h.mode, h.sum, h.n = "collect", None, 0
+        y_full = ml(bb)
+        for h in hk.values():
+            h.mode = "off"
+        if mode in hk:
+            hk[mode].mode = "ablate"; y_ab = ml(bb); hk[mode].mode = "off"
+        else:
+            y_ab = ml(substitute({k: v.clone() for k, v in bb.items()}, mode, means(bb)))
+        return float((y_ab - y_full).abs().max())
+
+    b6 = batch(cfg, B=6)
+    for mode in MODES:
+        d = ablated(b6, mode)
+        check(f"ablate-to-mean moves a LIVE prediction: {mode}", d > 1e-6, f"|dY|max={d:.4f}")
+
+    b1 = batch(cfg, B=1)
+    bc = {k: v.repeat(4, *([1] * (v.dim() - 1))) for k, v in b1.items()}
+    for mode in MODES:
+        if mode == "mean_atoms":
+            continue      # mean_atoms averages over atom POSITIONS too, so it is not a no-op even here
+        d = ablated(bc, mode)
+        check(f"ablate-to-mean is an exact no-op on identical signatures: {mode}", d < 1e-5,
+              f"|dY|max={d:.2e}")
+    for h in hk.values():
+        h.handle.remove()
+
     n_fail = sum(1 for r in R if not r)
     print(f"\n{'='*56}\n{len(R)-n_fail}/{len(R)} checks passed" + (f" | {n_fail} FAILED" if n_fail else " | ALL PASS"))
     sys.exit(1 if n_fail else 0)
