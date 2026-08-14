@@ -15,13 +15,20 @@ the chromatin (epigenetics) effect.
 ## 1. What is running right now
 | Kernel | What | How to collect |
 |---|---|---|
-| `apexblue/lincs-v6-tpu` | v6 training, TPU v3-8, 8 cores, 10 epochs, budget 7.5 h | see §2 |
+| `apexblue/lincs-v6-gpu` | v6 training, **T4 x2**, 10 epochs, batch 48, budget 8.5 h | see §2 |
 
 ```bash
 export KAGGLE_CONFIG_DIR="C:/Users/Surya/.kaggle"
-kaggle kernels status apexblue/lincs-v6-tpu
-kaggle kernels output apexblue/lincs-v6-tpu -p <dir>     # -> ckpt_v6_fold0.pt, metrics_v6_fold0.json
+kaggle kernels status apexblue/lincs-v6-gpu
+kaggle kernels output apexblue/lincs-v6-gpu -p <dir>     # -> ckpt_v6_fold0.pt, metrics_v6_fold0.json
 ```
+**TPU is abandoned for this model** (`apexblue/lincs-v6-tpu`, do not restart it). Two full queue cycles
+produced **zero** training — `xmp.spawn` nprocs rejected under PJRT, then v5e multi-process init failing
+with *"Expected 8 worker addresses, got 1"* (TPU_NOTES #13/#15) — and the TPU was already measured **slower
+per core than a T4** [8]. The GPU kernel started **within seconds, no queue**.
+Kaggle publishes a kernel's log only once it ends, so a RUNNING kernel cannot be inspected mid-flight; the
+fail-fast guards in `train_v6_gpu.py` fire in the first seconds, so "still RUNNING" already means the GPU is
+real and is not a P100.
 **Check status DIRECTLY and try pulling output — do not trust a poller.** A finished run has output even
 when a stale poller still says QUEUED (this cost real time; see TPU_NOTES.md #10).
 **Never hard-cancel**: a cancelled Kaggle kernel's `/kaggle/working` is discarded and the checkpoint is lost.
@@ -120,8 +127,14 @@ GitHub: `ApexBlue11/chromatin-conditioned-perturbation` (private, MIT).
 5. **Verify a measurement tests what it claims** — most errors here were valid computations of the wrong quantity.
 
 ## 7. Compute
-- **GPU quota is EXHAUSTED** (weekly reset). TPU is the only accelerator until it resets.
-- Never P100 (sm_60 unusable): push with `--accelerator NvidiaTeslaT4`.
+- **GPU quota is available again (2026-08-14) — use it.** T4 x2 via `machine_shape: "NvidiaTeslaT4"` +
+  `"enable_gpu": true` in `kernel-metadata.json` (this is Kaggle's T4 **x2** option; copied from the
+  account's own working `lincs-train-v5` kernel rather than guessed). The `kaggle kernels push`
+  `--accelerator` ids are: NvidiaTeslaP100, NvidiaTeslaT4, NvidiaTeslaT4Highmem, NvidiaL4, NvidiaTeslaA100,
+  NvidiaH100, TpuV38, TpuV5E8, TpuV6E8, Tpu1VmV38, NvidiaL4X1, NvidiaRtxPro6000.
+- **Do not use TPU for this model** — see §1. GPU also avoids the "1 concurrent TPU session" trap, which
+  blocked pushing a corrected kernel while a broken one sat queued (the CLI has **no cancel**, only `delete`).
+- Never P100 (sm_60 unusable): `train_v6_gpu.py` probes and exits in ~1 s if one is assigned.
 - Kaggle caps: 5 concurrent CPU sessions, 2 GPU. CPU kernels are free.
 - **torch 2.11 IS installed locally** — run unit tests and all CPU analyses locally; only send
   accelerator work and big-bundle jobs to Kaggle.
