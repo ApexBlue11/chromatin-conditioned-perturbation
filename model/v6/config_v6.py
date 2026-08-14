@@ -1,7 +1,33 @@
 # -*- coding: utf-8 -*-
 """v6 configuration. Every non-obvious value carries the measurement that justifies it.
 Design rationale: ARCHITECTURE.md (same directory)."""
+import os
 from dataclasses import dataclass
+
+
+def resolve_paths(dc):
+    """Kaggle mounts inputs flat under /kaggle/input/**; find each file rather than assuming a layout.
+    Lives here (not in a trainer) so the GPU and TPU trainers share it -- importing it from the TPU
+    trainer would drag in torch_xla, which does not exist on a GPU kernel."""
+    import glob as _g
+    if not os.path.isdir("/kaggle/input"):
+        return dc
+    hit = lambda n: next(iter(_g.glob(f"/kaggle/input/**/{n}", recursive=True)), n)
+    dc.root = os.path.dirname(hit("Y_target_level5_978.npy"))
+    for attr, name in [("y_path", "Y_target_level5_978.npy"), ("sig_path", "signatures_usable.tsv"),
+                       ("xbase_path", "X_base_lincs.npy"), ("e_path", "E_final.npy"),
+                       ("e_mask_path", "E_final_mask.npy"), ("e_reliability_path", "E_reliability.tsv"),
+                       ("cop_path", "A_copathway.npy"), ("ppi_path", "STRING_adj_978.npy"),
+                       ("drug_index_path", "drug_feature_index.json"), ("desc_path", "drug_descriptors.npy"),
+                       ("fp_path", "drug_fingerprints.npy"), ("unimol_cls_path", "drug_unimol.npy"),
+                       ("chemberta_path", "drug_chemberta.npy"), ("atom_reprs_path", "drug_atom_reprs.npy"),
+                       ("atom_offsets_path", "drug_atom_offsets.npy"), ("strength_path", "sig_strength.npy"),
+                       ("lineage_path", "cell_lineage.npy"), ("m_reactome_path", "M_reactome.npy"),
+                       ("pathway_info_path", "pathway_info.tsv"),
+                       ("gene_order_path", "pathway_landmark_genes.txt"),
+                       ("scaffold_split_path", "scaffold_split.json")]:
+        setattr(dc, attr, hit(name))
+    return dc
 
 
 @dataclass
