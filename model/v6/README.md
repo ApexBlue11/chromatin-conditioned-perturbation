@@ -31,7 +31,11 @@ median rank percentile **0.560 — worse than chance**, and the pathway prior st
 random**. Two structural causes were identified and fixed:
 
 1. **Hard connectivity mask, not a soft bias** (P-NET / DCell / DrugCell). 360 *named* Reactome pathway
-   nodes; information cannot route around membership. `pathway_activations[:, p]` **is** pathway *p*.
+   nodes: gene *g* reaches only pathways containing *g*, so `pathway_activations[:, p]` **is** a masked
+   aggregation of pathway *p*'s members (verified, not assumed — test_v6).
+   ⚠️ **But unlike P-NET this is a masked SIDE BRANCH, not a bottleneck** — `model_v6` adds it residually
+   (`h = h + delta`), so the main stream *can* route around it. The readout is faithful; "the prediction
+   had to pass through it" is **not** established. See ARCHITECTURE.md §7 and claim 4.13.
 2. **Late modality integration, not early fusion** (MOLI / DeepCDR). Separate encoders for baseline
    expression and chromatin, each with its own normalisation, so both stay independently ablatable —
    v5 summed them into one token and chromatin entangled with baseline (corr 0.74).

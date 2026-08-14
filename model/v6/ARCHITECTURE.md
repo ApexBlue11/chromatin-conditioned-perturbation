@@ -106,7 +106,7 @@ scale was controlled [3.1a/3.1b].
 
 | Component | Why it is here |
 |---|---|
-| **PathwayBottleneck** | The fix for mistake 1. Hard mask ⇒ gene *g* reaches only pathways containing *g*; `pathway_activations[:,p]` **is** Reactome pathway *p*. 33.3k params, 2.28 % density. Verified: no-op at init, genes in no pathway get exactly 0 (243 genes), perturbing a gene changes only its 91 pathways |
+| **PathwayBottleneck** (a misnomer — see below) | The fix for mistake 1. Hard mask ⇒ gene *g* reaches only pathways containing *g*; `pathway_activations[:,p]` **is** a masked aggregation of Reactome pathway *p*'s members. 33.3k params, 2.28 % density. Verified: no-op at init, genes in no pathway get exactly 0 (243 genes), perturbing a gene changes only its 91 pathways. **But it is a residual SIDE BRANCH, not a bottleneck** — `h = h + delta`, so the main stream can bypass it, unlike P-NET where the pathway layers are the only route [4.13] |
 | **Separate modality encoders + late fusion** | The fix for mistake 2. Each of baseline/chromatin keeps its own normalisation and stays independently ablatable |
 | **Chromatin gating at pathway level** | v5 gated per gene and mostly re-encoded `X_base` (corr 0.74). Pathway-level gating is less redundant with baseline and directly interpretable as "which pathways are chromatin-permitted in this cell" |
 | **Signed additive chromatin head** | **Kept — the one validated mechanism.** ΔR² +0.089 [2.1], correct sign [2.2], survives baseline-expression stratification in all 4 quartiles [2.2a]. A multiplicative gate alone cannot express a signed shift |

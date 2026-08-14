@@ -205,8 +205,17 @@ class PathwayBottleneck(nn.Module):
 
     Here the prior is a hard connectivity MASK, as in P-NET (Nature 2021) / DCell / DrugCell: gene g
     contributes ONLY to pathways containing g, and a pathway returns signal ONLY to its member genes.
-    Information is forced through P named nodes, so `pathway_activation[:, p]` IS "Reactome pathway p" --
-    interpretability by construction rather than post-hoc hope.
+    `pathway_activation[:, p]` IS a masked aggregation of Reactome pathway p's member genes -- that much is
+    interpretability by construction rather than post-hoc hope, and it is verified by test_v6 (perturbing a
+    gene moves exactly its 91 pathways; the 243 genes in no pathway get exactly 0).
+
+    HONEST LIMIT vs P-NET (name notwithstanding, this is NOT a bottleneck). P-NET stacks pathway layers as
+    the ONLY route to the outcome, so information genuinely cannot bypass them. Here the caller adds the
+    output residually (`h = h + delta` in model_v6), which makes this a masked SIDE BRANCH: the mask governs
+    what the branch may read and write, but the main residual stream can route around it entirely -- and at
+    init, with w_out zero-init, it does exactly that. So "pathway p's activation is faithful to pathway p"
+    holds; "the prediction had to pass through pathway p" does NOT. How much it actually contributes is
+    precisely what eval_v6's `mean_pathway` ablation measures. See CLAIMS 4.13.
 
     Chromatin gates at the PATHWAY level (v5 gated per gene, where it mostly re-encoded X_base, corr 0.74).
     Sparse by design: with 83 training cell lines the parameter reduction is itself useful regularisation.
