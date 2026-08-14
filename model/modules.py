@@ -24,7 +24,9 @@ def _bias_mask(q, key_mask, add_bias):
         km = torch.zeros(q.shape[0], 1, 1, key_mask.shape[-1], device=q.device, dtype=q.dtype)
         km = km.masked_fill(key_mask[:, None, None, :], float("-inf"))
         m = km if m is None else m + km
-    return m
+    # CUDA's fused SDPA kernels require the mask's last dimension to be contiguous; a broadcast/expanded
+    # bias has stride 0 there and raises. CPU silently accepts it, so this only ever bites on a GPU kernel.
+    return m if m is None or m.stride(-1) == 1 else m.contiguous()
 
 
 def masked_softmax_attention(q, k, v, key_mask=None, add_bias=None):
@@ -157,7 +159,14 @@ class BiasedSelfAttention(nn.Module):
         return x.view(B, L, self.h, self.dh).transpose(1, 2)
 
     def _bias(self, priors, support):
-        # priors:[P,G,G] ; returns [H,G,G]
+        # priors:[P,G,G] ; returns [H,G,G], or None when there is no prior to add.
+        # v6 sets use_prior_bias=False -> n_prior_heads=0 and `priors` is a DUMMY [1,1,1] buffer. Building a
+        # bias from it produced a [H,1,1] tensor that SDPA broadcasts to [B,H,G,G] with stride 0 on the last
+        # dim. CPU tolerates that; CUDA raises "(*bias): last dimension must be contiguous" -- so the whole
+        # test suite passed locally and the model died on the first GPU batch. Return None instead: correct,
+        # and it skips a pointless einsum every layer.
+        if self.n_prior_heads == 0 and not self.masked_head:
+            return None
         G = priors.shape[-1]
         bias = priors.new_zeros(self.h, G, G)
         lam = F.softplus(self.log_lambda)                       # [n_prior_heads,P]

@@ -50,6 +50,39 @@ def probe_gpu():
     return names
 
 
+def check_inputs(ds, sp):
+    """Refuse to train on a silently degraded setup.
+
+    `data.py` falls back to neutral defaults when an input file is absent instead of failing, so a dataset
+    that is merely MISSING A FILE trains happily and produces numbers that look fine and mean something
+    else. This actually happened (2026-08-14): rebuilding the Kaggle model-src dataset from a PAGINATED
+    file listing silently dropped two files, and the run that followed had
+
+      * no `scaffold_split.json` -> no compound holdout: test_colddrug/test_coldboth EMPTY and their
+        signatures folded into train (235,628 vs 179,772) => the model trains on the very compounds later
+        scored as "unseen". Leakage straight into the headline unseen-compound number.
+      * no `sig_strength.npy`  -> strength and weight become ALL ONES: reliability weighting off, and the
+        `strength >= 1` reproducible-stratum filter passes everything (rule #1 silently disabled).
+
+    Neither raised anything. Eight and a half hours of GPU would have produced an invalid model."""
+    problems = []
+    for k in ("test_colddrug", "test_coldboth"):
+        if len(sp[k]) == 0:
+            problems.append(f"{k} is EMPTY -> scaffold_split.json was not found; there is no compound "
+                            f"holdout and train has absorbed those signatures (leakage)")
+    if float(ds.strength.min()) == 1.0 and float(ds.strength.max()) == 1.0:
+        problems.append("per-signature strength is identically 1.0 -> sig_strength.npy was not found; "
+                        "reliability weighting is OFF and the reproducible-stratum filter passes everything")
+    if float(ds.weight.min()) == 1.0 and float(ds.weight.max()) == 1.0:
+        problems.append("per-signature weight is identically 1.0 -> reliability weighting is not active")
+    if problems:
+        raise SystemExit("FATAL: input files are missing and data.py fell back to neutral defaults:\n  - "
+                         + "\n  - ".join(problems)
+                         + "\nRefusing to train: this would burn the session on an invalid model.")
+    print(f"input check OK: strength {ds.strength.min():.2f}-{ds.strength.max():.2f}, "
+          f"weight {ds.weight.min():.3f}-{ds.weight.max():.3f}, compound holdout present", flush=True)
+
+
 @torch.no_grad()
 def quick_eval(model, ds, idx, cfg, device, batch=64, max_n=3000):
     """Per-epoch progress signal on the REPRODUCIBLE stratum only (rule #1: ~75 % of LINCS is inert, and
@@ -105,6 +138,7 @@ def main():
     full = LincsDataset(dc, _shared=shared)
     sp = build_splits(full, dc)
     print(f"splits={ {k: len(v) for k, v in sp.items() if not k.startswith('_')} }", flush=True)
+    check_inputs(full, sp)
     train_ds = LincsDataset(dc, indices=sp["train"], _shared=shared)
     # fixed_pad is a TPU requirement (static shapes); on GPU dynamic padding is correct AND faster, and
     # the two are proven to give identical predictions (test_v6: padding invariance, 2.7e-07).
