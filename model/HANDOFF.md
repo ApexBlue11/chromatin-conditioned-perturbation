@@ -54,6 +54,16 @@ when a stale poller still says QUEUED (this cost real time; see TPU_NOTES.md #10
    python model/v6/probe_pathways_v6.py --ckpt model/results/ckpt_v6_fold0.pt
    ```
    **Read §2a first — the obvious version of this test is invalid.**
+4. **MoA probe — does the pathway layer carry drug mechanism?** (~20 min)
+   ```bash
+   python model/v6/probe_moa_v6.py --ckpt model/results/ckpt_v6_fold0.pt
+   ```
+   Activations are drug-invariant (§2a) but the **gradient** `∂Ŷ/∂a_p` is not [4.14], so a per-drug
+   pathway attribution exists without a retrain. It checks, in order: (a) is the branch **inert**
+   (cross-check against `mean_pathway`); (b) does the ranking vary across drugs **at all** — on an
+   untrained model it does not; (c) only then, alignment to curated ChEMBL targets.
+   ⚠️ **0.5 is not the chance level** — target-containing pathways are large and central and score 0.218
+   on an *untrained* model. Judge against the permutation null only [4.15].
 4. Judge v6 against v5 **on the same splits and stratum**, and report negatives as prominently as positives.
 
 ## 2a. ⚠️ The pathway readout is DRUG-INVARIANT (verified 2026-07-30, claim 4.12)
