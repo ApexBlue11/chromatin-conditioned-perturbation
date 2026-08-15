@@ -396,6 +396,39 @@ while *losing* R² (+0.1452 vs +0.173) — better pattern, worse magnitude.
 
 ---
 
+## 21. v7 seed 0 — WORSE than v6 on all three splits, and diagnosable (2026-08-15)
+
+v7 bundled: supervised pathway + chromatin aux heads with uncertainty weighting, STRING PPI message
+passing, 765 finer Reactome nodes, stochastic depth, EMA, WSD schedule, RMSNorm, SwiGLU, QK-norm.
+
+| split | v7 s0 (raw) | v7 s0 (EMA) | v6 | v7 − v6 |
+|---|---|---|---|---|
+| unseen CELL | 0.4322 | 0.4317 | 0.4466 | **−0.0144** |
+| unseen COMPOUND | 0.4448 | 0.4451 | 0.4686 | **−0.0238** |
+| unseen BOTH | 0.4237 | 0.4238 | 0.4663 | **−0.0426** |
+
+- 🔴 **v7 is worse than v6 everywhere**, by 3–6× the size of the v6-vs-v5 differences. One seed so far
+  (1 and 2 pending), but −0.043 is well outside the ±0.015 range we have seen between comparable runs.
+- **EMA contributed nothing**: −0.0005 / +0.0003 / +0.0001. The one item in the modern recipe chosen because
+  its documented benefit (robustness to noisy labels) matched our regime did not show up at all.
+- 🔴 **PRIME SUSPECT — the uncertainty weighting inverted the objective.** Final learned weights:
+  **main 1.59, pathway-aux 10.75, chromatin-aux 3.78** ⇒ the main task received about
+  **1.59 / 16.1 ≈ 10 %** of the weighted loss. Kendall-style weighting sets weight by *inverse task noise*,
+  so an auxiliary task that is merely EASY collects a huge weight. Predicting per-pathway mean\|Y\| from
+  pathway activations is easy; that is not the same as being useful. **The model spent ~90 % of its
+  gradient on auxiliary tasks.**
+- **Method lesson (generalise this):** uncertainty weighting is for tasks you care about *equally*. For
+  auxiliary tasks it must be capped, scheduled, or replaced by a small fixed λ — otherwise "easy" is
+  rewarded as "important".
+- ⚠️ **Attribution is impossible from this run**: ~8 changes at once, which is exactly the mistake v5 made
+  (4 bundled changes, cause unattributable [1.7]). The fix is one-factor-at-a-time, and the cheapest
+  decisive test is `--no_aux` (everything else identical).
+- Cost note: epoch time rose **915 s → 1382 s** despite RAM-caching the inputs. The added compute (765-node
+  pathway layer, a dense 978×978 PPI einsum ≈ 12 GFLOP/call, aux heads) more than offset the I/O saving —
+  the earlier claim that dataloading was the bottleneck was wrong and was not costed before being asserted.
+
+---
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

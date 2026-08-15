@@ -1,0 +1,117 @@
+{
+  "ckpt": "ckpt_v7_fold0_seed0.pt",
+  "fold": 0,
+  "n_pathways": 765,
+  "v5_reference": {
+    "unseen_cell": 0.44,
+    "unseen_compound": 0.471,
+    "unseen_both": 0.451
+  },
+  "v6_reference": {
+    "unseen_cell": 0.4466,
+    "unseen_compound": 0.4686,
+    "unseen_both": 0.4663
+  },
+  "weights": {
+    "raw": {
+      "unseen_cell": {
+        "headline": {
+          "r2_overall": 0.2656469941139221,
+          "r2_gene_median": 0.10294640064239502,
+          "pearson_median": 0.4322107136249542,
+          "mse": 4.392671585083008,
+          "n": 7296,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "r2_phase_P1": 0.13885289430618286,
+          "r2_phase_P2": 0.3408856987953186
+        },
+        "strata": {}
+      },
+      "unseen_compound": {
+        "headline": {
+          "r2_overall": 0.18511009216308594,
+          "r2_gene_median": 0.04665321111679077,
+          "pearson_median": 0.44483014941215515,
+          "mse": 5.14417028427124,
+          "n": 6000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.23000000417232513,
+          "common_degs@100_chance": 0.10224948875255624,
+          "r2_phase_P1": 0.15058720111846924,
+          "r2_phase_P2": 0.2124025821685791
+        },
+        "strata": {}
+      },
+      "unseen_both": {
+        "headline": {
+          "r2_overall": 0.17045080661773682,
+          "r2_gene_median": -0.016734838485717773,
+          "pearson_median": 0.4237131178379059,
+          "mse": 6.051499843597412,
+          "n": 2998,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "r2_phase_P1": 0.09796535968780518,
+          "r2_phase_P2": 0.20300424098968506
+        },
+        "strata": {}
+      }
+    },
+    "ema": {
+      "unseen_cell": {
+        "headline": {
+          "r2_overall": 0.26591187715530396,
+          "r2_gene_median": 0.10366177558898926,
+          "pearson_median": 0.43174394965171814,
+          "mse": 4.391087055206299,
+          "n": 7296,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "r2_phase_P1": 0.13885432481765747,
+          "r2_phase_P2": 0.34130704402923584
+        },
+        "strata": {}
+      },
+      "unseen_compound": {
+        "headline": {
+          "r2_overall": 0.1835220456123352,
+          "r2_gene_median": 0.045754432678222656,
+          "pearson_median": 0.44509419798851013,
+          "mse": 5.154195785522461,
+          "n": 6000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.23000000417232513,
+          "common_degs@100_chance": 0.10224948875255624,
+          "r2_phase_P1": 0.1504846215248108,
+          "r2_phase_P2": 0.2096371054649353
+        },
+        "strata": {}
+      },
+      "unseen_both": {
+        "headline": {
+          "r2_overall": 0.16808146238327026,
+          "r2_gene_median": -0.018733501434326172,
+          "pearson_median": 0.42381900548934937,
+          "mse": 6.068784236907959,
+          "n": 2998,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "r2_phase_P1": 0.09831070899963379,
+          "r2_phase_P2": 0.1994125247001648
+        },
+        "strata": {}
+      }
+    }
+  }
+}
