@@ -350,6 +350,52 @@ took the leading number and discarded the unit, so **500 nM was parsed as 500 µ
 
 ---
 
+## 20. v6 FULL EVALUATION (2026-08-15, `eval_v6.py`, T4x2-trained ckpt, LOCAL CPU eval)
+
+Trained on T4 x2, 10 epochs, 2.58 h, clean inputs (`input check OK`, compound holdout present, splits
+identical to local). Protocol-matched to v5 throughout; split-identity check passed on all three
+(7296 / ≥6000 / 2998).
+
+| split | v6 pearson | v6 R² | v5 pearson | Δ | best baseline |
+|---|---|---|---|---|---|
+| unseen CELL | 0.4466 | +0.2866 | 0.440 | **+0.0066** | **Meandrug 0.4475** |
+| unseen COMPOUND | 0.4686 | +0.1775 | 0.471 | −0.0024 | ridge 0.3824 |
+| unseen BOTH | 0.4663 | +0.1452 | 0.451 | **+0.0153** | ridge 0.3315 |
+
+**v6 ≈ v5.** The complete rebuild — hard Reactome mask replacing the soft prior, late fusion replacing
+early — moved the headline by −0.002 to +0.015 depending on the split, all **single fold, single seed**, so
+none of it is separable from run-to-run variance (M.3). On unseen-both v6 gains the most pearson (+0.0153)
+while *losing* R² (+0.1452 vs +0.173) — better pattern, worse magnitude.
+
+**Ablate-to-mean, Δpearson / |dY|max, all three splits** (|dY|max ≫ 0 everywhere ⇒ every null is a TRUE null):
+
+| component | unseen cell | unseen compound | unseen both |
+|---|---|---|---|
+| **drug global** (UniMol+desc+ECFP4) | **+0.2502** / 10.7 | **+0.2971** / 10.3 | **+0.2423** / 9.8 |
+| baseline expression | +0.0257 / 10.7 | +0.0445 / 8.2 | +0.0365 / 9.4 |
+| atom tokens | +0.0022 / 8.5 | +0.0240 / 4.2 | +0.0141 / 4.5 |
+| lineage | +0.0024 / 8.4 | +0.0215 / 7.4 | +0.0080 / 5.5 |
+| chromatin | −0.0001 / 2.1 | **+0.0061** / 5.9 | −0.0001 / 1.1 |
+| **pathway layer** | +0.0003 / 0.7 | −0.0002 / 0.5 | −0.0002 / 0.5 |
+| pathway chromatin gate | +0.0001 / 0.2 | +0.0002 / 0.4 | −0.0001 / 0.2 |
+
+- 🔴 **The pathway layer is null on ALL THREE splits** (+0.0003 / −0.0002 / −0.0002). Not a placement
+  artefact of one split. The readout is alive and healthy — **0/360 dead nodes**, activation spread evenly
+  (top-10 share 0.04) — it simply carries nothing the prediction uses. v6's central innovation is
+  accuracy-neutral, exactly as ARCHITECTURE.md §6 warned.
+- 🔴 **The drug features ARE the model**: +0.25 to +0.30 of a 0.45–0.47 total. Everything else combined is
+  worth ~0.03–0.08.
+- ✅ **Chromatin's cell-familiarity pattern reproduces in v6**: +0.0061 on unseen COMPOUND (cells seen) vs
+  ≈0 on both unseen-CELL splits. Same shape as [2.3] measured on v5 (+0.089 in-dist → +0.035 unseen
+  compound → ≈0 unseen cell), now with the late-fusion architecture that was supposed to fix it.
+- **Lineage (+0.0215 on unseen compound) beats chromatin (+0.0061)** — a 16-dim one-hot outperforms three
+  genome-wide chromatin tracks. [5.4] called lineage "marginal"; it is marginal but it is *more* than what
+  the entire epigenetics branch delivers.
+- Late-fusion chromatin gate ended at **sigmoid = 0.4798**, i.e. slightly *below* its 0.5 init: chromatin
+  did not earn its way in.
+
+---
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

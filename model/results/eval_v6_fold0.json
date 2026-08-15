@@ -1,0 +1,1008 @@
+{
+  "ckpt": "ckpt_v6_fold0.pt",
+  "fold": 0,
+  "params": 7376918,
+  "eval_min_strength": 1.0,
+  "random_init": false,
+  "v5_reference": {
+    "unseen_cell": {
+      "pearson": 0.44,
+      "r2": 0.273,
+      "n": 7296,
+      "cap": 8000
+    },
+    "unseen_compound": {
+      "pearson": 0.471,
+      "r2": 0.188,
+      "n": 6000,
+      "cap": 6000
+    },
+    "unseen_both": {
+      "pearson": 0.451,
+      "r2": 0.173,
+      "n": 2998,
+      "cap": 6000
+    }
+  },
+  "fusion_epi_gate": 0.47975772619247437,
+  "splits": {
+    "unseen_cell": {
+      "n_reproducible": 7296,
+      "split_matches_v5": true,
+      "split_check_is_exact": true,
+      "ablation": {
+        "full": {
+          "r2_overall": 0.29436999559402466,
+          "r2_gene_median": 0.13107067346572876,
+          "pearson_median": 0.44031670689582825,
+          "mse": 4.17031717300415,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624
+        },
+        "mean_baseline": {
+          "r2_overall": 0.2552952766418457,
+          "r2_gene_median": 0.09004980325698853,
+          "pearson_median": 0.41466647386550903,
+          "mse": 4.401251316070557,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.025650233030319214,
+          "delta_r2": 0.039074718952178955,
+          "max_abs_delta_yhat": 10.655116081237793
+        },
+        "mean_chromatin": {
+          "r2_overall": 0.29425686597824097,
+          "r2_gene_median": 0.1319916844367981,
+          "pearson_median": 0.44038018584251404,
+          "mse": 4.170986175537109,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": -6.347894668579102e-05,
+          "delta_r2": 0.0001131296157836914,
+          "max_abs_delta_yhat": 2.1283926963806152
+        },
+        "mean_pathway": {
+          "r2_overall": 0.29440146684646606,
+          "r2_gene_median": 0.13214075565338135,
+          "pearson_median": 0.4400118887424469,
+          "mse": 4.170131206512451,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.00030481815338134766,
+          "delta_r2": -3.147125244140625e-05,
+          "max_abs_delta_yhat": 0.6886205673217773
+        },
+        "mean_pathway_gate": {
+          "r2_overall": 0.2942960858345032,
+          "r2_gene_median": 0.1311141848564148,
+          "pearson_median": 0.44025176763534546,
+          "mse": 4.1707539558410645,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 6.493926048278809e-05,
+          "delta_r2": 7.390975952148438e-05,
+          "max_abs_delta_yhat": 0.2415311336517334
+        },
+        "mean_lineage": {
+          "r2_overall": 0.301270067691803,
+          "r2_gene_median": 0.1380159854888916,
+          "pearson_median": 0.43790289759635925,
+          "mse": 4.129537105560303,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.002413809299468994,
+          "delta_r2": -0.00690007209777832,
+          "max_abs_delta_yhat": 8.366869926452637
+        },
+        "mean_drug_global": {
+          "r2_overall": 0.015552222728729248,
+          "r2_gene_median": -0.08240747451782227,
+          "pearson_median": 0.1900903433561325,
+          "mse": 5.818147659301758,
+          "n": 2000,
+          "common_degs@50": 0.07999999821186066,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.12999999523162842,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.25022636353969574,
+          "delta_r2": 0.2788177728652954,
+          "max_abs_delta_yhat": 10.70870590209961
+        },
+        "mean_atoms": {
+          "r2_overall": 0.2900555729866028,
+          "r2_gene_median": 0.1289336085319519,
+          "pearson_median": 0.4381529688835144,
+          "mse": 4.1958160400390625,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.0021637380123138428,
+          "delta_r2": 0.004314422607421875,
+          "max_abs_delta_yhat": 8.542320251464844
+        }
+      },
+      "headline": {
+        "r2_overall": 0.28659701347351074,
+        "r2_gene_median": 0.12123054265975952,
+        "pearson_median": 0.44655662775039673,
+        "mse": 4.267354965209961,
+        "n": 7296,
+        "common_degs@50": 0.14000000059604645,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.2199999988079071,
+        "common_degs@100_chance": 0.10224948875255624,
+        "r2_phase_P1": 0.1487254500389099,
+        "r2_phase_P2": 0.3684135675430298
+      },
+      "strata": {
+        "0.0-0.5": {
+          "r2_overall": -0.09623372554779053,
+          "r2_gene_median": -0.11106455326080322,
+          "pearson_median": 0.07451488822698593,
+          "mse": 0.5241804718971252,
+          "n": 1200,
+          "common_degs@50": 0.07999999821186066,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.11999999731779099,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 3398
+        },
+        "0.5-1.0": {
+          "r2_overall": 0.0027257204055786133,
+          "r2_gene_median": -0.023683547973632812,
+          "pearson_median": 0.1395750343799591,
+          "mse": 1.0567283630371094,
+          "n": 1200,
+          "common_degs@50": 0.07999999821186066,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.12999999523162842,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 36308
+        },
+        "1.0-2.0": {
+          "r2_overall": 0.11868363618850708,
+          "r2_gene_median": 0.00905919075012207,
+          "pearson_median": 0.39188992977142334,
+          "mse": 2.9263601303100586,
+          "n": 1200,
+          "common_degs@50": 0.11999999731779099,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.1899999976158142,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 5449
+        },
+        "2.0-inf": {
+          "r2_overall": 0.4057518243789673,
+          "r2_gene_median": 0.10724639892578125,
+          "pearson_median": 0.7009863257408142,
+          "mse": 8.148037910461426,
+          "n": 1200,
+          "common_degs@50": 0.3400000035762787,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.4099999964237213,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 1847
+        }
+      },
+      "pathway_readout": {
+        "mean_abs_activation_top20": [
+          {
+            "rank": 1,
+            "pathway_id": "R-HSA-1538133",
+            "pathway_name": "G0 and Early G1",
+            "mean_abs_activation": 0.47468340396881104,
+            "n_genes": 11
+          },
+          {
+            "rank": 2,
+            "pathway_id": "R-HSA-176408",
+            "pathway_name": "Regulation of APC/C activators between G1/S and early anaphase",
+            "mean_abs_activation": 0.438339501619339,
+            "n_genes": 11
+          },
+          {
+            "rank": 3,
+            "pathway_id": "R-HSA-174143",
+            "pathway_name": "APC/C-mediated degradation of cell cycle proteins",
+            "mean_abs_activation": 0.434792697429657,
+            "n_genes": 14
+          },
+          {
+            "rank": 4,
+            "pathway_id": "R-HSA-453276",
+            "pathway_name": "Regulation of mitotic cell cycle",
+            "mean_abs_activation": 0.434792697429657,
+            "n_genes": 14
+          },
+          {
+            "rank": 5,
+            "pathway_id": "R-HSA-68875",
+            "pathway_name": "Mitotic Prophase",
+            "mean_abs_activation": 0.43097490072250366,
+            "n_genes": 13
+          },
+          {
+            "rank": 6,
+            "pathway_id": "R-HSA-2980766",
+            "pathway_name": "Nuclear Envelope Breakdown",
+            "mean_abs_activation": 0.4295513331890106,
+            "n_genes": 10
+          },
+          {
+            "rank": 7,
+            "pathway_id": "R-HSA-2565942",
+            "pathway_name": "Regulation of PLK1 Activity at G2/M Transition",
+            "mean_abs_activation": 0.4261080026626587,
+            "n_genes": 12
+          },
+          {
+            "rank": 8,
+            "pathway_id": "R-HSA-4615885",
+            "pathway_name": "SUMOylation of DNA replication proteins",
+            "mean_abs_activation": 0.4217361509799957,
+            "n_genes": 11
+          },
+          {
+            "rank": 9,
+            "pathway_id": "R-HSA-69618",
+            "pathway_name": "Mitotic Spindle Checkpoint",
+            "mean_abs_activation": 0.41292035579681396,
+            "n_genes": 14
+          },
+          {
+            "rank": 10,
+            "pathway_id": "R-HSA-6791312",
+            "pathway_name": "TP53 Regulates Transcription of Cell Cycle Genes",
+            "mean_abs_activation": 0.41197678446769714,
+            "n_genes": 16
+          },
+          {
+            "rank": 11,
+            "pathway_id": "R-HSA-69273",
+            "pathway_name": "Cyclin A/B1/B2 associated events during G2/M transition",
+            "mean_abs_activation": 0.40915948152542114,
+            "n_genes": 12
+          },
+          {
+            "rank": 12,
+            "pathway_id": "R-HSA-2500257",
+            "pathway_name": "Resolution of Sister Chromatid Cohesion",
+            "mean_abs_activation": 0.40510791540145874,
+            "n_genes": 20
+          },
+          {
+            "rank": 13,
+            "pathway_id": "R-HSA-68882",
+            "pathway_name": "Mitotic Anaphase",
+            "mean_abs_activation": 0.39888522028923035,
+            "n_genes": 27
+          },
+          {
+            "rank": 14,
+            "pathway_id": "R-HSA-2555396",
+            "pathway_name": "Mitotic Metaphase and Anaphase",
+            "mean_abs_activation": 0.39888522028923035,
+            "n_genes": 27
+          },
+          {
+            "rank": 15,
+            "pathway_id": "R-HSA-69052",
+            "pathway_name": "Switching of origins to a post-replicative state",
+            "mean_abs_activation": 0.3947819173336029,
+            "n_genes": 10
+          },
+          {
+            "rank": 16,
+            "pathway_id": "R-HSA-72187",
+            "pathway_name": "mRNA 3'-end processing",
+            "mean_abs_activation": 0.3913460373878479,
+            "n_genes": 11
+          },
+          {
+            "rank": 17,
+            "pathway_id": "R-HSA-141444",
+            "pathway_name": "Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal",
+            "mean_abs_activation": 0.3906717300415039,
+            "n_genes": 13
+          },
+          {
+            "rank": 18,
+            "pathway_id": "R-HSA-141424",
+            "pathway_name": "Amplification of signal from the kinetochores",
+            "mean_abs_activation": 0.3906717300415039,
+            "n_genes": 13
+          },
+          {
+            "rank": 19,
+            "pathway_id": "R-HSA-2995410",
+            "pathway_name": "Nuclear Envelope (NE) Reassembly",
+            "mean_abs_activation": 0.39046183228492737,
+            "n_genes": 11
+          },
+          {
+            "rank": 20,
+            "pathway_id": "R-HSA-68877",
+            "pathway_name": "Mitotic Prometaphase",
+            "mean_abs_activation": 0.3898358941078186,
+            "n_genes": 28
+          }
+        ],
+        "n_pathways_below_1pct_of_max": 0,
+        "activation_gini_like_top10_share": 0.03957061842083931
+      },
+      "epi_contrib_mean_abs": 0.0019749166675384305
+    },
+    "unseen_compound": {
+      "n_reproducible": 10484,
+      "split_matches_v5": true,
+      "split_check_is_exact": false,
+      "ablation": {
+        "full": {
+          "r2_overall": 0.1739559769630432,
+          "r2_gene_median": 0.03805416822433472,
+          "pearson_median": 0.4752157926559448,
+          "mse": 5.309108257293701,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624
+        },
+        "mean_baseline": {
+          "r2_overall": 0.15726351737976074,
+          "r2_gene_median": 0.016482174396514893,
+          "pearson_median": 0.4306749403476715,
+          "mse": 5.416393280029297,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.044540852308273315,
+          "delta_r2": 0.01669245958328247,
+          "max_abs_delta_yhat": 8.192246437072754
+        },
+        "mean_chromatin": {
+          "r2_overall": 0.1665899157524109,
+          "r2_gene_median": 0.03415161371231079,
+          "pearson_median": 0.46907007694244385,
+          "mse": 5.356451034545898,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.0061457157135009766,
+          "delta_r2": 0.007366061210632324,
+          "max_abs_delta_yhat": 5.92609977722168
+        },
+        "mean_pathway": {
+          "r2_overall": 0.17325633764266968,
+          "r2_gene_median": 0.03790783882141113,
+          "pearson_median": 0.4754124581813812,
+          "mse": 5.313604831695557,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": -0.00019666552543640137,
+          "delta_r2": 0.0006996393203735352,
+          "max_abs_delta_yhat": 0.5073404312133789
+        },
+        "mean_pathway_gate": {
+          "r2_overall": 0.1738641858100891,
+          "r2_gene_median": 0.0380396842956543,
+          "pearson_median": 0.47505366802215576,
+          "mse": 5.309698581695557,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.0001621246337890625,
+          "delta_r2": 9.179115295410156e-05,
+          "max_abs_delta_yhat": 0.4029502868652344
+        },
+        "mean_lineage": {
+          "r2_overall": 0.15918701887130737,
+          "r2_gene_median": 0.020455241203308105,
+          "pearson_median": 0.4537186324596405,
+          "mse": 5.404030799865723,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.02149716019630432,
+          "delta_r2": 0.01476895809173584,
+          "max_abs_delta_yhat": 7.424101829528809
+        },
+        "mean_drug_global": {
+          "r2_overall": 0.015012383460998535,
+          "r2_gene_median": -0.0873790979385376,
+          "pearson_median": 0.17807959020137787,
+          "mse": 6.330662727355957,
+          "n": 2000,
+          "common_degs@50": 0.05999999865889549,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.11999999731779099,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.29713620245456696,
+          "delta_r2": 0.15894359350204468,
+          "max_abs_delta_yhat": 10.342930793762207
+        },
+        "mean_atoms": {
+          "r2_overall": 0.15265333652496338,
+          "r2_gene_median": 0.025799930095672607,
+          "pearson_median": 0.45119792222976685,
+          "mse": 5.446023464202881,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.02401787042617798,
+          "delta_r2": 0.021302640438079834,
+          "max_abs_delta_yhat": 4.195926189422607
+        }
+      },
+      "headline": {
+        "r2_overall": 0.1774996519088745,
+        "r2_gene_median": 0.04395180940628052,
+        "pearson_median": 0.4685811400413513,
+        "mse": 5.19221305847168,
+        "n": 6000,
+        "common_degs@50": 0.1599999964237213,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.23000000417232513,
+        "common_degs@100_chance": 0.10224948875255624,
+        "r2_phase_P1": 0.20313102006912231,
+        "r2_phase_P2": 0.15712368488311768
+      },
+      "strata": {
+        "0.0-0.5": {
+          "r2_overall": -0.07292306423187256,
+          "r2_gene_median": -0.08604705333709717,
+          "pearson_median": 0.07026049494743347,
+          "mse": 0.4904979467391968,
+          "n": 1200,
+          "common_degs@50": 0.07999999821186066,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.11999999731779099,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 4722
+        },
+        "0.5-1.0": {
+          "r2_overall": 0.010158240795135498,
+          "r2_gene_median": -0.0132066011428833,
+          "pearson_median": 0.1406717449426651,
+          "mse": 1.0202959775924683,
+          "n": 1200,
+          "common_degs@50": 0.07999999821186066,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.12999999523162842,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 43590
+        },
+        "1.0-2.0": {
+          "r2_overall": 0.1435108780860901,
+          "r2_gene_median": 0.028749525547027588,
+          "pearson_median": 0.3959461748600006,
+          "mse": 3.0556702613830566,
+          "n": 1200,
+          "common_degs@50": 0.11999999731779099,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.1899999976158142,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 7537
+        },
+        "2.0-inf": {
+          "r2_overall": 0.1960042119026184,
+          "r2_gene_median": -0.0465165376663208,
+          "pearson_median": 0.7076484560966492,
+          "mse": 11.039385795593262,
+          "n": 1200,
+          "common_degs@50": 0.2800000011920929,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.4000000059604645,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 2947
+        }
+      },
+      "pathway_readout": {
+        "mean_abs_activation_top20": [
+          {
+            "rank": 1,
+            "pathway_id": "R-HSA-69273",
+            "pathway_name": "Cyclin A/B1/B2 associated events during G2/M transition",
+            "mean_abs_activation": 0.5393944978713989,
+            "n_genes": 12
+          },
+          {
+            "rank": 2,
+            "pathway_id": "R-HSA-1538133",
+            "pathway_name": "G0 and Early G1",
+            "mean_abs_activation": 0.5303587317466736,
+            "n_genes": 11
+          },
+          {
+            "rank": 3,
+            "pathway_id": "R-HSA-176408",
+            "pathway_name": "Regulation of APC/C activators between G1/S and early anaphase",
+            "mean_abs_activation": 0.5085252523422241,
+            "n_genes": 11
+          },
+          {
+            "rank": 4,
+            "pathway_id": "R-HSA-174143",
+            "pathway_name": "APC/C-mediated degradation of cell cycle proteins",
+            "mean_abs_activation": 0.4821018874645233,
+            "n_genes": 14
+          },
+          {
+            "rank": 5,
+            "pathway_id": "R-HSA-453276",
+            "pathway_name": "Regulation of mitotic cell cycle",
+            "mean_abs_activation": 0.4821018874645233,
+            "n_genes": 14
+          },
+          {
+            "rank": 6,
+            "pathway_id": "R-HSA-69618",
+            "pathway_name": "Mitotic Spindle Checkpoint",
+            "mean_abs_activation": 0.4776898920536041,
+            "n_genes": 14
+          },
+          {
+            "rank": 7,
+            "pathway_id": "R-HSA-69002",
+            "pathway_name": "DNA Replication Pre-Initiation",
+            "mean_abs_activation": 0.4736438989639282,
+            "n_genes": 11
+          },
+          {
+            "rank": 8,
+            "pathway_id": "R-HSA-69190",
+            "pathway_name": "DNA strand elongation",
+            "mean_abs_activation": 0.4649331271648407,
+            "n_genes": 10
+          },
+          {
+            "rank": 9,
+            "pathway_id": "R-HSA-5651801",
+            "pathway_name": "PCNA-Dependent Long Patch Base Excision Repair",
+            "mean_abs_activation": 0.462019681930542,
+            "n_genes": 10
+          },
+          {
+            "rank": 10,
+            "pathway_id": "R-HSA-2500257",
+            "pathway_name": "Resolution of Sister Chromatid Cohesion",
+            "mean_abs_activation": 0.4555533230304718,
+            "n_genes": 20
+          },
+          {
+            "rank": 11,
+            "pathway_id": "R-HSA-141424",
+            "pathway_name": "Amplification of signal from the kinetochores",
+            "mean_abs_activation": 0.45359110832214355,
+            "n_genes": 13
+          },
+          {
+            "rank": 12,
+            "pathway_id": "R-HSA-141444",
+            "pathway_name": "Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal",
+            "mean_abs_activation": 0.45359110832214355,
+            "n_genes": 13
+          },
+          {
+            "rank": 13,
+            "pathway_id": "R-HSA-6782135",
+            "pathway_name": "Dual incision in TC-NER",
+            "mean_abs_activation": 0.44962039589881897,
+            "n_genes": 15
+          },
+          {
+            "rank": 14,
+            "pathway_id": "R-HSA-4615885",
+            "pathway_name": "SUMOylation of DNA replication proteins",
+            "mean_abs_activation": 0.444370836019516,
+            "n_genes": 11
+          },
+          {
+            "rank": 15,
+            "pathway_id": "R-HSA-73893",
+            "pathway_name": "DNA Damage Bypass",
+            "mean_abs_activation": 0.44433721899986267,
+            "n_genes": 10
+          },
+          {
+            "rank": 16,
+            "pathway_id": "R-HSA-2980766",
+            "pathway_name": "Nuclear Envelope Breakdown",
+            "mean_abs_activation": 0.44416531920433044,
+            "n_genes": 10
+          },
+          {
+            "rank": 17,
+            "pathway_id": "R-HSA-6782210",
+            "pathway_name": "Gap-filling DNA repair synthesis and ligation in TC-NER",
+            "mean_abs_activation": 0.44333258271217346,
+            "n_genes": 16
+          },
+          {
+            "rank": 18,
+            "pathway_id": "R-HSA-110373",
+            "pathway_name": "Resolution of AP sites via the multiple-nucleotide patch replacement pathway",
+            "mean_abs_activation": 0.44275665283203125,
+            "n_genes": 12
+          },
+          {
+            "rank": 19,
+            "pathway_id": "R-HSA-9648025",
+            "pathway_name": "EML4 and NUDC in mitotic spindle formation",
+            "mean_abs_activation": 0.44209206104278564,
+            "n_genes": 14
+          },
+          {
+            "rank": 20,
+            "pathway_id": "R-HSA-6781827",
+            "pathway_name": "Transcription-Coupled Nucleotide Excision Repair (TC-NER)",
+            "mean_abs_activation": 0.4406246542930603,
+            "n_genes": 17
+          }
+        ],
+        "n_pathways_below_1pct_of_max": 0,
+        "activation_gini_like_top10_share": 0.04776214435696602
+      },
+      "epi_contrib_mean_abs": 0.0025360683536724566
+    },
+    "unseen_both": {
+      "n_reproducible": 2998,
+      "split_matches_v5": true,
+      "split_check_is_exact": true,
+      "ablation": {
+        "full": {
+          "r2_overall": 0.1467975378036499,
+          "r2_gene_median": -0.018538713455200195,
+          "pearson_median": 0.46390384435653687,
+          "mse": 6.113626480102539,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624
+        },
+        "mean_baseline": {
+          "r2_overall": 0.1314491629600525,
+          "r2_gene_median": -0.039267539978027344,
+          "pearson_median": 0.4273640215396881,
+          "mse": 6.223604679107666,
+          "n": 2000,
+          "common_degs@50": 0.14000000059604645,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.036539822816848755,
+          "delta_r2": 0.015348374843597412,
+          "max_abs_delta_yhat": 9.411104202270508
+        },
+        "mean_chromatin": {
+          "r2_overall": 0.14668381214141846,
+          "r2_gene_median": -0.018631458282470703,
+          "pearson_median": 0.4639701247215271,
+          "mse": 6.114441394805908,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": -6.628036499023438e-05,
+          "delta_r2": 0.00011372566223144531,
+          "max_abs_delta_yhat": 1.1122775077819824
+        },
+        "mean_pathway": {
+          "r2_overall": 0.14676553010940552,
+          "r2_gene_median": -0.0186995267868042,
+          "pearson_median": 0.464092493057251,
+          "mse": 6.113855361938477,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": -0.00018864870071411133,
+          "delta_r2": 3.2007694244384766e-05,
+          "max_abs_delta_yhat": 0.4738130569458008
+        },
+        "mean_pathway_gate": {
+          "r2_overall": 0.14678460359573364,
+          "r2_gene_median": -0.01851499080657959,
+          "pearson_median": 0.46398693323135376,
+          "mse": 6.1137189865112305,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": -8.308887481689453e-05,
+          "delta_r2": 1.2934207916259766e-05,
+          "max_abs_delta_yhat": 0.23549222946166992
+        },
+        "mean_lineage": {
+          "r2_overall": 0.1455969214439392,
+          "r2_gene_median": -0.01769435405731201,
+          "pearson_median": 0.4559374153614044,
+          "mse": 6.122229099273682,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.007966428995132446,
+          "delta_r2": 0.0012006163597106934,
+          "max_abs_delta_yhat": 5.540317535400391
+        },
+        "mean_drug_global": {
+          "r2_overall": 0.016306698322296143,
+          "r2_gene_median": -0.12695884704589844,
+          "pearson_median": 0.22165034711360931,
+          "mse": 7.048658847808838,
+          "n": 2000,
+          "common_degs@50": 0.07999999821186066,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.14000000059604645,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.24225349724292755,
+          "delta_r2": 0.13049083948135376,
+          "max_abs_delta_yhat": 9.845038414001465
+        },
+        "mean_atoms": {
+          "r2_overall": 0.13404661417007446,
+          "r2_gene_median": -0.024860024452209473,
+          "pearson_median": 0.4498354196548462,
+          "mse": 6.204992771148682,
+          "n": 2000,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.20999999344348907,
+          "common_degs@100_chance": 0.10224948875255624,
+          "delta_pearson": 0.014068424701690674,
+          "delta_r2": 0.01275092363357544,
+          "max_abs_delta_yhat": 4.537415981292725
+        }
+      },
+      "headline": {
+        "r2_overall": 0.14524763822555542,
+        "r2_gene_median": -0.021690964698791504,
+        "pearson_median": 0.46633341908454895,
+        "mse": 6.235355377197266,
+        "n": 2998,
+        "common_degs@50": 0.1599999964237213,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.2199999988079071,
+        "common_degs@100_chance": 0.10224948875255624,
+        "r2_phase_P1": 0.16652065515518188,
+        "r2_phase_P2": 0.13559305667877197
+      },
+      "strata": {
+        "0.0-0.5": {
+          "r2_overall": -0.11667108535766602,
+          "r2_gene_median": -0.12205183506011963,
+          "pearson_median": 0.07593847811222076,
+          "mse": 0.5372502207756042,
+          "n": 1081,
+          "common_degs@50": 0.05999999865889549,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.10999999940395355,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 1081
+        },
+        "0.5-1.0": {
+          "r2_overall": -0.03250253200531006,
+          "r2_gene_median": -0.049283742904663086,
+          "pearson_median": 0.13210660219192505,
+          "mse": 1.074968695640564,
+          "n": 1200,
+          "common_degs@50": 0.07999999821186066,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.11999999731779099,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 11004
+        },
+        "1.0-2.0": {
+          "r2_overall": 0.10653519630432129,
+          "r2_gene_median": -0.007176041603088379,
+          "pearson_median": 0.3506898581981659,
+          "mse": 3.2013401985168457,
+          "n": 1200,
+          "common_degs@50": 0.10000000149011612,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.17000000178813934,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 1930
+        },
+        "2.0-inf": {
+          "r2_overall": 0.16271156072616577,
+          "r2_gene_median": -0.1871201992034912,
+          "pearson_median": 0.6288678050041199,
+          "mse": 11.757098197937012,
+          "n": 1068,
+          "common_degs@50": 0.30000001192092896,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.36000001430511475,
+          "common_degs@100_chance": 0.10224948875255624,
+          "n_available": 1068
+        }
+      },
+      "pathway_readout": {
+        "mean_abs_activation_top20": [
+          {
+            "rank": 1,
+            "pathway_id": "R-HSA-1538133",
+            "pathway_name": "G0 and Early G1",
+            "mean_abs_activation": 0.4842785596847534,
+            "n_genes": 11
+          },
+          {
+            "rank": 2,
+            "pathway_id": "R-HSA-176408",
+            "pathway_name": "Regulation of APC/C activators between G1/S and early anaphase",
+            "mean_abs_activation": 0.4447517395019531,
+            "n_genes": 11
+          },
+          {
+            "rank": 3,
+            "pathway_id": "R-HSA-174143",
+            "pathway_name": "APC/C-mediated degradation of cell cycle proteins",
+            "mean_abs_activation": 0.4417131841182709,
+            "n_genes": 14
+          },
+          {
+            "rank": 4,
+            "pathway_id": "R-HSA-453276",
+            "pathway_name": "Regulation of mitotic cell cycle",
+            "mean_abs_activation": 0.4417131841182709,
+            "n_genes": 14
+          },
+          {
+            "rank": 5,
+            "pathway_id": "R-HSA-68875",
+            "pathway_name": "Mitotic Prophase",
+            "mean_abs_activation": 0.43737566471099854,
+            "n_genes": 13
+          },
+          {
+            "rank": 6,
+            "pathway_id": "R-HSA-2980766",
+            "pathway_name": "Nuclear Envelope Breakdown",
+            "mean_abs_activation": 0.4367539584636688,
+            "n_genes": 10
+          },
+          {
+            "rank": 7,
+            "pathway_id": "R-HSA-2565942",
+            "pathway_name": "Regulation of PLK1 Activity at G2/M Transition",
+            "mean_abs_activation": 0.4330448806285858,
+            "n_genes": 12
+          },
+          {
+            "rank": 8,
+            "pathway_id": "R-HSA-4615885",
+            "pathway_name": "SUMOylation of DNA replication proteins",
+            "mean_abs_activation": 0.42993947863578796,
+            "n_genes": 11
+          },
+          {
+            "rank": 9,
+            "pathway_id": "R-HSA-6791312",
+            "pathway_name": "TP53 Regulates Transcription of Cell Cycle Genes",
+            "mean_abs_activation": 0.4221692681312561,
+            "n_genes": 16
+          },
+          {
+            "rank": 10,
+            "pathway_id": "R-HSA-69618",
+            "pathway_name": "Mitotic Spindle Checkpoint",
+            "mean_abs_activation": 0.41788914799690247,
+            "n_genes": 14
+          },
+          {
+            "rank": 11,
+            "pathway_id": "R-HSA-69273",
+            "pathway_name": "Cyclin A/B1/B2 associated events during G2/M transition",
+            "mean_abs_activation": 0.4141126573085785,
+            "n_genes": 12
+          },
+          {
+            "rank": 12,
+            "pathway_id": "R-HSA-2500257",
+            "pathway_name": "Resolution of Sister Chromatid Cohesion",
+            "mean_abs_activation": 0.41037413477897644,
+            "n_genes": 20
+          },
+          {
+            "rank": 13,
+            "pathway_id": "R-HSA-68882",
+            "pathway_name": "Mitotic Anaphase",
+            "mean_abs_activation": 0.4052872955799103,
+            "n_genes": 27
+          },
+          {
+            "rank": 14,
+            "pathway_id": "R-HSA-2555396",
+            "pathway_name": "Mitotic Metaphase and Anaphase",
+            "mean_abs_activation": 0.4052872955799103,
+            "n_genes": 27
+          },
+          {
+            "rank": 15,
+            "pathway_id": "R-HSA-69052",
+            "pathway_name": "Switching of origins to a post-replicative state",
+            "mean_abs_activation": 0.4033670723438263,
+            "n_genes": 10
+          },
+          {
+            "rank": 16,
+            "pathway_id": "R-HSA-141424",
+            "pathway_name": "Amplification of signal from the kinetochores",
+            "mean_abs_activation": 0.3966161906719208,
+            "n_genes": 13
+          },
+          {
+            "rank": 17,
+            "pathway_id": "R-HSA-141444",
+            "pathway_name": "Amplification  of signal from unattached  kinetochores via a MAD2  inhibitory signal",
+            "mean_abs_activation": 0.3966161906719208,
+            "n_genes": 13
+          },
+          {
+            "rank": 18,
+            "pathway_id": "R-HSA-69481",
+            "pathway_name": "G2/M Checkpoints",
+            "mean_abs_activation": 0.3965829610824585,
+            "n_genes": 24
+          },
+          {
+            "rank": 19,
+            "pathway_id": "R-HSA-68886",
+            "pathway_name": "M Phase",
+            "mean_abs_activation": 0.39630118012428284,
+            "n_genes": 40
+          },
+          {
+            "rank": 20,
+            "pathway_id": "R-HSA-2995410",
+            "pathway_name": "Nuclear Envelope (NE) Reassembly",
+            "mean_abs_activation": 0.39435940980911255,
+            "n_genes": 11
+          }
+        ],
+        "n_pathways_below_1pct_of_max": 0,
+        "activation_gini_like_top10_share": 0.03971252217888832
+      },
+      "epi_contrib_mean_abs": 0.001998338286374488
+    }
+  }
+}
