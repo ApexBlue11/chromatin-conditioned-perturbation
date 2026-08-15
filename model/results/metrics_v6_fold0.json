@@ -1,0 +1,122 @@
+[
+  {
+    "epoch": 0,
+    "train_loss": 0.7221843283548852,
+    "steps": 3745,
+    "sec": 915.4,
+    "elapsed_h": 0.254,
+    "cold_reproducible": {
+      "pearson_median": 0.3406728208065033,
+      "r2_overall": 0.1914713978767395,
+      "n": 3000
+    }
+  },
+  {
+    "epoch": 1,
+    "train_loss": 0.6763644090481848,
+    "steps": 3745,
+    "sec": 920.4,
+    "elapsed_h": 0.512,
+    "cold_reproducible": {
+      "pearson_median": 0.37752270698547363,
+      "r2_overall": 0.23186826705932617,
+      "n": 3000
+    }
+  },
+  {
+    "epoch": 2,
+    "train_loss": 0.6664041123816741,
+    "steps": 3745,
+    "sec": 923.2,
+    "elapsed_h": 0.77,
+    "cold_reproducible": {
+      "pearson_median": 0.39079320430755615,
+      "r2_overall": 0.23686832189559937,
+      "n": 3000
+    }
+  },
+  {
+    "epoch": 3,
+    "train_loss": 0.6577470885577285,
+    "steps": 3745,
+    "sec": 922.3,
+    "elapsed_h": 1.028,
+    "cold_reproducible": {
+      "pearson_median": 0.41311147809028625,
+      "r2_overall": 0.2512844204902649,
+      "n": 3000
+    }
+  },
+  {
+    "epoch": 4,
+    "train_loss": 0.6502630332601723,
+    "steps": 3745,
+    "sec": 924.4,
+    "elapsed_h": 1.286,
+    "cold_reproducible": {
+      "pearson_median": 0.428568959236145,
+      "r2_overall": 0.26864129304885864,
+      "n": 3000
+    }
+  },
+  {
+    "epoch": 5,
+    "train_loss": 0.6424909298267161,
+    "steps": 3745,
+    "sec": 926.4,
+    "elapsed_h": 1.545,
+    "cold_reproducible": {
+      "pearson_median": 0.44104206562042236,
+      "r2_overall": 0.27961230278015137,
+      "n": 3000
+    }
+  },
+  {
+    "epoch": 6,
+    "train_loss": 0.6360071596300332,
+    "steps": 3745,
+    "sec": 926.0,
+    "elapsed_h": 1.804,
+    "cold_reproducible": {
+      "pearson_median": 0.4427938759326935,
+      "r2_overall": 0.2844521403312683,
+      "n": 3000
+    }
+  },
+  {
+    "epoch": 7,
+    "train_loss": 0.6297364199670835,
+    "steps": 3745,
+    "sec": 926.2,
+    "elapsed_h": 2.063,
+    "cold_reproducible": {
+      "pearson_median": 0.4485061764717102,
+      "r2_overall": 0.2860131859779358,
+      "n": 3000
+    }
+  },
+  {
+    "epoch": 8,
+    "train_loss": 0.6263330050877163,
+    "steps": 3745,
+    "sec": 923.6,
+    "elapsed_h": 2.321,
+    "cold_reproducible": {
+      "pearson_median": 0.4431137442588806,
+      "r2_overall": 0.2868272066116333,
+      "n": 3000
+    }
+  },
+  {
+    "epoch": 9,
+    "train_loss": 0.6241103603381499,
+    "steps": 3745,
+    "sec": 925.4,
+    "elapsed_h": 2.579,
+    "cold_reproducible": {
+      "pearson_median": 0.4436663091182709,
+      "r2_overall": 0.2868216633796692,
+      "n": 3000
+    }
+  }
+]
