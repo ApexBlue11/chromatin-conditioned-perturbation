@@ -407,8 +407,21 @@ passing, 765 finer Reactome nodes, stochastic depth, EMA, WSD schedule, RMSNorm,
 | unseen COMPOUND | 0.4448 | 0.4451 | 0.4686 | **−0.0238** |
 | unseen BOTH | 0.4237 | 0.4238 | 0.4663 | **−0.0426** |
 
-- 🔴 **v7 is worse than v6 everywhere**, by 3–6× the size of the v6-vs-v5 differences. One seed so far
-  (1 and 2 pending), but −0.043 is well outside the ±0.015 range we have seen between comparable runs.
+**SEED 1 CHANGES THE READING — see M.10.** Protocol-matched, both seeds, same config:
+
+| split | seed 0 | seed 1 | **seed range** | mean | v6 | mean − v6 |
+|---|---|---|---|---|---|---|
+| unseen CELL | 0.4322 | 0.4374 | 0.0052 | 0.4348 | 0.4466 | −0.0118 |
+| unseen COMPOUND | 0.4448 | 0.4624 | **0.0176** | 0.4536 | 0.4686 | −0.0150 |
+| unseen BOTH | 0.4237 | 0.4532 | **0.0295** | 0.4385 | 0.4663 | −0.0278 |
+
+- 🔴 **The seed range of one identical config reaches 0.0295** — larger than every v6−v5 difference we were
+  interpreting (+0.0066 / −0.0024 / +0.0153). Those comparisons were never resolvable. Neither is the v7−v6
+  gap at n=2 seeds, since v6 is itself a single seed with unmeasured variance of presumably similar size.
+- v7 is **probably** worse than v6 (negative on all three splits, both seeds), but the **magnitude is not
+  established** and one seed is still pending.
+- My earlier "seed spread ≈0.004" was wrong: it came from the n=3000 training-time proxy, not the
+  protocol-matched evaluation, and understated the real variance by up to 7×.
 - **EMA contributed nothing**: −0.0005 / +0.0003 / +0.0001. The one item in the modern recipe chosen because
   its documented benefit (robustness to noisy labels) matched our regime did not show up at all.
 - 🔴 **PRIME SUSPECT — the uncertainty weighting inverted the objective.** Final learned weights:
