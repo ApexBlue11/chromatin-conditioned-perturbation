@@ -53,7 +53,12 @@ class LincsDataset:
         cell_idx = json.load(open(R(dcfg.xbase_path).replace("X_base_lincs.npy", "lincs_cell_index.json")))
         cell_idx = cell_idx.get("cell_id_to_row", cell_idx)
 
-        Y = np.load(R(dcfg.y_path), mmap_mode="r")           # [N,978]
+        # cache_in_ram: Y is 1.22 GB and atom_reprs 1.44 GB. Under mmap every __getitem__ is a page fault,
+        # and with the model at only 7.4M params the input pipeline -- not the GPU -- sets the epoch time.
+        # Loading both into RAM costs ~2.7 GB, which Kaggle has, and dataloader workers are forked so the
+        # arrays stay shared copy-on-write rather than duplicated per worker.
+        cache = getattr(dcfg, "cache_in_ram", False)
+        Y = np.load(R(dcfg.y_path)) if cache else np.load(R(dcfg.y_path), mmap_mode="r")   # [N,978]
         Xb = np.load(R(dcfg.xbase_path)).astype(np.float32)  # [83,978]
         E = np.load(R(dcfg.e_path)).astype(np.float32)       # [83,978,3]
         Emask = np.load(R(dcfg.e_mask_path))                 # [83,978,3] bool
@@ -99,7 +104,8 @@ class LincsDataset:
             blocks.append(np.load(R(dcfg.chemberta_path)).astype(np.float32))
         blocks += [desc, fp]
         u_feats = np.concatenate(blocks, axis=1).astype(np.float32)   # [n_drug, 2580] (2964 with chemberta)
-        atom_reprs = np.load(R(dcfg.atom_reprs_path), mmap_mode="r")   # [sum,512]
+        atom_reprs = (np.load(R(dcfg.atom_reprs_path)) if cache
+                      else np.load(R(dcfg.atom_reprs_path), mmap_mode="r"))   # [sum,512]
         atom_off = np.load(R(dcfg.atom_offsets_path))                  # [n_drug+1]
 
         # signatures -> per-row keys (only usable rows with resolvable cell+drug)

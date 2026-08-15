@@ -28,19 +28,38 @@ import losses as L
 
 
 # ---------------------------------------------------------------------------------------------------
-def probe_gpu():
+def probe_gpu(require_n=2):
+    """NO FALLBACK ANYWHERE. Anything other than exactly `require_n` usable T4s is a hard crash, because
+    every silent degradation this project has hit cost a full session: a GPU kernel quietly running on CPU
+    still burns the whole session, a P100 dies on the first op with no sm_60 kernels, and a run that
+    silently uses ONE of two GPUs looks completely normal in the logs while taking twice as long."""
     if not torch.cuda.is_available():
-        raise SystemExit("FATAL: no CUDA device. Refusing to train on CPU -- it would burn the whole GPU "
-                         "session while using no GPU. Provision as T4x2 (machine_shape NvidiaTeslaT4).")
-    try:
-        _ = (torch.randn(8, 8, device="cuda") @ torch.randn(8, 8, device="cuda")).sum().item()
-    except RuntimeError as e:
-        raise SystemExit(f"FATAL: GPU present but unusable ({e}). Almost certainly a P100 (sm_60). "
-                         f"Re-provision as NvidiaTeslaT4.")
-    names = [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())]
-    if any("P100" in n for n in names):
-        raise SystemExit(f"FATAL: P100 assigned ({names}). Re-provision as NvidiaTeslaT4.")
+        raise SystemExit("FATAL: no CUDA device. NOT falling back to CPU.")
+    n = torch.cuda.device_count()
+    names = [torch.cuda.get_device_name(i) for i in range(n)]
+    if any("P100" in x for x in names):
+        raise SystemExit(f"FATAL: P100 assigned ({names}); Kaggle torch has no sm_60 kernels.")
+    if n != require_n:
+        raise SystemExit(f"FATAL: expected exactly {require_n} GPUs (T4 x2), found {n}: {names}. "
+                         f"NOT falling back to a single GPU -- provision machine_shape NvidiaTeslaT4.")
+    for i in range(n):                       # every device must actually execute, not just enumerate
+        try:
+            _ = (torch.randn(8, 8, device=f"cuda:{i}") @ torch.randn(8, 8, device=f"cuda:{i}")).sum().item()
+        except RuntimeError as e:
+            raise SystemExit(f"FATAL: cuda:{i} ({names[i]}) present but unusable: {e}")
     return names
+
+
+def assert_both_gpus_used(tag=""):
+    """Verify BOTH devices actually hold work. DataParallel silently degrades to one GPU if the batch is
+    smaller than the device count, and nothing in the log would say so."""
+    used = [torch.cuda.memory_allocated(i) for i in range(torch.cuda.device_count())]
+    if not all(u > 0 for u in used):
+        raise SystemExit(f"FATAL{tag}: not every GPU is holding tensors: "
+                         f"{[f'cuda:{i}={u/1e6:.0f}MB' for i, u in enumerate(used)]}. "
+                         f"The run would use one GPU while billing for two.")
+    print(f"both GPUs active{tag}: " + "  ".join(f"cuda:{i}={u/1e6:.0f}MB" for i, u in enumerate(used)),
+          flush=True)
 
 
 def check_inputs(ds, sp):
@@ -169,8 +188,13 @@ def main():
         ap.add_argument(f"--{f}", type=t, default=None)
     ap.add_argument("--optimizer", default=None, choices=["adamw", "muon"])
     ap.add_argument("--no_aux", action="store_true"); ap.add_argument("--no_ppi", action="store_true")
+    ap.add_argument("--seed", type=int, default=0, help="run 3 of these; v6-vs-v5 came in at +/-0.007 and "
+                                                        "we cannot call that a result without seed variance")
+    ap.add_argument("--m_reactome", default=None,
+                    help="override the pathway matrix, e.g. M_reactome_ms5.npy (765 finer nodes)")
     a = ap.parse_args()
 
+    torch.manual_seed(a.seed); np.random.seed(a.seed); torch.cuda.manual_seed_all(a.seed)
     cfg = V7Config()
     for f in ["epochs", "batch", "lr", "budget_h", "fold", "workers", "ema_decay", "optimizer"]:
         if getattr(a, f, None) is not None:
@@ -179,22 +203,36 @@ def main():
         cfg.stoch_depth = a.stoch_depth
     cfg.use_aux = not a.no_aux; cfg.use_ppi = not a.no_ppi
 
-    names = probe_gpu()
-    torch.backends.cudnn.benchmark = True
+    names = probe_gpu(require_n=2)
+    torch.backends.cudnn.benchmark = True                     # static gene-token length -> autotuned kernels
+    torch.backends.cuda.matmul.allow_tf32 = True              # free on Turing+ for the fp32 residue
+    torch.backends.cudnn.allow_tf32 = True
     device = "cuda"; n_gpu = torch.cuda.device_count()
-    print(f"GPUs: {names} | aux={cfg.use_aux} ppi={cfg.use_ppi} sd={cfg.stoch_depth} "
+    print(f"GPUs: {names} | seed={a.seed} aux={cfg.use_aux} ppi={cfg.use_ppi} sd={cfg.stoch_depth} "
           f"opt={tc.optimizer} sched={tc.schedule} ema={tc.ema_decay}", flush=True)
 
     dc = resolve_paths(V6DataConfig()); dc.cell_fold = tc.fold
+    dc.cache_in_ram = True                                    # ~2.7 GB; kills the per-sample mmap faults
     WORK = "/kaggle/working" if os.path.isdir("/kaggle/working") else "."
-    CKPT = f"{WORK}/ckpt_v7_fold{tc.fold}.pt"
+    CKPT = f"{WORK}/ckpt_v7_fold{tc.fold}_seed{a.seed}.pt"
     Rp = lambda p: p if os.path.isabs(p) else os.path.join(dc.root, p)
+    if a.m_reactome:
+        import glob as _g
+        hit = next(iter(_g.glob(f"/kaggle/input/**/{a.m_reactome}", recursive=True)), None)
+        dc.m_reactome_path = hit or os.path.join(dc.root, "network/outputs", a.m_reactome)
     M = np.load(Rp(dc.m_reactome_path))
     ppi = np.load(Rp(dc.ppi_path)) if cfg.use_ppi else None
+    print(f"pathway matrix {os.path.basename(dc.m_reactome_path)}: {M.shape[0]} nodes, "
+          f"{int((M.sum(0) > 0).sum())}/{M.shape[1]} genes covered | "
+          f"STRING: {int((np.asarray(ppi) > 0).sum() // 2) if ppi is not None else 0} edges", flush=True)
 
     core = LincsV7(cfg, M, ppi).to(device)
     print(f"params {sum(p.numel() for p in core.parameters())/1e6:.2f}M", flush=True)
-    model = torch.nn.DataParallel(core) if n_gpu > 1 else core
+    if tc.batch % n_gpu:
+        raise SystemExit(f"FATAL: batch {tc.batch} is not divisible by {n_gpu} GPUs -- DataParallel would "
+                         f"give the devices unequal work.")
+    model = torch.nn.DataParallel(core)
+    print(f"DataParallel across {n_gpu} GPUs (per-GPU batch {tc.batch // n_gpu})", flush=True)
 
     shared = LincsDataset.load_shared(dc)
     full = LincsDataset(dc, _shared=shared)
@@ -203,7 +241,7 @@ def main():
     check_inputs(full, sp)
     train_ds = LincsDataset(dc, indices=sp["train"], _shared=shared)
     dl = DataLoader(train_ds, batch_size=tc.batch, shuffle=True, drop_last=True, num_workers=tc.workers,
-                    persistent_workers=tc.workers > 0, pin_memory=True,
+                    persistent_workers=tc.workers > 0, pin_memory=True, prefetch_factor=6,
                     collate_fn=lambda s: collate(s, cfg.max_atoms))
 
     Mn = torch.as_tensor(M, dtype=torch.float32)
@@ -245,6 +283,8 @@ def main():
                 muon.step()
             scaler.update(); sched.step(); ema.update(core)
             run += float(loss); n += 1
+            if epoch == 0 and it == 0:
+                assert_both_gpus_used(" after first step")
             if it % 200 == 0:
                 print(f"  e{epoch} it{it}/{len(dl)} loss {float(loss):.4f} "
                       f"lr {sched.get_last_lr()[0]:.2e} {wlog}", flush=True)

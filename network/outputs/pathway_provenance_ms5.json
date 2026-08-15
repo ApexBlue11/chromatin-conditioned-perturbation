@@ -1,0 +1,11 @@
+{
+  "min_size": 5,
+  "root_exclude_min_size": 70,
+  "n_pathways": 765,
+  "genes_covered": 738,
+  "n_genes": 978,
+  "mean_pathway_size": 12.420915032679739,
+  "density": 0.012700322119304436,
+  "source_gmt": "ReactomePathways.gmt",
+  "row_order": "sorted by pathway_id"
+}
