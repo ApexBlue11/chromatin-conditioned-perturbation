@@ -450,6 +450,34 @@ therefore carry no seed variance at all. The pathway-layer null (+0.0003 / −0.
   pathway layer, a dense 978×978 PPI einsum ≈ 12 GFLOP/call, aux heads) more than offset the I/O saving —
   the earlier claim that dataloading was the bottleneck was wrong and was not costed before being asserted.
 
+## 22. `--no_aux` one-factor ablation — the auxiliary losses were the problem (2026-08-15)
+
+Identical to v7 seed 0 in every respect except the auxiliary heads are off. Everything else — STRING PPI,
+765 Reactome nodes, stochastic depth, EMA, WSD, RMSNorm/SwiGLU/QK-norm — unchanged.
+
+| config | unseen cell | unseen compound | unseen both |
+|---|---|---|---|
+| v5 (1 seed) | 0.4400 / +0.2730 | 0.4710 / +0.1880 | 0.4510 / +0.1730 |
+| v6 (1 seed) | 0.4466 / +0.2866 | 0.4686 / +0.1775 | 0.4663 / +0.1452 |
+| v7 + aux, seed 0 | 0.4322 / +0.2656 | 0.4448 / +0.1851 | 0.4237 / +0.1705 |
+| v7 + aux, seed 1 | 0.4374 / +0.2541 | 0.4624 / +0.2438 | 0.4532 / +0.2411 |
+| v7 + aux, seed 2 | 0.4425 / +0.2612 | 0.4746 / +0.2628 | 0.4694 / +0.2226 |
+| **v7 NO-AUX (1 seed)** | **0.4452 / +0.2765** | **0.4900 / +0.3135** | **0.4772 / +0.2878** |
+
+- ✅ **no-aux is above ALL THREE aux seeds on ALL THREE splits, in both pearson and R².** Not inside the
+  range — above its maximum, 6/6 times.
+- ✅ **It is the best model measured to date**: best pearson on unseen-compound (0.4900) and unseen-both
+  (0.4772) of anything tested, and the R² gains are large — **+0.3135 vs v6's +0.1775** on unseen-compound,
+  **+0.2878 vs +0.1452** on unseen-both, i.e. roughly double the variance explained.
+- ⇒ **Confirms the diagnosis in §21**: uncertainty weighting handed ~90 % of the gradient to the auxiliary
+  tasks (learned weights main 1.59 / pathway 10.75 / chromatin 3.78, reproducible to 3 decimal places across
+  all three seeds), and that actively degraded the model. **Kendall-style weighting is for tasks you care
+  about equally; an auxiliary task that is merely EASY collects a huge weight.**
+- ⚠️ **One seed.** Given sd up to 0.0232 [M.10] this needs its own 3 seeds before it is a claim. But note
+  what is *not* seed-limited: it beat the maximum of three seeds on six independent measurements.
+- **The rest of v7 may be helping after all.** no-aux still contains STRING PPI, the 765-node matrix, the
+  modern recipe — and it is the best config we have. The aux losses were masking that.
+
 ---
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
