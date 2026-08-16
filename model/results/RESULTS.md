@@ -407,21 +407,31 @@ passing, 765 finer Reactome nodes, stochastic depth, EMA, WSD schedule, RMSNorm,
 | unseen COMPOUND | 0.4448 | 0.4451 | 0.4686 | **−0.0238** |
 | unseen BOTH | 0.4237 | 0.4238 | 0.4663 | **−0.0426** |
 
-**SEED 1 CHANGES THE READING — see M.10.** Protocol-matched, both seeds, same config:
+**ALL THREE SEEDS — and this is the most consequential table in the project** (see M.10):
 
-| split | seed 0 | seed 1 | **seed range** | mean | v6 | mean − v6 |
-|---|---|---|---|---|---|---|
-| unseen CELL | 0.4322 | 0.4374 | 0.0052 | 0.4348 | 0.4466 | −0.0118 |
-| unseen COMPOUND | 0.4448 | 0.4624 | **0.0176** | 0.4536 | 0.4686 | −0.0150 |
-| unseen BOTH | 0.4237 | 0.4532 | **0.0295** | 0.4385 | 0.4663 | −0.0278 |
+| split | seed 0 | seed 1 | seed 2 | mean | **range** | **sd** | v6 | v5 |
+|---|---|---|---|---|---|---|---|---|
+| unseen CELL | 0.4322 | 0.4374 | 0.4425 | 0.4374 | 0.0103 | 0.0052 | 0.4466 | 0.4400 |
+| unseen COMPOUND | 0.4448 | 0.4624 | 0.4746 | 0.4606 | **0.0298** | 0.0150 | 0.4686 | 0.4710 |
+| unseen BOTH | 0.4237 | 0.4532 | 0.4694 | 0.4488 | **0.0457** | 0.0232 | 0.4663 | 0.4510 |
 
-- 🔴 **The seed range of one identical config reaches 0.0295** — larger than every v6−v5 difference we were
-  interpreting (+0.0066 / −0.0024 / +0.0153). Those comparisons were never resolvable. Neither is the v7−v6
-  gap at n=2 seeds, since v6 is itself a single seed with unmeasured variance of presumably similar size.
-- v7 is **probably** worse than v6 (negative on all three splits, both seeds), but the **magnitude is not
-  established** and one seed is still pending.
-- My earlier "seed spread ≈0.004" was wrong: it came from the n=3000 training-time proxy, not the
-  protocol-matched evaluation, and understated the real variance by up to 7×.
+- 🔴 **v5, v6 and v7 are statistically indistinguishable on two of the three splits.** v6 *and* v5 both fall
+  **inside** the v7 three-seed range on unseen-compound and unseen-both. Only on unseen-cell is v6 (0.4466)
+  outside the v7 range [0.4322, 0.4425], i.e. v7 is consistently ~0.009 worse there.
+- 🔴 **Seed sd reaches 0.0232** ⇒ a 2-sd interval of ±0.046. **Every architecture difference this project
+  has reported is smaller than that.** v6−v5 was +0.0066 / −0.0024 / +0.0153.
+- ⇒ **With one seed per configuration, none of v5 → v6 → v7 could ever have been distinguished.** Three
+  full rebuilds were compared on differences the measurement cannot resolve.
+- The variance is **split-dependent**: unseen-cell is fairly stable (sd 0.005) while unseen-both is wild
+  (sd 0.023) — smaller n (2998) and the hardest task compound each other.
+- Correction to two earlier statements of mine: "seed spread ≈0.004" (from the n=3000 training proxy,
+  understated by ~5×) and "v7 is clearly worse than v6, outside noise" (not supported — seed 2 alone lands
+  at 0.4694 on unseen-both vs v6's 0.4663).
+
+**What is NOT affected:** the ablation results, which are within-run comparisons on identical signatures and
+therefore carry no seed variance at all. The pathway-layer null (+0.0003 / −0.0002 / −0.0002 with
+\|dY\|max ≫ 0), drug-features-dominate (+0.24…+0.30), and Meandrug tying v5 on unseen cells all stand.
+**Within-run ablation is trustworthy here; between-run comparison is not.**
 - **EMA contributed nothing**: −0.0005 / +0.0003 / +0.0001. The one item in the modern recipe chosen because
   its documented benefit (robustness to noisy labels) matched our regime did not show up at all.
 - 🔴 **PRIME SUSPECT — the uncertainty weighting inverted the objective.** Final learned weights:

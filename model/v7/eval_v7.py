@@ -28,9 +28,21 @@ V6_REF = {"unseen_cell": 0.4466, "unseen_compound": 0.4686, "unseen_both": 0.466
 
 
 def load_v7(dc, cfg, M, ppi, ckpt, which="raw"):
-    """which='raw' | 'ema'. A partial load is fatal: it would quietly produce a half-initialised model."""
-    model = LincsV7(cfg, M, ppi).eval()
+    """which='raw' | 'ema'. A partial load is fatal: it would quietly produce a half-initialised model.
+
+    The architecture is reconstructed from the config STORED IN THE CHECKPOINT, not from the defaults --
+    an ablation trained with --no_aux has no aux heads at all, and building the default architecture for it
+    would either fail (as it did) or, worse, load a model with randomly-initialised heads."""
     sd = torch.load(ckpt, map_location="cpu", weights_only=False)
+    saved = sd.get("cfg", {})
+    for f in ("use_aux", "use_ppi", "stoch_depth", "d_pathway", "d_model", "n_heads", "l_base", "l_perturb"):
+        if f in saved:
+            setattr(cfg, f, saved[f])
+    if not cfg.use_ppi:
+        ppi = None
+    print(f"  [{which}] rebuilt from checkpoint cfg: aux={cfg.use_aux} ppi={cfg.use_ppi} "
+          f"sd={cfg.stoch_depth}", flush=True)
+    model = LincsV7(cfg, M, ppi).eval()
     key = "ema" if which == "ema" else "model"
     if key not in sd:
         raise RuntimeError(f"checkpoint has no '{key}' weights (keys: {list(sd)[:6]})")
