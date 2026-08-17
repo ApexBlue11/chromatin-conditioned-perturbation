@@ -473,10 +473,27 @@ Identical to v7 seed 0 in every respect except the auxiliary heads are off. Ever
   tasks (learned weights main 1.59 / pathway 10.75 / chromatin 3.78, reproducible to 3 decimal places across
   all three seeds), and that actively degraded the model. **Kendall-style weighting is for tasks you care
   about equally; an auxiliary task that is merely EASY collects a huge weight.**
-- ⚠️ **One seed.** Given sd up to 0.0232 [M.10] this needs its own 3 seeds before it is a claim. But note
-  what is *not* seed-limited: it beat the maximum of three seeds on six independent measurements.
-- **The rest of v7 may be helping after all.** no-aux still contains STRING PPI, the 765-node matrix, the
-  modern recipe — and it is the best config we have. The aux losses were masking that.
+### THREE SEEDS OF no-aux — the first improvement in this project that survives its own variance test
+
+| split | no-aux mean | no-aux range (3 seeds) | aux mean | v6 | v5 | best baseline |
+|---|---|---|---|---|---|---|
+| unseen CELL | **0.4549** | [0.4452, 0.4612] | 0.4374 | 0.4466 | 0.4400 | Meandrug 0.4475 |
+| unseen COMPOUND | **0.4985** | [0.4900, 0.5033] | 0.4606 | 0.4686 | 0.4710 | ridge 0.3824 |
+| unseen BOTH | **0.4825** | [0.4772, 0.4863] | 0.4488 | 0.4663 | 0.4510 | ridge 0.3315 |
+
+- ✅ **Complete separation from the aux runs on all three splits** — no-aux *minimum* exceeds aux *maximum*
+  every time (0.4452>0.4425, 0.4900>0.4746, 0.4772>0.4694). Two sets of three seeds, zero overlap.
+- ✅ **On unseen-compound and unseen-both, ALL THREE no-aux seeds beat v6 AND v5** — the entire range sits
+  above both. Given M.10, this is the **first result here that cannot be explained by seed variance**.
+  Mean gains: **+0.0299 / +0.0162 vs v6**, **+0.0275 / +0.0315 vs v5**.
+- ✅ **Two of three seeds beat `Meandrug` on unseen cell** (0.4582, 0.4612 vs 0.4475) — the first time
+  anything in this project has cleared the drug-mean baseline on the cold-cell axis [1.8].
+- **unseen-compound crosses 0.50** on two seeds (0.5021, 0.5033).
+- ⚠️ **Attribution is still open.** no-aux contains STRING PPI + 765 nodes + stochastic depth + EMA + WSD +
+  RMSNorm/SwiGLU/QK-norm, all at once. We know the *bundle minus aux* helps; we do not know which part. That
+  is the next one-factor sweep, and it must be run with 3 seeds per arm.
+- **What made the difference was removing something, not adding it.** The single largest measured
+  improvement in the project came from deleting a component I had added two turns earlier.
 
 ---
 

@@ -21,10 +21,20 @@ older sections of RESULTS was inside noise. **Report mean ± range over ≥3 see
 Ablations are exempt — they are within-run on identical signatures and carry no seed variance, which is why
 ablate-to-mean kept giving clean answers while headline deltas were noise.
 
-**2. Best config measured to date is `v7 --no_aux`** (RESULTS §22): 0.4452 / **0.4900** / **0.4772** pearson,
-with R² **+0.3135** and **+0.2878** on compound/both — roughly double v6's. It beat the maximum of three
-aux seeds 6/6. Seeds 1 and 2 are running to confirm. `use_aux` now defaults to **False**; the auxiliary-
-supervision idea is untested, but Kendall uncertainty weighting is the wrong tool for it (see config_v7).
+**2. Best config is `v7 --no_aux`, CONFIRMED over 3 seeds** (RESULTS §22) — the only result here that
+survives M.10:
+
+| split | no-aux mean (3 seeds) | range | v6 | v5 | best baseline |
+|---|---|---|---|---|---|
+| unseen CELL | 0.4549 | [0.4452, 0.4612] | 0.4466 | 0.4400 | Meandrug 0.4475 |
+| unseen COMPOUND | **0.4985** | [0.4900, 0.5033] | 0.4686 | 0.4710 | ridge 0.3824 |
+| unseen BOTH | **0.4825** | [0.4772, 0.4863] | 0.4663 | 0.4510 | ridge 0.3315 |
+
+All three seeds beat v5 *and* v6 on compound and both; 2/3 beat **Meandrug** on unseen cell — the first time
+anything here has cleared that baseline [1.8]. `use_aux` defaults to **False**: the supervision idea is
+untested, but Kendall uncertainty weighting is the wrong tool for it (reasons in `config_v7.py`).
+**Attribution is open** — the winning config bundles STRING PPI + 765 nodes + stochastic depth + EMA + WSD +
+RMSNorm/SwiGLU/QK-norm. Next: one-factor sweep, **3 seeds per arm**.
 
 ## 1. What is running right now
 | Kernel | What | How to collect |

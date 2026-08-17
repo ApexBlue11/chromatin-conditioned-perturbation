@@ -1,0 +1,67 @@
+{
+  "ckpt": "ckpt_v7_noaux_s1.pt",
+  "fold": 0,
+  "n_pathways": 765,
+  "v5_reference": {
+    "unseen_cell": 0.44,
+    "unseen_compound": 0.471,
+    "unseen_both": 0.451
+  },
+  "v6_reference": {
+    "unseen_cell": 0.4466,
+    "unseen_compound": 0.4686,
+    "unseen_both": 0.4663
+  },
+  "weights": {
+    "raw": {
+      "unseen_cell": {
+        "headline": {
+          "r2_overall": 0.2821851372718811,
+          "r2_gene_median": 0.11170828342437744,
+          "pearson_median": 0.45817533135414124,
+          "mse": 4.293745517730713,
+          "n": 7296,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.2199999988079071,
+          "common_degs@100_chance": 0.10224948875255624,
+          "r2_phase_P1": 0.14671361446380615,
+          "r2_phase_P2": 0.36257654428482056
+        },
+        "strata": {}
+      },
+      "unseen_compound": {
+        "headline": {
+          "r2_overall": 0.2748567461967468,
+          "r2_gene_median": 0.13147294521331787,
+          "pearson_median": 0.5020585060119629,
+          "mse": 4.577625274658203,
+          "n": 6000,
+          "common_degs@50": 0.18000000715255737,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.25,
+          "common_degs@100_chance": 0.10224948875255624,
+          "r2_phase_P1": 0.2525201439857483,
+          "r2_phase_P2": 0.2924994230270386
+        },
+        "strata": {}
+      },
+      "unseen_both": {
+        "headline": {
+          "r2_overall": 0.2375672459602356,
+          "r2_gene_median": 0.03886067867279053,
+          "pearson_median": 0.48410719633102417,
+          "mse": 5.561890602111816,
+          "n": 2998,
+          "common_degs@50": 0.1599999964237213,
+          "common_degs@50_chance": 0.05112474437627812,
+          "common_degs@100": 0.23000000417232513,
+          "common_degs@100_chance": 0.10224948875255624,
+          "r2_phase_P1": 0.17233341932296753,
+          "r2_phase_P2": 0.26686227321624756
+        },
+        "strata": {}
+      }
+    }
+  }
+}
