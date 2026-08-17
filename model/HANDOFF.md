@@ -12,10 +12,24 @@ modality fusion), and **v6 is a complete rebuild** fixing both. v6 is built, doc
 (16/16) and **launched on Kaggle TPU** — but **unmeasured**. The one claim that has survived every test is
 the chromatin (epigenetics) effect.
 
+## 0. THE TWO THINGS THAT MATTER MOST (read before anything else)
+
+**1. Seed variance exceeds every architecture effect this project has reported [M.10].** Three seeds of one
+identical config: sd **0.0052 / 0.0150 / 0.0232** on unseen cell / compound / both ⇒ 2-sd = **±0.046**. v5,
+v6 and v7 are *statistically indistinguishable* on two of three splits. Every "vN beats vN−1" number in the
+older sections of RESULTS was inside noise. **Report mean ± range over ≥3 seeds, or report no difference.**
+Ablations are exempt — they are within-run on identical signatures and carry no seed variance, which is why
+ablate-to-mean kept giving clean answers while headline deltas were noise.
+
+**2. Best config measured to date is `v7 --no_aux`** (RESULTS §22): 0.4452 / **0.4900** / **0.4772** pearson,
+with R² **+0.3135** and **+0.2878** on compound/both — roughly double v6's. It beat the maximum of three
+aux seeds 6/6. Seeds 1 and 2 are running to confirm. `use_aux` now defaults to **False**; the auxiliary-
+supervision idea is untested, but Kendall uncertainty weighting is the wrong tool for it (see config_v7).
+
 ## 1. What is running right now
 | Kernel | What | How to collect |
 |---|---|---|
-| `apexblue/lincs-v6-gpu` | v6 training, **T4 x2**, 10 epochs, batch 48, budget 8.5 h | see §2 |
+| `apexblue/lincs-v7-noaux-s1`, `-s2` | v7 no-aux seeds 1 & 2, T4 x2, 12 epochs, ~4.6 h each | §2, then `model/v7/eval_v7.py` |
 
 ```bash
 export KAGGLE_CONFIG_DIR="C:/Users/Surya/.kaggle"

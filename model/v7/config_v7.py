@@ -29,8 +29,15 @@ class V7Config:
     huber_delta: float = 1.0
 
     # ---- v7: make the priors load-bearing -------------------------------------------------------
-    use_aux: bool = True          # deep supervision of the pathway + chromatin branches. v6 asked nothing
-                                  # of either and measured both at ~0 while they were live.
+    # DEFAULT FLIPPED TO FALSE 2026-08-15 after measurement (RESULTS §22). The idea -- deep supervision so
+    # the priors are load-bearing -- is untested; the WEIGHTING was wrong. UncertaintyWeighting learned
+    # main 1.59 / pathway 10.75 / chromatin 3.78 (reproducible to 3 decimals across all 3 seeds), i.e. ~90 %
+    # of the gradient went to the auxiliary tasks, and `--no_aux` then beat the MAXIMUM of three aux seeds on
+    # all three splits in both pearson and R² (6/6), with R² roughly doubling on two splits.
+    # Kendall weighting is for tasks you care about EQUALLY: it rewards low task noise, so an auxiliary task
+    # that is merely EASY collects a huge weight. To retry supervision, use a capped or small FIXED lambda
+    # (e.g. 0.05) instead of learned weighting -- do not simply set this back to True.
+    use_aux: bool = False
     use_ppi: bool = True          # STRING message passing. 12,665 edges v6 never even loaded.
     stoch_depth: float = 0.1      # max residual-drop rate, scaled linearly with depth. Regularises AND
                                   # removes the option to ignore a branch (residual "loafing"), which is
