@@ -65,3 +65,6 @@ phase2_assembly/outputs/*.tsv
 baseline/hgnc_complete_set.txt
 epigenetics/outputs/flagged_raw_records_v6.json
 phase2_assembly/outputs/chip_atlas_human_epi.tab
+
+# External third-party model releases (XPert Zenodo, ~14GB) - never commit
+external/

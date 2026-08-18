@@ -497,6 +497,63 @@ Identical to v7 seed 0 in every respect except the auxiliary heads are off. Ever
 
 ---
 
+## 23. XPert head-to-head, part 1: their own released predictions (2026-08-18)
+
+Downloaded XPert's Zenodo release (code, trained weights, and the released prediction arrays for their
+HDAC-inhibitor figure: `y_true` / `y_pred` / `ctl_true`, 3,439 signatures x 978 genes).
+
+**Their code already computes BOTH conventions** (`get_evaluation_metrics.get_metrics_new`), which is better
+practice than we assumed:
+```
+metrics['Pearson']     = pearson(y, f)              # ABSOLUTE
+metrics['Pearson_deg'] = pearson(y - ctl, f - ctl)  # DELTA  <- identical in form to our metric
+```
+
+### Finding 1 — the absolute convention IS inflated, and by roughly what we predicted
+
+| on XPert's own released predictions | Pearson (mean) |
+|---|---|
+| XPert, ABSOLUTE (`y` vs `f`) | **0.9804** |
+| XPert, DELTA (`y-ctl` vs `f-ctl`) | **0.8440** |
+| **"predict no change" — just copy the control** | **0.9200** |
+
+- Convention inflation = **+0.136**.
+- The absolute number beats *doing nothing at all* by only **+0.060**. A reported ~0.98 absolute correlation
+  is overwhelmingly the supplied baseline being copied. This confirms the mechanism quantitatively, on the
+  authors' own data, without reinterpreting their metric.
+
+### Finding 2 — but their DELTA number is still far above ours, and that does not flatter us
+
+Comparing gains over the trivial baseline **inside each model's own frame** (the only currently fair contrast):
+
+| frame | model | best trivial baseline | **gain** |
+|---|---|---|---|
+| XPert (Level-3 log-expression delta) | 0.8440 | 0.3682 (same delta for every signature) | **+0.4758** |
+| ours (Level-5 MODZ z-score, reproducible) | 0.4985 | 0.3824 (ridge) | **+0.1161** |
+
+XPert's gain over trivial is **~4x ours**. Three confounds are known and **all of them favour XPert**:
+1. **HDAC inhibitors only** — their easiest subset. We measured epi-drugs at +0.20 easier than average in
+   our own data [2.6], so this is not a headline benchmark.
+2. **Split unknown** — this figure may be in-distribution, while our 0.4985 is unseen-compound.
+3. **Different target** — Level-3 log-expression differences vs Level-5 MODZ z-scores.
+
+⇒ **Do not conclude "XPert is 4x better" from this.** Do not conclude we are fine either.
+
+### The hypothesis this raises, and why Level 3 is now justified
+
+Confound 3 is the one that matters strategically. Our Level-5 target has a **measured noise ceiling of
+0.71-0.79** (replicate r 0.509-0.619 [6.1]) and we sit at 0.4985 = ~63-70 % of it. If Level-3 deltas have a
+**higher replicate reliability**, then every model trained on Level 3 is solving an intrinsically easier
+problem, and no architecture change on our side can close that gap.
+
+**That is a measurable question, and it decides whether to keep tuning models or change the data.** It needs
+Level 3 + `inst_info` (to pair treated wells with same-plate DMSO controls). This is the first
+evidence-based reason in this project to acquire it — not to match anyone's convention, but to measure
+whether the target itself is the ceiling.
+
+
+---
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
