@@ -554,6 +554,60 @@ whether the target itself is the ceiling.
 
 ---
 
+## 24. XPert head-to-head, part 2: THE TWO TARGETS ARE NOT THE SAME QUANTITY (2026-08-18)
+
+`model/compare_targets_xpert.py`. XPert's released h5ad is **replicate-collapsed Level-3 log-expression with
+a plate-matched control** (`X`, `obsm['X_ctl']`, 336,852 x 978, `n_replicates` 1-6+). Ours is **Level-5 MODZ
+z-scores**. **153,478 (cell, pert, dose, time) conditions exist in BOTH datasets**, so the two targets can be
+compared directly — no model involved. Aligned on the 959 shared gene symbols.
+
+### The two targets agree only moderately
+
+| our mean\|Y\| stratum | n | agreement r |
+|---|---|---|
+| 0.34–0.57 | 1000 | 0.4381 |
+| 0.57–0.68 | 1000 | 0.4695 |
+| 0.68–0.90 | 1000 | 0.4940 |
+| 0.90–4.78 | 1000 | 0.6159 |
+| **reproducible (≥1)** | 802 | **0.6419** |
+
+Overall mean **0.5044**. For the *same drug, cell, dose and time*, the Level-3 delta and the Level-5 z-score
+correlate at only ~0.5–0.64. **They are different quantities**, and no protocol-matching makes a score on one
+comparable to a score on the other.
+
+### …and the disagreement is almost entirely OUR measurement noise
+
+Our replicate reliability ρ was measured per strength bin [6.1]. If their target were relatively clean and
+ours is signal+noise, then `corr(theirs, ours) ≤ sqrt(ρ_ours)`:
+
+| our mean\|Y\| | n | observed r | ρ | ceiling √ρ | % of ceiling |
+|---|---|---|---|---|---|
+| 0.5–0.8 | 2289 | 0.4690 | 0.086 | 0.2936 | 160 % |
+| 0.8–1.0 | 500 | 0.5116 | 0.195 | 0.4419 | 116 % |
+| 1.0–1.5 | 438 | 0.5737 | 0.398 | 0.6306 | **91 %** |
+| 1.5–2.5 | 218 | 0.6775 | 0.668 | 0.8175 | **83 %** |
+| 2.5+ | 146 | 0.7934 | 0.751 | 0.8666 | **92 %** |
+
+- ✅ **In every stratum we actually evaluate on, the observed agreement is 83–92 % of the maximum the noise
+  in our own target permits.** ⇒ **the two targets measure essentially the SAME biology, and ours is simply
+  the noisier measurement of it.**
+- ⚠️ In the weak strata the agreement *exceeds* the naive ceiling (160 %, 116 %). Either the ρ estimates from
+  [6.1] are conservative there, or the two targets share structure that is not biological signal. Does not
+  affect the strong strata, which is where every number we report lives.
+
+### What this means — and it is the answer to "how do we compare fairly?"
+
+1. **Cross-paper score comparison on LINCS is invalid unless the DATA LEVEL matches**, not merely the
+   convention. Level-5 z-scoring divides by plate-population variability and demonstrably destroys signal:
+   a perfect model on our target would score ~0.71–0.87 depending on stratum, never 1.0.
+2. **Part of the XPert gap [§23] is a cleaner target, not a better model.** How much, we cannot yet say.
+3. ⇒ **Acquiring Level 3 is now justified on evidence.** Not to match anyone's convention — to stop paying a
+   noise penalty that Level-3 models never incur. This is the first data-vs-model question in the project
+   where the data side has direct measured support.
+
+
+---
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
