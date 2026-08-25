@@ -1,0 +1,46 @@
+{
+  "n": 1500,
+  "plain_mean": 0.16416675482401566,
+  "modz": 0.15692808331719846,
+  "modz_advantage": -0.007238671506817201,
+  "by_strength": [
+    {
+      "lo": 0.1618986235638053,
+      "hi": 0.31776247591151885,
+      "n": 375,
+      "plain_mean": 0.11677932383784484,
+      "modz": 0.11259231195634195
+    },
+    {
+      "lo": 0.31776247591151885,
+      "hi": 0.417647375524824,
+      "n": 375,
+      "plain_mean": 0.12797091393080792,
+      "modz": 0.1169801669771756
+    },
+    {
+      "lo": 0.417647375524824,
+      "hi": 0.5427570867823913,
+      "n": 375,
+      "plain_mean": 0.1787573794009148,
+      "modz": 0.1705998615897177
+    },
+    {
+      "lo": 0.5427570867823913,
+      "hi": 1.532714762071352,
+      "n": 375,
+      "plain_mean": 0.23315940212649502,
+      "modz": 0.22753999274555856
+    }
+  ],
+  "reference_l3_plain": [
+    0.1441,
+    0.2429
+  ],
+  "reference_l5_modz": [
+    0.127,
+    0.509,
+    0.619
+  ],
+  "verdict": "FAIL -- MODZ aggregation does NOT beat the plain mean; the migration trades a better target for a better input and needs an explicit decision"
+}

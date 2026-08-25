@@ -1,0 +1,119 @@
+{
+  "ccle": {
+    "lambda": 10000.0,
+    "n_features": 3064,
+    "splits": {
+      "unseen_cell": {
+        "r2_overall": 0.1584373116493225,
+        "r2_gene_median": 0.046555519104003906,
+        "pearson_median": 0.38562673330307007,
+        "mse": 3.8803493976593018,
+        "n": 3132,
+        "common_degs@50": 0.14000000059604645,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.20999999344348907,
+        "common_degs@100_chance": 0.10224948875255624
+      },
+      "unseen_compound": {
+        "r2_overall": 0.1457492709159851,
+        "r2_gene_median": 0.014019906520843506,
+        "pearson_median": 0.3909858465194702,
+        "mse": 4.211945056915283,
+        "n": 4991,
+        "common_degs@50": 0.1599999964237213,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.2199999988079071,
+        "common_degs@100_chance": 0.10224948875255624
+      },
+      "unseen_both": {
+        "r2_overall": 0.10907328128814697,
+        "r2_gene_median": -0.01647782325744629,
+        "pearson_median": 0.3139682114124298,
+        "mse": 4.408610820770264,
+        "n": 1238,
+        "common_degs@50": 0.11999999731779099,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.18000000715255737,
+        "common_degs@100_chance": 0.10224948875255624
+      }
+    }
+  },
+  "matched": {
+    "lambda": 10000.0,
+    "n_features": 3064,
+    "splits": {
+      "unseen_cell": {
+        "r2_overall": 0.17448711395263672,
+        "r2_gene_median": 0.05952972173690796,
+        "pearson_median": 0.4170766770839691,
+        "mse": 3.8063457012176514,
+        "n": 3132,
+        "common_degs@50": 0.1599999964237213,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.2199999988079071,
+        "common_degs@100_chance": 0.10224948875255624
+      },
+      "unseen_compound": {
+        "r2_overall": 0.1610710620880127,
+        "r2_gene_median": 0.030607104301452637,
+        "pearson_median": 0.4345169961452484,
+        "mse": 4.136399745941162,
+        "n": 4991,
+        "common_degs@50": 0.20000000298023224,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.25,
+        "common_degs@100_chance": 0.10224948875255624
+      },
+      "unseen_both": {
+        "r2_overall": 0.12406951189041138,
+        "r2_gene_median": -0.007726311683654785,
+        "pearson_median": 0.3511795401573181,
+        "mse": 4.334404468536377,
+        "n": 1238,
+        "common_degs@50": 0.14000000059604645,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.1899999976158142,
+        "common_degs@100_chance": 0.10224948875255624
+      }
+    }
+  },
+  "both": {
+    "lambda": 10000.0,
+    "n_features": 4042,
+    "splits": {
+      "unseen_cell": {
+        "r2_overall": 0.17395442724227905,
+        "r2_gene_median": 0.05668222904205322,
+        "pearson_median": 0.411946177482605,
+        "mse": 3.8088018894195557,
+        "n": 3132,
+        "common_degs@50": 0.1599999964237213,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.2199999988079071,
+        "common_degs@100_chance": 0.10224948875255624
+      },
+      "unseen_compound": {
+        "r2_overall": 0.16179853677749634,
+        "r2_gene_median": 0.031273603439331055,
+        "pearson_median": 0.43692752718925476,
+        "mse": 4.132812976837158,
+        "n": 4991,
+        "common_degs@50": 0.20000000298023224,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.25,
+        "common_degs@100_chance": 0.10224948875255624
+      },
+      "unseen_both": {
+        "r2_overall": 0.12342286109924316,
+        "r2_gene_median": -0.006745696067810059,
+        "pearson_median": 0.3475751280784607,
+        "mse": 4.33760404586792,
+        "n": 1238,
+        "common_degs@50": 0.14000000059604645,
+        "common_degs@50_chance": 0.05112474437627812,
+        "common_degs@100": 0.1899999976158142,
+        "common_degs@100_chance": 0.10224948875255624
+      }
+    }
+  }
+}

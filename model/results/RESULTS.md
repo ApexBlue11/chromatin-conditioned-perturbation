@@ -662,6 +662,58 @@ conditions, which the h5ad now makes possible.
 
 ---
 
+## 26. Level 3 resolved: the TARGET gate FAILS, the INPUT A/B PASSES decisively (2026-08-18)
+
+Two separate questions, two separate answers. `model/level3/`.
+
+### Extraction
+189,482 conditions x 978 genes from GSE92742 (672,128 trt_cp wells, 2,023 plates with >=3 DMSO controls,
+700,060 wells read in one sequential pass). Each condition carries a **plate-matched DMSO median** as its
+control and a MODZ-weighted replicate delta. Median 3 wells/condition. 138,954 of our Level-5 signatures
+(44.8 %) join to a matched control; the remainder are GSE70138 phase-2, not yet extracted.
+
+### GATE on using Level 3 as the TARGET — **FAILED**
+Split-half over disjoint plate groups, 1,500 conditions, within-condition so both methods see identical wells:
+
+| aggregation | mean r | top-quartile |
+|---|---|---|
+| plain mean of replicate deltas | 0.1642 | 0.2332 |
+| **MODZ-weighted (the proposed mitigation)** | **0.1569** | 0.2275 |
+| *Level-5 MODZ reference* [6.1] | *0.127 all* | ***0.509–0.619 reproducible*** |
+
+MODZ weighting is **worse** than a flat mean here (−0.0072). The likely reason: Level 5's reliability comes
+mostly from the **Level-4 robust z-scoring against the plate population** (divide by plate MAD, per gene),
+not from the replicate weighting — and our Level-3 delta has no such per-gene scaling. ⇒ **Keep the Level-5
+z-score as the target.** The gate did its job: it stopped us replacing a good target with a worse one.
+
+### A/B on using Level 3 for the INPUT — **PASSED, and by more than any architecture change to date**
+Controlled: identical signatures, identical drug/dose/time features, identical protocol. **The only thing
+that varies is which baseline vector the model sees.** Ridge, so the fit is deterministic.
+
+| split | CCLE `X_base` (today) | **plate-matched control** | both | gain |
+|---|---|---|---|---|
+| unseen CELL | 0.3856 | **0.4171** | 0.4119 | **+0.0314** |
+| unseen COMPOUND | 0.3910 | **0.4345** | 0.4369 | **+0.0435** |
+| unseen BOTH | 0.3140 | **0.3512** | 0.3476 | **+0.0372** |
+
+- ✅ **The matched control beats the CCLE proxy on every split, by +0.031 to +0.044.**
+- ✅ **"Both" is no better than "matched" alone** ⇒ the matched control **subsumes** CCLE; once you have it,
+  the CCLE baseline adds nothing.
+- ✅ **This number carries no seed variance.** Ridge is a closed-form fit, so unlike every architecture
+  comparison in this project [M.10] there is no run-to-run noise to argue about. For scale: the gain is
+  larger than the entire v5 → v6 → v7 progression, all of which sat inside seed noise.
+
+### The resolution
+**Use Level 3 for the INPUT. Keep Level 5 for the TARGET.** That is exactly what V8_PLAN §1 argued the
+migration was for, and the gate correctly prevented the target swap that was never justified.
+
+**Caveats:** ridge, not the full model — the gain may differ once atom tokens and attention are present;
+44.8 % coverage until GSE70138 is extracted; and the smaller matched subset makes these splits smaller than
+the headline ones, so these numbers are not comparable to §22's, only to each other.
+
+
+---
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
