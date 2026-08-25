@@ -608,6 +608,60 @@ ours is signal+noise, then `corr(theirs, ours) ≤ sqrt(ρ_ours)`:
 
 ---
 
+## 25. Level 3 MEASURED — and it REVERSES §24's conclusion (2026-08-18)
+
+Level 3 arrived (GSE92742, 65.1 GB, 1,319,138 wells x 12,328 genes; 978/978 landmarks located; 672,128
+trt_cp wells; 2,023 plates carrying DMSO controls; **183,485 conditions with >=2 wells on different
+plates**). `model/level3/replicate_reliability.py`.
+
+Delta construction is the honest one: a well's delta = its expression minus the **median of ctl_vehicle
+wells on the SAME plate**; replicate pairs are restricted to **different plates**, since same-plate pairs
+share a control vector and would inflate agreement.
+
+| measurement | reliability r |
+|---|---|
+| Level-3, **single well** (1,546 pairs) | 0.0893 |
+| Level-3, **split-half, 3+3 replicate-averaged** (400 conditions) | **0.1441** (median 0.0990) |
+| — top strength quartile of that | **0.2429** |
+| **Level-5 MODZ, all signatures** [6.1] | 0.127 |
+| **Level-5 MODZ, reproducible stratum (top ~15 %)** [6.1] | **0.509–0.619** |
+
+The single-well number is not a fair contrast — a MODZ signature *is* a replicate average, so it was
+compared against 3+3 averaging to match.
+
+- 🔴 **LEVEL 5 IS THE BETTER-DENOISED TARGET, NOT THE WORSE ONE.** At roughly matched percentile the
+  Level-3 top quartile reaches 0.243 while the Level-5 reproducible stratum reaches 0.509–0.619. MODZ is a
+  *correlation-weighted* replicate average with plate-population z-scoring, explicitly engineered for
+  reproducibility; a plain mean of plate-matched deltas is cruder and measurably so.
+- 🔴 **§24's conclusion is WRONG and is retracted.** That section inferred "our target is the noisy one"
+  from the fact that cross-target agreement sat at 83–92 % of our reliability ceiling. The inference was
+  consistent with the evidence available then, but direct measurement beats inference: **migrating to
+  Level 3 would raise our noise penalty, not remove it.**
+- ⇒ **Do NOT migrate to Level 3 for denoising reasons.** (It remains useful for one thing only: supplying
+  *true within-plate controls* if we ever need to report in the absolute convention.)
+
+### The contradiction this exposes, and the most likely resolution
+
+XPert reports **Pearson_deg 0.844** on a Level-3-derived delta, yet the measured reliability of such a
+target is **0.144–0.243**. **A model cannot predict a target more accurately than that target agrees with
+itself** — so their evaluation subset cannot be a random sample of conditions. The consistent explanation is
+that the released set is **HDAC inhibitors**: strong, stereotyped, heavily-replicated perturbations. We
+measured exactly this effect in our own data — epigenetic drugs are **+0.20** easier than average [2.6].
+
+**The fairest comparison currently available, like-for-like on drug class:**
+
+| | drug class | split | Pearson (delta) |
+|---|---|---|---|
+| XPert | HDAC inhibitors | unknown, possibly in-distribution | 0.844 |
+| **ours (v7 no-aux)** | epigenetic drugs [2.6] | **unseen COMPOUND** (the hard axis) | **0.648** |
+
+0.844 vs 0.648 — a real gap, but a quarter the size of the naive 0.844-vs-0.4985 headline, and still
+favouring them on split difficulty. Closing the remaining confound requires running one model on the other's
+conditions, which the h5ad now makes possible.
+
+
+---
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
