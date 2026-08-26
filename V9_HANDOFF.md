@@ -9,6 +9,33 @@ direction. Those remain accurate for v6/v7 history and the method rules.
 
 ---
 
+## A0. AMENDMENT, 2026-08-26 — four of this document's own claims did not survive measurement
+
+This file was written before the v9 work ran. Its direction held; four specific claims in it did not, and
+the pattern §B warns about repeated itself. Full detail and numbers: `model/results/RESULTS.md` §27–28,
+`model/results/CLAIMS.md` §6d.
+
+| this document says | measured |
+|---|---|
+| §D.1 "extract GSE70138 so coverage goes 44.8 % → ≥90 %" | The **join** was the problem, not the missing phase. P1 was already at 66.3 % with GSE92742 extracted, and P2's 4.1 % were FALSE matches to P1 wells. Under the same key logic, extracting GSE70138 projects to **~66 %** — the gate would have failed after the work was done. `sig_info.distil_id` is the exact well mapping; on it, coverage is **99.65 %**. |
+| §C "we truncated Reactome to the 978 landmarks… that is why 231 landmarks sit in no pathway" | **Wrong diagnosis.** Nothing was truncated. `ReactomePathways.gmt` annotates only **11,963 genes**, so those landmarks are absent at ANY filter (verified at `min_size=1` with the umbrella exclusion off). The gate **231 → ~0 is unreachable from Reactome.** Adding GO:BP as a second NAMED source reaches 50, against a two-source floor of 45. The **STRING** half of the same claim IS right: 66 → 8. |
+| §C "Splits are tissue-holdouts: `split_lung_1..5`…" | **Not holdouts.** All 15 restrict to one tissue and split it ~90/10. Mean over the 15: **100.0 %** of test rows use a cell line seen in training, **98.6 %** a compound seen in training, **89.4 %** the exact (cell, compound) PAIR. The task is mostly a new dose or time of something already in training. |
+| §B "Level 5 is the better-denoised target" (and so v9's target move costs accuracy) | **A stratum artefact.** §25 compared an L3-defined top quartile (0.2429) with the L5-defined reproducible stratum (0.509–0.619). On the stratum this project actually evaluates on, the Level-3 delta self-agrees at **0.5283**. Level 5 may still lead at the very top; "migrating to Level 3 raises our noise penalty" is not supported. |
+
+**One new hazard, of the same kind the handoff catalogues.** v9 trains on `delta = trt − ctl` and is handed
+`ctl`, so the control's measurement noise enters target and input with opposite signs and a model can
+improve its score by cancelling it. Measured with two independent half-plate DMSO medians: on unseen CELLS
+essentially all of the matched control's apparent advantage is noise cancellation, and an independent plate
+control is 0.08 **worse** than a per-cell mean. Every delta number v9 reports must ship with its
+independent-control version.
+
+**What this does not change.** The direction — rebuild the data substrate, keep the interpretability that
+is ours, gate every step on a measurement — held up. The two measured wins the handoff identifies (deleting
+a component; changing an input) are still the only two, and §28 adds a third lever that is bigger than
+either: **the split itself is worth +0.17**, four times the seed band.
+
+---
+
 ## A. State in one paragraph
 
 We predict drug-induced transcriptional response on LINCS L1000. Six architectures (v3→v7) produced
