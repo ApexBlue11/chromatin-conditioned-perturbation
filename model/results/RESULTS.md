@@ -714,6 +714,96 @@ the headline ones, so these numbers are not comparable to §22's, only to each o
 
 ---
 
+## 27. v9 substrate rebuilt: coverage 44.8 % -> 99.65 %, and three handoff claims corrected (2026-08-26)
+
+`model/level3/extract_level3_distil.py`, `test_extract_l3.py`, `noise_ceiling_l3.py`,
+`network/scripts/build_priors_v9.py`, `pretrain_gene_vectors.py`, `model/level3/ab_matched_control.py`,
+`split_dmso_control.py`.
+
+### 27.1 The key join was the problem, not the missing phase
+V9_HANDOFF §D step 1 says extract GSE70138 to lift coverage from 44.8 % to >=90 %. Decomposed first:
+**P1 66.3 % (with GSE92742 already extracted), P2 4.1 %** -- and those 4.1 % are FALSE matches, because the
+old condition table contains GSE92742 wells only, so a P2 signature keyed to it received a "plate-matched"
+control from a different experiment. Extracting GSE70138 under the same key logic projects to ~66 %:
+**the handoff's own gate would have failed after the work was done.**
+
+`sig_info.distil_id` is the exact Level-5 -> Level-3 well mapping. Rebuilt on it: **P1 100.00 %,
+P2 98.98 %, total 99.65 % (309,020/310,114)**, control drawn from the same wells' plates as the target,
+cross-phase pairing impossible by construction. 26/26 design tests pass, including recomputing sampled
+signatures directly from the GCTX (max abs diff 1.7e-06).
+
+Things that would have been silent bugs: `GSE70138_Level3.gctx` is a **gzip stream, not HDF5**; the plate
+key is **rna_plate for P1** (the inst_id prefix disagrees 20000/20000) and **det_plate for P2**;
+`signatures_usable.tsv`'s `row` column indexes the **312,438-row** Level-5 target, not its own 310,114 line
+positions.
+
+### 27.2 Noise ceiling: §25's stratum comparison was not like-for-like
+56,811 signatures with >=4 wells on >=2 plates, halves drawn from **disjoint plates**:
+
+| stratum | delta | absolute |
+|---|---|---|
+| all | 0.1376 | 0.9300 |
+| 3+3 averaged (>=6 wells) [matches §25] | 0.1700 | 0.9384 |
+| top strength quartile, **L3-defined** | 0.3263 | 0.9022 |
+| **Level-5 reproducible stratum (strength >= 1.0)** | **0.5283** | 0.9183 |
+
+- 🔴 §25 compared an **L3-defined** top quartile (0.2429) with the **L5-defined** reproducible stratum
+  (0.509-0.619). On the stratum this project actually evaluates on, the Level-3 delta self-agrees at
+  **0.5283**. The reported gap was largely a **stratum-definition artefact**. Level 5 may still lead at the
+  very top; "migrating to Level 3 raises our noise penalty" is **not supported**.
+- 🔴 The **absolute convention self-agrees at 0.90-0.95 regardless of perturbation strength.** That is the
+  local proof of why absolute numbers look high, next to "copy the control" = 0.9200 [§23].
+
+### 27.3 Priors: one handoff diagnosis right, one wrong, one defect nobody had noticed
+- **34/978 landmark symbols are stale 2012 L1000 names** (AARS->AARS1, IKBKAP->ELP1, KIAA0196->WASHC5...).
+  All resolve through the Entrez id L1000 itself carries, against the local HGNC set, no collisions. This
+  alone moves STRING-absent **28 -> 8** and Reactome orphans **231 -> 213**.
+- **STRING truncation: the handoff is right.** Full-proteome at combined_score >= 400 gives
+  **19,496 nodes / 929,472 edges**, against XPert's released **19,392 / 901,260** -- so 400 is the field's
+  threshold, derived rather than assumed. Isolated landmarks **66 -> 8**. GATE MET.
+- 🔴 **Reactome truncation: the handoff is wrong.** Nothing was truncated. `ReactomePathways.gmt` annotates
+  only **11,963 genes**, so 231 landmarks are in no pathway at **any** filter (verified at min_size=1 with
+  the umbrella exclusion off; coverage caps at 747/978). **"231 -> ~0" is unreachable from Reactome.**
+  Adding **GO:BP** as a second NAMED source gives 800 nodes (367 Reactome + 433 GO:BP) and **50 orphans**
+  against a two-source floor of 45.
+- Gene vectors pretrained by link prediction on the full graph: held-out AUC **0.9198** (degree-matched
+  null) / 0.8934 (uniform). Expectation that uniform would be the inflated null was **wrong**; both are
+  recorded. Co-membership recovery, never in the objective: **AUC 0.6388**, cos 0.066 same-pathway vs
+  -0.002 different.
+
+### 27.4 The baseline A/B, redone clean -- and what it says about CCLE
+Closed-form ridge, identical rows across arms, reproducible stratum. `matched - ccle` on the Level-5
+target: **+0.0268 / +0.0401 / +0.0354**, reproducing §26's +0.0314 / +0.0435 / +0.0372 on the clean join.
+
+**CCLE adds nothing on top of the matched control** on any target or split (`both - matched` between
+-0.0104 and +0.0003). It is **redundant, not harmful** -- and it is **dominated**, not merely matched, by a
+per-cell mean of L1000 DMSO controls: identical to 4 dp on seen cells, **+0.037 / +0.027 better on unseen
+cells**.
+
+### 27.5 The delta convention lets a model cancel noise instead of predicting biology
+v9 trains on `delta = trt - ctl` and is handed `ctl`. The control's measurement noise therefore enters the
+target negatively and the input positively. Measured with **two independent half-plate DMSO medians**
+(`split_dmso_control.py`; mean |ctlA - ctlB| = 0.1852 per gene, against mean|delta| ~ 0.377):
+target built from half B, `ctlB` the coupled input, `ctlA` the uncoupled one.
+
+| split | ccle | cellmean | ctlA (independent) | ctlB (coupled) | ctlB-ctlA | ctlA-cellmean |
+|---|---|---|---|---|---|---|
+| unseen_cell | 0.2517 | 0.2890 | 0.2055 | 0.2826 | **+0.0771** | **-0.0835** |
+| unseen_compound | 0.3434 | 0.3434 | 0.4467 | 0.4547 | +0.0080 | **+0.1033** |
+| unseen_both | 0.2224 | 0.2495 | 0.1698 | 0.2453 | **+0.0755** | **-0.0797** |
+
+- 🟢 **On unseen compounds the plate-matched control is genuinely worth +0.103** over a per-cell mean, and
+  only +0.008 of that is noise cancellation.
+- 🔴 **On unseen CELLS it inverts.** An independent plate control is **worse than a per-cell mean**
+  (-0.084 / -0.080), and essentially all of what the coupled control appears to buy (+0.077 / +0.076) is
+  **noise cancellation, not signal**. Plate state helps only where the model has seen the cell.
+- ⇒ v9 should feed the control encoder **both** the matched control and a per-cell aggregate, and every
+  delta number must be reported alongside the independent-control version.
+- A first attempt at this control (`l3delta_ind`: target = trt - cellmean) **FAILED and is recorded as a
+  negative** -- it swaps the coupling for a worse one, since the target then contains the plate offset
+  `ctl - cellmean`, readable straight off the matched input (+0.3771 on unseen compounds: the size of a
+  leak, not an effect).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

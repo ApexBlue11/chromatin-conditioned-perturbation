@@ -14,11 +14,18 @@ epigenetics/chip_atlas/downloads/
 epigenetics/data/
 
 # derived tensors (rebuild via the pipeline)
+# NOTE: `outputs/*.npy` is a SINGLE-level glob. v9 writes into outputs/level3_sig/ and outputs/v9/, which
+# those patterns do not reach -- 3.6 GB of arrays sat unignored until this was widened to `**`. The handoff
+# records a `git add -A` that once swept 14 GB into two commits; this is the same hazard one directory down.
 *.gctx
+*.dat
 phase2_assembly/outputs/*.npy
+phase2_assembly/outputs/**/*.npy
+phase2_assembly/outputs/**/*.tsv
 drug/outputs/*.npy
 baseline/outputs/**/*.npy
 network/outputs/*.npy
+network/outputs/**/*.npy
 
 # ...but DO keep the small, hard-won derived artifacts that are expensive to
 # recreate and cheap to store (index/mapping/reference files + the cell features)
@@ -28,6 +35,10 @@ network/outputs/*.npy
 !drug/outputs/splits/scaffold_split.json
 !drug/outputs/dti/dti_reference.tsv
 !phase2_assembly/outputs/sig_strength.npy
+# v9 priors: the NAMED artefacts are small and are the interpretability contract itself
+!network/outputs/v9/pathway_info_v9.tsv
+!network/outputs/v9/landmark_symbols_v9.tsv
+!phase2_assembly/outputs/level3_sig/l3_coverage.json
 
 # model weights -> published via GitHub Releases / LFS, not committed directly
 *.pt
