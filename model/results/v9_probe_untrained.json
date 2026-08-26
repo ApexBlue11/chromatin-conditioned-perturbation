@@ -1,0 +1,273 @@
+{
+  "ckpt": "untrained",
+  "epoch": -1,
+  "splits": {
+    "unseen_cell": {
+      "n": 400,
+      "pearson_delta": 0.0114,
+      "pearson_abs": 0.7149,
+      "null_copy_ctl_abs": 0.9223,
+      "abs_value_added_over_doing_nothing": -0.2074,
+      "ablations": {},
+      "pathway_alignment": {
+        "observed": -0.0264,
+        "permutation_null_mean": 0.0004,
+        "permutation_null_sd": 0.0094,
+        "p": 1.0,
+        "beats_null": false
+      },
+      "top_named_nodes": [
+        {
+          "source": "GO:BP",
+          "term": "Maturation Of LSU-rRNA",
+          "n_landmarks": 1,
+          "mean_activation": 0.2564
+        },
+        {
+          "source": "GO:BP",
+          "term": "Protein Maturation By Iron-Sulfur Cluster Transfer",
+          "n_landmarks": 1,
+          "mean_activation": 0.1988
+        },
+        {
+          "source": "Reactome",
+          "term": "Proteasome assembly",
+          "n_landmarks": 10,
+          "mean_activation": 0.1815
+        },
+        {
+          "source": "GO:BP",
+          "term": "Mesoderm Development",
+          "n_landmarks": 3,
+          "mean_activation": 0.175
+        },
+        {
+          "source": "Reactome",
+          "term": "mRNA 3'-end processing",
+          "n_landmarks": 11,
+          "mean_activation": 0.1652
+        },
+        {
+          "source": "Reactome",
+          "term": "RNA Polymerase II Pre-transcription Events",
+          "n_landmarks": 10,
+          "mean_activation": 0.1611
+        },
+        {
+          "source": "Reactome",
+          "term": "Nuclear Envelope Breakdown",
+          "n_landmarks": 10,
+          "mean_activation": 0.1601
+        },
+        {
+          "source": "GO:BP",
+          "term": "Carbohydrate Catabolic Process",
+          "n_landmarks": 8,
+          "mean_activation": 0.1595
+        },
+        {
+          "source": "GO:BP",
+          "term": "Ribosome Biogenesis",
+          "n_landmarks": 16,
+          "mean_activation": 0.1577
+        },
+        {
+          "source": "Reactome",
+          "term": "mRNA Splicing",
+          "n_landmarks": 15,
+          "mean_activation": 0.1576
+        },
+        {
+          "source": "Reactome",
+          "term": "mRNA Splicing - Major Pathway",
+          "n_landmarks": 15,
+          "mean_activation": 0.1576
+        },
+        {
+          "source": "Reactome",
+          "term": "NoRC negatively regulates rRNA expression",
+          "n_landmarks": 12,
+          "mean_activation": 0.1559
+        }
+      ]
+    },
+    "unseen_compound": {
+      "n": 400,
+      "pearson_delta": 0.0139,
+      "pearson_abs": 0.7321,
+      "null_copy_ctl_abs": 0.9187,
+      "abs_value_added_over_doing_nothing": -0.1866,
+      "ablations": {},
+      "pathway_alignment": {
+        "observed": -0.0128,
+        "permutation_null_mean": -0.0013,
+        "permutation_null_sd": 0.011,
+        "p": 0.8458,
+        "beats_null": false
+      },
+      "top_named_nodes": [
+        {
+          "source": "GO:BP",
+          "term": "Maturation Of LSU-rRNA",
+          "n_landmarks": 1,
+          "mean_activation": 0.2693
+        },
+        {
+          "source": "GO:BP",
+          "term": "Mesoderm Development",
+          "n_landmarks": 3,
+          "mean_activation": 0.198
+        },
+        {
+          "source": "Reactome",
+          "term": "Proteasome assembly",
+          "n_landmarks": 10,
+          "mean_activation": 0.1974
+        },
+        {
+          "source": "GO:BP",
+          "term": "Protein Maturation By Iron-Sulfur Cluster Transfer",
+          "n_landmarks": 1,
+          "mean_activation": 0.1888
+        },
+        {
+          "source": "Reactome",
+          "term": "RNA Polymerase II Pre-transcription Events",
+          "n_landmarks": 10,
+          "mean_activation": 0.1824
+        },
+        {
+          "source": "Reactome",
+          "term": "mRNA 3'-end processing",
+          "n_landmarks": 11,
+          "mean_activation": 0.1803
+        },
+        {
+          "source": "GO:BP",
+          "term": "Ribosome Biogenesis",
+          "n_landmarks": 16,
+          "mean_activation": 0.1745
+        },
+        {
+          "source": "Reactome",
+          "term": "Nuclear Envelope Breakdown",
+          "n_landmarks": 10,
+          "mean_activation": 0.1734
+        },
+        {
+          "source": "GO:BP",
+          "term": "rRNA Processing",
+          "n_landmarks": 10,
+          "mean_activation": 0.1716
+        },
+        {
+          "source": "Reactome",
+          "term": "mRNA Splicing - Major Pathway",
+          "n_landmarks": 15,
+          "mean_activation": 0.1715
+        },
+        {
+          "source": "Reactome",
+          "term": "mRNA Splicing",
+          "n_landmarks": 15,
+          "mean_activation": 0.1715
+        },
+        {
+          "source": "Reactome",
+          "term": "Deadenylation-dependent mRNA decay",
+          "n_landmarks": 8,
+          "mean_activation": 0.1704
+        }
+      ]
+    },
+    "unseen_both": {
+      "n": 400,
+      "pearson_delta": 0.0168,
+      "pearson_abs": 0.7101,
+      "null_copy_ctl_abs": 0.905,
+      "abs_value_added_over_doing_nothing": -0.1949,
+      "ablations": {},
+      "pathway_alignment": {
+        "observed": -0.0173,
+        "permutation_null_mean": 0.0008,
+        "permutation_null_sd": 0.01,
+        "p": 0.9652,
+        "beats_null": false
+      },
+      "top_named_nodes": [
+        {
+          "source": "GO:BP",
+          "term": "Maturation Of LSU-rRNA",
+          "n_landmarks": 1,
+          "mean_activation": 0.2528
+        },
+        {
+          "source": "GO:BP",
+          "term": "Protein Maturation By Iron-Sulfur Cluster Transfer",
+          "n_landmarks": 1,
+          "mean_activation": 0.1993
+        },
+        {
+          "source": "Reactome",
+          "term": "Proteasome assembly",
+          "n_landmarks": 10,
+          "mean_activation": 0.179
+        },
+        {
+          "source": "GO:BP",
+          "term": "Mesoderm Development",
+          "n_landmarks": 3,
+          "mean_activation": 0.1707
+        },
+        {
+          "source": "Reactome",
+          "term": "mRNA 3'-end processing",
+          "n_landmarks": 11,
+          "mean_activation": 0.1612
+        },
+        {
+          "source": "GO:BP",
+          "term": "Carbohydrate Catabolic Process",
+          "n_landmarks": 8,
+          "mean_activation": 0.1595
+        },
+        {
+          "source": "Reactome",
+          "term": "RNA Polymerase II Pre-transcription Events",
+          "n_landmarks": 10,
+          "mean_activation": 0.1578
+        },
+        {
+          "source": "Reactome",
+          "term": "Nuclear Envelope Breakdown",
+          "n_landmarks": 10,
+          "mean_activation": 0.1568
+        },
+        {
+          "source": "GO:BP",
+          "term": "Ribosome Biogenesis",
+          "n_landmarks": 16,
+          "mean_activation": 0.1542
+        },
+        {
+          "source": "Reactome",
+          "term": "mRNA Splicing - Major Pathway",
+          "n_landmarks": 15,
+          "mean_activation": 0.1539
+        },
+        {
+          "source": "Reactome",
+          "term": "mRNA Splicing",
+          "n_landmarks": 15,
+          "mean_activation": 0.1539
+        },
+        {
+          "source": "Reactome",
+          "term": "NoRC negatively regulates rRNA expression",
+          "n_landmarks": 12,
+          "mean_activation": 0.1537
+        }
+      ]
+    }
+  }
+}

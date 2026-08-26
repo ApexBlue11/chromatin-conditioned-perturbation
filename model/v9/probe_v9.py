@@ -46,7 +46,13 @@ def pearson_rows(a, b):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--ckpt', required=True)
+    ap.add_argument('--ckpt', default=None,
+                    help="omit with --untrained to MEASURE the readout's chance level")
+    ap.add_argument('--untrained', action='store_true',
+                    help="fresh weights: this is how the readout's chance level is measured "
+                         "rather than assumed. An untrained v6 scored 0.218 against a "
+                         "permutation null of 0.229 -- i.e. 0.5 is NOT chance here.")
+    ap.add_argument('--skip_ablations', action='store_true')
     ap.add_argument('--n_eval', type=int, default=1500)
     ap.add_argument('--n_perm', type=int, default=200)
     ap.add_argument('--batch', type=int, default=48)
@@ -55,7 +61,12 @@ def main():
     rng = np.random.default_rng(a.seed)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    ck = torch.load(a.ckpt, map_location='cpu', weights_only=False)
+    if a.untrained:
+        ck = {'cfg': vars(V9Config()), 'epoch': -1}
+    else:
+        if not a.ckpt:
+            raise SystemExit('give --ckpt, or --untrained to measure the readout chance level')
+        ck = torch.load(a.ckpt, map_location='cpu', weights_only=False)
     cfg = V9Config(**{k: v for k, v in ck['cfg'].items() if k in V9Config.__dataclass_fields__})
     dc = resolve_v9(V9DataConfig())
     dc.cache_in_ram = False
@@ -65,16 +76,29 @@ def main():
     gv = np.load(R(dc.gene_vec_path))
     info = list(csv.DictReader(open(R(dc.pathway_info_v9_path), encoding='utf-8'), delimiter='\t'))
 
+    torch.manual_seed(a.seed)
     model = LincsV9(cfg, M, ppi, gv)
-    model.load_state_dict(ck['model'])
+    if not a.untrained:
+        model.load_state_dict(ck['model'])
     model = model.to(dev).eval()
-    print(f'loaded {a.ckpt} (epoch {ck.get("epoch")}) | encoder {cfg.expr_encoder} | '
-          f'{M.shape[0]} named nodes', flush=True)
+    print(f'{"UNTRAINED (chance-level measurement)" if a.untrained else a.ckpt} '
+          f'(epoch {ck.get("epoch")}) | encoder {cfg.expr_encoder} | {M.shape[0]} named nodes', flush=True)
 
     shared = LincsV9Dataset.load_shared_v9(dc)
     ds = LincsV9Dataset(dc, _shared=shared)
     sp = build_splits(ds, dc)
-    out = {'ckpt': os.path.basename(a.ckpt), 'epoch': int(ck.get('epoch', -1)), 'splits': {}}
+    if a.untrained and cfg.expr_encoder == 'binned':
+        # a checkpoint restores the quantiser's buffers; a fresh model has none, and an unfitted quantiser
+        # would send every value to bin 0 and silently delete the expression input. TRAINING rows only.
+        rows = ds.ds_to_l3[sp['train']]
+        rows = np.sort(rows[rows >= 0])
+        model.fit_bins(np.asarray(ds.Xctl[rows[np.linspace(0, len(rows) - 1, 20000).astype(int)]],
+                                  np.float32))
+        model = model.to(dev)
+        if not model.bins_fitted:
+            raise SystemExit('FATAL: quantiser did not fit.')
+    out = {'ckpt': 'untrained' if a.untrained else os.path.basename(a.ckpt),
+           'epoch': int(ck.get('epoch', -1)), 'splits': {}}
 
     for name, key in [('unseen_cell', 'test_coldcell'), ('unseen_compound', 'test_colddrug'),
                       ('unseen_both', 'test_coldboth')]:
@@ -108,7 +132,7 @@ def main():
         # ---- ablations: to the MEAN, with |dY|max ----
         score = lambda y: float(np.nanmedian(pearson_rows(y.float().cpu().numpy(), td[:len(y)])))
         abl = {}
-        for label, kind, target in [('matched_control', 'input', 'x_ctl'),
+        for label, kind, target in ([] if a.skip_ablations else [('matched_control', 'input', 'x_ctl'),
                                     ('cell_control', 'input', 'x_cell'),
                                     ('chromatin', 'input', 'E'),
                                     ('drug_global', 'input', 'u_feats'),
@@ -116,7 +140,7 @@ def main():
                                     ('lineage', 'input', 'cell_ctx'),
                                     ('string_mp', 'module', 'ppi'),
                                     ('pathway_readout', 'module', 'pathway'),
-                                    ('gene_vectors', 'module', 'gene_repr')]:
+                                    ('gene_vectors', 'module', 'gene_repr')]):
             d_tot, m_tot = 0.0, 0.0
             for c in chunks:
                 if kind == 'input':
@@ -169,7 +193,8 @@ def main():
     WORK = '/kaggle/working' if os.path.isdir('/kaggle/working') else os.path.join(
         os.path.dirname(os.path.dirname(HERE)), 'model', 'results')
     os.makedirs(WORK, exist_ok=True)
-    dst = os.path.join(WORK, f'v9_probe_{os.path.basename(a.ckpt).replace(".pt", "")}.json')
+    tag = 'untrained' if a.untrained else os.path.basename(a.ckpt).replace('.pt', '')
+    dst = os.path.join(WORK, f'v9_probe_{tag}.json')
     json.dump(out, open(dst, 'w'), indent=2)
     print(f'\nwrote {dst}')
 
