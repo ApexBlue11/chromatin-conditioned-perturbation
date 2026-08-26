@@ -161,6 +161,8 @@ def main():
     ap.add_argument('--lr', type=float, default=4e-4)
     ap.add_argument('--d_model', type=int, default=256)
     ap.add_argument('--expr_encoder', default='binned')
+    ap.add_argument('--limit_train', type=int, default=0,
+                    help='cap training rows -- for a plumbing check, NOT a result')
     a = ap.parse_args()
 
     roots = ['/kaggle/input', os.path.join(r'C:\Projects\LINCS'), os.path.join(r'C:\Projects\LINCS',
@@ -172,6 +174,10 @@ def main():
                              for i in range(torch.cuda.device_count())):
         raise SystemExit('FATAL: P100 assigned; Kaggle torch has no sm_60 kernels.')
     D = XPertData(npz, roots, a.split)
+    if a.limit_train:
+        D.tr = D.tr[:a.limit_train]
+        D.te = D.te[:min(len(D.te), 400)]
+        print(f'LIMITED to {len(D.tr)} train / {len(D.te)} test rows -- plumbing check, not a result')
     print(f'{a.split}: train {len(D.tr)} test {len(D.te)} | rows with a cell line we know: '
           f'{100 * D.known_cell_frac:.1f}% | device {dev}', flush=True)
 

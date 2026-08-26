@@ -1,0 +1,23 @@
+{
+  "split": "split_haematopoietic_and_lymphoid_tissue_1",
+  "runs": [
+    {
+      "seed": 0,
+      "Pearson": 0.9672,
+      "Pearson_deg": 0.0176,
+      "seconds": 366.8
+    }
+  ],
+  "nulls": {
+    "copy_ctl_abs": 0.9719,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.0471
+  },
+  "their_reported": {
+    "Pearson": 0.9804,
+    "Pearson_deg": 0.844
+  },
+  "known_cell_frac": 0.8437,
+  "n_train": 900,
+  "n_test": 400
+}
