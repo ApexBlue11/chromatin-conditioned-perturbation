@@ -189,27 +189,27 @@ def v9_loss(out, batch, cfg, M_norm, aux=None):
 
     if cfg_pred(cfg, 'predict_delta') and 'y_delta' in batch:
         l = masked(out['delta'], batch['y_delta'], batch.get('m_l3'))
-        losses = losses + w_delta * l; parts['delta'] = float(l)
+        losses = losses + w_delta * l; parts['delta'] = float(l.detach())
         p = out['delta'] - out['delta'].mean(1, keepdim=True)
         t = batch['y_delta'] - batch['y_delta'].mean(1, keepdim=True)
         pcc = (p * t).sum(1) / (p.norm(dim=1) * t.norm(dim=1)).clamp(min=1e-6)
         m = batch.get('m_l3')
         pcc = pcc[m] if (m is not None and bool(m.any()) and not bool(m.all())) else pcc
         lp = 1.0 - pcc.mean()
-        losses = losses + w_pcc * lp; parts['pcc'] = float(lp)
+        losses = losses + w_pcc * lp; parts['pcc'] = float(lp.detach())
     if cfg_pred(cfg, 'predict_abs') and 'y_abs' in batch:
         l = masked(out['abs'], batch['y_abs'], batch.get('m_l3'))
-        losses = losses + w_abs * l; parts['abs'] = float(l)
+        losses = losses + w_abs * l; parts['abs'] = float(l.detach())
     if cfg_pred(cfg, 'predict_l5') and 'y_l5' in batch:
         l = masked(out['l5'], batch['y_l5'], batch.get('m_l5'))
-        losses = losses + w_l5 * l; parts['l5'] = float(l)
+        losses = losses + w_l5 * l; parts['l5'] = float(l.detach())
 
     if aux is not None and cfg.use_aux and 'y_delta' in batch:
         tp, te = aux_targets(batch['y_delta'], M_norm)
         lp = hub(aux['pathway_pred'], tp, delta=cfg.huber_delta)
         le = hub(aux['epi_pred'], te, delta=cfg.huber_delta)
         losses = losses + cfg.aux_pathway_w * lp + cfg.aux_epi_w * le
-        parts['aux_pathway'], parts['aux_epi'] = float(lp), float(le)
+        parts['aux_pathway'], parts['aux_epi'] = float(lp.detach()), float(le.detach())
     return losses, parts
 
 
