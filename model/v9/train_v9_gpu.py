@@ -119,6 +119,14 @@ def main():
     ap.add_argument('--no_epi_embedding', action='store_true')
     ap.add_argument('--no_cell_ctl', action='store_true')
     ap.add_argument('--use_ccle', action='store_true')
+    # Capacity knobs. The encoder A/B measured 0.197 s/step at d=128, 4 blocks, batch 48 -- and that run
+    # was I/O bound (cache_in_ram=False). Scaled to d=256 and full depth a 12-epoch run projects past
+    # Kaggle's 9 h session limit, and a run cut off mid-schedule is not comparable across seeds, so the
+    # shape is chosen to FIT rather than to be truncated by the budget guard.
+    ap.add_argument('--d_model', type=int, default=None)
+    ap.add_argument('--l_control', type=int, default=None)
+    ap.add_argument('--l_base', type=int, default=None)
+    ap.add_argument('--l_perturb', type=int, default=None)
     ap.add_argument('--gpus', type=int, default=2)
     a = ap.parse_args()
 
@@ -130,6 +138,10 @@ def main():
     tc.seed = a.seed
     if a.expr_encoder:
         cfg.expr_encoder = a.expr_encoder
+    for f in ['d_model', 'l_control', 'l_base', 'l_perturb']:
+        if getattr(a, f, None) is not None:
+            setattr(cfg, f, getattr(a, f))
+    cfg.d_ff = 4 * cfg.d_model
     cfg.use_aux = not a.no_aux
     cfg.use_ppi = not a.no_ppi
     cfg.use_gene_vectors = not a.no_gene_vectors

@@ -850,6 +850,39 @@ lines and entire Bemis-Murcko scaffold families. 🔴 **The handoff's characteri
 ⇒ **No comparison of our headline numbers with published LINCS numbers is admissible without stating the
 split structure.** Reporting 0.4985 against 0.844 as a deficit is measuring the benchmark, not the model.
 
+## 29. GATE 5: the binned expression encoder is NOT measurably better (2026-08-26)
+
+`model/v9/ab_encoder.py` on Kaggle T4 x2. The REAL v9 model at reduced width (d_model 128, 3 epochs,
+50,000 training rows), changing exactly one thing — `expr_encoder` — with identical data, split, schedule
+and seed sequence, and identical data parallelism in both arms. 3 seeds each.
+
+| target | split | raw | binned | binned − raw | |
+|---|---|---|---|---|---|
+| delta | unseen_cell | 0.4180 [0.4146, 0.4223] | 0.4261 [0.4227, 0.4281] | **+0.0081** | ranges do not overlap |
+| delta | unseen_compound | 0.4416 [0.4379, 0.4471] | 0.4447 [0.4440, 0.4456] | +0.0031 | inside seed range |
+| delta | unseen_both | 0.4270 [0.4221, 0.4356] | 0.4301 [0.4222, 0.4420] | +0.0032 | inside seed range |
+| l5 | unseen_cell | 0.3740 [0.3712, 0.3780] | 0.3821 [0.3752, 0.3905] | +0.0082 | inside seed range |
+| l5 | unseen_compound | 0.3619 [0.3492, 0.3777] | 0.3543 [0.3441, 0.3738] | −0.0075 | inside seed range |
+| l5 | unseen_both | 0.3733 [0.3646, 0.3858] | 0.3757 [0.3590, 0.3980] | +0.0024 | inside seed range |
+
+- 🔴 **NO DIFFERENCE on 5 of 6 comparisons.** The sixth (delta, unseen_cell) has non-overlapping seed
+  ranges and favours binned by +0.0081 — one comparison out of six, at n=3, with an effect a fifth of the
+  2-sd band. On this project's record that is not a result yet.
+- ⇒ **v9 uses the binned encoder for FIELD-COMPARABILITY, not for accuracy**, and says so. It is what
+  XPert's config specifies (`n_bins: 128`) and it makes our expression encoding the same object as theirs;
+  the A/B says it costs nothing and buys nothing measurable. `--expr_encoder raw` remains one flag away.
+- The A/B is also this project's seventh architecture comparison to come back indistinguishable from seed
+  noise. The two effects that HAVE cleared the noise band both remain data effects, not architecture ones:
+  the plate-matched control (+0.027…+0.040) and the split itself (+0.17, §28).
+
+### 29.1 A capacity finding that shaped the seed runs
+The A/B ran at 0.197 s/step (d=128, 4 blocks, batch 48) — and that run was I/O bound, since it used
+`cache_in_ram=False`. Scaled to d=256 at full depth, a 12-epoch run over 179,772 rows projects **past
+Kaggle's 9 h session limit**. A run truncated by the budget guard stops at whatever epoch it reached, and
+three seeds stopping at *different* epochs are not comparable — which would defeat the reason for running
+three. The seed runs are therefore shaped to FIT (6 epochs, batch 96, `l_control` 1, budget 7.5 h) rather
+than shaped to be cut off.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
