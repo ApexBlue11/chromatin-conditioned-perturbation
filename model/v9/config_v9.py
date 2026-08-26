@@ -101,7 +101,16 @@ class V9Config:
     use_aux: bool = True
     aux_pathway_w: float = 0.05
     aux_epi_w: float = 0.05
-    task_w: tuple = (1.0, 1.0, 0.3, 0.5)   # abs, delta, l5, pcc(delta)
+    # abs, delta, l5, pcc(delta).
+    # THE ABS TERM IS EXACTLY THE DELTA TERM. Because MultiTaskHeads emits abs = x_ctl + delta and the
+    # dataset builds y_delta = y_abs - x_ctl from the same x_ctl, the two residuals are identical element
+    # for element -- verified numerically (both 1.5578 on the same batch). So the EFFECTIVE delta weight
+    # here is 2.0, not 1.0, and w_abs is not a second task.
+    # Left as (1.0, 1.0, ...) rather than (0.0, 2.0, ...) because the two are the same objective and the
+    # seed runs were already queued against this tuple; changing it would alter nothing except which seeds
+    # are comparable with which. If the absolute head is ever UN-anchored, these weights stop being
+    # equivalent and test_v9.py's identity check is what will say so.
+    task_w: tuple = (1.0, 1.0, 0.3, 0.5)
 
 
 @dataclass

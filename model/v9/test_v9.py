@@ -220,6 +220,13 @@ def main():
     check('a fully-masked target contributes no NaN (per-target row masks work)',
           bool(torch.isfinite(torch.as_tensor(lm))))
     tp, te = aux_targets(b['y_delta'], Mn)
+    # The anchored absolute head makes the abs loss identical to the delta loss, element for element.
+    # That is not a bug, but it means w_abs is not a second task and the effective delta weight is their
+    # SUM. If someone un-anchors the head, this check fails and the weights have to be revisited.
+    check('the anchored absolute head makes the abs loss IDENTICAL to the delta loss '
+          '(so w_abs is not a second task: the effective delta weight is w_abs + w_delta)',
+          abs(parts['abs'] - parts['delta']) < 1e-6,
+          f"abs {parts['abs']:.6f} vs delta {parts['delta']:.6f}")
     check('aux targets come from the MEASURED response and match the head shapes',
           tp.shape == aux['pathway_pred'].shape and te.shape == aux['epi_pred'].shape)
     check('pathway aux target is a masked mean of |delta| (non-negative, bounded by max|delta|)',
