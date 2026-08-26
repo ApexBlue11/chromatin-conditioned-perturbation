@@ -1,0 +1,185 @@
+# V9 HANDOFF — read this first, read it adversarially
+
+**Written 2026-08-18.** This supersedes `model/HANDOFF.md` and `model/V8_PLAN.md` for anything about
+direction. Those remain accurate for v6/v7 history and the method rules.
+
+> This project has repeatedly produced confident-but-wrong conclusions that were only caught by insisting on
+> a proper control — **including twice in the session that produced this file** (§B). Treat every number
+> below as a hypothesis with evidence attached, and check the evidence before building on it.
+
+---
+
+## A. State in one paragraph
+
+We predict drug-induced transcriptional response on LINCS L1000. Six architectures (v3→v7) produced
+**no accuracy difference distinguishable from seed noise**. The one measured improvement in the entire
+project came from **deleting** a component (`v7 --no_aux`), and the *second* came from **changing an input**
+(Level-3 plate-matched control, +0.031…+0.044 with no seed variance at all). The architecture work has not
+paid; the data-and-inputs work has. **v9 rebuilds the data substrate to match how published LINCS models
+actually work — verified by reading their released code and data, not by inference — and only then revisits
+architecture.**
+
+---
+
+## B. What is TRUE, and what is RETRACTED
+
+### TRUE (survived a proper control)
+
+| # | Finding |
+|---|---|
+| **Seed variance dominates** | 3 seeds of one identical config: sd **0.0052 / 0.0150 / 0.0232** (unseen cell / compound / both) ⇒ 2-sd ≈ **±0.046**. v5, v6, v7 are **statistically indistinguishable** on 2 of 3 splits. **Report mean ± range over ≥3 seeds or report no difference.** Ablations are exempt (within-run, identical signatures). |
+| **Best config to date** | `v7 --no_aux`, 3 seeds: **0.4549 / 0.4985 / 0.4825** (cell/compound/both). Beats v5 and v6 on compound+both with the *whole range* above both. |
+| **Plate-matched control beats CCLE** | Ridge A/B, identical signatures, only the baseline vector changes: **+0.0314 / +0.0435 / +0.0372**. "Both" ≈ "matched" alone ⇒ **matched control SUBSUMES CCLE; drop CCLE.** Closed-form fit ⇒ **no seed noise.** |
+| **Drug features are the model** | Ablate-to-mean: drug global **+0.25…+0.30**; baseline expression +0.026…+0.045; atom tokens +0.002…+0.024; lineage +0.002…+0.022. |
+| **Pathway layer contributes nothing** | +0.0003 / −0.0002 / −0.0002 on all three splits, with `|dY|max` 0.69 ≫ 0 so it is a **true null**, not a dead ablation. 0/360 nodes dead; activation evenly spread. |
+| **Chromatin ≈ 0, and it tracks cell familiarity** | −0.0001 (unseen cell) / **+0.0061** (unseen compound, cells seen) / −0.0001 (both). A **16-dim lineage one-hot beats it** (+0.0215). Fusion gate ended at 0.4798, *below* its 0.5 init. |
+| **Epi-drugs are far easier but not via chromatin** | HDAC/DNMT drugs: 0.6477 vs 0.4477 (unseen compound). But chromatin ablation differs by only −0.0138 ⇒ they are predictable because their response is **strong and stereotyped across cells**, i.e. drug-determined. |
+| **Meandrug ties v5 on unseen cells** | 0.4475 vs 0.440 — the drug-mean baseline beat v5 on all three metrics. `v7 no_aux` clears it in 2/3 seeds; first thing in the project that ever has. |
+| **Absolute convention is inflated** | On XPert's own released predictions with their own metric code: absolute **0.9804**, delta **0.8440**, **"copy the control" 0.9200**. Their absolute beats *doing nothing* by only **+0.060**. |
+| **XPert uses Level 3 for BOTH input and target** | **Verified empirically**: their `obsm['X_ctl']` vs our Level-3 plate DMSO median → **r = 0.968**, identical [0,15] ranges. Their loss trains on absolute Level-3 expression *and* the delta. |
+
+### RETRACTED — do not resurrect
+
+| # | Retracted claim |
+|---|---|
+| ~~atom→gene attention localises to drug targets~~ | Median target rank percentile **0.560 over 149 gold pairs — worse than chance**. "Target doesn't move" confound tested and **rejected** (corr −0.045). Top-k enrichment ≠ localisation. |
+| ~~v5 beats all naive baselines~~ | That was MSE on *all* cold-cell signatures. On the reproducible stratum with our reported metrics, **Meandrug beats v5**. |
+| ~~pathway conductance is the biggest contributor (+0.103)~~ | Scale artefact from ablating to 1. True effect −0.003/+0.006. **Always ablate to the MEAN.** |
+| ~~our Level-5 target is the noisy one; migrate to Level 3 to fix it~~ | **Measured and false.** Level-3 replicate-averaged split-half **0.144 / 0.243 top-quartile** vs Level-5 MODZ **0.127 all / 0.509–0.619 reproducible**. **Level 5 is the better-denoised target.** MODZ weighting of Level-3 deltas is *worse* than a flat mean (−0.0072). |
+| ~~v7 is clearly worse than v6, outside noise~~ | Not supported once 3 seeds existed. |
+| ~~seed spread ≈0.004~~ | Came from the n=3000 training proxy; understated the truth by up to 7×. |
+
+**The pattern to internalise:** four of these six retractions were *my own conclusions from one turn earlier*,
+overturned by a measurement I ran the next turn. Measure before concluding.
+
+---
+
+## C. How published LINCS models actually work — READ FROM THEIR CODE
+
+Source: XPert's Zenodo release, downloaded to `external/xpert/` (gitignored, 14 GB).
+`code/XPert/` = full source; `l1000_mdmt_full_336852.h5ad` = their dataset; `saved_model.zip` = weights.
+
+### Data (verified empirically, not assumed)
+- **Input AND target are both Level 3.** `X` = replicate-collapsed Level-3 log-expression [0, 15];
+  `obsm['X_ctl']` = the plate-matched DMSO control (**r = 0.968 with our own Level-3 reconstruction**).
+- 336,852 conditions × 978 genes, `n_replicates` 1–6+, `cell_pert_dose_time` unique per row.
+- **Splits are tissue-holdouts**: `split_lung_1..5`, `split_breast_1..5`,
+  `split_haematopoietic_and_lymphoid_tissue_1..5` — plus a `cold_dose&time` split we have never tested.
+
+### Loss (`train_xpert.py`, 4 weighted terms)
+```
+loss1 = MSE(trt_output, trt_raw)                  # ABSOLUTE Level-3 expression
+loss2 = MSE(ctl_output, ctl_raw)                  # reconstruct the control
+loss3 = MSE(deg_output, trt_raw - ctl_raw)        # the DELTA
+loss4 = PCC_loss(deg_output, trt_raw - ctl_raw)   # correlation on the delta
+```
+They report **both** conventions: `metrics['Pearson']` (absolute) and `metrics['Pearson_deg']` (delta).
+
+### Architecture (`models/model_XPert.py`, `configs/config_l1000.yaml`)
+| element | what they do | what we do today |
+|---|---|---|
+| **expression input** | **binned into 128 levels and EMBEDDED as tokens** (`n_bins: 128`, `exp_vocab_size`) | raw continuous scalar through an MLP |
+| **gene identity** | **pretrained PPI gene vector, 128-d** (`PPI_gene_vector_128d.npy`) + expression embedding | learned-from-scratch `gene_emb` |
+| **PPI graph** | **901,260 weighted edges over 19,392 genes** | 12,665 edges **restricted to the 978 landmarks** |
+| **drug–target** | 12,890 edges, **in the model** | validation only |
+| **drug–drug similarity** | 287,834 weighted edges | none |
+| **knowledge use** | heterogeneous graph **pretrained by link prediction** → drug embeddings + **drug-specific gene embeddings injected additively between layers** | one graph-conv step on a raw adjacency |
+| **branches** | treated `CA+SA+SA+CA`, control `SA+SA+SA+SA` (a **separate control encoder**) | single stream |
+| **drug features** | UniMol molecule + atom + dose + time embeddings | same (UniMol CLS + atoms + ECFP4 + descriptors) |
+| width / heads | 256 / 8, top-k sparse attention (128 cell, 32 drug) | 256 / 8, dense |
+
+**The specific defect that is ours:** we truncated STRING and Reactome **to the 978 landmarks**, deleting
+every path that routes *through* a non-landmark gene. That is why **231 of our landmarks sit in no Reactome
+pathway** and **66 have no STRING edge at all**. Both sources are full-proteome; we discarded most of them.
+
+### Epigenetics — there is NO template
+**No SOTA LINCS model uses chromatin.** So "do it properly like the others" has no referent — this is the
+genuinely novel part and it must be made to *work*, not made to conform. The natural home given the above
+architecture: chromatin becomes a **per-gene embedding summed into the gene representation, exactly as the
+PPI gene vector is** — not a parallel encoder the model can (and did) ignore.
+
+### Still to verify (do NOT cite until read)
+PRnet, chemCPA, TranSiGen, the Bioinformatics-2026 latent-diffusion model. Their reported numbers are
+**not** comparable to ours without matching data level, convention, and split.
+
+---
+
+## D. The v9 design
+
+**Principle: change the data substrate to match the field, keep the interpretability that is ours, and
+gate every step on a measurement.**
+
+1. **Data — Level 3 both sides, matched control as input**
+   - Target: **absolute Level-3 expression** + **delta** (multi-task, as XPert does). Keep the Level-5 MODZ
+     z-score as a *secondary* reported metric so all our history stays comparable.
+   - Input: **plate-matched DMSO control**. **Drop CCLE `X_base`** — measured to be subsumed.
+   - Extract **GSE70138** too (13.5 GB, present) — currently only GSE92742 is done, giving 44.8 % coverage.
+2. **Expression encoding** — bin into 128 levels and embed, rather than an MLP on a raw scalar.
+3. **Priors, full-proteome**
+   - Rebuild STRING **over ~19k genes**, pretrain gene vectors, read off the 978 rows.
+   - Rebuild Reactome membership without landmark truncation, so the 231 orphans become reachable.
+   - Add DTI + drug-drug edges → heterogeneous graph, pretrained by link prediction.
+4. **Chromatin as a per-gene embedding** summed into the gene representation alongside the PPI vector.
+   Keep the **signed additive chromatin head** — the one chromatin mechanism that ever survived a test.
+5. **Interpretability, non-negotiable**
+   - Named Reactome nodes stay, with the row→name mapping **verified at load** (`pathway_info.tsv`).
+   - No purely-latent bottleneck; every readout terminates in named units.
+   - **Every readout ships with its null.** On pathway-level target alignment **0.5 is NOT chance** — an
+     untrained model scores **0.218** against a permutation null of **0.229**.
+6. **Separate control encoder** (their `ctl_structure`), since the control is now a real input.
+
+### Gates (do not skip; each has a number)
+| gate | requirement |
+|---|---|
+| GSE70138 extraction | coverage ≥ 90 % of our signatures |
+| full-proteome graph | Reactome orphan landmarks 231 → ~0; STRING isolated 66 → ~0 |
+| binned-expression encoding | ridge/simple A/B before committing to a full train |
+| any architecture claim | **≥3 seeds, mean ± range** |
+| any SOTA comparison | same data level + convention + split, else report non-comparability |
+
+---
+
+## E. Data inventory (exact paths, all present locally)
+
+| what | path | size |
+|---|---|---|
+| **Level 3 GSE92742** | `level3 files/GSE92742_Broad_LINCS_Level3_INF_mlr12k_n1319138x12328.gctx` | 65.1 GB |
+| **Level 3 GSE70138** | `level3 files/GSE70138_Level3.gctx` | 13.5 GB — **not yet extracted** |
+| inst_info (92742) | `Data Info/GSE92742_Broad_LINCS_inst_info.txt/GSE92742_Broad_LINCS_inst_info.txt` | 148 MB |
+| inst_info (70138) | `Data Info/GSE70138_Broad_LINCS_inst_info_2017-03-06.txt/GSE70138_Broad_LINCS_inst_info.txt` | 46 MB |
+| gene_info (landmark flags) | `Data Info/GSE92742_Broad_LINCS_gene_info.txt/GSE92742_Broad_LINCS_gene_info.txt` | — |
+| Level 5 (current target) | `phase2_assembly/outputs/Y_target_level5_978.npy` + `signatures_usable.tsv` | 310,114 sigs |
+| **Level-3 extraction (done)** | `phase2_assembly/outputs/level3/` — `Y_delta_l3.npy`, `X_ctl_l3.npy`, `conditions_l3.tsv`, `genes_l3.txt`, `join_l5row_to_l3row.npy`, `wells_cache.dat` | 189,482 conditions |
+| chromatin | `phase2_assembly/outputs/E_final.npy`, `E_final_mask.npy`, `E_reliability.tsv` | 83×978×3 |
+| Reactome | `network/outputs/M_reactome.npy` (360) + `M_reactome_ms5.npy` (765) + matching `pathway_info*.tsv` | — |
+| STRING | `network/outputs/STRING_adj_978.npy` (12,665 edges — **truncated, rebuild**) | — |
+| raw STRING/Reactome | `network/data/` (`9606.protein.links.v12.0.txt`, `ReactomePathways.gmt`) | full-proteome sources |
+| drug features | `drug/outputs/` — UniMol CLS + atom tokens, ECFP4, descriptors, scaffold split | 21,220 drugs |
+| DTI reference | `drug/outputs/dti/dti_reference.tsv` (+ `epi_drug_pert_ids.json`, 30 drugs) | validation only |
+| **XPert release** | `external/xpert/` — code, weights, h5ad | 14 GB, **gitignored** |
+
+---
+
+## F. Method rules (each learned by getting it wrong)
+
+1. **Never evaluate on all signatures** — ~75 % of LINCS is inert; dilution once *inverted* the sign of a real effect. Stratify to mean|Y| ≥ 1, **and report all strata** so the headline is auditable.
+2. **Ablate to the MEAN**, never 0 or 1 — that is the 30× artefact. Always report `|dY|max` so a true null is distinguishable from an ablation that never fired.
+3. **≥3 seeds or no difference.** Seed sd reaches 0.0232.
+4. **Compute the noise ceiling before chasing a gap.**
+5. **Verify a measurement tests what it claims** — most errors here were valid computations of the wrong quantity.
+6. **A readout's chance level must be measured, not assumed** (0.218 vs 0.229).
+7. **Within-run ablation is trustworthy; between-run comparison is not.**
+
+## G. Compute
+- Kaggle **T4 x2** via `machine_shape: "NvidiaTeslaT4"` + `"enable_gpu": true`; non-TPU docker image. Copy metadata from `apexblue/lincs-train-v5`.
+- **Never P100** (no sm_60 kernels). **2 concurrent GPU sessions max.** CLI cannot show quota — check the web UI.
+- **TPU is abandoned** — v5e multi-process init fails (`Expected 8 worker addresses, got 1`), two queue cycles for zero training, and it was slower per core than a T4 anyway.
+- `train_v7_gpu.py` has the guard set worth copying: no-CPU-fallback, P100 probe, both-GPUs-active assertion, and `check_inputs()` which refuses to train when a missing file has silently degraded the data (this caught a rebuilt Kaggle dataset that had lost the compound holdout **and** reliability weighting).
+- torch 2.11 is installed locally — run all CPU analysis locally; Kaggle CPU kernels are free.
+
+## H. Repo
+GitHub `ApexBlue11/chromatin-conditioned-perturbation` (private, MIT). `external/` is gitignored — a
+`git add -A` once swept 14 GB into two commits; they were rewound before pushing.
+Key docs: `model/results/CLAIMS.md` (~80 claims with strength + falsifiers, retractions kept deliberately),
+`model/results/RESULTS.md` (26 numbered experiments), `model/LITERATURE_PRACTICE.md`,
+`model/v6/ARCHITECTURE.md`, `model/v6/TPU_NOTES.md`.
