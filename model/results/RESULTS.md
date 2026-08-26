@@ -804,6 +804,52 @@ target built from half B, `ctlB` the coupled input, `ctlA` the uncoupled one.
   `ctl - cellmean`, readable straight off the matched input (+0.3771 on unseen compounds: the size of a
   leak, not an effect).
 
+## 28. The SOTA gap is mostly the SPLIT, and the handoff's description of their splits is wrong (2026-08-26)
+
+`model/v9/sota_split_audit.py`, `model/v9/sota_matched_difficulty.py`.
+
+### 28.1 XPert's splits are NOT tissue holdouts
+V9_HANDOFF §C states their splits are "tissue-holdouts: `split_lung_1..5`, `split_breast_1..5`,
+`split_haematopoietic_and_lymphoid_tissue_1..5`". Read from their own released h5ad, all **15 splits**
+restrict to ONE tissue and then divide it ~90/10, so train and test share the tissue, the cell lines, and
+nearly all compounds:
+
+| | test rows whose CELL was in training | COMPOUND | (cell, compound) PAIR | exact (cell, cmpd, dose, time) |
+|---|---|---|---|---|
+| mean over 15 splits | **100.0 %** | **98.6 %** | **89.4 %** | 0.0 % |
+
+So the conditions themselves are genuinely held out, but the task is overwhelmingly **interpolation to a
+different dose or time of a (cell, compound) pair already in training**. Our benchmarks hold out entire cell
+lines and entire Bemis-Murcko scaffold families. 🔴 **The handoff's characterisation is retracted.**
+
+### 28.2 What the split alone is worth — one ridge, one feature set, only the split changes
+
+| regime | cell seen | cmpd seen | pair seen | **delta** | **abs** | copy_ctl | mean_drug |
+|---|---|---|---|---|---|---|---|
+| xpert_pair (matched to theirs) | 100.0 % | 93.4 % | 60.2 % | **0.5459** | 0.9496 | 0.9287 | 0.4057 |
+| xpert_style (random 90/10) | 100.0 % | 90.8 % | 49.4 % | 0.5294 | 0.9474 | 0.9273 | 0.3681 |
+| xpert_tissue (within one lineage) | 100.0 % | 85.1 % | 73.0 % | 0.5219 | 0.9575 | 0.9404 | 0.3365 |
+| cold_compound (ours) | 100.0 % | 0.0 % | 0.0 % | 0.4744 | 0.9319 | 0.9185 | 0.3156 |
+| cold_cell (ours) | 0.0 % | 96.7 % | 0.0 % | 0.4193 | 0.9184 | 0.9257 | 0.3574 |
+| cold_both (ours, hardest) | 0.0 % | 0.0 % | 0.0 % | 0.3764 | 0.8966 | 0.9080 | 0.3215 |
+
+- 🟢 **Changing only the split moves the delta metric by +0.17** (0.3764 → 0.5459) for an identical model.
+  That is roughly four times the 2-sd seed band (±0.046) and larger than every architectural effect this
+  project has ever measured, combined.
+- 🔴 **In the absolute convention our ridge is WORSE than doing nothing on unseen cells**: 0.9184 against
+  copy-the-control 0.9257 (−0.007), and 0.8966 against 0.9080 on cold_both (−0.011). It only clears the
+  do-nothing baseline in the easy regimes (+0.020 / +0.017 / +0.021).
+- The convention-free way to read any absolute number is **value added over copying the control**. XPert's
+  released predictions: 0.9804 against 0.9200 = **+0.060** [§23]. Our ridge on the comparable regime:
+  0.9496 against 0.9287 = **+0.021**. A published transformer adds three times what a ridge does — a real
+  difference, and a far smaller one than "0.98 versus 0.95" suggests.
+- `mean_drug` on the delta target is 0.32–0.41 in EVERY regime. The drug-mean null barely notices the split;
+  the model's margin over it swells from +0.05 (cold_both) to +0.14 (xpert_pair). Most of what the easy
+  split buys is cell- and pair-specific memorisation, not better drug modelling.
+
+⇒ **No comparison of our headline numbers with published LINCS numbers is admissible without stating the
+split structure.** Reporting 0.4985 against 0.844 as a deficit is measuring the benchmark, not the model.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
