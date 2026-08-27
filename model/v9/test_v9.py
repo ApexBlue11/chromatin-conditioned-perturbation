@@ -54,6 +54,14 @@ def batch(cfg, B=4, dead=50, n_atoms=30, seed=0):
     return b
 
 
+def _raises_value(mod, x):
+    try:
+        mod(x)
+        return False
+    except RuntimeError:
+        return True
+
+
 def _raises(model, b):
     try:
         with torch.no_grad():
@@ -145,6 +153,33 @@ def main():
     check('binning is monotone in the value (larger expression never gets a smaller bin)',
           bool((bi[1:] >= bi[:-1]).all()))
     check('n_bins is 128, the field\'s setting', cfg.n_bins == 128)
+
+    # THE BUG THIS SUITE DID NOT CATCH THE FIRST TIME. `fitted == 1` says fit() was CALLED. A single NaN
+    # row in the fitting sample makes np.percentile return NaN for all 127 edges, every value then buckets
+    # to 0, and the model trains to convergence with a CONSTANT expression embedding -- which is what
+    # produced ckpt_v9_fold0_seed0 (edges 127/127 NaN). The guard has to assert that the bins DISCRIMINATE.
+    bad = BinnedExpression(8, n_bins=cfg.n_bins, n_genes=cfg.n_genes, mode='global')
+    tr_nan = tr.copy()
+    tr_nan[7] = np.nan                                  # one uncovered signature, as the substrate stores it
+    try:
+        bad.fit(tr_nan)
+        raised = False
+    except ValueError:
+        raised = True
+    check('fitting on a sample containing ONE NaN row is REFUSED, not silently NaN-poisoned', raised)
+    ok_nan = BinnedExpression(8, n_bins=cfg.n_bins, n_genes=cfg.n_genes, mode='global')
+    ok_nan.fit(tr_nan[np.isfinite(tr_nan).all(1)])   # the caller filters, as every call site now does
+    check('after filtering the NaN rows the same sample fits and DISCRIMINATES',
+          ok_nan.discriminates(torch.as_tensor(tr[:64])))
+    poisoned = BinnedExpression(8, n_bins=cfg.n_bins, n_genes=cfg.n_genes, mode='global')
+    poisoned.edges.fill_(float('nan')); poisoned.fitted.fill_(1.0)
+    check('a NaN-edged quantiser reports itself unusable even though fitted == 1',
+          not poisoned.discriminates())
+    check('and it REFUSES to run rather than returning a constant embedding',
+          _raises_value(poisoned, torch.as_tensor(tr[:4])))
+    nb = int(torch.unique(be.bucket(torch.as_tensor(tr[:256]))).numel())
+    check('a fitted quantiser separates real values into many bins (not all into one)', nb > 32,
+          f'{nb} distinct bins on 256 rows')
     check('the raw encoder remains available as the A/B control arm',
           isinstance(RawExpression(8), torch.nn.Module))
 

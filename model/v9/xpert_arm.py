@@ -208,7 +208,10 @@ def main():
         cfg.predict_l5 = False
         core = LincsV9(cfg, M, ppi, gv)
         if cfg.expr_encoder == 'binned':
-            core.fit_bins(D.C[D.tr])          # THEIR training rows only
+            Xfit = D.C[D.tr]                  # THEIR training rows only
+            if not np.isfinite(Xfit).all():
+                raise SystemExit('FATAL: non-finite values in the quantiser fitting sample.')
+            core.fit_bins(Xfit)
             if not core.bins_fitted:
                 raise SystemExit('FATAL: quantiser did not fit.')
         core = core.to(dev)

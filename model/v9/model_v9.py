@@ -154,7 +154,9 @@ class LincsV9(nn.Module):
     def bins_fitted(self):
         from modules_v9 import BinnedExpression
         qs = [m for m in self.modules() if isinstance(m, BinnedExpression)]
-        return all(float(q.fitted) == 1.0 for q in qs) if qs else True
+        # `fitted == 1` only says fit() was CALLED. A NaN-poisoned fit sets it and still collapses every
+        # value to one bin, which is how a whole set of runs trained with no expression input at all.
+        return all(q.discriminates() for q in qs) if qs else True
 
     def cfg_use(self, name, batch):
         """A batch may carry only one control view (the A/B arms do). Falls back to the config."""

@@ -90,8 +90,8 @@ def main():
     if a.untrained and cfg.expr_encoder == 'binned':
         # a checkpoint restores the quantiser's buffers; a fresh model has none, and an unfitted quantiser
         # would send every value to bin 0 and silently delete the expression input. TRAINING rows only.
-        rows = ds.ds_to_l3[sp['train']]
-        rows = np.sort(rows[rows >= 0])
+        tr = sp['train'][ds.has_l3[sp['train']]]           # COVERED rows only; uncovered are NaN
+        rows = np.sort(ds.ds_to_l3[tr])
         model.fit_bins(np.asarray(ds.Xctl[rows[np.linspace(0, len(rows) - 1, 20000).astype(int)]],
                                   np.float32))
         model = model.to(dev)

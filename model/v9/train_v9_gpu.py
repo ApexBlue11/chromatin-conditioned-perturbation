@@ -182,10 +182,16 @@ def main():
 
     core = LincsV9(cfg, M, ppi, gv)
     if cfg.expr_encoder == 'binned':
-        rows = full.ds_to_l3[sp['train']]
-        rows = np.sort(rows[rows >= 0])
+        # COVERED rows only. `ds_to_l3 >= 0` means the row EXISTS in the Level-3 arrays, not that it
+        # is covered; uncovered rows are NaN by design and a single one poisons every quantile edge.
+        tr = sp['train'][full.has_l3[sp['train']]]
+        rows = np.sort(full.ds_to_l3[tr])
         take = rows[np.linspace(0, len(rows) - 1, min(40000, len(rows))).astype(int)]
-        core.fit_bins(np.asarray(full.Xctl[take], np.float32))
+        Xfit = np.asarray(full.Xctl[take], np.float32)
+        if not np.isfinite(Xfit).all():
+            raise SystemExit('FATAL: non-finite values in the quantiser fitting sample after filtering '
+                             'to covered rows -- the substrate is not what it claims.')
+        core.fit_bins(Xfit)
         if not core.bins_fitted:
             raise SystemExit('FATAL: quantiser did not fit; the expression input would be ignored.')
         test_rows = set(np.asarray(sp['test_coldcell']).tolist())

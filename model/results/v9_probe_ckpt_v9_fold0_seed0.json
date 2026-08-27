@@ -1,0 +1,411 @@
+{
+  "ckpt": "ckpt_v9_fold0_seed0.pt",
+  "epoch": 5,
+  "splits": {
+    "unseen_cell": {
+      "n": 480,
+      "pearson_delta": 0.3865,
+      "pearson_abs": 0.9365,
+      "null_copy_ctl_abs": 0.9225,
+      "abs_value_added_over_doing_nothing": 0.014,
+      "ablations": {
+        "matched_control": {
+          "d_score": 0.0,
+          "dY_max": 0.0,
+          "fired": false
+        },
+        "cell_control": {
+          "d_score": 0.0,
+          "dY_max": 0.0,
+          "fired": false
+        },
+        "chromatin": {
+          "d_score": 0.01637,
+          "dY_max": 5.3541,
+          "fired": true
+        },
+        "drug_global": {
+          "d_score": 0.05308,
+          "dY_max": 6.8681,
+          "fired": true
+        },
+        "atom_tokens": {
+          "d_score": -0.027,
+          "dY_max": 1.0017,
+          "fired": true
+        },
+        "lineage": {
+          "d_score": 0.00492,
+          "dY_max": 3.0788,
+          "fired": true
+        },
+        "string_mp": {
+          "d_score": 0.00167,
+          "dY_max": 0.6385,
+          "fired": true
+        },
+        "pathway_readout": {
+          "d_score": 0.00548,
+          "dY_max": 0.9765,
+          "fired": true
+        },
+        "gene_vectors": {
+          "d_score": 0.27446,
+          "dY_max": 7.0484,
+          "fired": true
+        }
+      },
+      "pathway_alignment": {
+        "observed": 0.0737,
+        "permutation_null_mean": 0.0002,
+        "permutation_null_sd": 0.0088,
+        "p": 0.005,
+        "beats_null": true
+      },
+      "top_named_nodes": [
+        {
+          "source": "GO:BP",
+          "term": "Peptidyl-Proline Hydroxylation",
+          "n_landmarks": 2,
+          "mean_activation": -0.0042
+        },
+        {
+          "source": "GO:BP",
+          "term": "Maturation Of LSU-rRNA",
+          "n_landmarks": 1,
+          "mean_activation": -0.0178
+        },
+        {
+          "source": "GO:BP",
+          "term": "L-alpha-amino Acid Transmembrane Transport",
+          "n_landmarks": 3,
+          "mean_activation": -0.0349
+        },
+        {
+          "source": "GO:BP",
+          "term": "Negative Regulation Of Myeloid Leukocyte Differentiation",
+          "n_landmarks": 4,
+          "mean_activation": -0.04
+        },
+        {
+          "source": "GO:BP",
+          "term": "Protein Maturation By Iron-Sulfur Cluster Transfer",
+          "n_landmarks": 1,
+          "mean_activation": -0.0451
+        },
+        {
+          "source": "GO:BP",
+          "term": "Negative Regulation Of Appetite",
+          "n_landmarks": 1,
+          "mean_activation": -0.0472
+        },
+        {
+          "source": "GO:BP",
+          "term": "Peptidyl-Proline Modification",
+          "n_landmarks": 3,
+          "mean_activation": -0.0499
+        },
+        {
+          "source": "GO:BP",
+          "term": "Mesoderm Development",
+          "n_landmarks": 3,
+          "mean_activation": -0.0608
+        },
+        {
+          "source": "GO:BP",
+          "term": "RNA Methylation",
+          "n_landmarks": 2,
+          "mean_activation": -0.0627
+        },
+        {
+          "source": "GO:BP",
+          "term": "Negative Regulation Of Cellular Component Organization",
+          "n_landmarks": 11,
+          "mean_activation": -0.0628
+        },
+        {
+          "source": "GO:BP",
+          "term": "Sensory Perception",
+          "n_landmarks": 3,
+          "mean_activation": -0.063
+        },
+        {
+          "source": "GO:BP",
+          "term": "Protein Lipidation",
+          "n_landmarks": 3,
+          "mean_activation": -0.0658
+        }
+      ]
+    },
+    "unseen_compound": {
+      "n": 480,
+      "pearson_delta": 0.5181,
+      "pearson_abs": 0.9373,
+      "null_copy_ctl_abs": 0.9175,
+      "abs_value_added_over_doing_nothing": 0.0198,
+      "ablations": {
+        "matched_control": {
+          "d_score": 0.0,
+          "dY_max": 0.0,
+          "fired": false
+        },
+        "cell_control": {
+          "d_score": 0.0,
+          "dY_max": 0.0,
+          "fired": false
+        },
+        "chromatin": {
+          "d_score": 0.02854,
+          "dY_max": 3.5,
+          "fired": true
+        },
+        "drug_global": {
+          "d_score": 0.09058,
+          "dY_max": 6.6181,
+          "fired": true
+        },
+        "atom_tokens": {
+          "d_score": -0.02711,
+          "dY_max": 0.8413,
+          "fired": true
+        },
+        "lineage": {
+          "d_score": 0.01214,
+          "dY_max": 2.4992,
+          "fired": true
+        },
+        "string_mp": {
+          "d_score": 0.00116,
+          "dY_max": 0.3834,
+          "fired": true
+        },
+        "pathway_readout": {
+          "d_score": 0.00106,
+          "dY_max": 0.4843,
+          "fired": true
+        },
+        "gene_vectors": {
+          "d_score": 0.17909,
+          "dY_max": 6.9522,
+          "fired": true
+        }
+      },
+      "pathway_alignment": {
+        "observed": 0.1516,
+        "permutation_null_mean": -0.0003,
+        "permutation_null_sd": 0.0098,
+        "p": 0.005,
+        "beats_null": true
+      },
+      "top_named_nodes": [
+        {
+          "source": "GO:BP",
+          "term": "Maturation Of LSU-rRNA",
+          "n_landmarks": 1,
+          "mean_activation": 0.0181
+        },
+        {
+          "source": "GO:BP",
+          "term": "Protein Maturation By Iron-Sulfur Cluster Transfer",
+          "n_landmarks": 1,
+          "mean_activation": -0.0431
+        },
+        {
+          "source": "GO:BP",
+          "term": "Negative Regulation Of Appetite",
+          "n_landmarks": 1,
+          "mean_activation": -0.0458
+        },
+        {
+          "source": "GO:BP",
+          "term": "Negative Regulation Of Myeloid Leukocyte Differentiation",
+          "n_landmarks": 4,
+          "mean_activation": -0.0464
+        },
+        {
+          "source": "GO:BP",
+          "term": "Peptidyl-Proline Hydroxylation",
+          "n_landmarks": 2,
+          "mean_activation": -0.0493
+        },
+        {
+          "source": "GO:BP",
+          "term": "RNA Methylation",
+          "n_landmarks": 2,
+          "mean_activation": -0.0551
+        },
+        {
+          "source": "GO:BP",
+          "term": "L-alpha-amino Acid Transmembrane Transport",
+          "n_landmarks": 3,
+          "mean_activation": -0.0608
+        },
+        {
+          "source": "GO:BP",
+          "term": "Mesoderm Development",
+          "n_landmarks": 3,
+          "mean_activation": -0.0629
+        },
+        {
+          "source": "GO:BP",
+          "term": "Regulation Of RNA Splicing",
+          "n_landmarks": 6,
+          "mean_activation": -0.0635
+        },
+        {
+          "source": "GO:BP",
+          "term": "Sensory Perception",
+          "n_landmarks": 3,
+          "mean_activation": -0.0661
+        },
+        {
+          "source": "GO:BP",
+          "term": "Negative Regulation Of Cellular Component Organization",
+          "n_landmarks": 11,
+          "mean_activation": -0.0667
+        },
+        {
+          "source": "Reactome",
+          "term": "Biological oxidations",
+          "n_landmarks": 11,
+          "mean_activation": -0.0679
+        }
+      ]
+    },
+    "unseen_both": {
+      "n": 480,
+      "pearson_delta": 0.3685,
+      "pearson_abs": 0.9174,
+      "null_copy_ctl_abs": 0.9033,
+      "abs_value_added_over_doing_nothing": 0.0141,
+      "ablations": {
+        "matched_control": {
+          "d_score": 0.0,
+          "dY_max": 0.0,
+          "fired": false
+        },
+        "cell_control": {
+          "d_score": 0.0,
+          "dY_max": 0.0,
+          "fired": false
+        },
+        "chromatin": {
+          "d_score": 0.019,
+          "dY_max": 3.1767,
+          "fired": true
+        },
+        "drug_global": {
+          "d_score": 0.06393,
+          "dY_max": 6.3341,
+          "fired": true
+        },
+        "atom_tokens": {
+          "d_score": -0.02629,
+          "dY_max": 0.8525,
+          "fired": true
+        },
+        "lineage": {
+          "d_score": 0.00766,
+          "dY_max": 2.6945,
+          "fired": true
+        },
+        "string_mp": {
+          "d_score": 0.00082,
+          "dY_max": 0.3593,
+          "fired": true
+        },
+        "pathway_readout": {
+          "d_score": 0.00278,
+          "dY_max": 0.5409,
+          "fired": true
+        },
+        "gene_vectors": {
+          "d_score": 0.17771,
+          "dY_max": 6.359,
+          "fired": true
+        }
+      },
+      "pathway_alignment": {
+        "observed": 0.0872,
+        "permutation_null_mean": -0.0011,
+        "permutation_null_sd": 0.0105,
+        "p": 0.005,
+        "beats_null": true
+      },
+      "top_named_nodes": [
+        {
+          "source": "GO:BP",
+          "term": "Peptidyl-Proline Hydroxylation",
+          "n_landmarks": 2,
+          "mean_activation": 0.0049
+        },
+        {
+          "source": "GO:BP",
+          "term": "Maturation Of LSU-rRNA",
+          "n_landmarks": 1,
+          "mean_activation": -0.0089
+        },
+        {
+          "source": "GO:BP",
+          "term": "L-alpha-amino Acid Transmembrane Transport",
+          "n_landmarks": 3,
+          "mean_activation": -0.0193
+        },
+        {
+          "source": "GO:BP",
+          "term": "Negative Regulation Of Myeloid Leukocyte Differentiation",
+          "n_landmarks": 4,
+          "mean_activation": -0.0325
+        },
+        {
+          "source": "GO:BP",
+          "term": "Protein Maturation By Iron-Sulfur Cluster Transfer",
+          "n_landmarks": 1,
+          "mean_activation": -0.0448
+        },
+        {
+          "source": "GO:BP",
+          "term": "Negative Regulation Of Appetite",
+          "n_landmarks": 1,
+          "mean_activation": -0.0459
+        },
+        {
+          "source": "GO:BP",
+          "term": "Peptidyl-Proline Modification",
+          "n_landmarks": 3,
+          "mean_activation": -0.047
+        },
+        {
+          "source": "GO:BP",
+          "term": "Negative Regulation Of Cellular Component Organization",
+          "n_landmarks": 11,
+          "mean_activation": -0.0576
+        },
+        {
+          "source": "GO:BP",
+          "term": "Sensory Perception",
+          "n_landmarks": 3,
+          "mean_activation": -0.0584
+        },
+        {
+          "source": "GO:BP",
+          "term": "Mesoderm Development",
+          "n_landmarks": 3,
+          "mean_activation": -0.0593
+        },
+        {
+          "source": "GO:BP",
+          "term": "RNA Methylation",
+          "n_landmarks": 2,
+          "mean_activation": -0.0594
+        },
+        {
+          "source": "GO:BP",
+          "term": "Protein Lipidation",
+          "n_landmarks": 3,
+          "mean_activation": -0.06
+        }
+      ]
+    }
+  }
+}

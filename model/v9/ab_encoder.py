@@ -92,9 +92,10 @@ def run_one(arm, seed, a, dc, base_cfg, shared, sp, M, ppi, gv, device):
     core = LincsV9(cfg, M, ppi, gv)
     if cfg.expr_encoder == 'binned':
         # bins fitted on TRAINING ROWS ONLY -- evaluation must not reach the quantiser
-        rows = full.ds_to_l3[tr]
-        rows = rows[rows >= 0][:20000]
-        core.fit_bins(np.asarray(full.Xctl[np.sort(rows)], np.float32))
+        # COVERED rows only: uncovered signatures are NaN and np.percentile propagates NaN to every edge
+        rows = full.ds_to_l3[tr[full.has_l3[tr]]]
+        rows = np.sort(rows)[:20000]
+        core.fit_bins(np.asarray(full.Xctl[rows], np.float32))
         if not core.bins_fitted:
             raise SystemExit('FATAL: quantiser did not fit; the expression input would be ignored.')
     core = core.to(device)

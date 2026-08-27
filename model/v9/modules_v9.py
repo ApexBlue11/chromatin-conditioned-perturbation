@@ -39,16 +39,57 @@ class BinnedExpression(nn.Module):
         self.register_buffer('fitted', torch.zeros(1))
 
     @torch.no_grad()
-    def fit(self, X):
-        """X: [N, G] training values. Quantile edges, so bins carry equal mass rather than equal width."""
+    def fit(self, X, drop_nan=False):
+        """X: [N, G] training values. Quantile edges, so bins carry equal mass rather than equal width.
+
+        NaN-SAFE, AND THAT IS NOT A DETAIL. The Level-3 substrate stores uncovered signatures as NaN on
+        purpose, so that using them without the mask fails loudly. `np.percentile` propagates NaN to EVERY
+        output, so a single uncovered row among the fitting sample turns all 127 edges into NaN, every
+        value then buckets to 0, and the expression input silently becomes a constant. That is exactly what
+        happened: 153 uncovered rows in a 40,000-row sample produced a checkpoint whose edges were 127/127
+        NaN, and the model trained to convergence, matched a published absolute number, and reported
+        sensible metrics while never seeing an expression value.
+
+        So: NaN is filtered, and the resulting edges are CHECKED rather than trusted.
+        """
+        A = np.asarray(X, np.float32)
+        finite = np.isfinite(A)
+        n_bad = int((~finite).any(1).sum()) if A.ndim == 2 else 0
+        if n_bad and not drop_nan:
+            raise ValueError(
+                f'{n_bad} of {len(A)} fitting rows are non-finite. REFUSING rather than filtering, because '
+                f'a caller that did not mean to pass NaN here is a caller whose data is not what it thinks '
+                f'it is -- filter to COVERED rows at the call site, or pass drop_nan=True deliberately.')
         q = np.linspace(0, 100, self.n_bins + 1)[1:-1]
         if self.mode == 'global':
-            e = np.percentile(np.asarray(X, np.float32).ravel(), q)[None, :]
+            v = A[finite]
+            if v.size < self.n_bins * 10:
+                raise ValueError(f'only {v.size} finite values to fit {self.n_bins} bins')
+            e = np.percentile(v, q)[None, :]
         else:
-            e = np.percentile(np.asarray(X, np.float32), q, axis=0).T
+            e = np.nanpercentile(np.where(finite, A, np.nan), q, axis=0).T
+        if not np.isfinite(e).all():
+            raise ValueError('bin edges are not all finite after fitting -- refusing to install a '
+                             'quantiser that would send every value to one bin')
+        spread = float(np.nanmax(e) - np.nanmin(e))
+        if spread <= 0:
+            raise ValueError('bin edges are degenerate (zero spread); every value would land in one bin')
         self.edges.copy_(torch.as_tensor(np.ascontiguousarray(e), dtype=self.edges.dtype))
         self.fitted.fill_(1.0)
+        self._n_dropped = n_bad
         return self
+
+    @torch.no_grad()
+    def discriminates(self, x=None):
+        """Does this quantiser actually SEPARATE values? `fitted == 1` only says fit() was called; the
+        guard that mattered was this one, and it did not exist."""
+        if float(self.fitted) != 1.0 or not bool(torch.isfinite(self.edges).all()):
+            return False
+        if float(self.edges.max() - self.edges.min()) <= 0:
+            return False
+        if x is None:
+            return True
+        return int(torch.unique(self.bucket(x)).numel()) > 1
 
     def bucket(self, x):
         """x: [B, G] -> [B, G] long bin indices."""
@@ -64,10 +105,12 @@ class BinnedExpression(nn.Module):
         # silent no-op: the model trains, converges, and reports numbers while ignoring expression
         # entirely. test_v9.py caught exactly that (|dY|max 0.0000 for the matched control). Refuse
         # instead, in the spirit of train_v7_gpu.check_inputs().
-        if float(self.fitted) != 1.0:
+        if not self.discriminates():
             raise RuntimeError(
-                'BinnedExpression used before fit(): every value would land in bin 0 and the expression '
-                'input would be silently ignored. Call model.fit_bins(X_train) with TRAINING rows only.')
+                'BinnedExpression has no usable bins (unfitted, or edges non-finite/degenerate): every '
+                'value would land in one bin and the expression input would be silently ignored. '
+                'Call model.fit_bins(X_train) with FINITE training rows only. NOTE: the Level-3 substrate '
+                'stores uncovered signatures as NaN, and np.percentile propagates NaN to every edge.')
         return self.emb(self.bucket(x))                  # [B, G, d]
 
 
