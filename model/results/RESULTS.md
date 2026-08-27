@@ -883,6 +883,57 @@ three seeds stopping at *different* epochs are not comparable — which would de
 three. The seed runs are therefore shaped to FIT (6 epochs, batch 96, `l_control` 1, budget 7.5 h) rather
 than shaped to be cut off.
 
+## 30. SOTA arm: v9 on XPert's own data, split and metric (2026-08-26)
+
+`model/v9/xpert_arm.py`, 3 seeds per split, on their released rows with our drug features and our
+chromatin where the cell line is one of ours.
+
+| their split | train | test | **Pearson (abs)** | **Pearson_deg (delta)** | copy-the-control | mean-drug |
+|---|---|---|---|---|---|---|
+| breast_1 | 47,696 | 5,310 | **0.9838** [0.9838, 0.9839] | **0.7070** [0.7064, 0.7079] | 0.9673 | 0.2245 |
+| haematopoietic_1 | 17,362 | 1,943 | **0.9858** [0.9857, 0.9858] | **0.7067** [0.7053, 0.7081] | 0.9718 | 0.2999 |
+| lung_1 | 37,479 | 4,185 | **0.9801** [0.9800, 0.9801] | **0.6993** [0.6989, 0.6995] | 0.9615 | 0.1757 |
+| *their reported* | | | *0.9804* | *0.8440* | | |
+
+- 🟢 **On the absolute convention v9 matches or beats the published number** (0.9801–0.9858 vs 0.9804) —
+  on lung_1 to four decimal places. That is the headline number of a published transformer, reproduced by
+  this project's model on this project's features.
+- 🔴 **And it means almost nothing**, which is the point. On these same rows **copy-the-control scores
+  0.9615–0.9718**, so the entire distance between doing nothing and a state-of-the-art model in this
+  convention is about **+0.02**, and that is what both models deliver (+0.0140…+0.0186 for v9).
+- 🔴 **On the delta convention v9 reaches 0.699–0.707 against their 0.844** — a real ~0.14 gap on the
+  metric that actually measures perturbation response. Stated limits: 5.4 % of their split rows use
+  compounds we cannot featurise and were dropped; 6–22 % of rows use cell lines with no chromatin or
+  lineage of ours; 8 epochs; and their heterogeneous graph carries DTI and drug–drug edges we exclude
+  deliberately, because `dti_reference.tsv` is our held-out interpretability validation set.
+- 🟢 **Seed variance collapses on their split structure**: range 0.0001–0.0015 here, against 0.005–0.045 on
+  our cold splits. With 100 % of test cells and ~89 % of test (cell, compound) pairs already in training
+  [§28], the task is nearly deterministic. The "≥3 seeds" rule is far more load-bearing on our benchmark
+  than on theirs — which is also why a single-seed number on a split like theirs looks so stable.
+
+## 31. v9, 3 seeds — and a negative result that must not be buried (2026-08-26)
+
+`model/v9/train_v9_gpu.py`, fold 0, 6 epochs, batch 96, d_model 256, `l_control` 1, binned encoder.
+**Two of three seeds complete at the time of writing; seed 2 and a 12-epoch probe are running.**
+
+| split | delta | abs | copy-the-control | value added | l5 | v7 `--no_aux` on l5 |
+|---|---|---|---|---|---|---|
+| unseen_cell | 0.3961 [0.3943, 0.3979] | 0.9350 | 0.9235 | +0.0115 | 0.3946 [0.3890, 0.4002] | **0.4549** |
+| unseen_compound | 0.4783 [0.4652, 0.4913] | 0.9358 | 0.9191 | +0.0167 | 0.4354 [0.4129, 0.4579] | **0.4985** |
+| unseen_both | 0.3533 [0.3513, 0.3553] | 0.9174 | 0.9080 | +0.0094 | 0.3403 [0.3379, 0.3427] | **0.4825** |
+
+- 🔴 **v9 is BELOW v7 `--no_aux` on the target they share** (−0.060 / −0.063 / −0.142), and below the §28
+  ridge on its own delta target on two of three splits (0.3961 vs 0.4193 unseen_cell; 0.3533 vs 0.3764
+  unseen_both). It clears the ridge only on unseen_compound (0.4783 vs 0.4744).
+- Three confounds, all stated rather than used as excuses: (1) **6 epochs against v7's 12**, with the
+  training loss still falling (0.8773 → 0.7024) and unseen-compound l5 still climbing (0.335 → 0.458) at
+  the last epoch — the run used **2.91 h of a 7.5 h budget**, so the shape was chosen from a bad estimate
+  and left capacity unused; (2) **v9's l5 head is a 0.3-weighted auxiliary** while it was v7's entire
+  objective, so this compares a side task with a main task; (3) reduced depth (`l_control` 1, not 2).
+- ⇒ The 12-epoch probe decides which of these it is. Until it returns, the defensible statement is: **at
+  this training budget the v9 substrate and priors do not beat v7, and do not beat a ridge on the two
+  unseen-cell splits.** The eighth architecture comparison in a row that fails to clear its baseline.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
