@@ -934,6 +934,55 @@ chromatin where the cell line is one of ours.
   this training budget the v9 substrate and priors do not beat v7, and do not beat a ridge on the two
   unseen-cell splits.** The eighth architecture comparison in a row that fails to clear its baseline.
 
+## 32. 🔴 RETRACTION: the binned quantiser was NaN-poisoned; §29–31's binned numbers are void (2026-08-26)
+
+`model/v9/modules_v9.py`. Found by the interpretability probe, not by inspection.
+
+The probe reported `ablate matched_control -> |dY|max 0.0000` and `ablate cell_control -> |dY|max 0.0000`
+on all three splits — **exactly** zero, which is far too clean for "the model learned to ignore it". The
+weights say why: **all 127 bin edges in `ckpt_v9_fold0_seed0` are NaN.**
+
+**Cause.** The Level-3 substrate stores the 1,094 uncovered signatures as **NaN on purpose**, so that using
+them without the mask fails loudly [§27.1]. The quantiser's fitting sample was selected with
+`ds_to_l3 >= 0` — which means the row EXISTS in the arrays, not that it is COVERED. 153 NaN rows landed in
+a 40,000-row sample, and `np.percentile` propagates NaN to **every** output. Every value then bucketed to
+0, so the expression embedding was a constant.
+
+The model trained to convergence, produced falling losses, **matched a published absolute number on
+XPert's own benchmark**, and reported sensible metrics throughout — with no expression value reaching its
+trunk at all.
+
+**The guard was checking the wrong property.** `test_v9.py` asserted `fitted == 1.0`, i.e. that `fit()` had
+been *called*. What matters is whether the bins **discriminate**. That is the same class of error this
+project keeps making: a valid computation of the wrong quantity [method rule 5].
+
+| voided | still valid |
+|---|---|
+| §29 encoder A/B — the **binned** arm | §29's **raw** arm |
+| §31 seeds 0–2, and the 12-epoch probe | §27 substrate, noise ceiling, priors, gene vectors |
+| §30 the whole XPert arm | §27.4/27.5 baseline A/B and the split-DMSO test (ridge, no quantiser) |
+| the untrained null of `v9_probe_untrained` | §28 split audit and matched difficulty (ridge, no quantiser) |
+
+**What §29 actually measured, in hindsight.** Its "binned" arm had *no expression input whatsoever*, and it
+still matched the raw arm on 5 of 6 comparisons. So the honest reading of that experiment is not
+"binning does not help" but **"the control profile contributes ~nothing to the delta prediction through
+this trunk"** — a stronger and more interesting negative, and now a hypothesis to re-test rather than a
+result.
+
+**Fix.** `fit()` refuses non-finite input (`drop_nan=True` to override deliberately) and verifies the edges
+are finite and non-degenerate before installing them; a new `discriminates()` backs both the forward guard
+and `model.bins_fitted`; every call site filters to covered rows and asserts finiteness. Five regression
+tests added, including *one NaN row is refused* and *a NaN-edged quantiser reports itself unusable even
+though `fitted == 1`*. 55/55 pass. After the fix: edges 127/127 finite over [3.822, 14.261], 128 distinct
+bins on a real batch, and the matched-control ablation moves the output.
+
+🟢 **One readout did survive, and it is the project's deliverable.** The named pathway alignment was
+measured against its own permutation null on the *broken* checkpoint and beat it on all three splits:
+**+0.0737 / +0.1516 / +0.0872 against nulls of +0.0002 / −0.0003 / −0.0011 (sd ≈ 0.009–0.010), p = 0.005**
+— 8–15 sd above chance. It is the first interpretability readout in this project to clear its own measured
+chance level, and it did so while the expression input was dead, i.e. from drug, gene identity and
+chromatin alone. It must be re-measured on a correct checkpoint before it is claimed.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
