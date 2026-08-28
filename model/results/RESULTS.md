@@ -983,6 +983,14 @@ tests added, including *one NaN row is refused* and *a NaN-edged quantiser repor
 though `fitted == 1`*. 55/55 pass. After the fix: edges 127/127 finite over [3.822, 14.261], 128 distinct
 bins on a real batch, and the matched-control ablation moves the output.
 
+**The readout's NULL survives the bug, re-measured on a working quantiser (2026-08-27).** An untrained v9
+scores pathway alignment **−0.0271 / −0.0124 / −0.0214** against permutation nulls of
+**+0.0002 ± 0.0095 / −0.0014 ± 0.0113 / −0.0006 ± 0.0114** — within noise of the NaN-poisoned measurement
+(−0.0264 / −0.0128 / −0.0173), as expected: an untrained model's pathway activations are random whether or
+not the expression input is live. So **chance for this readout is ≈ 0.000 ± 0.010** and that figure stands.
+The TRAINED alignment below still has to be re-measured, because the checkpoint it came from did not see
+its inputs.
+
 🟢 **One readout did survive, and it is the project's deliverable.** The named pathway alignment was
 measured against its own permutation null on the *broken* checkpoint and beat it on all three splits:
 **+0.0737 / +0.1516 / +0.0872 against nulls of +0.0002 / −0.0003 / −0.0011 (sd ≈ 0.009–0.010), p = 0.005**
