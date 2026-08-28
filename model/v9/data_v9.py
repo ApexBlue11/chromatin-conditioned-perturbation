@@ -138,8 +138,21 @@ def check_inputs_v9(ds, sp, dcfg):
     if frac < 0.90:
         problems.append(f'Level-3 coverage {100 * frac:.1f}% < 90% -> the substrate gate is not met; '
                         f'expected 99.65% from outputs/level3_sig')
-    if not np.isfinite(np.asarray(ds.Xctl[:64])).all():
-        problems.append('X_ctl has non-finite values in its first rows -> wrong array or partial write')
+    # THE INVARIANT THE QUANTISER BUG BROKE: covered <=> finite. Checking only "the first rows are finite"
+    # is what let a NaN-poisoned fitting sample through -- uncovered rows are NaN BY DESIGN, so any code
+    # that samples rows without filtering on `has_l3` silently ingests them. Check the invariant itself,
+    # on both sides, rather than a corner of one array.
+    rng = np.random.default_rng(0)
+    cov_rows = np.flatnonzero(ds.has_l3)
+    unc_rows = np.flatnonzero(~ds.has_l3)
+    probe = ds.ds_to_l3[rng.choice(cov_rows, min(4000, len(cov_rows)), replace=False)]
+    if not np.isfinite(np.asarray(ds.Xctl[np.sort(probe)])).all():
+        problems.append('COVERED rows contain non-finite values -> the substrate is not what it claims')
+    if len(unc_rows):
+        u = ds.ds_to_l3[unc_rows[:64]]
+        u = u[u >= 0]
+        if len(u) and np.isfinite(np.asarray(ds.Xctl[np.sort(u)])).any():
+            problems.append('UNCOVERED rows are not NaN -> silent misuse would no longer fail loudly')
     lo, hi = float(np.min(ds.Xctl[:2000])), float(np.max(ds.Xctl[:2000]))
     if not (-0.1 <= lo and hi <= 15.5):
         problems.append(f'X_ctl range [{lo:.2f}, {hi:.2f}] is not Level-3 log expression')
