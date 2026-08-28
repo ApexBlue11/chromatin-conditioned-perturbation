@@ -875,7 +875,14 @@ and seed sequence, and identical data parallelism in both arms. 3 seeds each.
   noise. The two effects that HAVE cleared the noise band both remain data effects, not architecture ones:
   the plate-matched control (+0.027…+0.040) and the split itself (+0.17, §28).
 
-### 29.1 A capacity finding that shaped the seed runs
+### 29.1 A capacity finding that shaped the seed runs — CORRECTED 2026-08-27
+**The estimate was wrong and cost the first round a fair schedule.** The 12-epoch probe actually ran
+**12 epochs in 5.62 h** (1,636 s/epoch), comfortably inside the 7.5 h budget — its accuracy numbers are
+void (NaN quantiser, §32) but its clock is not. The projection below came from scaling an I/O-bound
+measurement as if it were compute-bound, and it was pessimistic by roughly 3x. The re-runs therefore use
+**12 epochs**, which is also v7's schedule, so the v7 comparison is no longer budget-limited.
+
+*Original reasoning, kept because it is why the first round was shaped the way it was:*
 The A/B ran at 0.197 s/step (d=128, 4 blocks, batch 48) — and that run was I/O bound, since it used
 `cache_in_ram=False`. Scaled to d=256 at full depth, a 12-epoch run over 179,772 rows projects **past
 Kaggle's 9 h session limit**. A run truncated by the budget guard stops at whatever epoch it reached, and
