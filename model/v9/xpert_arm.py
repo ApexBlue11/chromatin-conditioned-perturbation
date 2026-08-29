@@ -48,6 +48,13 @@ def find(name, roots):
     raise SystemExit(f'FATAL: {name} not found under {roots}')
 
 
+def their_pearson(a, b):
+    """XPert's metric (metrics.py:pearson) is the MEAN of per-row Pearson, not the median. Reporting our
+    median against their mean would flatter us: the median discards the left tail of badly-predicted rows,
+    and on these data the two differ by ~0.02-0.05. Both are reported; the MEAN is the comparable one."""
+    return float(np.nanmean(pearson_rows(a, b)))
+
+
 def pearson_rows(a, b):
     a = a - a.mean(1, keepdims=True)
     b = b - b.mean(1, keepdims=True)
@@ -73,6 +80,10 @@ class XPertData:
         self.cell = z['meta_cell'][keep]
         self.dose = z['meta_dose'][keep].astype(np.float32)
         self.time = z['meta_time'][keep].astype(np.float32)
+        # carried so a saved prediction can be aligned back to THEIR h5ad row; comparing two 13,766-row
+        # arrays that were built in different orders would silently pair row i with row j
+        self.row_index = (z['row_index'][keep] if 'row_index' in z.files
+                          else np.asarray(keep, np.int64))
         n_tr = len(self.tr)
         self.tr = np.arange(n_tr)
         self.te = np.arange(n_tr, len(keep))
@@ -155,6 +166,11 @@ class XPertData:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--split', default='split_lung_1')
+    ap.add_argument('--bundle', default=BUNDLE,
+                    help='xpert_splits.npz (tissue splits) or xpert_mdmt_splits.npz (their main benchmark)')
+    ap.add_argument('--save_pred', default=None,
+                    help='write per-row predictions, so a PAIRED comparison against their checkpoint is '
+                         'possible instead of two independently-computed summary numbers')
     ap.add_argument('--seeds', type=int, default=3)
     ap.add_argument('--epochs', type=int, default=12)
     ap.add_argument('--batch', type=int, default=48)
@@ -168,7 +184,7 @@ def main():
     roots = ['/kaggle/input', os.path.join(r'C:\Projects\LINCS'), os.path.join(r'C:\Projects\LINCS',
                                                                               'external')]
     roots = [r for r in roots if os.path.isdir(r)]
-    npz = find(BUNDLE, roots)
+    npz = find(a.bundle, roots)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
     if dev == 'cuda' and any('P100' in torch.cuda.get_device_name(i)
                              for i in range(torch.cuda.device_count())):
@@ -187,7 +203,8 @@ def main():
 
     # nulls first: an absolute number is uninterpretable without them
     Xte, Cte = D.X[D.te], D.C[D.te]
-    nulls = {'copy_ctl_abs': round(float(np.nanmedian(pearson_rows(Cte, Xte))), 4),
+    nulls = {'copy_ctl_abs': round(their_pearson(Cte, Xte), 4),
+             'copy_ctl_abs_median': round(float(np.nanmedian(pearson_rows(Cte, Xte))), 4),
              'zero_delta': 0.0}
     dtr = D.X[D.tr] - D.C[D.tr]
     gm = dtr.mean(0)
@@ -195,7 +212,7 @@ def main():
     for p in np.unique(D.pert[D.tr]):
         per[p] = dtr[D.pert[D.tr] == p].mean(0)
     pred = np.stack([per.get(p, gm) for p in D.pert[D.te]])
-    nulls['mean_drug_delta'] = round(float(np.nanmedian(pearson_rows(pred, Xte - Cte))), 4)
+    nulls['mean_drug_delta'] = round(their_pearson(pred, Xte - Cte), 4)
     print(f'nulls on THEIR test rows: {nulls}', flush=True)
 
     runs = []
@@ -254,9 +271,16 @@ def main():
                 T.append(o['delta'].float().cpu().numpy())
         pa, pd = np.concatenate(P), np.concatenate(T)
         rec = {'seed': seed,
-               'Pearson': round(float(np.nanmedian(pearson_rows(pa, Xte))), 4),
-               'Pearson_deg': round(float(np.nanmedian(pearson_rows(pd, Xte - Cte))), 4),
+               'Pearson': round(their_pearson(pa, Xte), 4),                    # their convention: MEAN
+               'Pearson_deg': round(their_pearson(pd, Xte - Cte), 4),
+               'Pearson_median': round(float(np.nanmedian(pearson_rows(pa, Xte))), 4),
+               'Pearson_deg_median': round(float(np.nanmedian(pearson_rows(pd, Xte - Cte))), 4),
                'seconds': round(time.time() - t0, 1)}
+        if a.save_pred:
+            np.savez_compressed(a.save_pred.replace('.npz', '_seed%d.npz' % seed),
+                                y_pred=pa.astype(np.float32), deg_pred=pd.astype(np.float32),
+                                y_true=Xte.astype(np.float32), ctl_true=Cte.astype(np.float32),
+                                row_index=D.row_index[D.te] if hasattr(D, 'row_index') else D.te)
         runs.append(rec)
         print(f'  [seed {seed}] Pearson {rec["Pearson"]:.4f}  Pearson_deg {rec["Pearson_deg"]:.4f}',
               flush=True)
@@ -268,18 +292,20 @@ def main():
     print('\n' + '=' * 92)
     print(f'v9 ON XPERT\'S OWN BENCHMARK ({a.split}), mean [min, max] over {a.seeds} seeds')
     print('=' * 92)
-    print(f'  Pearson      (absolute) : {mmr("Pearson")}   | their reported 0.9804 | '
-          f'copy-the-control {nulls["copy_ctl_abs"]:.4f}')
-    print(f'  Pearson_deg  (delta)    : {mmr("Pearson_deg")}   | their reported 0.8440 | '
-          f'mean-drug {nulls["mean_drug_delta"]:.4f}')
+    print(f'  Pearson      (absolute) : {mmr("Pearson")}   | copy-the-control {nulls["copy_ctl_abs"]:.4f}')
+    print(f'  Pearson_deg  (delta)    : {mmr("Pearson_deg")}   | mean-drug {nulls["mean_drug_delta"]:.4f}')
+    print('  (mean of per-row Pearson, THEIR convention. Their published 0.9804 / 0.8440 is')
+    print('   the HDACi figure subset, NOT this benchmark, so it is not printed as a target --')
+    print('   the like-for-like number is their checkpoint run on these same rows by')
+    print('   model/v9/xpert_native_eval.py.)')
     print(f'\n  {100 * (1 - D.known_cell_frac):.1f}% of rows use a cell line we have no chromatin or lineage '
           f'for; 5.4% of their split rows were dropped for lack of drug features.')
     WORK = '/kaggle/working' if os.path.isdir('/kaggle/working') else os.path.join(
         os.path.dirname(os.path.dirname(HERE)), 'model', 'results')
     os.makedirs(WORK, exist_ok=True)
     out = os.path.join(WORK, f'v9_xpert_arm_{a.split}.json')
-    json.dump({'split': a.split, 'runs': runs, 'nulls': nulls,
-               'their_reported': {'Pearson': 0.9804, 'Pearson_deg': 0.8440},
+    json.dump({'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
+               'metric': 'mean of per-row Pearson (XPert metrics.py convention)',
                'known_cell_frac': round(D.known_cell_frac, 4),
                'n_train': int(len(D.tr)), 'n_test': int(len(D.te))}, open(out, 'w'), indent=2)
     print(f'\nwrote {out}')

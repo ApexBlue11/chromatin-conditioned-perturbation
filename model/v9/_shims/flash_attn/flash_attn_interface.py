@@ -1,0 +1,67 @@
+# -*- coding: utf-8 -*-
+"""
+A CPU-runnable, numerically faithful stand-in for `flash_attn.flash_attn_interface.flash_attn_func`.
+
+Why this is needed and why it is legitimate.
+
+XPert's `models/model_utils.py` imports flash_attn at module scope, and -- this is the part that matters --
+its attention branches the wrong way round from what the name suggests:
+
+    if output_attention:      # dense path: builds the full score matrix, and APPLIES attention_mask
+        ...
+    else:                     # DEFAULT path: flash_attn_func(q, k, v, dropout_p), NO mask argument
+        ...
+
+So the default forward, the one the released checkpoint was trained and evaluated under, is the flash
+path. Running on CPU by flipping `output_attention=True` would NOT be equivalent: the dense branch adds
+`attention_mask` to the scores, and the drug self-attention is called WITH a padding mask, so the two
+branches genuinely differ for the drug branch. Reproducing their numbers therefore requires reproducing
+the flash path's semantics -- including the fact that it ignores the mask -- not the dense one.
+
+FlashAttention is an EXACT algorithm: it tiles the softmax to avoid materialising the score matrix, and
+returns the same tensor standard attention would, up to floating-point associativity. So computing the
+same function densely is faithful, not an approximation. This shim does exactly that via PyTorch's
+scaled_dot_product_attention, matching flash_attn_func's signature and (batch, seqlen, nheads, headdim)
+layout, its default scale of 1/sqrt(headdim), and its non-causal, unmasked default.
+
+`model/v9/test_xpert_compare.py` checks this against a hand-written reference on random tensors.
+
+This module is placed on sys.path ONLY when the real flash_attn is absent (see xpert_native_eval.py), so
+on a CUDA machine with flash_attn installed the genuine kernel is used and this file is inert.
+"""
+import math
+
+import torch
+import torch.nn.functional as F
+
+__all__ = ['flash_attn_func', 'flash_attn_qkvpacked_func']
+
+
+def flash_attn_func(q, k, v, dropout_p=0.0, softmax_scale=None, causal=False,
+                    window_size=(-1, -1), alibi_slopes=None, deterministic=False,
+                    return_attn_probs=False):
+    """q, k, v: (batch, seqlen, nheads, headdim). Returns (batch, seqlen, nheads, headdim).
+
+    Mirrors flash_attn_func's defaults: scale = 1/sqrt(headdim), no mask, non-causal. Anything this shim
+    does not implement raises instead of silently returning a different quantity."""
+    if alibi_slopes is not None:
+        raise NotImplementedError('flash_attn shim: alibi_slopes not supported')
+    if window_size != (-1, -1):
+        raise NotImplementedError('flash_attn shim: sliding-window attention not supported')
+    if return_attn_probs:
+        raise NotImplementedError('flash_attn shim: return_attn_probs not supported')
+    if q.dim() != 4 or k.dim() != 4 or v.dim() != 4:
+        raise ValueError('flash_attn shim expects (batch, seqlen, nheads, headdim) tensors, got %s'
+                         % (tuple(q.shape),))
+
+    scale = softmax_scale if softmax_scale is not None else 1.0 / math.sqrt(q.shape[-1])
+    # (B, S, H, D) -> (B, H, S, D), the layout SDPA wants
+    qt, kt, vt = (t.transpose(1, 2) for t in (q, k, v))
+    out = F.scaled_dot_product_attention(qt, kt, vt, attn_mask=None,
+                                         dropout_p=dropout_p, is_causal=causal, scale=scale)
+    return out.transpose(1, 2).contiguous()
+
+
+def flash_attn_qkvpacked_func(qkv, dropout_p=0.0, softmax_scale=None, causal=False, **kw):
+    q, k, v = qkv.unbind(dim=2)
+    return flash_attn_func(q, k, v, dropout_p=dropout_p, softmax_scale=softmax_scale, causal=causal, **kw)

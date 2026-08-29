@@ -1,0 +1,13 @@
+{
+  "split_breast_1": {
+    "Pearson": 0.9589,
+    "Pearson_deg": 0.6444,
+    "Spearman": 0.956,
+    "Spearman_deg": 0.6021,
+    "MSE": 0.4164,
+    "MSE_deg": 0.4164,
+    "copy_ctl_Pearson": 0.92,
+    "n": 3439,
+    "abs_value_added": 0.039
+  }
+}
