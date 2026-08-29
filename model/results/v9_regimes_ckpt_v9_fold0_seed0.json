@@ -95,11 +95,11 @@
       },
       "non_epi": {
         "n": 2000,
-        "delta": 0.5085,
-        "abs": 0.9429,
-        "l5": 0.4976,
-        "copy_ctl_abs": 0.9239,
-        "abs_value_added": 0.019
+        "delta": 0.5159,
+        "abs": 0.9433,
+        "l5": 0.5048,
+        "copy_ctl_abs": 0.925,
+        "abs_value_added": 0.0183
       }
     },
     "cold_drug": {
@@ -113,11 +113,11 @@
       },
       "non_epi": {
         "n": 2000,
-        "delta": 0.5656,
-        "abs": 0.9404,
-        "l5": 0.4709,
-        "copy_ctl_abs": 0.9194,
-        "abs_value_added": 0.021
+        "delta": 0.5694,
+        "abs": 0.9428,
+        "l5": 0.479,
+        "copy_ctl_abs": 0.9199,
+        "abs_value_added": 0.0229
       }
     }
   },

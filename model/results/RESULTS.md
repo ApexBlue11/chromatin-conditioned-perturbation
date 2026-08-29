@@ -1267,6 +1267,38 @@ reason — the WSD schedule already anneals the learning rate to ~0, so the endp
 over a low-LR phase, and reliability weighting removes some inert-row noise upstream — remains an
 explanation, not a measurement.
 
+## 39. The closest like-for-like comparison we can build against a published number (2026-08-29)
+
+XPert's released predictions are an HDAC-inhibitor figure in a warm regime [§36.2], and their headline
+delta on it is **0.8440**. Every previous comparison in this project set that against our *cold-split,
+all-compound* number (0.4985), which differs from theirs in drug class, split regime and stratum at once.
+
+`model/v9/regimes_v9.py` + bootstrap. Median row Pearson on the Level-3 delta, 95 % CI over 4,000
+bootstrap resamples of the rows:
+
+| our set | n | median delta [95 % CI] |
+|---|---|---|
+| **warm-start × epi-drugs** | **35** | **0.7963 [0.7372, 0.8430]** |
+| warm-start, all other compounds | 600 | 0.6561 [0.6286, 0.6788] |
+| cold-drug × epi-drugs | 961 | 0.7106 [0.6973, 0.7189] |
+| cold-drug, all other compounds | 600 | 0.5135 [0.4835, 0.5415] |
+| cold-cell × epi-drugs | 205 | 0.6472 [0.6249, 0.6688] |
+| cold-cell, all other compounds | 600 | 0.4548 [0.4370, 0.4687] |
+| *XPert, released HDACi figure* | *3,439* | *0.8440* |
+
+- 🟢 **On the closest matched construction — warm regime, epigenetic compounds, Level-3 delta — v9 reaches
+  0.7963, and their 0.8440 sits at the very top edge of our 95 % CI.** The apparent chasm between "0.49" and
+  "0.84" is mostly drug class and split regime, not model quality.
+- 🔴 **n = 35, CI width 0.106.** Our Bemis-Murcko scaffold holdout puts most of the 30 epi-drugs in the
+  cold-drug fold, so only 35 warm epi-drug rows survive the reproducible-stratum filter. **This is
+  underpowered and is reported as an estimate with its interval, not as a result.** Widening it needs a
+  split built for the purpose.
+- Remaining unmatched: their subset is HDAC inhibitors specifically while ours is 30 epi-drugs
+  (HDAC + DNMT + others), their exact split for that figure is not stated, and ours is one seed.
+- The epi-drug advantage is consistent across every regime — **+0.13 to +0.20** over other compounds —
+  which is the same effect [2.6] measured at +0.20. **Any published number computed on an
+  epigenetic-compound subset should be read against an epigenetic-compound baseline, not a general one.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
