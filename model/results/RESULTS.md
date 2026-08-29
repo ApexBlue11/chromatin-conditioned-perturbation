@@ -1001,7 +1001,7 @@ chromatin alone. It must be re-measured on a correct checkpoint before it is cla
 ## 33. v9 with a WORKING quantiser: the first architecture here to clear its linear baseline (2026-08-29)
 
 12 epochs (v7's schedule), batch 96, d_model 256, `l_control` 1, binned encoder, fold 0.
-**2 of 3 seeds at the time of writing; seed 2 is running.** Both logged
+**All 3 seeds complete (updated 2026-08-29).** All three logged
 `mounted code verified: NaN-quantiser fix present and bins discriminate` and
 `quantiser fitted on 40000 TRAINING rows, 128 bins`, so §32's failure cannot be present.
 
@@ -1009,9 +1009,9 @@ chromatin alone. It must be re-measured on a correct checkpoint before it is cla
 
 | split | v9 delta, mean [min, max] | ridge [§28] | 6-epoch **broken** [§31] | v9 − ridge |
 |---|---|---|---|---|
-| unseen_cell | **0.5155** [0.5152, 0.5159] | 0.4193 | 0.3961 | **+0.0962** |
-| unseen_compound | **0.5742** [0.5639, 0.5846] | 0.4744 | 0.4783 | **+0.0998** |
-| unseen_both | **0.4624** [0.4569, 0.4679] | 0.3764 | 0.3533 | **+0.0860** |
+| unseen_cell | **0.5168** [0.5152, 0.5192] | 0.4193 | 0.3961 | **+0.0975** |
+| unseen_compound | **0.5792** [0.5639, 0.5890] | 0.4744 | 0.4783 | **+0.1048** |
+| unseen_both | **0.4646** [0.4569, 0.4690] | 0.3764 | 0.3533 | **+0.0882** |
 
 - 🟢 **v9 beats the ridge on every split by +0.086…+0.100**, against a 2-sd seed band of ±0.046 and
   observed seed ranges of 0.0007–0.0207. **This is the first architecture in this project to clear a linear
@@ -1028,9 +1028,9 @@ chromatin alone. It must be re-measured on a correct checkpoint before it is cla
 
 | split | v9 l5, mean [min, max] | v7 `--no_aux` | verdict |
 |---|---|---|---|
-| unseen_cell | **0.5038** [0.5019, 0.5056] | 0.4549 | **+0.0489, v9 ahead** (just outside the ±0.046 band) |
-| unseen_compound | 0.4884 [0.4627, 0.5140] | 0.4985 | −0.0101, **NO DIFFERENCE** |
-| unseen_both | 0.3997 [0.3946, 0.4049] | **0.4825** | −0.0828, **v7 ahead** |
+| unseen_cell | **0.5058** [0.5019, 0.5100] | 0.4549 | **+0.0509, v9 ahead** (just outside the ±0.046 band) |
+| unseen_compound | 0.4930 [0.4627, 0.5140] | 0.4985 | −0.0055, **NO DIFFERENCE** |
+| unseen_both | 0.4009 [0.3946, 0.4049] | **0.4825** | −0.0816, **v7 ahead** |
 
 - v9 wins unseen_cell, ties unseen_compound, loses unseen_both — **and it does so with the l5 head as a
   0.3-weighted AUXILIARY**, where it was v7's entire objective. The comparison is stacked against v9 and it
@@ -1043,9 +1043,9 @@ chromatin alone. It must be re-measured on a correct checkpoint before it is cla
 
 | split | v9 abs | copy-the-control | value added |
 |---|---|---|---|
-| unseen_cell | 0.9433 | 0.9235 | **+0.0198** |
-| unseen_compound | 0.9418 | 0.9191 | **+0.0227** |
-| unseen_both | 0.9243 | 0.9080 | **+0.0163** |
+| unseen_cell | 0.9434 | 0.9238 | **+0.0196** |
+| unseen_compound | 0.9422 | 0.9189 | **+0.0233** |
+| unseen_both | 0.9248 | 0.9080 | **+0.0168** |
 
 XPert's released predictions add **+0.060** over the same null on their own (far easier) rows [§23]. Ours
 add +0.016…+0.023 on cold splits. Neither number means anything without the null beside it.
@@ -1211,6 +1211,61 @@ in prediction MAGNITUDE, which is what \|dY\|max already answers — as though i
 the accuracy lambda that existed alongside it indexed a global target array per chunk, so it would only
 have lined up for the first chunk. Both fixed; every number above is a change in accuracy against that
 chunk's own targets.
+
+## 38. The three regimes the field reports, ours for the first time — plus phase, epi-drugs and EMA (2026-08-29)
+
+`model/v9/regimes_v9.py`, seed-0 checkpoint. Everything here is on the reproducible stratum.
+
+### 38.1 Warm-start, measured for the first time in this project
+The field reports **warm-start / cold-cell / cold-drug**; we had only ever reported the two cold regimes,
+which meant there was nothing of ours to set beside their headline. Our `val` split IS warm-start by
+construction — it excludes the held-out cells and the held-out scaffold family, so its rows share both cell
+lines and compounds with training and only the exact condition is unseen.
+
+| regime | delta | abs | copy-the-control | value added | l5 |
+|---|---|---|---|---|---|
+| **warm_start** | **0.6607** | 0.9647 | 0.9316 | **+0.0331** | 0.6168 |
+| cold_drug | 0.5855 | 0.9437 | 0.9219 | +0.0218 | 0.5212 |
+| cold_cell | 0.5144 | 0.9441 | 0.9253 | +0.0188 | 0.5023 |
+| cold_both | 0.4642 | 0.9254 | 0.9086 | +0.0168 | 0.4012 |
+
+- **Warm-start is worth +0.15 to +0.20 in delta over the cold regimes** for the same model — the same
+  ordering §28 measured with a ridge, now inside the trained model.
+
+### 38.2 By phase: the split the ridge predicted, larger in the model
+| regime | P1 delta | P2 delta | P2 − P1 | P1 l5 | P2 l5 | P2 − P1 |
+|---|---|---|---|---|---|---|
+| cold_cell | 0.4216 | **0.5951** | **+0.1735** | 0.3841 | 0.5926 | **+0.2085** |
+| cold_drug | 0.5426 | **0.6201** | +0.0775 | 0.4438 | 0.5793 | +0.1355 |
+| cold_both | 0.3780 | **0.5561** | **+0.1781** | 0.2997 | 0.5546 | **+0.2549** |
+
+The ridge put the P2 advantage at +0.11…+0.13 [§35]; the trained model puts it at **+0.08…+0.18 on delta
+and +0.14…+0.25 on Level-5**. GSE70138 is a materially cleaner benchmark, and a pooled headline hides it.
+**Report both phases, always.**
+
+### 38.3 Epi-drugs: the like-for-like read of their HDACi figure
+| regime | epi-drugs | all others | epi advantage |
+|---|---|---|---|
+| cold_cell | **0.6472** (n=205) | 0.5085 | **+0.1387** |
+| cold_drug | **0.7106** (n=961) | 0.5656 | **+0.1450** |
+
+Epi-drugs are **+0.14 easier**, close to the +0.20 this project measured earlier [2.6]. XPert's released
+0.8440 is an HDAC-inhibitor figure [§36.2], so the honest comparison for it is our epi-drug row, not our
+headline — and on cold-drug we reach **0.7106** on that class.
+
+### 38.4 EMA does nothing in v9 either
+| regime | raw | EMA | EMA − raw |
+|---|---|---|---|
+| warm_start | 0.6607 | 0.6601 | −0.0006 |
+| cold_cell | 0.5144 | 0.5144 | +0.0000 |
+| cold_drug | 0.5855 | 0.5824 | −0.0031 |
+| cold_both | 0.4642 | 0.4654 | +0.0012 |
+
+v7 measured −0.0005 / +0.0003 / +0.0001 [§21]; v9 reproduces that on a different architecture, a different
+target and a different data substrate. **EMA is confirmed dead here, not merely unmeasured.** The plausible
+reason — the WSD schedule already anneals the learning rate to ~0, so the endpoint is effectively an average
+over a low-LR phase, and reliability weighting removes some inert-row noise upstream — remains an
+explanation, not a measurement.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

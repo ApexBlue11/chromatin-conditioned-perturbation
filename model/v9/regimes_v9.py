@@ -138,7 +138,10 @@ def main():
         epi_rows = {dindex[p] for p in epi if p in dindex}
         print(f'\n=== EPI-DRUG SUBSET ({len(epi_rows)} of our featurised drugs) ===', flush=True)
         res['epi_drug'] = {}
-        for name, key in [('cold_cell', 'test_coldcell'), ('cold_drug', 'test_colddrug')]:
+        # warm_start is included because XPert's released predictions are an HDACi figure evaluated in a
+        # warm regime; warm x epi-drug is the closest like-for-like we can build against their 0.8440.
+        for name, key in [('warm_start', 'val'), ('cold_cell', 'test_coldcell'),
+                          ('cold_drug', 'test_colddrug')]:
             base = sp[key]
             m = np.isin(ds.drug_row[base], list(epi_rows))
             idx = pick(base[m], 2000)
