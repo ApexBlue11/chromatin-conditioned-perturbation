@@ -1078,6 +1078,36 @@ training, so the comparison is real this time.
   the full 12-epoch d_model-256 model reaches 0.5155 [§33]. A/B verdicts at reduced scale bound the
   *encoding* question, not the model's ceiling.
 
+## 35. Is Phase 2 a cleaner substrate? Partly — but P2-only training is not the win (2026-08-29)
+
+`model/v9/phase_ab.py`. Ridge on the Level-3 delta; **only the training rows change**, and every arm is
+size-matched to N2 = 55,123 so the phase effect is separated from the data-volume effect.
+
+| arm | n_train | cell/P1 | cell/P2 | cmpd/P1 | cmpd/P2 | both/P1 | both/P2 |
+|---|---|---|---|---|---|---|---|
+| p2_only | 55,123 | 0.2180 | **0.5304** | 0.2522 | 0.5214 | 0.2275 | 0.4197 |
+| p1_only | 55,123 | 0.3511 | 0.3056 | 0.4683 | 0.2460 | 0.3119 | 0.2680 |
+| both_eq | 55,123 | 0.3676 | 0.5011 | 0.4596 | 0.5133 | 0.3385 | **0.4510** |
+| both_full | 60,000 | 0.3574 | 0.4948 | 0.4619 | 0.5231 | 0.3301 | 0.4563 |
+
+- 🟢 **P2 rows ARE substantially easier**: with the same model and the same mixed training set, P2 test rows
+  score **+0.11 to +0.13** above P1 test rows (0.5011 vs 0.3676 on unseen cells). The "less noise" intuition
+  about the later, more standardised production run is real — **as a property of the evaluation rows.**
+- 🔴 **But training on P2 alone is NOT better, even when you only care about P2 rows.** Phase effect at
+  fixed size (`p2_only − both_eq`): **+0.029 / +0.008 / −0.031** on P2 — at or inside the noise, and
+  *negative* on the hardest split — while costing **−0.111 to −0.207** on P1. Keeping both is strictly
+  better overall and no worse on P2.
+- 🔴 **There is a real domain shift between the phases.** Each trains best on its own kind: `p1_only`
+  scores 0.3511 on P1 but 0.3056 on P2; `p2_only` scores 0.5304 on P2 but 0.2180 on P1. Pooling them is a
+  modelling choice with consequences, not a free concatenation.
+- 🔴 **The ridge saturates around 55k rows**: `both_full − both_eq` is −0.010…+0.010 everywhere. Beyond
+  ~55,000 training rows the linear model gains nothing, so "more LINCS" is not the lever.
+- ⇒ **Action: do not switch to P2-only. DO report P1 and P2 separately.** A pooled headline is dominated by
+  the harder P1 rows and hides that the model does markedly better on the cleaner phase — the same
+  stratify-and-report-all-strata rule as method rule 1, applied to a new axis.
+- Caveat: this is a ridge, not v9. That is the point of running it as a gate — it costs one CPU run instead
+  of three GPU sessions, and it says the GPU sessions are not worth spending on P2-only.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
