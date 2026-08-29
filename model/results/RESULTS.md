@@ -998,6 +998,58 @@ measured against its own permutation null on the *broken* checkpoint and beat it
 chance level, and it did so while the expression input was dead, i.e. from drug, gene identity and
 chromatin alone. It must be re-measured on a correct checkpoint before it is claimed.
 
+## 33. v9 with a WORKING quantiser: the first architecture here to clear its linear baseline (2026-08-29)
+
+12 epochs (v7's schedule), batch 96, d_model 256, `l_control` 1, binned encoder, fold 0.
+**2 of 3 seeds at the time of writing; seed 2 is running.** Both logged
+`mounted code verified: NaN-quantiser fix present and bins discriminate` and
+`quantiser fitted on 40000 TRAINING rows, 128 bins`, so §32's failure cannot be present.
+
+### On v9's own target (the Level-3 delta)
+
+| split | v9 delta, mean [min, max] | ridge [§28] | 6-epoch **broken** [§31] | v9 − ridge |
+|---|---|---|---|---|
+| unseen_cell | **0.5155** [0.5152, 0.5159] | 0.4193 | 0.3961 | **+0.0962** |
+| unseen_compound | **0.5742** [0.5639, 0.5846] | 0.4744 | 0.4783 | **+0.0998** |
+| unseen_both | **0.4624** [0.4569, 0.4679] | 0.3764 | 0.3533 | **+0.0860** |
+
+- 🟢 **v9 beats the ridge on every split by +0.086…+0.100**, against a 2-sd seed band of ±0.046 and
+  observed seed ranges of 0.0007–0.0207. **This is the first architecture in this project to clear a linear
+  baseline on the cold splits at all** — v5 was *beaten* by the drug mean on unseen cells [1.8], and the
+  6-epoch broken round sat below the ridge on two of three.
+- The comparison against §31 is not a like-for-like ablation — it changes two things at once (the quantiser
+  fix and 6→12 epochs) — but §31's model had **no expression input whatsoever**, so the honest reading is
+  that the substrate plus a real schedule is worth ~+0.11 over what §31 measured.
+- 🟢 On unseen cells, delta **0.5155** sits just under the target's own half-vs-half agreement of **0.5283**
+  on the same stratum [§27.2]: **the model predicts the Level-3 delta about as well as the target predicts
+  itself from half its replicates.**
+
+### On the Level-5 target, the only one comparable with v3–v7
+
+| split | v9 l5, mean [min, max] | v7 `--no_aux` | verdict |
+|---|---|---|---|
+| unseen_cell | **0.5038** [0.5019, 0.5056] | 0.4549 | **+0.0489, v9 ahead** (just outside the ±0.046 band) |
+| unseen_compound | 0.4884 [0.4627, 0.5140] | 0.4985 | −0.0101, **NO DIFFERENCE** |
+| unseen_both | 0.3997 [0.3946, 0.4049] | **0.4825** | −0.0828, **v7 ahead** |
+
+- v9 wins unseen_cell, ties unseen_compound, loses unseen_both — **and it does so with the l5 head as a
+  0.3-weighted AUXILIARY**, where it was v7's entire objective. The comparison is stacked against v9 and it
+  still takes the split this project has never been able to move (§1.8: on unseen cells v5 lost to the drug
+  mean).
+- 🔴 **unseen_both is a real regression** and is not explained away by the weighting: −0.083 is well outside
+  the band. Whatever v9 buys on unseen cells, it does not carry to unseen cells × unseen compounds.
+
+### The absolute convention, with its null attached
+
+| split | v9 abs | copy-the-control | value added |
+|---|---|---|---|
+| unseen_cell | 0.9433 | 0.9235 | **+0.0198** |
+| unseen_compound | 0.9418 | 0.9191 | **+0.0227** |
+| unseen_both | 0.9243 | 0.9080 | **+0.0163** |
+
+XPert's released predictions add **+0.060** over the same null on their own (far easier) rows [§23]. Ours
+add +0.016…+0.023 on cold splits. Neither number means anything without the null beside it.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
