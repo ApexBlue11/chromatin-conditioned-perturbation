@@ -1108,6 +1108,60 @@ size-matched to N2 = 55,123 so the phase effect is separated from the data-volum
 - Caveat: this is a ridge, not v9. That is the point of running it as a gate — it costs one CPU run instead
   of three GPU sessions, and it says the GPU sessions are not worth spending on P2-only.
 
+## 36. Can we run the published SOTA models themselves? Read from their release (2026-08-29)
+
+The gate says a SOTA comparison needs the same data, convention and split. The strongest version of that is
+running THEIR model, so this is an audit of whether their release permits it.
+
+### 36.1 What their release contains, and what it is missing
+`external/xpert/` ships their code, the 336,852-condition h5ad, trained weights
+(`l1000_mdmt_warm_split.pth`, 67 MB) and `HG_data/` (901,260 PPI edges, 12,890 DTI edges, 287,834 drug-drug
+edges, node features, and the pretrained drug HG embedding). **`processed_data/` is empty except a
+gitkeep**, and `configs/config_l1000.yaml` needs nine files from it, including:
+
+| required by the config | what it is | shipped? |
+|---|---|---|
+| `PPI_gene_vector_128d.npy` | the pretrained 128-d gene vector the model reads | ✗ |
+| `all_drugs_unimol_arr.npy` | per-drug UniMol atom features | ✗ |
+| `all_drugs_idx2smi_8981.npy` | the SMILES map keyed by THEIR `pert_idx` | ✗ |
+| `l1000_mdmt_full_336852.h5ad` | the dataset | ✓ (at the release root) |
+
+🔴 **Their release is not runnable as published.** Two of the three missing inputs can be regenerated
+(`pretrain_hg.py` rebuilds the gene vector from `HG_data/`; UniMol features can be recomputed from SMILES),
+but the third — the SMILES map keyed by their internal `pert_idx` — would have to be reconstructed from our
+own drug table plus an index alignment. **Anything produced that way is OUR pipeline, not theirs**, and any
+number from it must be labelled as a reimplementation rather than a reproduction.
+
+Also: their model imports `flash_attn` at module level and uses it in exactly two places. FlashAttention is
+exact rather than approximate, so a `scaled_dot_product_attention` shim is a faithful substitute and the
+dependency is not a real barrier — nor is the environment, since a Kaggle kernel with internet enabled can
+install `torch_geometric` and `flash-attn` directly. **The barrier is the missing preprocessed inputs, not
+the compute.**
+
+### 36.2 Their released predictions are the HDAC-inhibitor figure, not a benchmark split
+`reproducing/fig4/hdaci_predict/y_pred.npy` is what §23 scored (0.9804 absolute / 0.8440 delta /
+0.9200 copy-the-control). §23 said so; **later summaries of mine, including §30's table, presented those as
+"their reported" benchmark numbers, which overstates what they are.** Corrected here.
+
+### 36.3 Their split names, from their own artifacts
+Their checkpoint is named **`l1000_mdmt_warm_split.pth`**, `train_xpert.py` exposes
+`--nfold split, split_cold_drug, split_cold_cell`, and the paper's three regimes are **warm-start,
+cold-cell and cold-drug**. So §28's finding is confirmed from their side: what they RELEASED is the
+warm-start split. The cold-split definitions and the baseline prediction files their own metric script
+reads (`deepce`, `prnet`, `transigen`, `xpert`) are **not** in the release.
+
+From the paper (text, not figures): XPert's PCC beats the next-best model by **8.85 % (cold-drug)** and
+**30.54 % (cold-cell)**, and **in the cold-cell scenario only XPert and DeepCE avoid negative R²** — i.e.
+PRnet, TranSiGen and CIGER score *worse than predicting the mean* on unseen cell lines. The per-model
+absolute values live inside figure panels and are not extractable, so they are not quoted here.
+
+### 36.4 A concrete difference in objective, worth testing
+Their `loss_weight: [0.2, 0.003, 0.2, 1]` = absolute 0.2, control-reconstruction 0.003, delta 0.2,
+**PCC 1.0**. Their objective is dominated by the correlation term — the metric they report. Ours is
+`task_w = (1.0 abs, 1.0 delta, 0.3 l5, 0.5 pcc)` with abs and delta being the same objective [§fca65f1], so
+ours is MSE-dominated at an effective 2.0 against PCC 0.5. **Directly optimising the reported metric is a
+cheap, testable lever we have not tried.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
