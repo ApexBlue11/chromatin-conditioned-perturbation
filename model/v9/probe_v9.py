@@ -130,7 +130,11 @@ def main():
               f'{rec["null_copy_ctl_abs"]:.4f} -> value added {rec["abs_value_added_over_doing_nothing"]:+.4f}')
 
         # ---- ablations: to the MEAN, with |dY|max ----
-        score = lambda y: float(np.nanmedian(pearson_rows(y.float().cpu().numpy(), td[:len(y)])))
+        # dScore is the change in ACCURACY (median row Pearson against that chunk's own target), not the
+        # change in prediction magnitude. The first version of this probe passed `y.abs().mean()` as the
+        # score, which answers "does the output move?" -- a question |dY|max already answers -- and says
+        # nothing about contribution. Each chunk closes over ITS OWN targets; a global `td[:len(y)]` would
+        # only line up for the first chunk.
         abl = {}
         for label, kind, target in ([] if a.skip_ablations else [('matched_control', 'input', 'x_ctl'),
                                     ('cell_control', 'input', 'x_cell'),
@@ -141,21 +145,23 @@ def main():
                                     ('string_mp', 'module', 'ppi'),
                                     ('pathway_readout', 'module', 'pathway'),
                                     ('gene_vectors', 'module', 'gene_repr')]):
-            d_tot, m_tot = 0.0, 0.0
+            d_tot, m_tot, n_tot = 0.0, 0.0, 0
             for c in chunks:
+                tgt_c = c['y_delta'].float().cpu().numpy()
+                acc = lambda y, _t=tgt_c: float(np.nanmedian(pearson_rows(y.float().cpu().numpy(), _t)))
                 if kind == 'input':
                     if target not in c:
                         break
-                    d, m = ablate_to_mean(model, c, target, lambda y: float(y.abs().mean()))
+                    d, m = ablate_to_mean(model, c, target, acc)
                 else:
                     mod = getattr(model, target, None)
                     if mod is None:
                         break
-                    d, m = ablate_module_to_mean(model, c, mod, lambda y: float(y.abs().mean()))
-                d_tot += d * len(c['x_ctl']); m_tot = max(m_tot, m)
-            abl[label] = {'d_score': round(d_tot / max(len(idx), 1), 5), 'dY_max': round(m_tot, 4),
+                    d, m = ablate_module_to_mean(model, c, mod, acc)
+                d_tot += d * len(c['x_ctl']); m_tot = max(m_tot, m); n_tot += len(c['x_ctl'])
+            abl[label] = {'d_pearson': round(d_tot / max(n_tot, 1), 5), 'dY_max': round(m_tot, 4),
                           'fired': bool(m_tot > 1e-5)}
-            print(f'    ablate {label:18s} dScore {abl[label]["d_score"]:+.5f}  |dY|max '
+            print(f'    ablate {label:18s} dPearson {abl[label]["d_pearson"]:+.5f}  |dY|max '
                   f'{abl[label]["dY_max"]:.4f}  {"" if abl[label]["fired"] else "<-- NEVER FIRED"}',
                   flush=True)
         rec['ablations'] = abl

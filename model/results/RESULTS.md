@@ -1050,6 +1050,34 @@ chromatin alone. It must be re-measured on a correct checkpoint before it is cla
 XPert's released predictions add **+0.060** over the same null on their own (far easier) rows [§23]. Ours
 add +0.016…+0.023 on cold splits. Neither number means anything without the null beside it.
 
+## 34. GATE 5, redone with a quantiser that works: binning still buys nothing (2026-08-29)
+
+`model/v9/ab_encoder.py`, 3 seeds per arm, T4 x2. §29's binned arm was measuring a constant embedding
+[§32]; this one logged `mounted code verified: NaN-quantiser fix present and bins discriminate` before
+training, so the comparison is real this time.
+
+| target | split | raw | binned | binned − raw | |
+|---|---|---|---|---|---|
+| delta | unseen_cell | 0.4158 [0.4102, 0.4189] | 0.4260 [0.4202, 0.4345] | +0.0102 | inside seed range |
+| delta | unseen_compound | 0.4429 [0.4418, 0.4451] | 0.4422 [0.4411, 0.4430] | −0.0007 | inside seed range |
+| delta | unseen_both | 0.4245 [0.4199, 0.4306] | 0.4249 [0.4174, 0.4368] | +0.0005 | inside seed range |
+| l5 | unseen_cell | 0.3743 [0.3700, 0.3783] | 0.3785 [0.3687, 0.3906] | +0.0042 | inside seed range |
+| l5 | unseen_compound | 0.3680 [0.3627, 0.3781] | 0.3516 [0.3461, 0.3604] | **−0.0164** | **raw ahead** |
+| l5 | unseen_both | 0.3783 [0.3706, 0.3853] | 0.3709 [0.3538, 0.3851] | −0.0074 | inside seed range |
+
+- 🔴 **The field's 128-bin embedded encoding buys nothing over a linear layer on the raw scalar.** Five of
+  six comparisons sit inside the seed range, and the one that clears it **favours raw** (l5, unseen
+  compound, −0.0164). Measured now with a quantiser that demonstrably discriminates, so §29's confound is
+  gone and the conclusion is about the encoding rather than about a dead branch.
+- The v9 seed runs [§33] use `binned`. On this evidence they could equally have used `raw`; the choice is
+  recorded as field-comparability, and it is not doing any work.
+- 🔴 This is the **eighth** architecture comparison in this project to land inside seed noise. Everything
+  that has ever cleared the band is data: the plate-matched control (+0.027…+0.040 [§27.4]), the split
+  itself (+0.17 [§28]), and now the substrate-plus-schedule as a whole (+0.086…+0.100 over the ridge [§33]).
+- Note the scale gap: this A/B runs d_model 128 / 3 epochs / 50k rows and reaches delta ≈ 0.42–0.43, while
+  the full 12-epoch d_model-256 model reaches 0.5155 [§33]. A/B verdicts at reduced scale bound the
+  *encoding* question, not the model's ceiling.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
