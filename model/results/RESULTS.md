@@ -1286,9 +1286,12 @@ bootstrap resamples of the rows:
 | cold-cell, all other compounds | 600 | 0.4548 [0.4370, 0.4687] |
 | *XPert, released HDACi figure* | *3,439* | *0.8440* |
 
-- 🟢 **On the closest matched construction — warm regime, epigenetic compounds, Level-3 delta — v9 reaches
-  0.7963, and their 0.8440 sits at the very top edge of our 95 % CI.** The apparent chasm between "0.49" and
-  "0.84" is mostly drug class and split regime, not model quality.
+- ⚠️ **SUPERSEDED BY §40 — read that first.** This section compares our model on OUR rows with their model
+  on THEIR rows. §40 runs both on IDENTICAL rows and the conclusion reverses: XPert leads 0.857 vs 0.523 on
+  the delta. What follows is still true as written (matching drug class and regime closes most of the
+  *nominal* gap between two separately-measured numbers) but it must not be read as a model comparison.
+- On the closest matched construction — warm regime, epigenetic compounds, Level-3 delta — v9 reaches
+  0.7963, and their 0.8440 sits at the top edge of our 95 % CI.
 - 🔴 **n = 35, CI width 0.106.** Our Bemis-Murcko scaffold holdout puts most of the 30 epi-drugs in the
   cold-drug fold, so only 35 warm epi-drug rows survive the reproducible-stratum filter. **This is
   underpowered and is reported as an estimate with its interval, not as a result.** Widening it needs a
@@ -1298,6 +1301,42 @@ bootstrap resamples of the rows:
 - The epi-drug advantage is consistent across every regime — **+0.13 to +0.20** over other compounds —
   which is the same effect [2.6] measured at +0.20. **Any published number computed on an
   epigenetic-compound subset should be read against an epigenetic-compound baseline, not a general one.**
+
+## 40. 🔴 DIRECT HEAD-TO-HEAD ON IDENTICAL ROWS: XPert beats v9 by a wide margin (2026-08-29)
+
+`model/v9/head_to_head_hdaci.py`. Their `reproducing/fig4/l1000_mdmt_HDACi.h5ad` ships 3,439 conditions
+with `X`, `obsm['X_ctl']` and full metadata, alongside their `y_pred.npy` for exactly those rows. So both
+models can be scored on **the same rows, against the same targets, from the same controls**. Their published
+numbers reproduce exactly first (0.9804 / 0.8440 / 0.9200), which validates the artefact.
+
+Median row Pearson, 95 % CI over 4,000 bootstrap resamples:
+
+| subset | n | **XPert** | **v9 (ours)** | copy-the-control |
+|---|---|---|---|---|
+| all runnable rows — **delta** | 3,423 | **0.8569** [0.8533, 0.8596] | **0.5228** [0.5111, 0.5341] | 0 |
+| all runnable rows — absolute | 3,423 | 0.9841 [0.9834, 0.9846] | 0.9580 [0.9567, 0.9593] | 0.9355 |
+| pair NOT in our training set — delta | 2,419 | 0.8598 | **0.4860** [0.4724, 0.5002] | 0 |
+| pair in our training set — delta | 1,004 | 0.8481 | **0.6186** [0.5860, 0.6415] | 0 |
+
+- 🔴 **XPert wins decisively on its own benchmark: 0.857 against our 0.523 on the delta**, with
+  non-overlapping confidence intervals by a wide margin. On the absolute convention the gap is much smaller
+  (0.984 vs 0.958) because copy-the-control alone scores 0.9355 there — value added +0.049 for them,
+  +0.023 for us.
+- 🔴 **This reverses the optimistic reading of §39.** That section compared our-model-on-our-rows against
+  their-model-on-their-rows and found 0.7963 vs 0.8440 — close. Run on identical rows the gap is 0.33.
+  **Two separately-measured numbers being similar is not a model comparison**, and this project has now made
+  that mistake in both directions.
+- The asymmetry is real and is stated rather than used as an excuse: **their model is in-distribution here
+  and ours is transferring.** These rows come from the corpus XPert trained on, and this is their own
+  figure; v9 was trained on our Level-3 substrate and has never seen their aggregation. The training-overlap
+  split shows exactly that effect — where the (cell, compound) pair WAS in our training set we score
+  **0.6186**, where it was not we score **0.4860**, a difference of +0.133.
+- Still unmatched: 16 rows use a compound we cannot featurise, 1,159 use a cell line we have no chromatin or
+  lineage for, and 15.6 % of their rows pool multiple doses into one condition (median 1, max 8) where ours
+  never do.
+- ⇒ **The defensible claim is narrow: on their benchmark, under transfer, v9 reaches 0.49–0.62 delta where
+  XPert reaches 0.86.** Closing that would require training v9 on their corpus with their preprocessing —
+  which §36.1 shows their release does not permit without reconstructing inputs they did not ship.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
