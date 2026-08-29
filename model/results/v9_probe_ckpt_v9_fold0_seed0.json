@@ -10,47 +10,47 @@
       "abs_value_added_over_doing_nothing": 0.0205,
       "ablations": {
         "matched_control": {
-          "d_score": 0.01923,
+          "d_pearson": 0.10466,
           "dY_max": 5.6701,
           "fired": true
         },
         "cell_control": {
-          "d_score": -0.05486,
+          "d_pearson": 0.02697,
           "dY_max": 4.7617,
           "fired": true
         },
         "chromatin": {
-          "d_score": 0.00754,
+          "d_pearson": -0.00261,
           "dY_max": 2.9195,
           "fired": true
         },
         "drug_global": {
-          "d_score": 0.06581,
+          "d_pearson": 0.1514,
           "dY_max": 7.7944,
           "fired": true
         },
         "atom_tokens": {
-          "d_score": -0.04113,
+          "d_pearson": -0.00671,
           "dY_max": 1.7664,
           "fired": true
         },
         "lineage": {
-          "d_score": -0.00319,
+          "d_pearson": -0.00409,
           "dY_max": 3.3825,
           "fired": true
         },
         "string_mp": {
-          "d_score": 0.00033,
+          "d_pearson": -0.00035,
           "dY_max": 0.4191,
           "fired": true
         },
         "pathway_readout": {
-          "d_score": -0.00141,
+          "d_pearson": 0.00091,
           "dY_max": 0.8763,
           "fired": true
         },
         "gene_vectors": {
-          "d_score": 0.03462,
+          "d_pearson": 0.32531,
           "dY_max": 7.4588,
           "fired": true
         }
@@ -145,47 +145,47 @@
       "abs_value_added_over_doing_nothing": 0.0274,
       "ablations": {
         "matched_control": {
-          "d_score": 0.01442,
+          "d_pearson": 0.23638,
           "dY_max": 6.3457,
           "fired": true
         },
         "cell_control": {
-          "d_score": -0.03224,
+          "d_pearson": 0.02835,
           "dY_max": 4.411,
           "fired": true
         },
         "chromatin": {
-          "d_score": 0.01466,
+          "d_pearson": 0.03018,
           "dY_max": 4.5472,
           "fired": true
         },
         "drug_global": {
-          "d_score": 0.09721,
+          "d_pearson": 0.22344,
           "dY_max": 7.1178,
           "fired": true
         },
         "atom_tokens": {
-          "d_score": -0.04576,
+          "d_pearson": -0.02549,
           "dY_max": 2.0691,
           "fired": true
         },
         "lineage": {
-          "d_score": 0.009,
+          "d_pearson": 0.02106,
           "dY_max": 2.9916,
           "fired": true
         },
         "string_mp": {
-          "d_score": 0.00132,
+          "d_pearson": -0.00049,
           "dY_max": 0.498,
           "fired": true
         },
         "pathway_readout": {
-          "d_score": -0.00235,
+          "d_pearson": 0.00074,
           "dY_max": 0.6031,
           "fired": true
         },
         "gene_vectors": {
-          "d_score": 0.00523,
+          "d_pearson": 0.40989,
           "dY_max": 7.6649,
           "fired": true
         }
@@ -280,47 +280,47 @@
       "abs_value_added_over_doing_nothing": 0.0203,
       "ablations": {
         "matched_control": {
-          "d_score": 0.0132,
+          "d_pearson": 0.13588,
           "dY_max": 5.5839,
           "fired": true
         },
         "cell_control": {
-          "d_score": -0.04598,
+          "d_pearson": 0.01828,
           "dY_max": 5.4953,
           "fired": true
         },
         "chromatin": {
-          "d_score": 0.00506,
+          "d_pearson": -0.00574,
           "dY_max": 2.0702,
           "fired": true
         },
         "drug_global": {
-          "d_score": 0.11036,
+          "d_pearson": 0.14844,
           "dY_max": 7.3229,
           "fired": true
         },
         "atom_tokens": {
-          "d_score": -0.05557,
+          "d_pearson": -0.02187,
           "dY_max": 2.0606,
           "fired": true
         },
         "lineage": {
-          "d_score": 0.00136,
+          "d_pearson": -0.00689,
           "dY_max": 2.6147,
           "fired": true
         },
         "string_mp": {
-          "d_score": 0.00054,
+          "d_pearson": -0.00029,
           "dY_max": 0.3957,
           "fired": true
         },
         "pathway_readout": {
-          "d_score": -0.00254,
+          "d_pearson": -0.00176,
           "dY_max": 0.7636,
           "fired": true
         },
         "gene_vectors": {
-          "d_score": 0.00216,
+          "d_pearson": 0.2815,
           "dY_max": 7.6514,
           "fired": true
         }

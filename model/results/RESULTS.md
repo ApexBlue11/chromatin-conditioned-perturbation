@@ -1162,6 +1162,56 @@ Their `loss_weight: [0.2, 0.003, 0.2, 1]` = absolute 0.2, control-reconstruction
 ours is MSE-dominated at an effective 2.0 against PCC 0.5. **Directly optimising the reported metric is a
 cheap, testable lever we have not tried.**
 
+## 37. v9 interpretability report: what is load-bearing, what is a true null (2026-08-29)
+
+`model/v9/probe_v9.py` on the fixed seed-0 checkpoint, 480 rows per split, ablate-to-the-MEAN, dPearson =
+median row Pearson lost when the component is removed. Within-run on identical signatures, so seed variance
+does not apply [method rule 7].
+
+| ablated | unseen_cell | unseen_compound | unseen_both | \|dY\|max |
+|---|---|---|---|---|
+| gene representation† | **+0.325** | **+0.410** | **+0.282** | 7.5 |
+| drug global features | **+0.151** | **+0.223** | **+0.148** | 7.8 |
+| **matched control** | **+0.105** | **+0.236** | **+0.136** | 6.3 |
+| **chromatin** | −0.003 | **+0.030** | −0.006 | 4.5 |
+| per-cell control | +0.027 | +0.028 | +0.018 | 5.5 |
+| lineage | −0.004 | +0.021 | −0.007 | 3.4 |
+| atom tokens | **−0.007** | **−0.025** | **−0.022** | 2.1 |
+| STRING message passing | −0.0004 | −0.0005 | −0.0003 | 0.50 |
+| named pathway readout | +0.0009 | +0.0007 | −0.0018 | 0.88 |
+
+† **This row does NOT isolate the pretrained gene vectors.** `gene_repr` emits learned embedding + STRING
+vector + chromatin summed; ablating the module to its gene-axis mean removes *all gene identity*, which is
+expected to be catastrophic. Attributing +0.33 to the pretrained vectors specifically would need a
+`--no_gene_vectors` training run, which has not been done.
+
+- 🟢 **The matched control is a top-three contributor** (+0.105 / +0.236 / +0.136). The data-work thesis
+  holds inside the trained model, not just in the ridge A/B.
+- 🟢 **CHROMATIN NOW CONTRIBUTES ON UNSEEN COMPOUNDS: +0.030**, against v6/v7's +0.0061 on the same split —
+  roughly five times larger — while staying ~0 on both unseen-CELL splits (−0.003 / −0.006). The pattern is
+  identical in shape to [2.5] and larger in size, which is what moving chromatin from a parallel branch to a
+  per-gene embedding summed into the gene token [handoff §D.4] was supposed to do. **It tracks cell
+  familiarity exactly as before: chromatin helps when the cell is known and the compound is not.**
+- 🔴 **ATOM TOKENS ARE ACTIVELY HARMFUL**: removing them *improves* accuracy on all three splits
+  (−0.007 / −0.025 / −0.022). The one measured improvement in this project's history came from deleting a
+  component (`v7 --no_aux`); this is the next deletion candidate, and it is cheap to test.
+- 🔴 **STRING message passing is a true null**: −0.0003…−0.0005 with \|dY\|max ≈ 0.5, so it fires and
+  contributes nothing. Unchanged from v7 despite the graph now being full-proteome.
+- 🔴 **The named pathway readout is a true null FOR ACCURACY** (+0.0009 / +0.0007 / −0.0018,
+  \|dY\|max 0.6–0.9), replicating v6/v7 exactly.
+- 🟢 **…and yet its alignment beats its own permutation null by 8–12 sd**: **+0.0806 / +0.0767 / +0.1231**
+  against nulls of −0.0002 ± 0.0085, −0.0002 ± 0.0100, −0.0008 ± 0.0099, all **p = 0.005**. Chance for this
+  readout was measured at ≈ 0.000 ± 0.010 on an untrained model [§32].
+- ⇒ **This is the cleanest statement of the project's position.** The named pathway layer buys **nothing**
+  in accuracy and carries **real, measurable mechanistic signal**. Those are not in tension; they are the
+  reason the interpretability claim has to be made on its own null rather than on the accuracy number.
+
+**Correction to the probe itself.** The first version of this table reported `y.abs().mean()` — the change
+in prediction MAGNITUDE, which is what \|dY\|max already answers — as though it were a contribution. Worse,
+the accuracy lambda that existed alongside it indexed a global target array per chunk, so it would only
+have lined up for the first chunk. Both fixed; every number above is a change in accuracy against that
+chunk's own targets.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
