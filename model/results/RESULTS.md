@@ -1482,6 +1482,22 @@ A model refitted per fold sees no difference between the folds (+0.0008). The fi
 +0.047. ⇒ **the released warm checkpoint was trained on `split_2`**, and `split_2` is the only fold on
 which it can be scored honestly.
 
+### 42.1a The contamination model, confirmed quantitatively
+
+If the checkpoint trained on `split_2`'s train rows, three predictions follow, and all three hold:
+
+| rows scored | seen by the checkpoint? | predicted | **measured Pearson_deg** |
+|---|---|---|---|
+| `split_2` **train** | yes, all | high | **0.7421** |
+| `split_2` **test** | no, none | low | **0.6932** |
+| `split_1` **train** | ~80 % (it is the corpus minus `split_1` test, and one fifth of that is `split_2` test) | 0.8 x 0.7421 + 0.2 x 0.6932 = **0.732** | **0.7292** |
+
+The memorisation gap is **+0.049**, and the mixed fold lands within 0.003 of the value the mixture
+predicts. This also explains why the earlier train-vs-test check in §41.4 showed nothing: it compared
+`split_1` train against `split_1` test, and **both** are inside `split_2`'s training set, because the five
+folds partition the corpus — so `split_1` test is entirely contained in `split_2` train. That check was
+sound but blind by construction; only `split_2` test is outside.
+
 ### 42.2 Their model's honest number on their own benchmark, with the nulls attached
 
 Full `split_2` test set, n = 13,766, their metric:

@@ -1,0 +1,13 @@
+{
+  "split_2": {
+    "Pearson": 0.9828,
+    "Pearson_deg": 0.7421,
+    "Spearman": 0.9817,
+    "Spearman_deg": 0.6616,
+    "MSE": 0.1682,
+    "MSE_deg": 0.1682,
+    "copy_ctl_Pearson": 0.9589,
+    "n": 3000,
+    "abs_value_added": 0.0239
+  }
+}
