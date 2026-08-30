@@ -13,10 +13,10 @@ number the model would have seen) in a dict keyed by pert_idx, which is exactly 
 CORRECTNESS OF THE OFFSETS is checked, not assumed, three ways:
   1. a row re-fetched through a differently-aligned range must be byte-identical;
   2. column 0 is a padding mask, so every row must be a run of 1s followed by 0s;
-  3. Uni-Mol tokenises every atom INCLUDING hydrogens plus two special tokens, so mask_len minus the
-     molecule's all-atom count from its SMILES must be the SAME integer for every molecule (+2 here).
-     An earlier version of this check compared against the HEAVY-atom count and fired on correct data --
-     the offsets were right and the assumption was wrong. Constancy is the invariant; the value is not.
+  3. Uni-Mol tokenises every atom INCLUDING hydrogens plus two special tokens, and the array holds 122
+     atom slots, so mask_len == min(n_atoms + 2, 122) EXACTLY for every molecule. Two earlier versions of
+     this check were wrong on correct data -- one compared against the HEAVY-atom count, the other demanded
+     a constant offset and fired on the 30 molecules of 1,970 large enough to be truncated at the cap.
 
     python model/v9/fetch_xpert_unimol.py --idx_file idx.json --out unimol_subset.npz
 """
@@ -147,30 +147,39 @@ def main():
         raise SystemExit('FATAL: %d rows have a malformed atom mask, e.g. %s' % (len(bad), bad[:3]))
     print('offset check 2 OK: all %d atom masks are prefix runs of 1s' % len(feats), flush=True)
 
-    # ---- offset check 3: the mask length must equal the molecule's ALL-ATOM count plus a CONSTANT ----
-    # Uni-Mol tokenises every atom including hydrogens and adds two special tokens, so for a correctly
-    # strided fetch mask_len - AddHs(mol).GetNumAtoms() is the SAME integer for every molecule (+2 here).
-    # A wrong stride would scatter that difference; asserting constancy is stronger than asserting a value,
-    # and does not hard-code a tokenisation convention we only inferred.
+    # ---- offset check 3: mask_len must equal min(all_atom_count + 2, atom capacity) ----
+    # Uni-Mol tokenises every atom INCLUDING hydrogens and adds two special tokens, and the array holds at
+    # most A=122 atom slots, so a correctly-strided row satisfies mask_len == min(n_atoms + 2, A) EXACTLY.
+    # Two earlier versions of this check were wrong on correct data: the first compared against the
+    # HEAVY-atom count, the second demanded a constant offset and so fired on the 30 molecules of 1,970
+    # that are large enough to be TRUNCATED at the cap. The offsets were right both times. This form is
+    # exact and covers both regimes, so a real stride error still cannot pass it.
     note = 'rdkit or SMILES unavailable -- check skipped'
     if os.path.exists(SMI):
         try:
             from rdkit import Chem, RDLogger
             RDLogger.DisableLog('rdApp.*')
             smi = np.load(SMI, allow_pickle=True).item()
-            diffs = {}
+            n_ok = n_trunc = 0
+            bad = []
             for i in list(feats)[:400]:
                 s_i = smi.get(i)
                 m = Chem.MolFromSmiles(s_i) if s_i else None
                 if m is None:
                     continue
-                d = int(feats[i][:, 0].sum()) - Chem.AddHs(m).GetNumAtoms()
-                diffs[d] = diffs.get(d, 0) + 1
-            if diffs:
-                note = 'mask_len - all_atom_count over %d molecules: %s' % (sum(diffs.values()), diffs)
-                if len(diffs) != 1:
-                    raise SystemExit('FATAL: mask length is not a constant offset from the atom count '
-                                     '(%s) -- the row stride is wrong' % note)
+                want_len = min(Chem.AddHs(m).GetNumAtoms() + 2, A)
+                got_len = int(feats[i][:, 0].sum())
+                if got_len != want_len:
+                    bad.append((i, got_len, want_len))
+                elif got_len == A:
+                    n_trunc += 1
+                else:
+                    n_ok += 1
+            if bad:
+                raise SystemExit('FATAL: %d molecules have mask_len != min(n_atoms + 2, %d), e.g. %s '
+                                 '-- the row stride is wrong' % (len(bad), A, bad[:3]))
+            note = '%d molecules match n_atoms + 2 exactly, %d are truncated at the %d-atom cap' % (
+                n_ok, n_trunc, A)
         except ImportError:
             pass
     print('offset check 3 OK: %s' % note, flush=True)

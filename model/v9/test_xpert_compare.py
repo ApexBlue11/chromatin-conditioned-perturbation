@@ -159,16 +159,24 @@ def main():
         got_any = True
         z = np.load(p)
         smi = np.load(smi_p, allow_pickle=True).item()
-        diffs = {}
+        A = z['feat'].shape[1]
+        bad, n_ok, n_trunc = [], 0, 0
         for i, f in list(zip(z['idx'], z['feat']))[:300]:
             s_i = smi.get(int(i))
             m = Chem.MolFromSmiles(s_i) if s_i else None
             if m is None:
                 continue
-            d = int(f[:, 0].sum()) - Chem.AddHs(m).GetNumAtoms()
-            diffs[d] = diffs.get(d, 0) + 1
-        check('unimol %s: mask length is a CONSTANT offset from the all-atom count (stride is right)'
-              % name, len(diffs) == 1, str(diffs))
+            want = min(Chem.AddHs(m).GetNumAtoms() + 2, A)
+            got = int(f[:, 0].sum())
+            if got != want:
+                bad.append((int(i), got, want))
+            elif got == A:
+                n_trunc += 1
+            else:
+                n_ok += 1
+        check('unimol %s: mask_len == min(n_atoms + 2, %d) for every molecule (stride is right, and '
+              'truncation at the cap is accounted for)' % (name, A), not bad,
+              '%d exact, %d truncated, %d bad %s' % (n_ok, n_trunc, len(bad), bad[:2]))
         masks = z['feat'][:, :, 0]
         check('unimol %s: every atom mask is a prefix run of 1s' % name,
               bool(np.all(np.diff(masks, axis=1) <= 0)))
