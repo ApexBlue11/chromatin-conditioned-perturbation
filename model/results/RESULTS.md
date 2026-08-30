@@ -1441,8 +1441,91 @@ of their own benchmark.
   score 0.5228 on those rows, and copy-the-control really is 0.9355 on the absolute convention — but the
   XPert column there should not be read as a held-out result, and the sentence "their published numbers
   reproduce exactly, which validates the artefact" validates only the *arrays*, not the *evaluation*.
-- ⇒ The comparison that survives is the one §42 makes: **their released checkpoint and ours, on the
-  held-out rows of their own published split.**
+- ⇒ The comparison that survives is their released checkpoint and ours on the held-out rows of their
+  own published split — but §42 shows that split must be `split_2`, the only fold their
+  checkpoint did not train on.
+
+## 42. 🔴 Which fold their released checkpoint was trained on — and what it scores when that is respected (2026-08-30)
+
+`model/v9/xpert_native_eval.py --diagnose`, `model/v9/xpert_mdmt_baselines.py`. Their checkpoint is named
+`l1000_mdmt_warm_split.pth` and their benchmark has **five** warm folds. Which one it was trained on is not
+recorded anywhere in the release — and it decides whether any number measured on a given fold is a
+held-out result or a partly in-sample one, because each fold's train set is 80 % of the corpus, so a fold's
+test rows are ~80 % *inside* every other fold's training set.
+
+Scoring the one checkpoint on all five folds answers it. Mean of per-row Pearson, their convention,
+1,500 sampled test rows per fold:
+
+| fold scored | Pearson | **Pearson_deg** |
+|---|---|---|
+| `split_2` | 0.9801 | **0.6939** |
+| `split_5` | 0.9832 | 0.7384 |
+| `split_4` | 0.9825 | 0.7423 |
+| `split_3` | 0.9824 | 0.7434 |
+| `split_1` | 0.9825 | 0.7435 |
+
+**`split_2` sits 0.045–0.050 below the other four, which cluster within 0.005 of each other.** That is the
+shape contamination makes: one genuinely held-out fold, four whose test rows the model largely trained on.
+
+### 42.1 The control that makes the inference safe
+
+A lower score could in principle mean `split_2` is simply a harder fold. It is not, and this is measured
+rather than argued: a **closed-form ridge refitted from scratch on each fold** — which by construction has
+seen no test row of either — scores essentially the same on both.
+
+| | fitted per fold | `split_1` delta | `split_2` delta |
+|---|---|---|---|
+| ridge | yes | 0.6054 | 0.6062 |
+| **XPert released checkpoint** | **no, one fixed checkpoint** | **0.7403** | **0.6932** |
+
+A model refitted per fold sees no difference between the folds (+0.0008). The fixed checkpoint sees
++0.047. ⇒ **the released warm checkpoint was trained on `split_2`**, and `split_2` is the only fold on
+which it can be scored honestly.
+
+### 42.2 Their model's honest number on their own benchmark, with the nulls attached
+
+Full `split_2` test set, n = 13,766, their metric:
+
+| predictor | Pearson (abs) | **Pearson_deg** | delta over copy-the-control (abs) |
+|---|---|---|---|
+| copy the control | 0.9592 | 0 by construction | — |
+| mean drug delta | 0.9621 | 0.2203 | +0.003 |
+| ridge | 0.9747 | 0.6062 | +0.016 |
+| **XPert, released checkpoint** | **0.9797** | **0.6932** | **+0.021** |
+
+- **XPert's held-out delta on its own benchmark is 0.693, and a ridge on [control, ECFP4, descriptors,
+  log dose, time] reaches 0.606.** The published absolute Pearson of ~0.98 is dominated by the control:
+  copying it unchanged scores 0.959, so the model's value-added on that convention is **+0.021**.
+- The same three baselines on the other two regimes, for reference (`split_cold_cell_1` n=21,321,
+  `split_cold_drug_1` n=13,445):
+
+| split | copy-ctl (abs) | mean-drug (delta) | ridge (delta) |
+|---|---|---|---|
+| `split_1` warm | 0.9597 | 0.2211 | 0.6054 |
+| `split_cold_cell_1` | 0.9571 | 0.1105 | **0.2951** |
+| `split_cold_drug_1` | 0.9588 | 0.0778 | **0.5295** |
+
+  Cold-**cell** is far harder than cold-**drug** for a linear model (0.295 vs 0.530) — **the same asymmetry
+  this project reported from its own data [CLAIMS 1.5, "cell-specificity, not chemistry, is the hard
+  part"], now reproduced on an external benchmark with someone else's splits.**
+
+### 42.3 How warm their warm split actually is
+
+On `split_1`, of the 13,766 held-out rows: **100.0 % use a cell line seen in training, 99.9 % a compound
+seen in training, and 99.8 % have the exact (cell, compound) PAIR in the training set.** Only the specific
+dose/time condition is unseen — and 18.9 % of rows pool doses in the first place [§41.3]. This is the
+regime their headline is quoted in, and §28 found the same for their tissue splits (89.4 % of pairs seen).
+
+### 42.4 Two checks on the apparatus itself
+
+- **Device independence.** The 13,766-row `split_1` evaluation was run on CPU and again on the RTX 3050:
+  max |CPU − GPU| over 13,766 × 978 predictions is **1.1e-05**, mean 1.3e-07, and Pearson_deg agrees to six
+  decimals (0.740281 both). The flash-attention stand-in and the rest of the driver are numerically
+  device-independent. GPU is ~12× faster (0.0125 vs 0.15 s/row), which is what makes the five-fold sweep
+  affordable.
+- **Input coverage on this benchmark is good**, unlike the tissue splits: we have chromatin/lineage for
+  **33 of their 40 cell lines (96.97 % of test rows)** and drug features for **98.81 %**. The 164 rows we
+  cannot featurise are dropped from both sides, and the paired comparison refuses to run below 95 % overlap.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

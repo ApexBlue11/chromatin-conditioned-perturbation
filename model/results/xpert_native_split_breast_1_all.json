@@ -1,13 +1,13 @@
 {
   "split_breast_1": {
-    "Pearson": 0.9678,
-    "Pearson_deg": 0.7297,
-    "Spearman": 0.9652,
-    "Spearman_deg": 0.6844,
-    "MSE": 0.3252,
-    "MSE_deg": 0.3252,
-    "copy_ctl_Pearson": 0.92,
-    "n": 3439,
-    "abs_value_added": 0.0478
+    "Pearson": 0.9563,
+    "Pearson_deg": 0.6317,
+    "Spearman": 0.9533,
+    "Spearman_deg": 0.5861,
+    "MSE": 0.4479,
+    "MSE_deg": 0.4479,
+    "copy_ctl_Pearson": 0.921,
+    "n": 400,
+    "abs_value_added": 0.0353
   }
 }

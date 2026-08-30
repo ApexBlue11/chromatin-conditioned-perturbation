@@ -1,0 +1,57 @@
+{
+  "split_1": {
+    "Pearson": 0.9825,
+    "Pearson_deg": 0.7435,
+    "Spearman": 0.9814,
+    "Spearman_deg": 0.6659,
+    "MSE": 0.1719,
+    "MSE_deg": 0.1719,
+    "copy_ctl_Pearson": 0.958,
+    "n": 1500,
+    "abs_value_added": 0.0245
+  },
+  "split_2": {
+    "Pearson": 0.9801,
+    "Pearson_deg": 0.6939,
+    "Spearman": 0.979,
+    "Spearman_deg": 0.6111,
+    "MSE": 0.1944,
+    "MSE_deg": 0.1944,
+    "copy_ctl_Pearson": 0.9594,
+    "n": 1500,
+    "abs_value_added": 0.0207
+  },
+  "split_3": {
+    "Pearson": 0.9824,
+    "Pearson_deg": 0.7434,
+    "Spearman": 0.9814,
+    "Spearman_deg": 0.6637,
+    "MSE": 0.1714,
+    "MSE_deg": 0.1714,
+    "copy_ctl_Pearson": 0.9572,
+    "n": 1500,
+    "abs_value_added": 0.0253
+  },
+  "split_4": {
+    "Pearson": 0.9825,
+    "Pearson_deg": 0.7423,
+    "Spearman": 0.9815,
+    "Spearman_deg": 0.663,
+    "MSE": 0.1708,
+    "MSE_deg": 0.1708,
+    "copy_ctl_Pearson": 0.9589,
+    "n": 1500,
+    "abs_value_added": 0.0237
+  },
+  "split_5": {
+    "Pearson": 0.9832,
+    "Pearson_deg": 0.7384,
+    "Spearman": 0.9822,
+    "Spearman_deg": 0.6557,
+    "MSE": 0.1632,
+    "MSE_deg": 0.1632,
+    "copy_ctl_Pearson": 0.9611,
+    "n": 1500,
+    "abs_value_added": 0.0222
+  }
+}
