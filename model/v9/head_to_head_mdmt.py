@@ -85,22 +85,38 @@ def main():
     ap.add_argument('--bundle', default=BUNDLE)
     ap.add_argument('--split', default='split_1')
     ap.add_argument('--out', default=None)
+    ap.add_argument('--min_overlap', type=float, default=0.95,
+                    help='refuse if the two models score fewer than this fraction of the same rows')
     a = ap.parse_args()
 
     T = load_theirs(a.theirs)
     seeds = [load_ours(p) for p in a.ours]
-    for k, O in enumerate(seeds):
-        if not np.array_equal(np.sort(T['row_index']), np.sort(O['row_index'])):
-            raise SystemExit('FATAL: %s covers different rows than %s -- refusing to compare'
-                             % (a.ours[k], a.theirs))
 
-    # put every array in THEIR row order
-    order = {int(r): i for i, r in enumerate(T['row_index'])}
+    # Their checkpoint scores every row of their split; ours cannot score rows whose compound we have no
+    # features for (164 of 13,766 on split_1). The comparison therefore runs on the INTERSECTION, which is
+    # reported rather than absorbed -- and it must be nearly all of their split, or the two models are
+    # being compared on different tasks.
+    common = set(int(r) for r in T['row_index'])
     for O in seeds:
-        perm = np.array([order[int(r)] for r in O['row_index']])
-        inv = np.argsort(perm)
-        for key in ['y_pred', 'y_true', 'ctl_true', 'row_index']:
-            O[key] = O[key][inv]
+        common &= set(int(r) for r in O['row_index'])
+    common = np.array(sorted(common), np.int64)
+    frac = len(common) / max(1, len(T['row_index']))
+    if frac < a.min_overlap:
+        raise SystemExit('FATAL: only %d of %d rows are scored by both models (%.1f%%), below the %.0f%% '
+                         'floor -- these are different rows, not a comparison'
+                         % (len(common), len(T['row_index']), 100 * frac, 100 * a.min_overlap))
+    if len(common) < len(T['row_index']):
+        print('comparing on the %d of %d rows BOTH models can score (%d dropped: no drug features on our '
+              'side)' % (len(common), len(T['row_index']), len(T['row_index']) - len(common)), flush=True)
+
+    def take(d, ridx):
+        pos = {int(r): i for i, r in enumerate(d['row_index'])}
+        sel = np.array([pos[int(r)] for r in ridx])
+        return {k: (v[sel] if hasattr(v, '__len__') and len(v) == len(d['row_index']) else v)
+                for k, v in d.items()}
+
+    T = take(T, common)
+    seeds = [take(O, common) for O in seeds]
     for O in seeds:
         if not np.allclose(O['y_true'], T['y_true'], atol=1e-3):
             raise SystemExit('FATAL: the two runs disagree about the TARGET on aligned rows; '

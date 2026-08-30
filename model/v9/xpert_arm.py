@@ -90,6 +90,27 @@ class XPertData:
 
         # --- our drug features, keyed by their pert_id ---
         di = json.load(open(find('drug_feature_index.json', roots)))
+        # Rows whose compound we cannot featurise are DROPPED, counted and reported -- never silently
+        # imputed. The tissue bundle was pre-filtered upstream; this one is not, because dropping rows
+        # before the split would change which rows their checkpoint is scored on.
+        have = np.array([p in di for p in self.pert])
+        if not have.all():
+            keep2 = np.flatnonzero(have)
+            remap = -np.ones(len(have), np.int64)
+            remap[keep2] = np.arange(len(keep2))
+            n_tr0, n_te0 = len(self.tr), len(self.te)
+            self.tr = remap[self.tr[have[self.tr]]]
+            self.te = remap[self.te[have[self.te]]]
+            for attr in ['X', 'C', 'pert', 'cell', 'dose', 'time', 'row_index']:
+                setattr(self, attr, getattr(self, attr)[keep2])
+            self.n_dropped_train = n_tr0 - len(self.tr)
+            self.n_dropped_test = n_te0 - len(self.te)
+            print('dropped %d train and %d test rows whose compound we cannot featurise '
+                  '(%.2f%% of test); the comparison runs on the rows BOTH models can score'
+                  % (self.n_dropped_train, self.n_dropped_test,
+                     100 * self.n_dropped_test / max(1, n_te0)), flush=True)
+        else:
+            self.n_dropped_train = self.n_dropped_test = 0
         rows = np.array([di[p] for p in self.pert])
         desc = np.load(find('drug_descriptors.npy', roots)).astype(np.float32)
         desc = (desc - desc.mean(0)) / (desc.std(0) + 1e-6)
@@ -301,14 +322,17 @@ def main():
     print('   the HDACi figure subset, NOT this benchmark, so it is not printed as a target --')
     print('   the like-for-like number is their checkpoint run on these same rows by')
     print('   model/v9/xpert_native_eval.py.)')
-    print(f'\n  {100 * (1 - D.known_cell_frac):.1f}% of rows use a cell line we have no chromatin or lineage '
-          f'for; 5.4% of their split rows were dropped for lack of drug features.')
+    print('')
+    print(f'  {100 * (1 - D.known_cell_frac):.1f}% of rows use a cell line we have no chromatin or'
+          f' lineage for; {D.n_dropped_test} test and {D.n_dropped_train} train rows were dropped'
+          f' for lack of drug features.')
     WORK = '/kaggle/working' if os.path.isdir('/kaggle/working') else os.path.join(
         os.path.dirname(os.path.dirname(HERE)), 'model', 'results')
     os.makedirs(WORK, exist_ok=True)
     tag = a.split if a.seeds == 3 and a.seed_start == 0 else f'{a.split}_seed{a.seed_start}'
     out = os.path.join(WORK, f'v9_xpert_arm_{tag}.json')
     json.dump({'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
+               'n_dropped_test_unfeaturisable': int(getattr(D, 'n_dropped_test', 0)),
                'metric': 'mean of per-row Pearson (XPert metrics.py convention)',
                'known_cell_frac': round(D.known_cell_frac, 4),
                'n_train': int(len(D.tr)), 'n_test': int(len(D.te))}, open(out, 'w'), indent=2)
