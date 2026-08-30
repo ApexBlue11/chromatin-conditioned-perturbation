@@ -1,0 +1,122 @@
+{
+  "split": "split_1",
+  "n_rows": 13602,
+  "n_seeds": 2,
+  "metric": "per-row Pearson; mean is XPert metrics.py convention",
+  "XPert_released_ckpt": {
+    "abs": {
+      "mean": 0.9828,
+      "ci95": [
+        0.9825,
+        0.983
+      ],
+      "median": 0.9871,
+      "n": 13602
+    },
+    "delta": {
+      "mean": 0.7404,
+      "ci95": [
+        0.739,
+        0.7418
+      ],
+      "median": 0.7393,
+      "n": 13602
+    }
+  },
+  "ours_label": "v9 (2 seeds)",
+  "v9_ours": {
+    "abs": {
+      "mean": 0.9806,
+      "ci95": [
+        0.9802,
+        0.9809
+      ],
+      "median": 0.9859,
+      "n": 13602
+    },
+    "delta": {
+      "mean": 0.7059,
+      "ci95": [
+        0.704,
+        0.7076
+      ],
+      "median": 0.708,
+      "n": 13602
+    }
+  },
+  "copy_the_control": {
+    "abs": {
+      "mean": 0.9594,
+      "ci95": [
+        0.9588,
+        0.96
+      ],
+      "median": 0.971,
+      "n": 13602
+    },
+    "delta": 0.0
+  },
+  "paired_delta_ours_minus_theirs": {
+    "delta_mean": -0.0345,
+    "ci95": [
+      -0.0354,
+      -0.0337
+    ],
+    "frac_rows_a_better": 0.1955,
+    "n": 13602,
+    "wilcoxon_p": 0.0
+  },
+  "paired_abs_ours_minus_theirs": {
+    "delta_mean": -0.0022,
+    "ci95": [
+      -0.0023,
+      -0.0021
+    ],
+    "frac_rows_a_better": 0.227,
+    "n": 13602,
+    "wilcoxon_p": 0.0
+  },
+  "per_seed_delta": [
+    0.7056,
+    0.7061
+  ],
+  "strata_strength": {
+    "Q1  mean|d| 0.06-0.26": {
+      "n": 3401,
+      "XPert": 0.7109,
+      "ours": 0.6806
+    },
+    "Q2  mean|d| 0.26-0.33": {
+      "n": 3400,
+      "XPert": 0.7267,
+      "ours": 0.6952
+    },
+    "Q3  mean|d| 0.33-0.45": {
+      "n": 3400,
+      "XPert": 0.7408,
+      "ours": 0.704
+    },
+    "Q4  mean|d| 0.45-2.03": {
+      "n": 3401,
+      "XPert": 0.7831,
+      "ours": 0.7436
+    }
+  },
+  "strata_delta": {
+    "single-dose rows": {
+      "n": 11052,
+      "XPert": 0.7326,
+      "ours": 0.6953
+    },
+    "pooled-dose rows": {
+      "n": 2550,
+      "XPert": 0.7743,
+      "ours": 0.7516
+    },
+    "(cell,compound) pair in train": {
+      "n": 13575,
+      "XPert": 0.7405,
+      "ours": 0.7061
+    }
+  }
+}
