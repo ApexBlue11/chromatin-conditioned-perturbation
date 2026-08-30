@@ -1467,6 +1467,11 @@ Scoring the one checkpoint on all five folds answers it. Mean of per-row Pearson
 **`split_2` sits 0.045–0.050 below the other four, which cluster within 0.005 of each other.** That is the
 shape contamination makes: one genuinely held-out fold, four whose test rows the model largely trained on.
 
+The sweep was run twice, on **independent random samples and different hardware** -- n=1,500 on the RTX
+3050 (above) and n=1,200 on CPU. The CPU pass gives `split_2` 0.6959 against 0.7396 / 0.7415 / 0.7436 /
+0.7450, and the CPU `split_1`-train control gives 0.7267 against the GPU's 0.7292. The ordering and the
+size of the gap replicate.
+
 ### 42.1 The control that makes the inference safe
 
 A lower score could in principle mean `split_2` is simply a harder fold. It is not, and this is measured
