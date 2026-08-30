@@ -1409,13 +1409,15 @@ can be stratified on them.
 
 `model/v9/xpert_native_eval.py`. Their `reproducing/fig4/hdaci_predict/y_pred.npy` is the artefact §39 and
 §40 were read against, and its rows are in the same order as the h5ad, so their checkpoint can be run on
-exactly those rows. It does not reproduce them. Mean of per-row Pearson, their convention, all 3,439 rows:
+exactly those rows. **None of the three released mdmt checkpoints reproduces them.** Mean of per-row Pearson,
+their convention, all 3,439 rows:
 
 | predictor on the 3,439 HDACi rows | Pearson (abs) | Pearson_deg |
 |---|---|---|
 | their released `y_pred.npy` | 0.9804 | **0.8440** |
 | `l1000_mdmt_warm_split.pth` (their released warm checkpoint) | 0.9589 | **0.6444** |
 | `pretrain_mdmt_full_200_epoch.pth` | 0.9711 | **0.7610** |
+| `pretrain_mdmt_new.pth` | 0.9678 | **0.7297** |
 | copy-the-control | 0.9200 | 0 |
 
 The reason shows up when the rows are split by whether they are in the 68,830-row benchmark corpus at all
