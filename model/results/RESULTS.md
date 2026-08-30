@@ -1537,6 +1537,20 @@ seen in training, and 99.8 % have the exact (cell, compound) PAIR in the trainin
 dose/time condition is unseen — and 18.9 % of rows pool doses in the first place [§41.3]. This is the
 regime their headline is quoted in, and §28 found the same for their tissue splits (89.4 % of pairs seen).
 
+### 42.4a Two per-cell facts that constrain how our own numbers may be read
+
+Scoring XPert's predictions per cell line on `split_2` (25 cells with >= 30 test rows):
+
+- **Accuracy is flat in per-cell training volume**: Spearman(training rows for that cell, per-cell
+  Pearson_deg) = **0.094**. A cell with 159 training rows (HEC108, 0.6037) is not systematically worse than
+  one with 8,776 (MCF7, 0.6855). That is what a 99.8 %-pair-seen warm split should look like — per-cell data
+  volume barely matters when the exact (cell, compound) pair is already in training.
+- 🔴 **The cells we have chromatin for are EASIER than the ones we do not** — on XPert's own predictions,
+  which use no chromatin at all: **0.7050 over the 18 covered cells vs 0.6744 over the 7 uncovered**. This
+  is a property of which cells our panel happens to cover, not evidence about chromatin. It means any v9
+  number computed on the chromatin-covered subset is flattered by ~0.03 relative to the full set, and a
+  chromatin ablation must be run **within** the covered cells, never by comparing covered against uncovered.
+
 ### 42.5 A large part of the residual error is target noise, not model error
 
 `model/v9/replicate_noise_mdmt.py`. Their benchmark ships no noise ceiling and their metric reports none,
