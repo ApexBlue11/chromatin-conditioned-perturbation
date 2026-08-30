@@ -154,8 +154,10 @@ robust.
 ## 8. Limitations
 Single fold (§7); no protocol-matched baseline (§6); chromatin covers 45/83 cells with no imputation;
 attribution is modest and evaluated in-distribution; the epigenetics benefit does not transfer to unseen
-cells [2.6]; novelty of atom→gene attention relative to XPert is **unresolved** [7.3]; the chromatin-
-conditioning novelty claim rests on targeted, not systematic, search [7.1].
+cells [2.6]; **atom→gene attention is NOT a novel mechanism — XPert computes the same per-gene x per-atom
+cross-attention on the same Uni-Mol features, ablates it and visualises it, settled 2026-08-30 by reading
+their released source [7.3, RESULTS §41]**, so the attribution result stands as a finding about our model but not as an
+architectural contribution; the chromatin-conditioning novelty claim rests on targeted, not systematic, search [7.1].
 
 ## 9. Reproducibility
 Code, environments (three, pinned), figure-generation script and the full claims ledger — including
