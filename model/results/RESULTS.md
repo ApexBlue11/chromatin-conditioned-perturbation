@@ -1601,6 +1601,84 @@ doubles it -- Spearman(replicates, Pearson) goes from **0.1438 raw to 0.3017 wit
   This is still far better than the tissue splits (§28: 143 of 217 cells had neither), and 80.7 % is the
   figure any claim about the chromatin branch on this benchmark has to be read against.
 
+## 43. v9 vs XPert on the fold NEITHER model has seen — v9 ahead, and not because of chromatin (2026-08-30)
+
+`model/v9/xpert_arm.py`, `model/v9/head_to_head_mdmt.py`. v9 trained on `split_2`'s training rows — the
+only fold their released checkpoint did not train on [§42] — and both models scored on the same 13,615
+held-out rows, with their metric and their prediction convention.
+
+**Seeds: 2 of 3 complete at time of writing (0.7051, 0.7055); the third is on the GPU. This project's rule
+is three seeds or no difference reported, so the headline below is provisional until it lands.** Seed
+spread so far is 0.0004, and was 0.0005 on `split_1`.
+
+| `split_2` test, n = 13,615 | absolute Pearson | **delta Pearson** |
+|---|---|---|
+| copy the control | 0.9591 | 0 by construction |
+| mean drug delta | 0.9621 | 0.2203 |
+| ridge | 0.9747 | 0.6062 |
+| **XPert, their released checkpoint** | 0.9796 | **0.6933** [0.6915, 0.6951] |
+| **v9 (ours)** | 0.9803 | **0.7051** [0.7033, 0.7068] |
+
+Paired on identical rows: **+0.0118 [0.0111, 0.0125]** in v9's favour, ahead on **66.6 %** of rows,
+Wilcoxon p ~ 0, confidence intervals disjoint.
+
+### 43.1 The verdict does not depend on the metric
+
+A lead that exists only under the metric the other paper happens to report is not a result. v9 is ahead on
+all eight:
+
+| metric | XPert | v9 | better |
+|---|---|---|---|
+| Pearson_deg, mean (their metric) | 0.6933 | 0.7051 | v9 |
+| Pearson_deg, median (our old convention) | 0.6981 | 0.7082 | v9 |
+| Pearson_abs, mean | 0.9796 | 0.9803 | v9 |
+| Spearman_deg, mean | 0.6088 | 0.6316 | v9 |
+| MSE_deg (lower better) | 0.2001 | 0.1921 | v9 |
+| MAE_deg (lower better) | 0.2761 | 0.2651 | v9 |
+| Precision@100 up-genes | 0.5003 | 0.5162 | v9 |
+| Precision@100 down-genes | 0.5202 | 0.5355 | v9 |
+
+v9 also leads in every effect-size quartile (Q1 0.6801 vs 0.6661 … Q4 0.7427 vs 0.7321) and in both dose
+strata. `MSE_deg` and `MSE_abs` come out identical for both models — the expected consequence of both
+anchoring the absolute prediction as control + delta, and a free consistency check on the comparison.
+
+### 43.2 🔴 NEGATIVE: the lead is NOT attributable to the chromatin branch
+
+The obvious hypothesis is that v9 wins because it sees chromatin and XPert does not. **It does not survive
+its own test.** XPert uses no chromatin at all, so it serves as a per-cell difficulty control: if chromatin
+were driving the margin, the margin would be larger on the cells we have chromatin for.
+
+| cells | rows | XPert | v9 | **v9 margin** |
+|---|---|---|---|---|
+| with a chromatin track (18 of 40) | 10,980 | 0.6939 | 0.7057 | **+0.0118** |
+| without | 2,635 | 0.6906 | 0.7036 | **+0.0130** |
+
+**Difference in margin: −0.0011, 95 % CI [−0.0029, +0.0007]** — spans zero, and bounds any chromatin-driven
+difference at under 0.003. This is consistent with the project's own repeated finding that the epigenetics
+benefit does not transfer across cells [CLAIMS 2.5, 2.6].
+
+Stated limits: cells "without chromatin" still receive a lineage vector and a zeroed chromatin input with
+its mask, so this is an observational split rather than an ablation; and the arm does not save a checkpoint,
+so the project's standard ablate-to-the-mean test could not be run on these weights. A definitive answer
+needs a retrain with the branch removed, or a saved checkpoint to ablate. **What can be said now is that
+v9's advantage over XPert on their benchmark is not explained by the input XPert lacks.**
+
+### 43.3 What is and is not claimed
+
+- **Claimed:** on XPert's own published benchmark, on the only fold their released checkpoint did not train
+  on, evaluated with their code, their metric and their prediction convention on identical rows, v9 scores
+  higher than their released checkpoint by +0.0118 delta Pearson, on every metric tried.
+- **Not claimed:** that v9 is a better model in general. This is one benchmark, one warm split, and their
+  split is extremely warm (99.8 % of test rows share a (cell, compound) pair with training [§42.3]).
+- **The budget asymmetry runs in THEIR favour, not ours:** their checkpoint is epoch 164 (their config
+  allows 2,500 with patience 50); v9 gets **12**. v9's schedule anneals to zero, so 12 epochs is a complete
+  run at that budget rather than a truncated one, and a 36-epoch probe is running to bound the effect.
+- Both models use inputs the other lacks — v9 has chromatin (80.7 % of rows) and lineage, XPert has a
+  heterogeneous-graph drug embedding and a cell-identity auxiliary loss. Each is the model as its authors
+  designed it.
+- 151 test rows (1.1 %) use a compound we cannot featurise and are dropped from **both** sides; the
+  comparison refuses to run below 95 % row overlap.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
