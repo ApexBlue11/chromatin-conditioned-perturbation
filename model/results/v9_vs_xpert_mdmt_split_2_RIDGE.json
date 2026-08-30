@@ -1,0 +1,99 @@
+{
+  "split": "split_2",
+  "n_rows": 13766,
+  "n_seeds": 1,
+  "metric": "per-row Pearson; mean is XPert metrics.py convention",
+  "XPert_released_ckpt": {
+    "abs": {
+      "mean": 0.9797,
+      "ci95": [
+        0.9793,
+        0.98
+      ],
+      "median": 0.9853,
+      "n": 13766
+    },
+    "delta": {
+      "mean": 0.6932,
+      "ci95": [
+        0.6914,
+        0.695
+      ],
+      "median": 0.6979,
+      "n": 13766
+    }
+  },
+  "ours_label": "ridge (baseline)",
+  "v9_ours": {
+    "abs": {
+      "mean": 0.9747,
+      "ci95": [
+        0.9744,
+        0.9751
+      ],
+      "median": 0.9817,
+      "n": 13766
+    },
+    "delta": {
+      "mean": 0.6062,
+      "ci95": [
+        0.604,
+        0.6083
+      ],
+      "median": 0.6158,
+      "n": 13766
+    }
+  },
+  "copy_the_control": {
+    "abs": {
+      "mean": 0.9592,
+      "ci95": [
+        0.9586,
+        0.9599
+      ],
+      "median": 0.9709,
+      "n": 13766
+    },
+    "delta": 0.0
+  },
+  "paired_delta_ours_minus_theirs": {
+    "delta_mean": -0.087,
+    "ci95": [
+      -0.0885,
+      -0.0857
+    ],
+    "frac_rows_a_better": 0.0913,
+    "n": 13766,
+    "wilcoxon_p": 0.0
+  },
+  "paired_abs_ours_minus_theirs": {
+    "delta_mean": -0.0049,
+    "ci95": [
+      -0.0051,
+      -0.0048
+    ],
+    "frac_rows_a_better": 0.1021,
+    "n": 13766,
+    "wilcoxon_p": 0.0
+  },
+  "per_seed_delta": [
+    0.6062
+  ],
+  "strata_delta": {
+    "single-dose rows": {
+      "n": 11204,
+      "XPert": 0.6835,
+      "v9": 0.6002
+    },
+    "pooled-dose rows": {
+      "n": 2562,
+      "XPert": 0.7358,
+      "v9": 0.6323
+    },
+    "(cell,compound) pair in train": {
+      "n": 13755,
+      "XPert": 0.6933,
+      "v9": 0.6062
+    }
+  }
+}

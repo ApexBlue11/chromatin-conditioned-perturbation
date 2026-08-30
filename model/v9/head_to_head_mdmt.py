@@ -85,6 +85,9 @@ def main():
     ap.add_argument('--bundle', default=BUNDLE)
     ap.add_argument('--split', default='split_1')
     ap.add_argument('--out', default=None)
+    ap.add_argument('--label', default='v9 (ours)',
+                    help='what --ours actually is; passing a baseline through here and leaving the label '
+                         'as v9 would put a wrong row in a results table')
     ap.add_argument('--min_overlap', type=float, default=0.95,
                     help='refuse if the two models score fewer than this fraction of the same rows')
     a = ap.parse_args()
@@ -135,6 +138,7 @@ def main():
     res = {'split': a.split, 'n_rows': int(len(y)), 'n_seeds': len(seeds),
            'metric': 'per-row Pearson; mean is XPert metrics.py convention',
            'XPert_released_ckpt': {'abs': summarize(r_them_abs), 'delta': summarize(r_them_deg)},
+           'ours_label': a.label,
            'v9_ours': {'abs': summarize(r_ours_abs), 'delta': summarize(r_ours_deg)},
            'copy_the_control': {'abs': summarize(r_copy_abs), 'delta': 0.0},
            'paired_delta_ours_minus_theirs': paired(r_ours_deg, r_them_deg),
@@ -148,13 +152,14 @@ def main():
     print('  %-26s %-26s %-26s' % ('', 'absolute Pearson', 'delta Pearson (Pearson_deg)'))
     for name, ab, dl in [('XPert released ckpt', res['XPert_released_ckpt']['abs'],
                           res['XPert_released_ckpt']['delta']),
-                         ('v9 (ours)', res['v9_ours']['abs'], res['v9_ours']['delta']),
+                         (a.label, res['v9_ours']['abs'], res['v9_ours']['delta']),
                          ('copy-the-control', res['copy_the_control']['abs'], None)]:
         d = '%.4f %s' % (dl['mean'], dl['ci95']) if dl else '0.0000  (by construction)'
         print('  %-26s %.4f %-19s %s' % (name, ab['mean'], str(ab['ci95']), d))
     p = res['paired_delta_ours_minus_theirs']
-    print('\n  paired delta (ours - theirs) : %+.4f %s   ours better on %.1f%% of rows   wilcoxon p=%s'
-          % (p['delta_mean'], p['ci95'], 100 * p['frac_rows_a_better'],
+    print('')
+    print('  paired delta (%s - XPert) : %+.4f %s   better on %.1f%% of rows   wilcoxon p=%s'
+          % (a.label, p['delta_mean'], p['ci95'], 100 * p['frac_rows_a_better'],
              ('%.3g' % p['wilcoxon_p']) if isinstance(p['wilcoxon_p'], float) else p['wilcoxon_p']))
 
     # ---- stratifications ----
@@ -168,7 +173,7 @@ def main():
                 if m.sum() > 50:
                     strat[nm] = {'n': int(m.sum()),
                                  'XPert': round(float(np.nanmean(r_them_deg[m])), 4),
-                                 'v9': round(float(np.nanmean(r_ours_deg[m])), 4)}
+                                 'ours': round(float(np.nanmean(r_ours_deg[m])), 4)}
         lab = z['split_' + a.split].astype(str)
         tr = np.flatnonzero(lab == 'train')
         pair_tr = set(zip(z['meta_cell'][tr].astype(str).tolist(),
@@ -179,12 +184,12 @@ def main():
             if m.sum() > 50:
                 strat[nm] = {'n': int(m.sum()),
                              'XPert': round(float(np.nanmean(r_them_deg[m])), 4),
-                             'v9': round(float(np.nanmean(r_ours_deg[m])), 4)}
+                             'ours': round(float(np.nanmean(r_ours_deg[m])), 4)}
         res['strata_delta'] = strat
         print('\n  delta Pearson by stratum:')
-        print('    %-34s %6s %9s %9s' % ('stratum', 'n', 'XPert', 'v9'))
+        print('    %-34s %6s %9s %9s' % ('stratum', 'n', 'XPert', a.label[:9]))
         for nm, v in strat.items():
-            print('    %-34s %6d %9.4f %9.4f' % (nm, v['n'], v['XPert'], v['v9']))
+            print('    %-34s %6d %9.4f %9.4f' % (nm, v['n'], v['XPert'], v['ours']))
 
     dst = a.out or os.path.join(os.path.dirname(HERE), 'results', 'v9_vs_xpert_mdmt_%s.json' % a.split)
     os.makedirs(os.path.dirname(dst), exist_ok=True)
