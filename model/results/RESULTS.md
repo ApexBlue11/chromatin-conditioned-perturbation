@@ -1537,6 +1537,41 @@ seen in training, and 99.8 % have the exact (cell, compound) PAIR in the trainin
 dose/time condition is unseen — and 18.9 % of rows pool doses in the first place [§41.3]. This is the
 regime their headline is quoted in, and §28 found the same for their tissue splits (89.4 % of pairs seen).
 
+### 42.5 A large part of the residual error is target noise, not model error
+
+`model/v9/replicate_noise_mdmt.py`. Their benchmark ships no noise ceiling and their metric reports none,
+but every row carries `n_replicates` -- the number of wells averaged into that condition. Averaging k wells
+cuts the target's noise by ~sqrt(k), so a noise-limited score must rise with k. It does:
+
+| replicate wells | rows | XPert Pearson_deg | mean abs delta |
+|---|---|---|---|
+| <= 2 | 4,428 | 0.6771 | 0.477 |
+| 3 | 3,640 | 0.6925 | 0.360 |
+| 4-5 | 2,455 | 0.6882 | 0.334 |
+| >= 6 | 3,243 | **0.7198** | 0.291 |
+
+**That raw column understates the effect**, because the two variables are confounded in opposing
+directions: more-replicated conditions have systematically WEAKER measured effects (mean abs delta 0.477 ->
+0.291), and §42's quartile table shows weak effects are harder. Controlling for effect size roughly
+doubles it -- Spearman(replicates, Pearson) goes from **0.1438 raw to 0.3017 within-quartile**:
+
+| effect-size quartile | n<=2 | n=3 | n=4-5 | n>=6 |
+|---|---|---|---|---|
+| Q1 (weakest) | 0.6145 | 0.6586 | 0.6551 | 0.6802 |
+| Q2 | 0.6599 | 0.6758 | 0.6680 | 0.7269 |
+| Q3 | 0.6642 | 0.6915 | 0.7032 | 0.7675 |
+| Q4 (strongest) | 0.6983 | 0.7585 | 0.7784 | **0.8372** |
+
+- **On the best-measured stratum -- strongest effect quartile, at least 6 replicate wells (n=330) -- XPert
+  reaches 0.8372**, against 0.6932 over the whole test set. The headline number is depressed by noise in
+  the LABEL, not only by model error.
+- This is the same argument this project has made from its own data (Level-3 delta self-agreement 0.5283
+  [§27.3]), now demonstrated on an external benchmark with an external model, using only a column that
+  benchmark already ships.
+- ⇒ **Any delta Pearson on this benchmark, ours or theirs, should be read as noise-limited.** A model
+  comparison is still valid -- both models face the same labels -- but "0.69 vs 0.61" understates how much
+  of the gap to 1.0 is unreachable.
+
 ### 42.4 Two checks on the apparatus itself
 
 - **Device independence.** The 13,766-row `split_1` evaluation was run on CPU and again on the RTX 3050:
