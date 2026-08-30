@@ -159,13 +159,26 @@ benchmarking papers that exist to catch what we try to catch in ourselves.
 | 6d.14 | 🔴 **In the absolute convention our ridge is WORSE than copying the control on unseen cells** (0.9184 vs 0.9257) and on cold_both (0.8966 vs 0.9080). Value added over doing nothing: XPert's released predictions +0.060, our ridge on the comparable regime +0.021 | same | **A (negative)** |
 | 6d.15 | 🔴 **An unfitted quantiser makes the expression input a silent no-op** — the model trains and reports numbers while ignoring expression entirely (\|dY\|max exactly 0.0000). Found by a design test, not by inspection; `BinnedExpression` now refuses to run before `fit()` | `test_v9.py`, 49/49 | **A (negative)** |
 
+## 6e. Running XPert's own code and weights (2026-08-30) — detail in `RESULTS.md` §41
+
+| # | Claim | Evidence | Confidence |
+|---|---|---|---|
+| 6e.1 | **Their release cannot be run as shipped**: `processed_data/` contains one `gitkeep.txt`. The missing assets are on Zenodo (`10.5281/zenodo.17182939`) and were retrieved by HTTP range request — the zip central directory, then only the needed members (714 MB of 1.6 GB), and only the 1,970 rows of their 4.5 GB UniMol array this benchmark touches (1.1 GB). Every member CRC32-verified; array offsets checked three ways | `fetch_xpert_assets.py`, `fetch_xpert_unimol.py`, 26/26 checks in `test_xpert_compare.py` | **A** |
+| 6e.2 | 🔴 **Their published HDACi figure (Pearson_deg 0.8440) is not reproducible from any of their three released mdmt checkpoints** — they give 0.6444, 0.7610, 0.7297 on the same 3,439 rows with their own code and metric | `xpert_native_eval.py` | **A** |
+| 6e.3 | 🔴 **Their released HDACi predictions score the same off their benchmark as on it** (0.8413 vs 0.8496), while the warm checkpoint drops 0.7973 → 0.5689 across the same boundary. That is the signature of a model that had those rows in training, not of generalisation | 1,136 in-corpus vs 2,303 out-of-corpus rows | **A** for the measurement; **B** for the inference about their training set |
+| 6e.4 | Our driver measures generalisation, not fit: on benchmark rows using the same 30 compounds the warm checkpoint scores **0.7974 on `split_1` train rows and 0.7968 on test rows** — no memorisation gap | `xpert_native_eval.py --row_file` | **A** |
+| 6e.5 | **Their metric is the MEAN of per-row Pearson; ours has always been the median**, which flatters by ~0.02–0.05 on these data. Every earlier cross-paper number in this project mixed the two conventions | their `metrics.py::pearson`; equivalence checked row by row | **A** |
+| 6e.6 | **FlashAttention is their DEFAULT forward path, not an optional speedup** (`if output_attention: dense else: flash`), and the dense branch applies an attention mask the flash branch never receives — so the branches are not interchangeable. Answers "why don't we use flash attention": it is an exact kernel, so it changes speed and not results, but in *their* code the choice also silently changes masking | `models/model_utils.py:200-231`; shim verified to 5e-7 and verified to differ from the masked branch | **A** |
+| 6e.7 | **A closed-form ridge reaches delta Pearson 0.6054 on their own held-out rows** (`split_1`, n=13,766), where copy-the-control is 0 by construction and mean-drug-delta is 0.2211. Any delta number on this benchmark must be read against 0.605 | `xpert_mdmt_baselines.py` | **A** |
+| 6e.8 | **18.9 % of their benchmark rows pool 2–8 distinct doses into one condition**; their model only ever sees the dose BIN (`pert_dose_idx`), so v9 is given the same resolution and no finer | `xpert_mdmt_extract.py`, flag carried per row | **A** |
+
 ## 7. Novelty (to verify before asserting)
 
 | # | Claim | Status |
 |---|---|---|
 | 7.1 | ~~Conditioning a drug-perturbation predictor on cell-line chromatin state is novel~~ → **NARROWED 2026-07-27 after systematic search.** Chromatin IS already used for **drug-SENSITIVITY** prediction (GraOmicDRP/GraphDRP combine chromatin accessibility + PPI + mutations; eLife 78012 integrates RNA+ATAC for sensitivity signatures). **The precise surviving claim: conditioning transcriptional-RESPONSE-PROFILE prediction on cell-line chromatin state.** Response-profile models (XPert, PRnet, PertDiT, latent-diffusion, TransPro, Biolord) use expression/mutation/structure but **not chromatin**; chromatin models predict sensitivity, not the profile. No direct precedent found | **B** — 4 targeted searches across two framings; state it in the narrow form, and cite GraOmicDRP/eLife as adjacent |
 | 7.2 | Cell-conditional pathway conductance appears novel | **C** — not systematically searched, AND per 3.1a it contributes no accuracy, so it is not worth claiming as a contribution |
-| 7.3 | Atom→gene attention is ours-novel | **✗ UNCONFIRMED — do not claim.** XPert (Nature MI 2025) uses the same UniMol features; its Zenodo record, GitHub README and paywalled methods all lack the architectural detail needed to settle this. Resolve by reading the paper's methods or `XPert.zip` source |
+| 7.3 | ~~Atom→gene attention is ours-novel~~ → **✗ RESOLVED NEGATIVE 2026-08-30. DO NOT CLAIM.** Settled by reading their source, which §41 obtained. `models/model_utils.py::CrossAttention.forward(cell, drug)` takes the **query from the 978 gene tokens and the key/value from the drug's ATOM tokens** (`unimol_Embeddings` builds the sequence `[dose, time, HG_embed, atom_1..atom_n]`), so XPert computes a per-gene × per-atom attention matrix — the same mechanism, on the same UniMol features. They also ablate it explicitly (`--wo_atom`, `--wo_atom_HG`) and visualise it for interpretability in `reproducing/fig3/*_attn_molecule.ipynb`. The open item "read XPert's methods for 7.3" is closed. | **✗ FALSIFIED** — the architectural detail was in the released source all along; the paywalled methods were never the blocker |
 | 7.4 | SOTA accuracy leaders are VAE/diffusion black boxes; interpretability is our differentiator | **B** — true of the models found (latent diffusion, PertDiT, PRnet); XPert is also interpretable |
 
 ## 8. Infrastructure facts (save time later)
@@ -189,5 +202,5 @@ benchmarking papers that exist to catch what we try to catch in ourselves.
 2. **Fair SOTA comparison** — train PRnet on our split/metric (~2–4h GPU); reproduce their published number
    on their split first.
 3. Pathway-conductance **maps** (per-cell/per-gene) — CPU, cheap, turns 3.3 into a shown deliverable.
-4. Systematic novelty search for 7.1/7.2; read XPert's methods for 7.3.
+4. Systematic novelty search for 7.1/7.2. **7.3 is closed — falsified**: XPert has the same gene×atom cross-attention, read directly from their released source (§41).
 5. Why epi helps unseen-compound but not unseen-cell (2.5 unresolved).
