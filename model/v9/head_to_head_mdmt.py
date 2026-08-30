@@ -162,6 +162,42 @@ def main():
           % (a.label, p['delta_mean'], p['ci95'], 100 * p['frac_rows_a_better'],
              ('%.3g' % p['wilcoxon_p']) if isinstance(p['wilcoxon_p'], float) else p['wilcoxon_p']))
 
+    # ---- does the verdict survive the choice of metric? A lead that only exists under the one metric
+    # the other paper happens to report is not a result. Their own precision@k definition is used. ----
+    def prec_k(t, f, k=100):
+        ti, fi = np.argsort(t, axis=1), np.argsort(f, axis=1)
+        up = np.mean([len(set(a) & set(b)) / k for a, b in zip(ti[:, -100:], fi[:, -k:])])
+        dn = np.mean([len(set(a) & set(b)) / k for a, b in zip(ti[:, :100], fi[:, :k])])
+        return float(up), float(dn)
+
+    pv = np.mean([O['y_pred'] for O in seeds], 0)
+    dx, dv = T['y_pred'] - ctl, pv - ctl
+    table = [('Pearson_deg  mean (their metric)', np.nanmean(r_them_deg), np.nanmean(r_ours_deg), False),
+             ('Pearson_deg  median', np.nanmedian(r_them_deg), np.nanmedian(r_ours_deg), False),
+             ('Pearson_abs  mean', np.nanmean(r_them_abs), np.nanmean(r_ours_abs), False),
+             ('MSE_deg', float(((dx - deg_true) ** 2).mean()), float(((dv - deg_true) ** 2).mean()), True),
+             ('MAE_deg', float(np.abs(dx - deg_true).mean()), float(np.abs(dv - deg_true).mean()), True)]
+    try:
+        from scipy.stats import rankdata
+        sx = per_row_pearson(rankdata(dx, axis=1).astype(np.float64),
+                             rankdata(deg_true, axis=1).astype(np.float64))
+        sv = per_row_pearson(rankdata(dv, axis=1).astype(np.float64),
+                             rankdata(deg_true, axis=1).astype(np.float64))
+        table.append(('Spearman_deg mean', float(np.nanmean(sx)), float(np.nanmean(sv)), False))
+    except ImportError:
+        pass
+    xu, xd = prec_k(deg_true, dx)
+    vu, vd = prec_k(deg_true, dv)
+    table += [('Precision@100 up', xu, vu, False), ('Precision@100 down', xd, vd, False)]
+    res['metric_robustness'] = {}
+    print('')
+    print('  does the verdict survive the choice of metric?')
+    print('    %-34s %10s %10s   %s' % ('metric', 'XPert', a.label[:10], 'better'))
+    for nm, tv, ov, lower in table:
+        win = a.label if ((ov < tv) if lower else (ov > tv)) else 'XPert'
+        res['metric_robustness'][nm] = {'XPert': round(tv, 4), 'ours': round(ov, 4), 'better': win}
+        print('    %-34s %10.4f %10.4f   %s' % (nm + (' (lower better)' if lower else ''), tv, ov, win))
+
     # ---- signal strength: this project has been caught twice by a number that only held on one
     # stratum [RESULTS 25, 35], so the comparison is reported by quartile of the TRUE effect size ----
     strength = np.abs(deg_true).mean(1)
