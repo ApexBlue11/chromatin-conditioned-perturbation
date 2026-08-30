@@ -1544,9 +1544,13 @@ regime their headline is quoted in, and §28 found the same for their tissue spl
   decimals (0.740281 both). The flash-attention stand-in and the rest of the driver are numerically
   device-independent. GPU is ~12× faster (0.0125 vs 0.15 s/row), which is what makes the five-fold sweep
   affordable.
-- **Input coverage on this benchmark is good**, unlike the tissue splits: we have chromatin/lineage for
-  **33 of their 40 cell lines (96.97 % of test rows)** and drug features for **98.81 %**. The 164 rows we
+- **Input coverage on this benchmark is good, but the two kinds of cell input are not the same number and
+  must not be quoted as one.** Of their 40 cell lines, **33 are in our cell index** (so carry a lineage
+  vector) but only **23 have any real chromatin track**. By rows of the `split_2` test set: **97.3 % have a
+  known cell line, 80.7 % have actual chromatin.** Drug features cover **98.81 %** of rows. The 164 rows we
   cannot featurise are dropped from both sides, and the paired comparison refuses to run below 95 % overlap.
+  This is still far better than the tissue splits (§28: 143 of 217 cells had neither), and 80.7 % is the
+  figure any claim about the chromatin branch on this benchmark has to be read against.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
