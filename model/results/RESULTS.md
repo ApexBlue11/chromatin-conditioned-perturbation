@@ -1338,6 +1338,110 @@ Median row Pearson, 95 % CI over 4,000 bootstrap resamples:
   XPert reaches 0.86.** Closing that would require training v9 on their corpus with their preprocessing —
   which §36.1 shows their release does not permit without reconstructing inputs they did not ship.
 
+## 41. Running XPert's own code and weights: what their release does not ship, and four traps inside it (2026-08-30)
+
+§36.1 recorded that their release ships a `processed_data/` directory containing one `gitkeep.txt`, so
+their code cannot be run as released. That closed the door on the only comparison with no confound left in
+it — **their model and ours, on the same rows**. This section reopens it, and reports what had to be true
+for the comparison to mean anything.
+
+### 41.1 Retrieving the missing assets without downloading 1.6 GB, on a disk with 28 GB free
+
+`model/v9/fetch_xpert_assets.py`, `model/v9/fetch_xpert_unimol.py`. The assets are in Zenodo record
+`10.5281/zenodo.17182939` (the DOI in the paper, `15357711`, redirects there). Zenodo honours HTTP range
+requests, so nothing is downloaded whole:
+
+- the zip's **central directory** (~1 KB at the end of a 1.6 GB archive) is read first, and only the needed
+  members are range-fetched and inflated — **714 MB instead of 1.6 GB**, skipping `l1000_sdst_78453.h5ad`
+  (759 MB) and the KPGT/morgan drug features their unimol-trained checkpoint never reads;
+- `all_drugs_unimol_arr.npy` is `(8981, 122, 514)` float64 = **4.5 GB**, but a `.npy` is a short header
+  followed by one contiguous C-order block, so the 1,970 drug rows this benchmark touches are fetched by
+  **computed byte offset** — 1.1 GB instead of 4.5 GB.
+
+Integrity is verified rather than assumed. Every zip member is CRC32-checked against the value in the
+central directory before it is put in place. The array row offsets are checked three ways: a row re-fetched
+through a differently-aligned range must be byte-identical; column 0 is a padding mask, so every row must be
+a run of 1s then 0s; and `mask_len - AddHs(mol).GetNumAtoms()` must be the **same integer for every
+molecule** (it is +2, Uni-Mol's two special tokens). The first version of that third check compared against
+the *heavy*-atom count and fired on correct data — the offsets were right and the assumption was wrong.
+**Constancy is the invariant; the value is not.**
+
+### 41.2 What the release does contain: their MAIN benchmark, which is not the file §28 audited
+
+`l1000_mdmt_68830_subset.h5ad` — 68,830 conditions x 978 genes, **40 cell lines, 1,977 compounds** — carries
+the split families the field quotes:
+
+| family | folds | sizes |
+|---|---|---|
+| `split_1..5` (warm) | 5 | 55,064 train / 13,766 test, an exact 80/20 |
+| `split_cold_cell_1..5` | 5 | 47,509-58,737 train |
+| `split_cold_drug_1..5` | 5 | 54,493-55,561 train |
+
+The five warm folds **partition** the corpus — every row is test in exactly one fold, verified in
+`test_xpert_compare.py`. This is the corpus `l1000_mdmt_warm_split.pth` is named for. The fifteen **tissue**
+splits §28 audited come from a different file (`l1000_mdmt_full_336852.h5ad`) and are not this benchmark.
+
+### 41.3 Four things that would each have produced a plausible, wrong number
+
+1. **Gene axis.** Verified identical to ours *entry by entry* against their own `l1000_gene_info_978.csv` —
+   978 genes, same order, no remapping. This one passed, but it was checked, not assumed.
+2. **A non-default architecture flag.** Their released weights contain `cls_token` and `class_fc`, which
+   `XPertNet` only builds under `--include_cell_idx True`. That is **not** the argparse default. Building
+   the model from defaults gives a different forward pass; `load_state_dict(..., strict=True)` is now
+   mandatory in our driver so a mismatch is an error rather than a number.
+3. **Flash attention is their DEFAULT path, not an optional speedup.** Their `model_utils.py` branches
+   `if output_attention: <dense> else: <flash_attn_func>`, so the ordinary forward takes the flash branch —
+   and the dense branch additionally **adds an attention mask that the flash branch never receives**. The
+   two are therefore *not* interchangeable, and running on CPU by flipping `output_attention=True` would
+   have silently changed the drug branch. FlashAttention is an *exact* algorithm, so the fix is a dense
+   re-implementation of the same function (`model/v9/_shims/flash_attn/`), checked against a hand-written
+   reference to 5e-7 and checked to *differ* from the masked branch.
+4. **Their metric is the MEAN of per-row Pearson; ours has always been the median.** On these data the
+   median flatters by ~0.02-0.05. `xpert_arm.py` now reports their convention first and ours alongside.
+
+A fifth, in the data rather than the code: **18.9 % of their benchmark rows pool 2-8 distinct doses into one
+condition** (`pert_dose` = `'0.12;0.04;0.01'`). Their model never sees that — `MyDataset` reads
+`pert_dose_idx`, which is single-valued — so v9 is given a per-bin representative dose and no finer, a
+bijection from the bin index that carries no extra information. The pooled rows stay flagged so any result
+can be stratified on them.
+
+### 41.4 🔴 Their published HDACi figure cannot be reproduced from any released checkpoint
+
+`model/v9/xpert_native_eval.py`. Their `reproducing/fig4/hdaci_predict/y_pred.npy` is the artefact §39 and
+§40 were read against, and its rows are in the same order as the h5ad, so their checkpoint can be run on
+exactly those rows. It does not reproduce them. Mean of per-row Pearson, their convention, all 3,439 rows:
+
+| predictor on the 3,439 HDACi rows | Pearson (abs) | Pearson_deg |
+|---|---|---|
+| their released `y_pred.npy` | 0.9804 | **0.8440** |
+| `l1000_mdmt_warm_split.pth` (their released warm checkpoint) | 0.9589 | **0.6444** |
+| `pretrain_mdmt_full_200_epoch.pth` | 0.9711 | **0.7610** |
+| copy-the-control | 0.9200 | 0 |
+
+The reason shows up when the rows are split by whether they are in the 68,830-row benchmark corpus at all
+(1,136 are, 2,303 are not):
+
+| HDACi rows | n | warm checkpoint | their released `y_pred` |
+|---|---|---|---|
+| **in** the benchmark corpus | 1,136 | 0.7973 | 0.8496 |
+| **not** in the benchmark corpus | 2,303 | **0.5689** | **0.8413** |
+
+**Their released predictions are as accurate outside the benchmark corpus as inside it; the warm checkpoint
+loses 0.23 crossing that boundary.** That is the signature of a model whose training corpus contained those
+rows — the full 336,852-condition file, which does contain them — not of a model generalising to them.
+
+This is not our driver mis-scoring. On corpus rows using the same 30 HDACi compounds, the warm checkpoint
+scores **0.7974 on `split_1` TRAIN rows and 0.7968 on `split_1` TEST rows** — no memorisation gap at all,
+so the driver is measuring generalisation, not fit, and it reports ~0.797 for their model on held-out rows
+of their own benchmark.
+
+- ⇒ **§40's 0.8440 is a number of unknown training provenance.** §40 is not retracted — v9 really does
+  score 0.5228 on those rows, and copy-the-control really is 0.9355 on the absolute convention — but the
+  XPert column there should not be read as a held-out result, and the sentence "their published numbers
+  reproduce exactly, which validates the artefact" validates only the *arrays*, not the *evaluation*.
+- ⇒ The comparison that survives is the one §42 makes: **their released checkpoint and ours, on the
+  held-out rows of their own published split.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

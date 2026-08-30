@@ -91,17 +91,39 @@ def main():
     print('%d drugs wanted -> %d runs, %d rows fetched, %.0f MB over the wire, %.0f MB stored as float32'
           % (len(want), len(rr), total, total * stride / 1e6, len(want) * A * F * 4 / 1e6), flush=True)
 
+    # Written straight to a memmap rather than accumulated in a dict: holding 1,970 x 122 x 514 float32
+    # (494 MB) in RAM alongside the raw float64 blobs got this process KILLED at run 850/1063 after 40
+    # minutes of downloading, with no traceback. On disk it also makes the fetch RESUMABLE, which matters
+    # when a run costs 45 minutes of someone else's bandwidth.
+    pos = {int(v): i for i, v in enumerate(want)}
     keep = set(want)
-    feats = {}
+    mm_path = a.out + '.partial.f32'
+    done_path = a.out + '.partial.done.npy'
+    mm = np.memmap(mm_path, dtype=np.float32, mode=('r+' if os.path.exists(mm_path) else 'w+'),
+                   shape=(len(want), A, F))
+    done = (np.load(done_path) if os.path.exists(done_path)
+            else np.zeros(len(want), bool))
+    if done.any():
+        print('resuming: %d/%d drugs already fetched' % (int(done.sum()), len(want)), flush=True)
     t0 = time.time()
     for k, (lo, hi) in enumerate(rr):
+        if all(done[pos[i]] for i in range(lo, hi + 1) if i in keep):
+            continue
         blob = curl(data0 + lo * stride, data0 + (hi + 1) * stride - 1)
         arr = np.frombuffer(blob, dtype=dt).reshape(hi - lo + 1, A, F)
         for j in range(hi - lo + 1):
             if lo + j in keep:
-                feats[lo + j] = arr[j].astype(np.float32)
+                mm[pos[lo + j]] = arr[j].astype(np.float32)
+                done[pos[lo + j]] = True
+        del arr, blob
         if (k + 1) % 25 == 0 or k + 1 == len(rr):
-            print('  run %d/%d  %.0fs' % (k + 1, len(rr), time.time() - t0), flush=True)
+            mm.flush(); np.save(done_path, done)
+            print('  run %d/%d  %d/%d drugs  %.0fs' % (k + 1, len(rr), int(done.sum()), len(want),
+                                                       time.time() - t0), flush=True)
+    mm.flush(); np.save(done_path, done)
+    if not done.all():
+        raise SystemExit('FATAL: %d drugs still missing after the sweep' % int((~done).sum()))
+    feats = {int(v): np.asarray(mm[pos[int(v)]]) for v in want}
 
     # ---- offset check 1: a re-fetch of one row through a different alignment must be byte-identical ----
     probe = want[len(want) // 2]
@@ -153,8 +175,14 @@ def main():
             pass
     print('offset check 3 OK: %s' % note, flush=True)
 
-    np.savez_compressed(a.out, idx=np.array(sorted(feats), np.int64),
-                        feat=np.stack([feats[i] for i in sorted(feats)]))
+    np.savez(a.out, idx=np.array(sorted(feats), np.int64),
+             feat=np.stack([feats[i] for i in sorted(feats)]))
+    del feats, mm
+    for p_tmp in (mm_path, done_path):
+        try:
+            os.remove(p_tmp)
+        except OSError:
+            pass
     print('wrote %s  (%.0f MB)' % (a.out, os.path.getsize(a.out) / 1e6))
 
 

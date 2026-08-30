@@ -172,6 +172,9 @@ def main():
                     help='write per-row predictions, so a PAIRED comparison against their checkpoint is '
                          'possible instead of two independently-computed summary numbers')
     ap.add_argument('--seeds', type=int, default=3)
+    ap.add_argument('--seed_start', type=int, default=0,
+                    help='first seed index; lets one seed per Kaggle session so a 9 h limit cannot '
+                         'discard a completed seed along with an unfinished one')
     ap.add_argument('--epochs', type=int, default=12)
     ap.add_argument('--batch', type=int, default=48)
     ap.add_argument('--lr', type=float, default=4e-4)
@@ -216,7 +219,7 @@ def main():
     print(f'nulls on THEIR test rows: {nulls}', flush=True)
 
     runs = []
-    for seed in range(a.seeds):
+    for seed in range(a.seed_start, a.seed_start + a.seeds):
         torch.manual_seed(seed)
         np.random.seed(seed)
         cfg = V9Config()
@@ -303,7 +306,8 @@ def main():
     WORK = '/kaggle/working' if os.path.isdir('/kaggle/working') else os.path.join(
         os.path.dirname(os.path.dirname(HERE)), 'model', 'results')
     os.makedirs(WORK, exist_ok=True)
-    out = os.path.join(WORK, f'v9_xpert_arm_{a.split}.json')
+    tag = a.split if a.seeds == 3 and a.seed_start == 0 else f'{a.split}_seed{a.seed_start}'
+    out = os.path.join(WORK, f'v9_xpert_arm_{tag}.json')
     json.dump({'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
                'metric': 'mean of per-row Pearson (XPert metrics.py convention)',
                'known_cell_frac': round(D.known_cell_frac, 4),
