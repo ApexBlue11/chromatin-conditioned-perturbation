@@ -36,6 +36,65 @@ either: **the split itself is worth +0.17**, four times the seed band.
 
 ---
 
+## A0b. AMENDMENT, 2026-08-30 — their code now RUNS here, and §C below is superseded where they conflict
+
+§C was written by reading their source. Their model has now been **executed**, on their data, with their
+weights. Where this section and §C disagree, this one wins. Full detail in `model/results/RESULTS.md`
+§41–42; the operational facts a new session needs are here.
+
+**Their release cannot be run as shipped.** `external/xpert/code/XPert/processed_data/` contains one
+`gitkeep.txt`. The missing assets are on Zenodo `10.5281/zenodo.17182939` and are fetched by HTTP range
+request, not whole-file download:
+```
+python model/v9/fetch_xpert_assets.py --list
+python model/v9/fetch_xpert_assets.py --fetch l1000_mdmt_68830_subset.h5ad PPI_gene_vector_128d.npy \
+                                              l1000_gene_info_978.csv all_drugs_idx2smi_8981.npy
+python model/v9/fetch_xpert_unimol.py --idx_file <pert_idx.json> --out .../unimol_mdmt_1970.npz
+```
+CRC32-verified, resumable, ~1.9 GB total instead of ~6 GB. Everything lands in gitignored `external/`.
+
+**Their MAIN benchmark is `l1000_mdmt_68830_subset.h5ad`**, not the 336,852-row file §C describes. 68,830
+conditions, 40 cell lines, 1,977 compounds, carrying `split_1..5` (warm), `split_cold_cell_1..5` and
+`split_cold_drug_1..5`. Bundled for our kernels by `model/v9/xpert_mdmt_extract.py` →
+`external/xpert_split_bundle/xpert_mdmt_splits.npz` (568 MB), on Kaggle as `apexblue/xpert-mdmt-benchmark`.
+
+**Four things that silently change the numbers**, all now handled in code and covered by
+`model/v9/test_xpert_compare.py` (26 checks):
+1. their released checkpoint was trained with **`--include_cell_idx True`**, a NON-default flag — load
+   `strict=True` or you build a different model;
+2. their attention branches `if output_attention: <dense, masked> else: <flash, unmasked>`, so **the flash
+   path is the default** and the two are not interchangeable. `model/v9/_shims/flash_attn/` is an exact
+   dense stand-in, verified to 5e-7 and verified to *differ* from the masked branch;
+3. **their metric is the MEAN of per-row Pearson**, ours has always been the median (~0.02–0.05 apart);
+4. **18.9 % of their rows pool 2–8 doses** into one condition; their model only sees the dose *bin*.
+
+**🔴 Their released checkpoint was trained on `split_2`.** Scored on all five warm folds it gives 0.6939
+there and 0.7384–0.7450 on the other four; a ridge refitted per fold scores 0.6054/0.6062, so the folds are
+equally hard and the gap is contamination. **`split_2` is the only fold on which their checkpoint can be
+honestly scored, and therefore the only fold on which a head-to-head is fair.** Because the five folds
+partition the corpus, every other fold's test set lies inside `split_2`'s training data.
+
+**Their honest numbers on their own benchmark** (`split_2` test, n=13,766, their metric):
+
+| | Pearson (abs) | Pearson_deg |
+|---|---|---|
+| copy the control | 0.9592 | 0 |
+| ridge | 0.9747 | 0.6062 |
+| XPert released checkpoint | 0.9797 | **0.6932** |
+
+Their published absolute ~0.98 is mostly the control. Their fig4 HDACi numbers (0.9804 / 0.8440) come from
+**no released checkpoint** — the three shipped mdmt checkpoints give 0.6444 / 0.7610 / 0.7297 on those rows,
+and the released predictions are as accurate off their benchmark as on it. Do not cite 0.8440 as held-out.
+
+**CLAIMS 7.3 is falsified.** Atom→gene attention is not ours: their `CrossAttention.forward(cell, drug)`
+queries from the 978 gene tokens and keys/values from the atom tokens, and they ablate and visualise it.
+
+**Local GPU.** `C:\Projects\LINCS\.venv-cuda\Scripts\python.exe` has torch+cu126 for the RTX 3050 (4 GB,
+use `--batch 8`). ~12× faster than CPU for their model, and CPU/GPU agree to 1.1e-05 over 13.5 M
+predictions. The main interpreter stays CPU-only so nothing else is disturbed.
+
+---
+
 ## A. State in one paragraph
 
 We predict drug-induced transcriptional response on LINCS L1000. Six architectures (v3→v7) produced
@@ -126,7 +185,9 @@ architecture: chromatin becomes a **per-gene embedding summed into the gene repr
 PPI gene vector is** — not a parallel encoder the model can (and did) ignore.
 
 ### Still to verify (do NOT cite until read)
-PRnet, chemCPA, TranSiGen, the Bioinformatics-2026 latent-diffusion model. Their reported numbers are
+**XPert is no longer in this list — its code has been run, see §A0b.** PRnet, chemCPA, TranSiGen, the
+Bioinformatics-2026 latent-diffusion model: none ships predictions or code in XPert's release, and running
+each faithfully means a separate legacy stack (TranSiGen pins python 3.6 / torch 1.5). Their reported numbers are
 **not** comparable to ours without matching data level, convention, and split.
 
 ---
