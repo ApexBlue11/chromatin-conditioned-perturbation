@@ -162,6 +162,25 @@ def main():
           % (a.label, p['delta_mean'], p['ci95'], 100 * p['frac_rows_a_better'],
              ('%.3g' % p['wilcoxon_p']) if isinstance(p['wilcoxon_p'], float) else p['wilcoxon_p']))
 
+    # ---- signal strength: this project has been caught twice by a number that only held on one
+    # stratum [RESULTS 25, 35], so the comparison is reported by quartile of the TRUE effect size ----
+    strength = np.abs(deg_true).mean(1)
+    q = np.quantile(strength, [0.25, 0.5, 0.75])
+    res['strata_strength'] = {}
+    print('')
+    print('  delta Pearson by quartile of TRUE effect size (mean |delta| per row):')
+    print('    %-26s %6s %9s %9s' % ('quartile', 'n', 'XPert', a.label[:9]))
+    for qi, (lo, hi) in enumerate(zip([-np.inf] + list(q), list(q) + [np.inf])):
+        m = (strength >= lo) & (strength < hi)
+        if m.sum() < 50:
+            continue
+        nm = 'Q%d  mean|d| %.2f-%.2f' % (qi + 1, max(lo, strength.min()), min(hi, strength.max()))
+        res['strata_strength'][nm] = {'n': int(m.sum()),
+                                      'XPert': round(float(np.nanmean(r_them_deg[m])), 4),
+                                      'ours': round(float(np.nanmean(r_ours_deg[m])), 4)}
+        print('    %-26s %6d %9.4f %9.4f' % (nm, m.sum(), np.nanmean(r_them_deg[m]),
+                                             np.nanmean(r_ours_deg[m])))
+
     # ---- stratifications ----
     if os.path.exists(a.bundle):
         z = np.load(a.bundle, allow_pickle=True)
