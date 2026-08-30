@@ -211,6 +211,44 @@ def main():
     check('paired comparison: REFUSES when the two runs disagree about the target on aligned rows',
           r2.returncode != 0 and 'TARGET' in (r2.stdout + r2.stderr))
 
+    # ---------------- 8b. nothing fitted on the arm's TEST rows ----------------
+    # The head-to-head result rests on v9 having seen none of the rows it is scored on. Three quantities
+    # inside XPertData are fitted from data and could each leak the test set: the dose/time normalisation,
+    # the per-cell aggregate control, and the expression quantiser. Checked behaviourally on the real
+    # bundle, not by reading the source.
+    if os.path.exists(BUNDLE) and os.path.exists(os.path.join(ROOT, 'drug', 'outputs',
+                                                              'drug_feature_index.json')):
+        try:
+            sys.path.insert(0, os.path.join(os.path.dirname(HERE), 'v6'))
+            sys.path.insert(0, os.path.dirname(HERE))
+            import xpert_arm as XA
+            roots = [ROOT, os.path.join(ROOT, 'external')]
+            D = XA.XPertData(XA.find('xpert_mdmt_splits.npz', roots), roots, 'split_2')
+            tr_mu = float(D.dose_n[D.tr].mean())
+            tr_sd = float(D.dose_n[D.tr].std())
+            check('no leakage: dose normalisation is fitted on TRAIN rows (train mean~0, sd~1)',
+                  abs(tr_mu) < 1e-3 and abs(tr_sd - 1) < 1e-2, 'train mean %.2e sd %.4f' % (tr_mu, tr_sd))
+            te_mu = float(D.dose_n[D.te].mean())
+            check('no leakage: TEST dose is transformed by the train statistics, not re-standardised',
+                  abs(te_mu) > 1e-6, 'test mean %.2e (exactly 0 would mean it was fitted on test)' % te_mu)
+            # per-cell aggregate control must equal the mean over that cell's TRAIN rows only
+            c = D.cell[D.tr[0]]
+            m_all = D.cell == c
+            m_tr = np.zeros(len(D.cell), bool); m_tr[D.tr] = True
+            from_train = D.C[m_all & m_tr].mean(0)
+            from_all = D.C[m_all].mean(0)
+            got = D.x_cell[np.flatnonzero(m_all)[0]]
+            check('no leakage: the per-cell aggregate control is built from TRAIN rows only',
+                  np.allclose(got, from_train, atol=1e-4) and not np.allclose(got, from_all, atol=1e-4),
+                  'cell %s: |x_cell - train mean| %.2e, |x_cell - all-rows mean| %.2e'
+                  % (c, np.abs(got - from_train).max(), np.abs(got - from_all).max()))
+            check('no leakage: train and test row sets are disjoint',
+                  len(set(D.tr.tolist()) & set(D.te.tolist())) == 0)
+        except Exception as e:
+            skip('leakage checks', '%s: %s' % (type(e).__name__, e))
+    else:
+        skip('leakage checks', 'bundle or drug features unavailable')
+
     # ---------------- 9. their metric is the MEAN of per-row Pearson, and we report that ----------
     try:
         sys.path.insert(0, XPERT)
