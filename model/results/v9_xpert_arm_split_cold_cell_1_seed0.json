@@ -1,0 +1,26 @@
+{
+  "split": "split_cold_cell_1",
+  "bundle": "xpert_mdmt_splits.npz",
+  "runs": [
+    {
+      "seed": 0,
+      "Pearson": 0.94,
+      "Pearson_deg": 0.0827,
+      "Pearson_median": 0.9571,
+      "Pearson_deg_median": 0.0743,
+      "seconds": 62.1
+    }
+  ],
+  "nulls": {
+    "copy_ctl_abs": 0.9415,
+    "copy_ctl_abs_median": 0.9597,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.0925
+  },
+  "n_dropped_test_unfeaturisable": 170,
+  "ablate_epi": false,
+  "metric": "mean of per-row Pearson (XPert metrics.py convention)",
+  "known_cell_frac": 0.9721,
+  "n_train": 1600,
+  "n_test": 400
+}
