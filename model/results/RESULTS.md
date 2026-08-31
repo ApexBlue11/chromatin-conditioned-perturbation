@@ -1607,9 +1607,8 @@ doubles it -- Spearman(replicates, Pearson) goes from **0.1438 raw to 0.3017 wit
 only fold their released checkpoint did not train on [§42] — and both models scored on the same 13,615
 held-out rows, with their metric and their prediction convention.
 
-**Seeds: 2 of 3 complete at time of writing (0.7051, 0.7055); the third is on the GPU. This project's rule
-is three seeds or no difference reported, so the headline below is provisional until it lands.** Seed
-spread so far is 0.0004, and was 0.0005 on `split_1`.
+**Three seeds: 0.7051 / 0.7055 / 0.7052, spread 0.0004.** A 36-epoch run of the same arm reaches
+**0.7135**, so the 12-epoch figure below is a floor, not a peak.
 
 | `split_2` test, n = 13,615 | absolute Pearson | **delta Pearson** |
 |---|---|---|
@@ -1617,10 +1616,16 @@ spread so far is 0.0004, and was 0.0005 on `split_1`.
 | mean drug delta | 0.9621 | 0.2203 |
 | ridge | 0.9747 | 0.6062 |
 | **XPert, their released checkpoint** | 0.9796 | **0.6933** [0.6915, 0.6951] |
-| **v9 (ours)** | 0.9803 | **0.7051** [0.7033, 0.7068] |
+| **v9 (ours, 3 seeds, 12 epochs)** | 0.9803 | **0.7053** [0.7035, 0.7070] |
+| v9, same arm at 36 epochs (1 seed) | 0.9807 | **0.7135** |
 
-Paired on identical rows: **+0.0118 [0.0111, 0.0125]** in v9's favour, ahead on **66.6 %** of rows,
+Paired on identical rows: **+0.0120 [0.0113, 0.0127]** in v9's favour, ahead on **67.1 %** of rows,
 Wilcoxon p ~ 0, confidence intervals disjoint.
+
+**The training budget runs strongly in their favour and the gap still holds.** Their checkpoint is epoch
+164; v9's headline is **12** epochs, a complete run at that budget because the schedule anneals to zero.
+Tripling it to 36 adds +0.008 (0.7053 -> 0.7135), so v9 is still improving where their model has long
+since stopped. Whatever separates the two models, it is not that v9 was given more optimisation.
 
 ### 43.1 The verdict does not depend on the metric
 
