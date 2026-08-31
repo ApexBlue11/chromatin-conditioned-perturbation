@@ -1658,7 +1658,9 @@ were driving the margin, the margin would be larger on the cells we have chromat
 | with a chromatin track (18 of 40) | 10,980 | 0.6939 | 0.7057 | **+0.0118** |
 | without | 2,635 | 0.6906 | 0.7036 | **+0.0130** |
 
-**Difference in margin: −0.0011, 95 % CI [−0.0029, +0.0007]** — spans zero, and bounds any chromatin-driven
+**Difference in margin: −0.0011, 95 % CI [−0.0029, +0.0007]** (and see §44: this warm-split test is
+weak by construction, because 99.8 % of these rows have their (cell, compound) pair in training; §44 runs
+the test on unseen cell lines instead, and agrees) — spans zero, and bounds any chromatin-driven
 difference at under 0.003. This is consistent with the project's own repeated finding that the epigenetics
 benefit does not transfer across cells [CLAIMS 2.5, 2.6].
 
@@ -1683,6 +1685,79 @@ v9's advantage over XPert on their benchmark is not explained by the input XPert
   designed it.
 - 151 test rows (1.1 %) use a compound we cannot featurise and are dropped from **both** sides; the
   comparison refuses to run below 95 % row overlap.
+
+## 44. 🔴 Does chromatin add anything beyond the cell's own baseline expression? Measured: no (2026-08-30)
+
+`model/v9/xpert_mdmt_baselines.py --with_chromatin --lam_sweep`. Chromatin conditioning [CLAIMS 7.1] is the
+last surviving novelty claim of this project — 7.3 was falsified the same day [§41]. §43.2 reported no
+chromatin effect on the warm split, but **that test was close to worthless**: 99.8 % of warm test rows share
+a (cell, compound) pair with training [§42.3], so the cell's own response *to that very drug* is already in
+the training data and a chromatin prior is redundant by construction. The claim was tested in the one
+regime where it cannot be true.
+
+The regime where it must earn its keep is **unseen cell lines**, where a model has no response history for
+the cell and must characterise it some other way. `split_cold_cell_1` holds out 8 cell lines with **zero**
+overlap with the 32 training cells; we have chromatin for 5 of the 8, covering **94.3 % of its test rows**.
+
+### 44.1 The question in its sharpest form
+
+A ridge already receives **the cell's own baseline expression profile** (`x_ctl`, 978 genes) as an input.
+That profile is itself a rich cell descriptor. So the question is not "does chromatin describe a cell" —
+obviously it does — but **does it add anything the baseline transcriptome does not already carry?**
+
+A closed-form ridge answers exactly that, with no seed noise and no training-budget confound. Two design
+points make the answer trustworthy rather than an artefact of encoding or regularisation:
+
+- **The chromatin block is encoded EXACTLY, not summarised.** A per-cell feature block over 40 cell lines
+  has rank <= 40, so the 3,912 raw chromatin dimensions (978 genes x 3 tracks + a 978-gene availability
+  mask) were reduced to their **24 exact SVD components**, reconstruction verified to 1e-3. Nothing the
+  ridge could have used was discarded; the reduction only makes the design matrix tractable.
+- **The penalty is swept**, because a null for an added feature block can always be L2 shrinking it away.
+  The Gram matrix does not depend on lambda, so each extra value costs one solve.
+
+### 44.2 The result: nothing, in all three regimes
+
+Best lambda taken **per arm**, which favours the chromatin arm:
+
+| split | chromatin OFF | chromatin ON | gain |
+|---|---|---|---|
+| `split_2` (warm) | 0.6062 | 0.6064 | **+0.0002** |
+| `split_cold_drug_1` (unseen compounds) | 0.5295 | 0.5298 | **+0.0003** |
+| `split_cold_cell_1` (**unseen cell lines**) | 0.2951 | 0.2980 | **+0.0029** |
+
+The lambda sweep on the cold-cell split, where the effect should be largest:
+
+| lambda | OFF | ON |
+|---|---|---|
+| 1e2 | 0.2559 | 0.2576 |
+| 1e3 | 0.2942 | **0.2980** |
+| 1e4 | **0.2951** | 0.2969 |
+| 1e5 | 0.2354 | 0.2367 |
+
+The null holds at every penalty. For scale: the gap between a ridge and XPert's released checkpoint on the
+warm split is **0.087** [§42.2], thirty times the largest chromatin gain measured here.
+
+- ⇒ **Given the cell's baseline expression profile, cell-line chromatin adds at most ~0.003 delta Pearson
+  to a linear model — including on cell lines never seen in training.** Three regimes, an exact encoding,
+  and a swept penalty all agree.
+- ⇒ Together with §43.2 (deep model, warm split: chromatin-covered vs uncovered margin differs by
+  −0.0011 [−0.0029, +0.0007]) this is **two independent lines of evidence that the epigenetic input is not
+  carrying accuracy** in this project's current form.
+
+### 44.3 What this does NOT settle, and the test that would
+
+A ridge can only use chromatin linearly and additively. v9 uses it as a **per-gene embedding summed into
+the gene representation** [handoff §D.4] plus a signed additive head, which is a different functional form
+and could in principle extract something a linear model cannot. That test — v9 trained on
+`split_cold_cell_1` with and without `--ablate_epi`, 3 seeds each — is written, guarded and queued, and is
+**blocked on Kaggle's weekly 30 h GPU quota being exhausted**. `--ablate_epi` mean-ablates the chromatin
+values *and* the track-availability mask (E std across rows 0.5722 -> 1.4e-04, verified) while leaving
+architecture, parameter count and the lineage input untouched, so it isolates chromatin rather than cell
+identity.
+
+Until that runs, the defensible statement is the narrow one: **the chromatin branch has not been shown to
+contribute accuracy, and two measurements say it does not.** The claim must not be made in a paper on the
+strength of the architecture containing the branch.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
