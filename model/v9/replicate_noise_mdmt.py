@@ -32,22 +32,29 @@ def per_row_pearson(a, b):
     return np.where(d > 0, n / np.maximum(d, 1e-12), np.nan)
 
 
-def load_pred(p):
+def load_pred(p, key='y_pred'):
     d = np.load(p, allow_pickle=True)
     d = d.item() if isinstance(d, np.ndarray) and d.dtype == object else d
-    return {k: np.asarray(d[k]) for k in ['y_true', 'y_pred', 'ctl_true', 'row_index']}
+    if key not in d:
+        avail = [k for k in (d.files if hasattr(d, 'files') else d) if k.endswith('_pred')]
+        raise SystemExit('FATAL: %r not in %s; prediction columns present: %s' % (key, p, avail))
+    out = {k: np.asarray(d[k]) for k in ['y_true', 'ctl_true', 'row_index']}
+    out['y_pred'] = np.asarray(d[key])
+    return out
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--pred', required=True, help='a *_predict_profile-style .npy or .npz with row_index')
     ap.add_argument('--label', default='model')
+    ap.add_argument('--pred_key', default='y_pred',
+                    help='which prediction column to score (the baselines file holds several)')
     ap.add_argument('--h5ad', default=H5AD)
     ap.add_argument('--out', default=None)
     a = ap.parse_args()
     import anndata as ad
 
-    P = load_pred(a.pred)
+    P = load_pred(a.pred, a.pred_key)
     obs = ad.read_h5ad(a.h5ad, backed='r').obs
     nrep = np.asarray(obs['n_replicates']).astype(str)
     # a pooled row carries a ';'-joined list; the first entry is that condition's own well count

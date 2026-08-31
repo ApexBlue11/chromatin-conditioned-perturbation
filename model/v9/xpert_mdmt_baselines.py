@@ -58,6 +58,10 @@ def main():
     ap.add_argument('--bundle', default=BUNDLE)
     ap.add_argument('--split', default='split_1')
     ap.add_argument('--lam', type=float, default=1e4)
+    ap.add_argument('--lam_sweep', default=None,
+                    help='comma-separated ridge penalties. The Gram matrix does not depend on lambda, so '
+                         'a sweep costs one extra solve each -- it rules out the reading that a null for '
+                         'an added feature block is really just L2 shrinking it away.')
     ap.add_argument('--save_pred', default=None)
     ap.add_argument('--with_chromatin', action='store_true',
                     help='append the cell chromatin tracks to the ridge features. The sharpest '
@@ -162,12 +166,25 @@ def main():
         b = np.asarray(Ftr[lo:lo + 8192], np.float64)
         G += b.T @ b
         B += b.T @ np.asarray(D[tr][lo:lo + 8192], np.float64)
-    G[np.diag_indices(G.shape[0])] += a.lam
-    G[-1, -1] -= a.lam
-    W = np.linalg.solve(G, B)
     Fte = feats(te)
     Fte[:, :-1] = (Fte[:, :-1] - mu) / sd
-    preds['ridge'] = C[te] + (Fte @ W).astype(np.float32)
+    lams = [float(x) for x in a.lam_sweep.split(',')] if a.lam_sweep else [a.lam]
+    res['lam_sweep'] = {}
+    best = None
+    for lam in lams:
+        Gl = G.copy()
+        Gl[np.diag_indices(Gl.shape[0])] += lam
+        Gl[-1, -1] -= lam
+        W = np.linalg.solve(Gl, B)
+        pr = C[te] + (Fte @ W).astype(np.float32)
+        v = float(np.nanmean(per_row_pearson(pr - C[te], (X - C)[te])))
+        res['lam_sweep']['%g' % lam] = round(v, 4)
+        if len(lams) > 1:
+            print('    lam %-8g delta Pearson %.4f' % (lam, v), flush=True)
+        if best is None or v > best[0]:
+            best = (v, lam, pr)
+    preds['ridge'] = best[2]
+    res['lam_best'] = best[1]
 
     # ---- score every one of them under THEIR metric ----
     y, ctl = X[te], C[te]

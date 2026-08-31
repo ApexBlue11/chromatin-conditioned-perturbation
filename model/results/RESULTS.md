@@ -1582,6 +1582,17 @@ doubles it -- Spearman(replicates, Pearson) goes from **0.1438 raw to 0.3017 wit
 - This is the same argument this project has made from its own data (Level-3 delta self-agreement 0.5283
   [§27.3]), now demonstrated on an external benchmark with an external model, using only a column that
   benchmark already ships.
+**The warm regime is noise-limited; the cold-cell regime is not.** Repeating the same analysis on the
+ridge's `split_cold_cell_1` predictions inverts the pattern: Spearman(replicates, Pearson) is **-0.2338
+raw and only +0.0509 within effect-size quartiles**, against +0.1438 / +0.3017 on the warm split. On unseen
+cell lines, accuracy barely tracks how well the label was measured, because the dominant error is no longer
+in the label — it is the model failing to generalise to a cell it has never seen. Its best-measured
+stratum reaches only **0.5265** (against 0.8372 warm).
+
+⇒ **This is where modelling effort actually has room to work.** On the warm split a better model can only
+chase a shrinking noise-limited margin; on cold-cell there is real, unclaimed signal. It is also why §44
+tests the chromatin claim there rather than on the warm split.
+
 - ⇒ **Any delta Pearson on this benchmark, ours or theirs, should be read as noise-limited.** A model
   comparison is still valid -- both models face the same labels -- but "0.69 vs 0.61" understates how much
   of the gap to 1.0 is unreachable.
