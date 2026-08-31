@@ -66,7 +66,7 @@ def pearson_rows(a, b):
 class XPertData:
     """Their rows, presented in the v9 batch format."""
 
-    def __init__(self, npz, roots, split):
+    def __init__(self, npz, roots, split, ablate_epi=False):
         z = np.load(npz, allow_pickle=True)
         lab = z[f'split_{split}']
         self.tr = np.flatnonzero(lab == 'train')
@@ -148,6 +148,19 @@ class XPertData:
             self.ctx[i] = lin[j]
         self.known_cell_frac = known / len(self.cell)
 
+        if ablate_epi:
+            # Mean-ablate BOTH the chromatin values and the track-availability mask. Ablating only E
+            # would leave r varying by cell, which still carries cell identity -- the ablation has to
+            # remove the information, not just the numbers.
+            m_tr = np.zeros(len(self.cell), bool)
+            m_tr[self.tr] = True
+            self.E[:] = self.E[m_tr].mean(0)
+            self.r[:] = self.r[m_tr].mean(0)
+            print('CHROMATIN MEAN-ABLATED: every row now carries the training-mean chromatin and track '
+                  'mask, so the branch is intact but cell-specific chromatin information is gone. '
+                  'Lineage (cell_ctx) is untouched -- this isolates chromatin, not cell identity.',
+                  flush=True)
+
         ld = np.log10(np.clip(self.dose, 1e-4, None))
         self.dose_n = ((ld - ld[self.tr].mean()) / (ld[self.tr].std() + 1e-6)).astype(np.float32)
         self.time_n = ((self.time - self.time[self.tr].mean()) /
@@ -189,6 +202,13 @@ def main():
     ap.add_argument('--split', default='split_lung_1')
     ap.add_argument('--bundle', default=BUNDLE,
                     help='xpert_splits.npz (tissue splits) or xpert_mdmt_splits.npz (their main benchmark)')
+    ap.add_argument('--ablate_epi', action='store_true',
+                    help='replace the chromatin input with its TRAINING mean for every row, so the '
+                         'architecture, parameter count and reliability channel are unchanged and only '
+                         'the CELL-SPECIFIC chromatin information is removed. This is the '
+                         'ablate-to-the-mean convention of this project, applied at training time.')
+    ap.add_argument('--save_ckpt', default=None,
+                    help='write the trained weights, so an inference-time ablation can be run later')
     ap.add_argument('--save_pred', default=None,
                     help='write per-row predictions, so a PAIRED comparison against their checkpoint is '
                          'possible instead of two independently-computed summary numbers')
@@ -213,7 +233,7 @@ def main():
     if dev == 'cuda' and any('P100' in torch.cuda.get_device_name(i)
                              for i in range(torch.cuda.device_count())):
         raise SystemExit('FATAL: P100 assigned; Kaggle torch has no sm_60 kernels.')
-    D = XPertData(npz, roots, a.split)
+    D = XPertData(npz, roots, a.split, ablate_epi=a.ablate_epi)
     if a.limit_train:
         D.tr = D.tr[:a.limit_train]
         D.te = D.te[:min(len(D.te), 400)]
@@ -300,6 +320,10 @@ def main():
                'Pearson_median': round(float(np.nanmedian(pearson_rows(pa, Xte))), 4),
                'Pearson_deg_median': round(float(np.nanmedian(pearson_rows(pd, Xte - Cte))), 4),
                'seconds': round(time.time() - t0, 1)}
+        if a.save_ckpt:
+            torch.save({'model': core.state_dict(), 'cfg': vars(cfg), 'split': a.split, 'seed': seed,
+                        'ablate_epi': bool(a.ablate_epi), 'epochs': a.epochs},
+                       a.save_ckpt.replace('.pt', '_seed%d.pt' % seed))
         if a.save_pred:
             np.savez_compressed(a.save_pred.replace('.npz', '_seed%d.npz' % seed),
                                 y_pred=pa.astype(np.float32), deg_pred=pd.astype(np.float32),
@@ -333,6 +357,7 @@ def main():
     out = os.path.join(WORK, f'v9_xpert_arm_{tag}.json')
     json.dump({'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
                'n_dropped_test_unfeaturisable': int(getattr(D, 'n_dropped_test', 0)),
+               'ablate_epi': bool(a.ablate_epi),
                'metric': 'mean of per-row Pearson (XPert metrics.py convention)',
                'known_cell_frac': round(D.known_cell_frac, 4),
                'n_train': int(len(D.tr)), 'n_test': int(len(D.te))}, open(out, 'w'), indent=2)

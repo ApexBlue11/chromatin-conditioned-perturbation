@@ -33,26 +33,26 @@
   },
   "ridge": {
     "abs": {
-      "mean": 0.9585,
+      "mean": 0.9586,
       "ci95": [
-        0.9581,
-        0.9589
+        0.9582,
+        0.959
       ],
-      "median": 0.9665,
+      "median": 0.9666,
       "n": 21321
     },
     "delta": {
-      "mean": 0.2951,
+      "mean": 0.2969,
       "ci95": [
-        0.2933,
-        0.2968
+        0.2952,
+        0.2986
       ],
-      "median": 0.2821,
+      "median": 0.284,
       "n": 21321
     }
   },
   "n_test": 21321,
   "n_train": 47509,
   "unfeaturisable_test_rows": 170,
-  "with_chromatin": false
+  "with_chromatin": true
 }

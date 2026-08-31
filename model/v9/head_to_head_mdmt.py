@@ -195,7 +195,8 @@ def main():
     print('    %-34s %10s %10s   %s' % ('metric', 'XPert', a.label[:10], 'better'))
     for nm, tv, ov, lower in table:
         win = a.label if ((ov < tv) if lower else (ov > tv)) else 'XPert'
-        res['metric_robustness'][nm] = {'XPert': round(tv, 4), 'ours': round(ov, 4), 'better': win}
+        res['metric_robustness'][nm] = {'XPert': round(float(tv), 4), 'ours': round(float(ov), 4),
+                                        'better': win}
         print('    %-34s %10.4f %10.4f   %s' % (nm + (' (lower better)' if lower else ''), tv, ov, win))
 
     # ---- signal strength: this project has been caught twice by a number that only held on one
@@ -248,7 +249,9 @@ def main():
 
     dst = a.out or os.path.join(os.path.dirname(HERE), 'results', 'v9_vs_xpert_mdmt_%s.json' % a.split)
     os.makedirs(os.path.dirname(dst), exist_ok=True)
-    json.dump(res, open(dst, 'w'), indent=2)
+    json.dump(res, open(dst, 'w'), indent=2, default=lambda o: (
+        float(o) if isinstance(o, np.floating) else int(o) if isinstance(o, np.integer)
+        else o.tolist() if isinstance(o, np.ndarray) else str(o)))
     print('\nwrote %s' % dst)
 
 
