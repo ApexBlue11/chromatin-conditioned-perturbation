@@ -1770,6 +1770,66 @@ Until that runs, the defensible statement is the narrow one: **the chromatin bra
 contribute accuracy, and two measurements say it does not.** The claim must not be made in a paper on the
 strength of the architecture containing the branch.
 
+## 45. The chromatin branch, ablated in the regime where it must matter: real, significant, and small (2026-09-01)
+
+`model/v9/xpert_arm.py --ablate_epi`. §44 answered the chromatin question for a ridge and found nothing.
+This is the deep-model version, on the same split, and it is the test CLAIMS 7.1 has needed since July:
+**v9 trained on `split_cold_cell_1` twice, identical in every respect except that one arm's chromatin input
+carries no cell-specific information.** Eight held-out cell lines, zero overlap with the 32 training cells,
+5 of the 8 with chromatin covering 94.3 % of test rows.
+
+`--ablate_epi` replaces the chromatin values **and** the track-availability mask with their training means,
+so architecture, parameter count, and the lineage input are untouched — the ablation removes the
+information, not the machinery. Verified before the run: E's standard deviation across rows falls
+0.5722 -> 1.4e-04 while lineage still varies and the targets are byte-identical.
+
+| `split_cold_cell_1`, n = 21,151 paired rows, 12 epochs, seed 0 | delta Pearson |
+|---|---|
+| copy the control | 0 by construction |
+| mean drug delta | 0.1101 |
+| ridge (no chromatin) | 0.2951 |
+| ridge (with chromatin) | 0.2980 |
+| **v9, chromatin ABLATED** | **0.4692** |
+| **v9, chromatin ON** | **0.4734** |
+
+**Paired difference +0.0042, 95 % CI [+0.0036, +0.0049], chromatin better on 55.8 % of rows, Wilcoxon
+p ~ 0.**
+
+### 45.1 What this means, stated at the size it actually is
+
+- **The effect is real.** The interval excludes zero by a wide margin on 21,151 paired rows, and it is
+  ~10x the seed-to-seed spread measured for this arm elsewhere (0.0004 across three seeds, §43).
+- **The effect is small.** v9 beats a ridge on this split by **+0.178**. Chromatin accounts for
+  **+0.0042 of that — about 2.4 %.** Ablate it completely and v9 still reaches 0.4692, keeping 97.6 % of
+  its advantage. As a fraction of the score itself it is 0.9 %.
+- **Two model classes agree on the magnitude.** The ridge, given the same chromatin encoded exactly
+  (rank-preserving SVD, penalty swept), gained **+0.0029** [§44]. The deep model, with a per-gene
+  chromatin embedding and a signed additive head, gains **+0.0042**. The richer functional form buys
+  almost nothing over the linear one — about a thousandth of a Pearson.
+- ⇒ **The defensible claim is: cell-line chromatin conditioning produces a statistically detectable but
+  practically negligible accuracy gain on unseen cell lines.** It is not the reason this model works, and
+  it must not be the headline of a paper. What carries v9 on this split is everything else.
+
+### 45.2 The regime matters, and this is the one that does
+
+§43.2 looked for a chromatin effect on the warm split and found none. That was near-uninformative: 99.8 %
+of warm test rows already have their (cell, compound) pair in training [§42.3], so the cell's own response
+to that very drug is in the data and a chromatin prior is redundant by construction. Cold-cell is where a
+model has no response history for the cell at all — and it is also the regime that is **model-limited
+rather than noise-limited** [§42.5], so there was real room for chromatin to show itself. It showed
+itself, faintly.
+
+### 45.3 Limits, stated plainly
+
+- **One seed pair.** This project's rule is three seeds before a difference is reported. The comparison is
+  paired across 21,151 rows, which controls row-level variance but not training-run variance; the measured
+  seed spread of 0.0004 makes a +0.0042 artefact unlikely, but two more seed pairs are required before this
+  number is quoted as final. They are written and queued, blocked on Kaggle GPU quota.
+- **Batch 8, not 48**, because 4 GB of VRAM will not hold batch 48 (§ commit log). Both arms share it, so
+  the contrast is unaffected, but the absolute 0.4734 is not comparable to the batch-48 Kaggle runs.
+- The ablated arm still receives the **lineage** vector. This isolates chromatin specifically; it is not a
+  test of cell identity as an input.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

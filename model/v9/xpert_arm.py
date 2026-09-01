@@ -353,7 +353,11 @@ def main():
     WORK = '/kaggle/working' if os.path.isdir('/kaggle/working') else os.path.join(
         os.path.dirname(os.path.dirname(HERE)), 'model', 'results')
     os.makedirs(WORK, exist_ok=True)
+    # the arm belongs in the filename: the ablated run overwrote the full run's json once, and only
+    # the saved predictions made the comparison recoverable
     tag = a.split if a.seeds == 3 and a.seed_start == 0 else f'{a.split}_seed{a.seed_start}'
+    if a.ablate_epi:
+        tag += '_noepi'
     out = os.path.join(WORK, f'v9_xpert_arm_{tag}.json')
     json.dump({'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
                'n_dropped_test_unfeaturisable': int(getattr(D, 'n_dropped_test', 0)),
