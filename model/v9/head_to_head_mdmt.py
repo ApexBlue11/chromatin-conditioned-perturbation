@@ -85,6 +85,10 @@ def main():
     ap.add_argument('--bundle', default=BUNDLE)
     ap.add_argument('--split', default='split_1')
     ap.add_argument('--out', default=None)
+    ap.add_argument('--theirs_label', default='XPert released ckpt',
+                    help='what --theirs actually is. The column was hard-coded as XPert, so feeding it a '
+                         'ridge produced a results file naming a baseline after their model -- the same '
+                         'mislabelling trap --label fixed on our side.')
     ap.add_argument('--label', default='v9 (ours)',
                     help='what --ours actually is; passing a baseline through here and leaving the label '
                          'as v9 would put a wrong row in a results table')
@@ -137,6 +141,7 @@ def main():
 
     res = {'split': a.split, 'n_rows': int(len(y)), 'n_seeds': len(seeds),
            'metric': 'per-row Pearson; mean is XPert metrics.py convention',
+           'theirs_label': a.theirs_label,
            'XPert_released_ckpt': {'abs': summarize(r_them_abs), 'delta': summarize(r_them_deg)},
            'ours_label': a.label,
            'v9_ours': {'abs': summarize(r_ours_abs), 'delta': summarize(r_ours_deg)},
@@ -150,7 +155,7 @@ def main():
     print('XPERT vs v9 ON XPERT\'S OWN mdmt BENCHMARK (%s), %d identical held-out rows' % (a.split, len(y)))
     print('=' * 100)
     print('  %-26s %-26s %-26s' % ('', 'absolute Pearson', 'delta Pearson (Pearson_deg)'))
-    for name, ab, dl in [('XPert released ckpt', res['XPert_released_ckpt']['abs'],
+    for name, ab, dl in [(a.theirs_label, res['XPert_released_ckpt']['abs'],
                           res['XPert_released_ckpt']['delta']),
                          (a.label, res['v9_ours']['abs'], res['v9_ours']['delta']),
                          ('copy-the-control', res['copy_the_control']['abs'], None)]:
@@ -158,8 +163,8 @@ def main():
         print('  %-26s %.4f %-19s %s' % (name, ab['mean'], str(ab['ci95']), d))
     p = res['paired_delta_ours_minus_theirs']
     print('')
-    print('  paired delta (%s - XPert) : %+.4f %s   better on %.1f%% of rows   wilcoxon p=%s'
-          % (a.label, p['delta_mean'], p['ci95'], 100 * p['frac_rows_a_better'],
+    print('  paired delta (%s - %s) : %+.4f %s   better on %.1f%% of rows   wilcoxon p=%s'
+          % (a.label, a.theirs_label, p['delta_mean'], p['ci95'], 100 * p['frac_rows_a_better'],
              ('%.3g' % p['wilcoxon_p']) if isinstance(p['wilcoxon_p'], float) else p['wilcoxon_p']))
 
     # ---- does the verdict survive the choice of metric? A lead that only exists under the one metric
@@ -192,9 +197,9 @@ def main():
     res['metric_robustness'] = {}
     print('')
     print('  does the verdict survive the choice of metric?')
-    print('    %-34s %10s %10s   %s' % ('metric', 'XPert', a.label[:10], 'better'))
+    print('    %-34s %10s %10s   %s' % ('metric', a.theirs_label[:10], a.label[:10], 'better'))
     for nm, tv, ov, lower in table:
-        win = a.label if ((ov < tv) if lower else (ov > tv)) else 'XPert'
+        win = a.label if ((ov < tv) if lower else (ov > tv)) else a.theirs_label
         res['metric_robustness'][nm] = {'XPert': round(float(tv), 4), 'ours': round(float(ov), 4),
                                         'better': win}
         print('    %-34s %10.4f %10.4f   %s' % (nm + (' (lower better)' if lower else ''), tv, ov, win))
@@ -206,7 +211,7 @@ def main():
     res['strata_strength'] = {}
     print('')
     print('  delta Pearson by quartile of TRUE effect size (mean |delta| per row):')
-    print('    %-26s %6s %9s %9s' % ('quartile', 'n', 'XPert', a.label[:9]))
+    print('    %-26s %6s %9s %9s' % ('quartile', 'n', a.theirs_label[:9], a.label[:9]))
     for qi, (lo, hi) in enumerate(zip([-np.inf] + list(q), list(q) + [np.inf])):
         m = (strength >= lo) & (strength < hi)
         if m.sum() < 50:
@@ -243,7 +248,7 @@ def main():
                              'ours': round(float(np.nanmean(r_ours_deg[m])), 4)}
         res['strata_delta'] = strat
         print('\n  delta Pearson by stratum:')
-        print('    %-34s %6s %9s %9s' % ('stratum', 'n', 'XPert', a.label[:9]))
+        print('    %-34s %6s %9s %9s' % ('stratum', 'n', a.theirs_label[:9], a.label[:9]))
         for nm, v in strat.items():
             print('    %-34s %6d %9.4f %9.4f' % (nm, v['n'], v['XPert'], v['ours']))
 

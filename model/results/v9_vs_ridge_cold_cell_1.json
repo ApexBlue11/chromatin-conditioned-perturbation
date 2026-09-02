@@ -1,0 +1,164 @@
+{
+  "split": "split_cold_cell_1",
+  "n_rows": 21151,
+  "n_seeds": 1,
+  "metric": "per-row Pearson; mean is XPert metrics.py convention",
+  "theirs_label": "ridge",
+  "XPert_released_ckpt": {
+    "abs": {
+      "mean": 0.9584,
+      "ci95": [
+        0.958,
+        0.9588
+      ],
+      "median": 0.9664,
+      "n": 21151
+    },
+    "delta": {
+      "mean": 0.2959,
+      "ci95": [
+        0.2941,
+        0.2978
+      ],
+      "median": 0.283,
+      "n": 21151
+    }
+  },
+  "ours_label": "v9",
+  "v9_ours": {
+    "abs": {
+      "mean": 0.9665,
+      "ci95": [
+        0.9662,
+        0.9669
+      ],
+      "median": 0.974,
+      "n": 21151
+    },
+    "delta": {
+      "mean": 0.4734,
+      "ci95": [
+        0.4716,
+        0.4754
+      ],
+      "median": 0.4827,
+      "n": 21151
+    }
+  },
+  "copy_the_control": {
+    "abs": {
+      "mean": 0.957,
+      "ci95": [
+        0.9565,
+        0.9575
+      ],
+      "median": 0.968,
+      "n": 21151
+    },
+    "delta": 0.0
+  },
+  "paired_delta_ours_minus_theirs": {
+    "delta_mean": 0.1775,
+    "ci95": [
+      0.176,
+      0.1791
+    ],
+    "frac_rows_a_better": 0.9335,
+    "n": 21151,
+    "wilcoxon_p": 0.0
+  },
+  "paired_abs_ours_minus_theirs": {
+    "delta_mean": 0.0081,
+    "ci95": [
+      0.008,
+      0.0083
+    ],
+    "frac_rows_a_better": 0.9082,
+    "n": 21151,
+    "wilcoxon_p": 0.0
+  },
+  "per_seed_delta": [
+    0.4734
+  ],
+  "metric_robustness": {
+    "Pearson_deg  mean (their metric)": {
+      "XPert": 0.2959,
+      "ours": 0.4734,
+      "better": "v9"
+    },
+    "Pearson_deg  median": {
+      "XPert": 0.283,
+      "ours": 0.4827,
+      "better": "v9"
+    },
+    "Pearson_abs  mean": {
+      "XPert": 0.9584,
+      "ours": 0.9665,
+      "better": "v9"
+    },
+    "MSE_deg": {
+      "XPert": 0.405,
+      "ours": 0.329,
+      "better": "v9"
+    },
+    "MAE_deg": {
+      "XPert": 0.4251,
+      "ours": 0.3719,
+      "better": "v9"
+    },
+    "Spearman_deg mean": {
+      "XPert": 0.2351,
+      "ours": 0.3602,
+      "better": "v9"
+    },
+    "Precision@100 up": {
+      "XPert": 0.2426,
+      "ours": 0.3307,
+      "better": "v9"
+    },
+    "Precision@100 down": {
+      "XPert": 0.2366,
+      "ours": 0.3458,
+      "better": "v9"
+    }
+  },
+  "strata_strength": {
+    "Q1  mean|d| 0.09-0.27": {
+      "n": 5288,
+      "XPert": 0.2124,
+      "ours": 0.4127
+    },
+    "Q2  mean|d| 0.27-0.34": {
+      "n": 5287,
+      "XPert": 0.2717,
+      "ours": 0.4692
+    },
+    "Q3  mean|d| 0.34-0.46": {
+      "n": 5288,
+      "XPert": 0.3091,
+      "ours": 0.4832
+    },
+    "Q4  mean|d| 0.46-1.65": {
+      "n": 5288,
+      "XPert": 0.3903,
+      "ours": 0.5287
+    }
+  },
+  "strata_delta": {
+    "single-dose rows": {
+      "n": 16835,
+      "XPert": 0.3006,
+      "ours": 0.471
+    },
+    "pooled-dose rows": {
+      "n": 4316,
+      "XPert": 0.2776,
+      "ours": 0.483
+    },
+    "pair NOT in train": {
+      "n": 21151,
+      "XPert": 0.2959,
+      "ours": 0.4734
+    }
+  }
+}

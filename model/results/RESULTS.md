@@ -1795,6 +1795,24 @@ information, not the machinery. Verified before the run: E's standard deviation 
 **Paired difference +0.0042, 95 % CI [+0.0036, +0.0049], chromatin better on 55.8 % of rows, Wilcoxon
 p ~ 0.**
 
+### 45.0 The number that dwarfs it: v9 on unseen cell lines
+
+Before reading the chromatin effect, the scale it sits inside. Paired against the ridge on the same 21,151
+rows, `model/v9/head_to_head_mdmt.py`:
+
+| `split_cold_cell_1` | absolute Pearson | delta Pearson |
+|---|---|---|
+| ridge | 0.9584 | 0.2959 [0.2941, 0.2978] |
+| **v9 (chromatin on, seed 0)** | 0.9665 | **0.4734** [0.4716, 0.4754] |
+
+**Paired +0.1775 [0.1760, 0.1791], v9 better on 93.3 % of rows, Wilcoxon p ~ 0**, and ahead on all eight
+metrics and in every effect-size quartile (Q1 0.4127 vs 0.2124 ... Q4 0.5287 vs 0.3903).
+
+Set against v9's **+0.012** over XPert on the warm split [§43], this is fifteen times larger. That is what
+§42.5 predicted: the warm regime is noise-limited and bunches every model near the ceiling, while cold-cell
+is model-limited and leaves real signal on the table. **Unseen cell lines are where this architecture
+distinguishes itself, and they are the regime the field cares about.**
+
 ### 45.1 What this means, stated at the size it actually is
 
 - **The effect is real.** The interval excludes zero by a wide margin on 21,151 paired rows, and it is
