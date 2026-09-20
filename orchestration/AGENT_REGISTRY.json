@@ -219,6 +219,12 @@
       "verdict": "Returned NOT-SUPPORTED on packet 001 and was right. Loaded the split from the npz rather than trusting its name, independently re-read Supplementary Table R8, and traced three numbers to the code that produced them. Found: (a) no script writes the central artefact; (b) the chromatin-ON arm JSON was overwritten by the ablated run; (c) ridge lambda is selected on test rows and at matched lambda a closed-form ridge gains +0.0038 vs v9 +0.0042; (d) x_cell for cold cells is computed over that cell's own TEST rows while the code comment says training rows only.",
       "notable": "SELF-DISCLOSED A BLINDING LEAK unprompted - tracing provenance put git log on screen and it saw a commit subject stating a conclusion. It flagged this, noted its assessment was already written, and invited discounting. That is the behaviour the blinded design exists to produce.",
       "lesson": "A BLINDED adversary outperformed every confirmatory worker in this session. It also outperformed the PI: two of its findings (the ridge label landmine, the mixed n in one table) were things the PI had noticed and waved through. Blinding + adversarial framing is now the strongest reliability signal observed here. DESIGN FIX OWED: ship artefact paths and `git show --stat` in every packet so the reviewer never needs `git log`, whose subjects state conclusions in this repo."
+    },
+    {
+      "id": "PI-SELF-CORRECTION",
+      "date": "2026-09-20",
+      "note": "The PI hand-wrote a ~200-line analysis script (atom_ablation_ci.py) while holding a precise spec and a cheap mechanical check, instead of delegating the body. Flagged by the principal. Also under-used free Kaggle CPU: the same script then exceeded the local foreground timeout, which is precisely the tier-2 case.",
+      "routing_implication": "Delegation is not a fallback for when the PI is busy; it is the default for any implementation task with a mechanical verification contract. The PI's scarce output is judgement, not typing."
     }
   ],
   "routing_policy": {
@@ -238,6 +244,8 @@
     "cpu_compute": "kaggle-cpu (free, 5 concurrent) before local-cpu",
     "gpu_compute": "kaggle-gpu T4x2 only, gated on a free-CPU ridge result AND human approval",
     "wide_landscape_sweep": "agy + gemini-3.8-flash-high. Slow (~55 min for 11 models with PDFs + supplementary) but the highest-value class run so far. Dispatch early, always background.",
-    "adversarial_review_of_own_results": "A SEPARATE blinded Claude session, given objective/function/results/code and never the PI reasoning. 12/12 upheld on first use. Do not substitute a worker agent for this: the blinding is what makes disagreement informative, and an in-session critique cannot be blinded."
+    "adversarial_review_of_own_results": "A SEPARATE blinded Claude session, given objective/function/results/code and never the PI reasoning. 12/12 upheld on first use. Do not substitute a worker agent for this: the blinding is what makes disagreement informative, and an in-session critique cannot be blinded.",
+    "code_implementation_from_a_spec": "agy + gemini-3.8-flash-high. PI writes the spec, the guards and the verification contract; the worker writes the body. Safe only when verification is mechanical, failure is loud, and the blast radius is named files with no git and no GPU. See ORCHESTRATION.md 6b.",
+    "compute_tiers": "0 already-on-disk -> 1 closed-form -> 2 free Kaggle CPU -> 3 short local CPU -> 4 local GPU inference only -> 5 Kaggle T4x2 training, adversary-reviewed before spend. See ORCHESTRATION.md 6c."
   }
 }

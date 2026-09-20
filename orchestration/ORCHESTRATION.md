@@ -210,6 +210,61 @@ Routing heuristic, in order:
 
 ---
 
+## 6b. Code delegation — the PI writes the CONTRACT, a worker writes the BODY
+
+**Standing correction, 2026-09-20.** The PI wrote `atom_ablation_ci.py` (~200 lines) by hand while holding
+a precise spec and a cheap mechanical check. That is the exact shape of a task that should have been
+delegated, and writing it in-house was a waste of the expensive agent. The principal was right to call it.
+
+### The division that works
+| the PI writes | a worker writes |
+|---|---|
+| the **spec**: what is computed, on what rows, with which estimator | the implementation |
+| the **guards**: every assertion whose failure would let a wrong number through | the plumbing around them |
+| the **verification contract**: the exact command to run and the exact output that counts as pass | the code that satisfies it |
+| the **statistical choice**: estimand, estimator, which n is the denominator | — |
+
+The rule: **delegate the body, never the contract.** Being wrong about the estimator is expensive and
+silent; being wrong about a loop is cheap and loud.
+
+### What makes a code task safe to delegate
+All four must hold:
+1. The spec is precise enough that two competent implementers would produce the same behaviour.
+2. **Verification is mechanical** — a test that prints a number the PI can check, not a judgement call.
+3. Failure is **loud**: a broken implementation fails a test rather than shifting a result by 0.004.
+4. The blast radius is bounded — named files, explicit "do not touch" list, no git, no GPU.
+
+If verification would require the PI to re-derive the answer anyway, delegating costs more than it saves.
+**Never delegate**: whether a number is real, the estimand, adjudicating a review, or a spend decision.
+
+### The brief template that has worked
+Background (only what is needed) → numbered requirements → **the tests to add, specified as behaviours
+not existence** → the exact verification commands and what their output must say → explicit constraints
+(files touched, no git, no GPU, style) → a report file with a mandatory `## What I was unsure about`.
+
+Include the project's relevant scar tissue. W4's brief carried the quantiser story (a guard that asserted
+`fit()` had been *called* while the bins were NaN) so the worker would understand *why* behaviour-testing
+is demanded rather than treating it as a style preference.
+
+---
+
+## 6c. Compute routing — cheapest sufficient tier, always
+
+Checked in this order. Do not skip a tier without saying why.
+
+| tier | cost | use for | constraint |
+|---|---|---|---|
+| **0. already on disk** | free | **CHECK FIRST, EVERY TIME** | This project has paid three times for something already in hand: §46.1 supplementary tables, §54.1 saved predictions, §56.2 existing seed checkpoints. Enumerate artefacts — **including gitignored dirs** — before anything else. |
+| **1. closed form** | free | ridge, bootstrap, re-scoring saved predictions | A closed-form ridge has repeatedly predicted what the GPU run would show, with no seed noise. |
+| **2. free Kaggle CPU** | free | any CPU-bound job over a few minutes | **5 concurrent sessions.** This is the default for real CPU work, not the local machine. |
+| **3. local CPU** | free, thermally limited | short interactive checks only | It is a laptop. A job that exceeds ~2 minutes locally belongs on tier 2. |
+| **4. local GPU** | free, 4 GB | **inference sweeps only** | Never training. Batch 8 ceiling, so its absolute numbers are not comparable to batch-48 Kaggle runs. |
+| **5. Kaggle T4 x2** | **30 h/week** | training only | Never P100. Max 2 concurrent. Never hard-cancel (working dir is discarded). **Cost estimate goes through the adversary BEFORE the spend** — review 003 caught a design that was not decisive and a premise that was false, before any hours were committed. |
+
+**Cost estimates are measured, not scaled.** §47.6's 5.6 h projection scaled a rate measured with the new
+module *off*, so it was a floor of unknown tightness. And a "runs to power it" figure is the ~51 % point
+unless it used `(z_alpha + z_beta)`; the 80 % number is roughly 2x larger [§53.1].
+
 ## 7. Provenance contract
 
 Every number that enters `RESULTS.md` or `CLAIMS.md` carries:
