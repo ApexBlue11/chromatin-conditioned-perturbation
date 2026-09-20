@@ -1,0 +1,84 @@
+{
+  "l3delta_B": {
+    "ccle": {
+      "lambda": 10000.0,
+      "n_features": 3064,
+      "n_train": 40000,
+      "unseen_cell": {
+        "n": 3676,
+        "pearson": 0.2517,
+        "r2": 0.0789
+      },
+      "unseen_compound": {
+        "n": 6000,
+        "pearson": 0.3434,
+        "r2": 0.1054
+      },
+      "unseen_both": {
+        "n": 1418,
+        "pearson": 0.2224,
+        "r2": 0.0546
+      }
+    },
+    "cellmean": {
+      "lambda": 10000.0,
+      "n_features": 3064,
+      "n_train": 40000,
+      "unseen_cell": {
+        "n": 3676,
+        "pearson": 0.289,
+        "r2": 0.0922
+      },
+      "unseen_compound": {
+        "n": 6000,
+        "pearson": 0.3434,
+        "r2": 0.1067
+      },
+      "unseen_both": {
+        "n": 1418,
+        "pearson": 0.2495,
+        "r2": 0.0665
+      }
+    },
+    "ctlA": {
+      "lambda": 1000.0,
+      "n_features": 3064,
+      "n_train": 40000,
+      "unseen_cell": {
+        "n": 3676,
+        "pearson": 0.2055,
+        "r2": -0.0455
+      },
+      "unseen_compound": {
+        "n": 6000,
+        "pearson": 0.4467,
+        "r2": 0.1822
+      },
+      "unseen_both": {
+        "n": 1418,
+        "pearson": 0.1698,
+        "r2": -0.0865
+      }
+    },
+    "ctlB": {
+      "lambda": 1000.0,
+      "n_features": 3064,
+      "n_train": 40000,
+      "unseen_cell": {
+        "n": 3676,
+        "pearson": 0.2826,
+        "r2": 0.0569
+      },
+      "unseen_compound": {
+        "n": 6000,
+        "pearson": 0.4547,
+        "r2": 0.1896
+      },
+      "unseen_both": {
+        "n": 1418,
+        "pearson": 0.2453,
+        "r2": 0.0294
+      }
+    }
+  }
+}

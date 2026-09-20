@@ -1,0 +1,219 @@
+{
+  "source": "C:\\Projects\\LINCS\\external\\xpert\\l1000_mdmt_full_336852.h5ad",
+  "splits": [
+    {
+      "split": "split_breast_1",
+      "n_train": 49617,
+      "n_test": 5513,
+      "n_unused": 281722,
+      "n_cells": 11,
+      "tissues": [
+        "breast"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9817,
+      "test_cell_compound_pair_seen_in_train": 0.973,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_breast_2",
+      "n_train": 49617,
+      "n_test": 5513,
+      "n_unused": 281722,
+      "n_cells": 11,
+      "tissues": [
+        "breast"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.984,
+      "test_cell_compound_pair_seen_in_train": 0.9799,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_breast_3",
+      "n_train": 49617,
+      "n_test": 5513,
+      "n_unused": 281722,
+      "n_cells": 11,
+      "tissues": [
+        "breast"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9831,
+      "test_cell_compound_pair_seen_in_train": 0.9775,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_breast_4",
+      "n_train": 49617,
+      "n_test": 5513,
+      "n_unused": 281722,
+      "n_cells": 11,
+      "tissues": [
+        "breast"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9806,
+      "test_cell_compound_pair_seen_in_train": 0.9746,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_breast_5",
+      "n_train": 49617,
+      "n_test": 5513,
+      "n_unused": 281722,
+      "n_cells": 11,
+      "tissues": [
+        "breast"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9808,
+      "test_cell_compound_pair_seen_in_train": 0.9757,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_haematopoietic_and_lymphoid_tissue_1",
+      "n_train": 17889,
+      "n_test": 1988,
+      "n_unused": 316975,
+      "n_cells": 20,
+      "tissues": [
+        "haematopoietic_and_lymphoid_tissue"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9839,
+      "test_cell_compound_pair_seen_in_train": 0.9054,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_haematopoietic_and_lymphoid_tissue_2",
+      "n_train": 17889,
+      "n_test": 1988,
+      "n_unused": 316975,
+      "n_cells": 20,
+      "tissues": [
+        "haematopoietic_and_lymphoid_tissue"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9899,
+      "test_cell_compound_pair_seen_in_train": 0.9034,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_haematopoietic_and_lymphoid_tissue_3",
+      "n_train": 17889,
+      "n_test": 1988,
+      "n_unused": 316975,
+      "n_cells": 20,
+      "tissues": [
+        "haematopoietic_and_lymphoid_tissue"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9869,
+      "test_cell_compound_pair_seen_in_train": 0.909,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_haematopoietic_and_lymphoid_tissue_4",
+      "n_train": 17889,
+      "n_test": 1988,
+      "n_unused": 316975,
+      "n_cells": 20,
+      "tissues": [
+        "haematopoietic_and_lymphoid_tissue"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9879,
+      "test_cell_compound_pair_seen_in_train": 0.8954,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_haematopoietic_and_lymphoid_tissue_5",
+      "n_train": 17889,
+      "n_test": 1988,
+      "n_unused": 316975,
+      "n_cells": 20,
+      "tissues": [
+        "haematopoietic_and_lymphoid_tissue"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9914,
+      "test_cell_compound_pair_seen_in_train": 0.9271,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_lung_1",
+      "n_train": 40932,
+      "n_test": 4549,
+      "n_unused": 291371,
+      "n_cells": 30,
+      "tissues": [
+        "lung"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9894,
+      "test_cell_compound_pair_seen_in_train": 0.796,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_lung_2",
+      "n_train": 40933,
+      "n_test": 4548,
+      "n_unused": 291371,
+      "n_cells": 30,
+      "tissues": [
+        "lung"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9912,
+      "test_cell_compound_pair_seen_in_train": 0.7997,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_lung_3",
+      "n_train": 40933,
+      "n_test": 4548,
+      "n_unused": 291371,
+      "n_cells": 30,
+      "tissues": [
+        "lung"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9859,
+      "test_cell_compound_pair_seen_in_train": 0.8034,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_lung_4",
+      "n_train": 40933,
+      "n_test": 4548,
+      "n_unused": 291371,
+      "n_cells": 30,
+      "tissues": [
+        "lung"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9894,
+      "test_cell_compound_pair_seen_in_train": 0.8008,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    },
+    {
+      "split": "split_lung_5",
+      "n_train": 40933,
+      "n_test": 4548,
+      "n_unused": 291371,
+      "n_cells": 30,
+      "tissues": [
+        "lung"
+      ],
+      "test_cell_seen_in_train": 1.0,
+      "test_compound_seen_in_train": 0.9844,
+      "test_cell_compound_pair_seen_in_train": 0.794,
+      "test_exact_cell_compound_dose_time_seen": 0.0
+    }
+  ],
+  "mean_test_cell_seen": 1.0,
+  "mean_test_compound_seen": 0.986,
+  "mean_test_pair_seen": 0.8943,
+  "verdict": "within-tissue 90/10 splits with near-total cell and compound overlap; NOT tissue holdouts"
+}

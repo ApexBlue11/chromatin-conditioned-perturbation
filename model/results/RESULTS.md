@@ -2278,6 +2278,141 @@ W1 reported `Mean (cell) = 0.395`. The full text says **0.243**. The rest of its
 right and one figure was not** — the verification pass is not optional, and the error is never where the
 worker sounds least confident.
 
+## 51. 🔴 ADVERSARIAL REVIEW 001: the chromatin claim is RETRACTED. 12 challenges, 12 upheld (2026-09-20)
+
+`orchestration/bus/to_pi/001_review.md`. A blinded independent reviewer — given objective, function,
+results and code, and **not** the PI's reasoning — returned `NOT-SUPPORTED` on packet 001.
+**I verified its four most consequential challenges against the code and artefacts myself. All four hold.**
+Nothing was rejected.
+
+### 51.1 Adjudication
+
+| # | sev | challenge | verdict |
+|---|---|---|---|
+| 1 | BLOCKING | row-bootstrap CI is the wrong uncertainty; 8 test cells, 78.8 % of rows from two; two runs at one seed each | **UPHELD** — §51.2 |
+| 2 | BLOCKING | the central number has no generating script; the ON-arm artefact was overwritten | **UPHELD, verified** — §51.3 |
+| 3 | MAJOR | ridge λ selected on test rows; at matched λ the ridge gains **more** than reported | **UPHELD, verified, changes the conclusion** — §51.4 |
+| 4 | MAJOR | `x_cell` for cold cells is computed over that cell's **test** rows; the ridge has no such input | **UPHELD, verified** — §51.5 |
+| 5 | MAJOR | 3 of 8 test cells have no chromatin track ⇒ a free placebo stratum estimating the noise floor | **UPHELD — best proposed experiment in the review** |
+| 6 | MAJOR | ridge 0.2951 is n=21,321 while every v9 number is n=21,151; correctly paired value is **0.2959** | **UPHELD** — §45/§46.4 mixed both in one table |
+| 7 | MAJOR | `v9_vs_ridge_cold_cell_1.json` stores the **ridge** under the key `XPert_released_ckpt` | **UPHELD** — I saw this and called it "a label quirk". It is a landmine. |
+| 8 | MINOR | fold 1 only against a five-fold mean | **UPHELD, already flagged** [§46.4] |
+| 9 | MINOR | chromatin SVD basis fitted over all 40 cells; ridge L2 is not rotation-invariant | **UPHELD** |
+| 10 | MINOR | arm JSON records no batch/epochs/lr/seed | **UPHELD, verified absent** |
+| 11 | MINOR | `known_cell_frac` counts train+test but is printed as a test-row property | **UPHELD** |
+| 12 | MINOR | our `nanmean` vs their `mean` over per-row correlations | **UPHELD** |
+
+### 51.2 🔴 My error, stated plainly
+
+§45.1 defended +0.0042 as "~10x the seed-to-seed spread measured for this arm elsewhere (0.0004 across
+three seeds, §43)". **That spread was measured on the WARM split** — and §30 records, in this project's own
+words, that seed variance *collapses* on their warm split structure: "range 0.0001–0.0015 here, against
+**0.005–0.045 on our cold splits**". So the cold-split seed spread plausibly **exceeds the entire effect**.
+Importing a warm-split variance estimate to defend a cold-split effect is invalid, and it is the same
+class as every other retraction here: a valid number computed on the wrong thing [method rule 5].
+
+The reviewer also caught the deeper point: rows within a cell line **share the chromatin vector exactly**,
+so for a claim that generalises over cell lines the denominator is 8 clusters dominated by two, not 21,151
+rows. Four decimals are defensible for the point estimate; the interval is not.
+
+### 51.3 🔴 The number is unreproducible — verified
+- `grep -rn "chromatin_ablation" --include=*.py` over the whole repo returns **nothing**. No script writes
+  `v9_chromatin_ablation_cold_cell_1.json`. The packet's claim that `head_to_head_mdmt.py` produced it is
+  wrong, so that script's row-alignment guards (`row_index` intersection, `y_true`/`ctl_true` assertions)
+  **never ran** on this comparison.
+- `v9_xpert_arm_split_cold_cell_1_seed0.json` carries **`ablate_epi: true`**. The un-suffixed filename
+  holds the *ablated* arm, so **the chromatin-ON arm has no artefact at all**. The overwrite the script's
+  own comment warns about happened again, and the `_noepi` fix landed in the same commit as the runs.
+- That file records **no** `batch`, `epochs`, `lr` or `seed` (verified absent), so "12 epochs, seed 0,
+  batch 8" cannot be checked against anything. The script default is `--batch 48`.
+
+### 51.4 🔴 The ridge gains MORE than we reported, and that decides it
+
+`xpert_mdmt_baselines.py:174-187` scores each λ with `per_row_pearson(pr - C[te], (X - C)[te])` — on the
+**test** rows — and keeps the argmax. No validation split. The arms therefore chose different λ
+(no-chrom 1e4, chrom 1e3), and §44's +0.0029 is `max_λ(chrom) − max_λ(no chrom)`, a cross-λ difference.
+
+Matched λ, read straight from the two sweeps:
+
+| λ | no chromatin | with chromatin | **gain** |
+|---|---|---|---|
+| 1e2 | 0.2559 | 0.2576 | +0.0017 |
+| **1e3** | 0.2942 | 0.2980 | **+0.0038** |
+| 1e4 | 0.2951 | 0.2969 | +0.0018 |
+| 1e5 | 0.2354 | 0.2367 | +0.0013 |
+
+🔴 **§44 assumed per-arm-best λ FLATTERED the chromatin arm. It deflated it.** At λ=1e3 a
+**closed-form ridge with no seed noise whatsoever** gains **+0.0038** against v9's +0.0042.
+
+⇒ **The evidence does not separate "v9 extracts chromatin signal" from "chromatin is a weak linear cell
+covariate that any model picks up equally."** And the cleanest chromatin measurement in this project is
+the **ridge's**, precisely because it carries no training noise.
+
+### 51.5 🔴 A transductive input on the v9 side only
+
+`xpert_arm.py:176`:
+```
+self.cell_mean[c] = self.C[sel].mean(0) if sel.any() else self.C[m].mean(0)
+```
+`m` is every row of cell `c`; `sel` is its training rows. For a **cold** cell `sel.any()` is always False,
+so `x_cell` for all of that cell's test rows is the mean control **over its own test rows** — while the
+comment three lines above reads *"per-cell aggregate control, from TRAINING rows only"*. **The comment
+asserts the opposite of what the code does.**
+
+It is the mild form: an unsupervised aggregate of an *input* (control expression), never of the target. But
+it is computed over the evaluation set, in exactly the regime under study, and `xpert_mdmt_baselines.py`'s
+`feats()` uses only per-row `C[idx]` ⇒ **v9 has a cell-level input the comparator does not.** It applies
+equally to both v9 arms, so it does not explain +0.0042 — but **+0.1775 and the XPert comparison are not
+protected.**
+
+### 51.6 What SURVIVED, per the reviewer
+
+- **The split is genuinely cold** — loaded from the npz rather than trusted by name: 32 train vs 8 test
+  cell lines, intersection **empty**, all 21,151 rows in the "pair NOT in train" stratum.
+- **v9 > ridge, +0.1775** — *"I could not break this."* Holds on all 8 metrics, both dose strata, and all
+  four effect-size quartiles, with the **largest** margin in the weakest-signal quartile (0.4127 vs
+  0.2124), which addresses the inert-signature retraction. Subject to C4 and C6.
+- **The published numbers are cited correctly** — independently re-read from Table R8.
+- **Ablate-to-mean is correctly applied** on both channels, training rows only, lineage untouched.
+- **§32's quantiser guard is genuinely repaired** — though `xpert_arm.py` calls `discriminates()` with
+  `x=None`, which skips the strongest check; passing a real batch would close it.
+
+### 51.7 Consequences — CLAIM 7.1 RETRACTED pending re-measurement
+
+**Chromatin has now failed three times**: +0.0029 (ridge, §44), +0.0038 (ridge at matched λ, §51.4), and
++0.0042 (v9, §45 — now unreproducible with an invalid interval). A model with **no seed noise** gains what
+the deep model gains.
+
+> **The defensible statement is now: cell-line chromatin is a weak linear cell covariate. Nothing in this
+> project demonstrates that a deep model extracts anything from it that a ridge does not.**
+
+That is a **stronger** negative than §45 claimed and it costs nothing to say, because [§49] establishes the
+field has explicitly asked for this measurement.
+
+### 51.8 Required before chromatin is mentioned again, cheapest first
+1. **C5, the placebo stratum** — free, no GPU. 3 of 8 test cells have no chromatin; both arms see zeroes
+   there, so the paired delta on those 1,212 rows **is** the training-noise floor. If it is also ~+0.004
+   the question is settled negatively. Blocked only by C2 (needs saved predictions).
+2. **Re-run both arms with `--save_pred`, distinct filenames, args recorded in the JSON**, and route the
+   comparison through `head_to_head_mdmt.py` so its guards execute.
+3. **≥3 seeds per arm**, reporting the ON-arm seed spread on *this* split beside the effect.
+4. **Cluster-bootstrap over the 8 cell lines**, plus the per-cell-line paired delta.
+5. **Fix λ selection** on a held-out fold of training cells; re-state the ridge gain at matched λ.
+6. **Re-run v9 cold-cell with `x_cell` = global training control mean**, and report the change in 0.4734.
+7. **Key the JSON off `--theirs_label`**, then grep every results file for `XPert_released_ckpt`.
+
+### 51.9 Reviewer calibration, recorded
+12 challenges, **12 upheld, 0 rejected**, severities not inflated — it separated the +0.1775 result (which
+survived) from the +0.0042 (which did not) and said so in the first paragraph. It loaded the split from the
+npz rather than trusting its name, re-read Table R8 independently, and traced three numbers to the code.
+
+It also **self-disclosed a blinding leak**: tracing C2 put `git log` on screen and it saw commit
+`5e80c5d`'s subject line, which states a conclusion. It flagged this unprompted, noted its C1/C3
+assessment was already written, and invited discounting. **That is the behaviour the blinding design
+exists to produce.** The leak is real and worth fixing: commit subjects in this project state conclusions,
+so a reviewer tracing provenance will see them. Future packets should include the artefact paths and
+`git show --stat` output the reviewer needs, so it never has to run `git log`.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

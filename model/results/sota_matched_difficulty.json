@@ -1,0 +1,74 @@
+{
+  "xpert_style": {
+    "n_train": 40000,
+    "n_test": 4653,
+    "test_cell_seen": 1.0,
+    "test_compound_seen": 0.908,
+    "test_pair_seen": 0.4939,
+    "ridge_delta": 0.5294,
+    "ridge_abs": 0.9474,
+    "copy_ctl_abs": 0.9273,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.3681
+  },
+  "xpert_tissue": {
+    "n_train": 40000,
+    "n_test": 897,
+    "test_cell_seen": 1.0,
+    "test_compound_seen": 0.8506,
+    "test_pair_seen": 0.7302,
+    "ridge_delta": 0.5219,
+    "ridge_abs": 0.9575,
+    "copy_ctl_abs": 0.9404,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.3365
+  },
+  "xpert_pair": {
+    "n_train": 40000,
+    "n_test": 3824,
+    "test_cell_seen": 1.0,
+    "test_compound_seen": 0.9341,
+    "test_pair_seen": 0.602,
+    "ridge_delta": 0.5459,
+    "ridge_abs": 0.9496,
+    "copy_ctl_abs": 0.9287,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.4057
+  },
+  "cold_cell": {
+    "n_train": 40000,
+    "n_test": 6000,
+    "test_cell_seen": 0.0,
+    "test_compound_seen": 0.9668,
+    "test_pair_seen": 0.0,
+    "ridge_delta": 0.4193,
+    "ridge_abs": 0.9184,
+    "copy_ctl_abs": 0.9257,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.3574
+  },
+  "cold_compound": {
+    "n_train": 40000,
+    "n_test": 6000,
+    "test_cell_seen": 1.0,
+    "test_compound_seen": 0.0,
+    "test_pair_seen": 0.0,
+    "ridge_delta": 0.4744,
+    "ridge_abs": 0.9319,
+    "copy_ctl_abs": 0.9185,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.3156
+  },
+  "cold_both": {
+    "n_train": 40000,
+    "n_test": 2988,
+    "test_cell_seen": 0.0,
+    "test_compound_seen": 0.0,
+    "test_pair_seen": 0.0,
+    "ridge_delta": 0.3764,
+    "ridge_abs": 0.8966,
+    "copy_ctl_abs": 0.908,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.3215
+  }
+}

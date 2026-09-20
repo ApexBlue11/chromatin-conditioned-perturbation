@@ -1,0 +1,77 @@
+{
+  "n_signatures": 56811,
+  "min_wells": 4,
+  "median_wells": 5,
+  "seconds": 69.2,
+  "strata": {
+    "all signatures (half vs half)": {
+      "n": 56811,
+      "delta": 0.1376,
+      "absolute": 0.93,
+      "spearman_brown_full": 0.4525
+    },
+    "3+3 averaged (>=6 wells) [matches RESULTS 25]": {
+      "n": 11734,
+      "delta": 0.17,
+      "absolute": 0.9384,
+      "spearman_brown_full": 0.57
+    },
+    "top strength quartile (Level-3 delta)": {
+      "n": 14203,
+      "delta": 0.3263,
+      "absolute": 0.9022,
+      "spearman_brown_full": 0.7139
+    },
+    "top 15%% strength (Level-3 delta)": {
+      "n": 8522,
+      "delta": 0.4036,
+      "absolute": 0.8958,
+      "spearman_brown_full": 0.7324
+    },
+    "Level-5 reproducible stratum (strength >= 1.0)": {
+      "n": 6372,
+      "delta": 0.5283,
+      "absolute": 0.9183,
+      "spearman_brown_full": 0.8493
+    },
+    "  delta-strength pct   0- 20": {
+      "n": 11363,
+      "delta": 0.062,
+      "absolute": 0.9487,
+      "spearman_brown_full": 0.2574
+    },
+    "  delta-strength pct  20- 40": {
+      "n": 11363,
+      "delta": 0.0961,
+      "absolute": 0.9378,
+      "spearman_brown_full": 0.356
+    },
+    "  delta-strength pct  40- 60": {
+      "n": 11364,
+      "delta": 0.1414,
+      "absolute": 0.9301,
+      "spearman_brown_full": 0.4583
+    },
+    "  delta-strength pct  60- 80": {
+      "n": 11363,
+      "delta": 0.2069,
+      "absolute": 0.9193,
+      "spearman_brown_full": 0.5714
+    },
+    "  delta-strength pct  80-100": {
+      "n": 11363,
+      "delta": 0.3572,
+      "absolute": 0.899,
+      "spearman_brown_full": 0.7412
+    }
+  },
+  "reference_RESULTS_25": {
+    "level3_3+3_splithalf": 0.1441,
+    "level3_top_quartile": 0.2429,
+    "level5_modz_all": 0.127,
+    "level5_modz_reproducible": [
+      0.509,
+      0.619
+    ]
+  }
+}

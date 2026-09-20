@@ -1,0 +1,35 @@
+{
+  "split": "split_breast_1",
+  "runs": [
+    {
+      "seed": 0,
+      "Pearson": 0.9838,
+      "Pearson_deg": 0.7068,
+      "seconds": 4325.3
+    },
+    {
+      "seed": 1,
+      "Pearson": 0.9839,
+      "Pearson_deg": 0.7079,
+      "seconds": 4317.6
+    },
+    {
+      "seed": 2,
+      "Pearson": 0.9838,
+      "Pearson_deg": 0.7064,
+      "seconds": 4331.5
+    }
+  ],
+  "nulls": {
+    "copy_ctl_abs": 0.9673,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.2245
+  },
+  "their_reported": {
+    "Pearson": 0.9804,
+    "Pearson_deg": 0.844
+  },
+  "known_cell_frac": 0.941,
+  "n_train": 47696,
+  "n_test": 5310
+}

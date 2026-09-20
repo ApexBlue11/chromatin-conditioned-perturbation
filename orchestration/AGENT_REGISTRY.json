@@ -206,6 +206,19 @@
       "date": "2026-09-20",
       "note": "Across the first three delegations: 21 verifiable claims, 19 survived PI verification. The two failures were (a) W2 - a synthesis conclusion that flattered the PI hypothesis, and (b) W1 - a single null-baseline figure misread. NEITHER was flagged as uncertain by the worker. Per-item findings with verbatim quotes were reliable in all three runs; the unreliable parts were a conclusion and a number, both stated with full confidence.",
       "routing_implication": "Delegate extraction and search freely. Verify every number that will be cited and read every synthesis section adversarially. Worker confidence carries no information about worker accuracy."
+    },
+    {
+      "id": "CRITIC-001",
+      "date": "2026-09-20",
+      "surface": "claude-code session (separate chat, blinded)",
+      "task_class": "adversarial review of an evidence packet",
+      "challenges_raised": 12,
+      "upheld_after_pi_verification": 12,
+      "rejected": 0,
+      "severity_inflation": "none - correctly separated the +0.1775 result (survived) from the +0.0042 (did not) in its opening paragraph",
+      "verdict": "Returned NOT-SUPPORTED on packet 001 and was right. Loaded the split from the npz rather than trusting its name, independently re-read Supplementary Table R8, and traced three numbers to the code that produced them. Found: (a) no script writes the central artefact; (b) the chromatin-ON arm JSON was overwritten by the ablated run; (c) ridge lambda is selected on test rows and at matched lambda a closed-form ridge gains +0.0038 vs v9 +0.0042; (d) x_cell for cold cells is computed over that cell's own TEST rows while the code comment says training rows only.",
+      "notable": "SELF-DISCLOSED A BLINDING LEAK unprompted - tracing provenance put git log on screen and it saw a commit subject stating a conclusion. It flagged this, noted its assessment was already written, and invited discounting. That is the behaviour the blinded design exists to produce.",
+      "lesson": "A BLINDED adversary outperformed every confirmatory worker in this session. It also outperformed the PI: two of its findings (the ridge label landmine, the mixed n in one table) were things the PI had noticed and waved through. Blinding + adversarial framing is now the strongest reliability signal observed here. DESIGN FIX OWED: ship artefact paths and `git show --stat` in every packet so the reviewer never needs `git log`, whose subjects state conclusions in this repo."
     }
   ],
   "routing_policy": {
@@ -224,6 +237,7 @@
     "escalation_when_a_check_fails": "copilot --effort xhigh",
     "cpu_compute": "kaggle-cpu (free, 5 concurrent) before local-cpu",
     "gpu_compute": "kaggle-gpu T4x2 only, gated on a free-CPU ridge result AND human approval",
-    "wide_landscape_sweep": "agy + gemini-3.8-flash-high. Slow (~55 min for 11 models with PDFs + supplementary) but the highest-value class run so far. Dispatch early, always background."
+    "wide_landscape_sweep": "agy + gemini-3.8-flash-high. Slow (~55 min for 11 models with PDFs + supplementary) but the highest-value class run so far. Dispatch early, always background.",
+    "adversarial_review_of_own_results": "A SEPARATE blinded Claude session, given objective/function/results/code and never the PI reasoning. 12/12 upheld on first use. Do not substitute a worker agent for this: the blinding is what makes disagreement informative, and an in-session critique cannot be blinded."
   }
 }
