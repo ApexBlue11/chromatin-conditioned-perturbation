@@ -2631,6 +2631,97 @@ in August.
 > artefact directories.** This project has now twice spent effort on something already in hand
 > (§46.1 supplementary tables; §54.1 saved predictions).
 
+## 55. ✅ CHROMATIN, FINAL: +0.0004 on the right estimand — a clean null, not a negative (2026-09-20)
+
+Review 002 (`orchestration/bus/to_pi/002_review.md`) returned `SOUND-WITH-CAVEATS`, reproduced every number
+in packet 002 independently from the raw `.npz`, **and caught §54 committing the mirror image of the error
+§51 had just retracted.** All three load-bearing challenges verified numerically before acceptance.
+
+### 55.1 🔴 §54's −0.0141 is as wrong as §45's +0.0042, with the sign reversed
+
+The three no-track cell lines (HS578T, BJAB, H1975) contribute **102 % of the 8-cell unweighted mean.**
+Those are cells where **the treatment does not exist** — they cannot carry information about whether
+chromatin helps, and including them as 3 of 8 equally-weighted clusters is what manufactured the negative.
+
+Restricted to the **5 cells where chromatin is actually present** — which is the estimand the objective
+asks for:
+
+| | |
+|---|---|
+| unweighted per-cell mean | **+0.000360** |
+| cluster bootstrap CI95 | **[−0.005433, +0.006153]** |
+| cells positive | 2 of 5 |
+| sign test | p = 1.000 |
+
+✅ **A tight, well-centred null.** Better than either headline, and it is the number that belongs in the
+paper. §45 was row-weighting; §54 was three cell lines with no chromatin at all.
+
+### 55.2 🔴 "Both arms see identical zeros" is FALSE — my error, in the script and in §54.2
+
+Verified in the executed path:
+- `E_final[HS578T]` is **all-zero** (absmax 0.0000, 0/2934 non-zero); BJAB and H1975 are **absent** from
+  the cell index. So the **ON** arm feeds zeros on those rows.
+- `xpert_arm.py:157-158` does `self.E[:] = self.E[m_tr].mean(0)` and `self.r[:] = self.r[m_tr].mean(0)`
+  for **every row**. So the **ABLATED** arm feeds a non-zero training-mean constant on those same rows.
+
+**The inputs differ, and the direction handicaps the ON arm**: zeros are out-of-distribution for a model
+trained mostly on real chromatin, while the training mean is in-distribution.
+
+⇒ The −0.022625 placebo figure is **a noise floor PLUS a handicap**, not a clean floor. It **overstates**
+the floor by an unknown amount. §54.2's "the training-noise floor … is ≈0.023" is withdrawn; the honest
+reading is "how much these two models differ where chromatin cannot inform them", which is weaker.
+Clean version available with no retraining: re-score an ON-arm variant feeding the training mean on
+no-track rows, from the saved checkpoint.
+
+### 55.3 🔴 The sign of the headline was an artefact of estimator choice — five estimators, two signs
+
+Same 8 per-cell numbers:
+
+| estimator | value |
+|---|---|
+| size-weighted (= pooled, §45) | **+0.004237** |
+| unweighted, 8 cells (§54) | **−0.014105** |
+| trimmed (drop min + max) | −0.005964 |
+| drop H1975 | −0.003761 |
+| **treated cells only (§55.1, adopted)** | **+0.000360** |
+
+🔴 **With 8 clusters, no directional statement survives the choice of estimator.**
+⇒ **METHOD RULE 13: fix the estimand and its estimator BEFORE computing the number, not after seeing it.**
+Report the rest as a sensitivity table, which is what they are.
+
+### 55.4 🔴 The per-cell pattern tracks cell SIZE, not chromatin coverage
+
+- **Spearman(n_rows, paired Δ) = 0.762, p = 0.028.** The two positive cells are the two largest.
+- **No dose-response in track count**: 3 tracks **−0.001825** (MCF7, MDAMB231, CD34) vs 2 tracks
+  **+0.003636** (HT29, THP1) vs 0 tracks −0.038213.
+
+If chromatin were doing the work, 3-track cells should lead 2-track cells. **They do not.** So the pattern
+is not "an effect present only in well-covered cells" (ask 3, answered negatively) — the leading
+alternative is a size-dependent artefact. At 5 cells nothing cheap distinguishes these. **That is a reason
+to stop, not to run another experiment.**
+
+### 55.5 The final statement on claim 7.1
+
+> **On the five unseen cell lines where chromatin data exists, ablating it changes accuracy by +0.0004
+> (cluster CI [−0.0054, +0.0062], 2 of 5 positive, sign test p = 1.000). The earlier +0.0042 was
+> row-weighting; the −0.0141 was the three cell lines that have no chromatin at all.**
+
+Chromatin's full arc: +0.0029 [§44] → +0.0038 matched λ [§51.4] → +0.0042 retracted [§51] → −0.0141
+wrong estimand [§54] → **+0.0004, a clean null on the correct estimand [§55]**. **Closed.** The novelty
+claim is untouched [§49]; there is no benefit to claim. This is a *null*, not a negative — stating it as
+"chromatin hurts" would repeat §54's error a third time.
+
+### 55.6 Reviewer calibration — two things it did that raise its credibility
+- **It cut against its own C2.** HT29 and THP1 have 2 of 3 tracks, so the C2 handicap should apply
+  partially — yet HT29 is the *most positive* cell. It reported this as evidence its own challenge does
+  not explain the whole pattern.
+- **It hunted a bug, failed to find one, and said so.** HS578T is in the cell index with an empty mask, so
+  `xpert_arm.py`'s normalisation loop skips it — raw values would have reached the model un-z-scored. They
+  are all-zero, so it does not occur. Reported as a check that passed, for the second review running.
+
+Running tally: **23 of 24 challenges upheld across two reviews**, the single miss caused by a packet
+defect [§54.1].
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

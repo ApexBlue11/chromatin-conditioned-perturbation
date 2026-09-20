@@ -1,0 +1,119 @@
+﻿commit efbfaa3f393306e10386e3ca1b71304fcc81b7c6
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Sun Sep 20 18:30:49 2026 +0530
+
+    Chromatin settled negative on the correct denominator, at zero GPU cost
+    
+    RESULTS 54. The 21 GPU-hours were never needed. Both arms' saved predictions had
+    been sitting in external/v9_mdmt_preds/ since 31 August -- deg_pred, y_true,
+    ctl_true and row_index for all 21,151 rows, plus checkpoints. external/ is
+    gitignored, so the reviewer reading the repository could not see them and
+    reported they did not exist. That is challenge C2(c), it is the only one of the
+    twelve that does not hold, and the fault is the packet's for not listing artefact
+    paths. Review 001 stands at 11 of 12 upheld.
+    
+    Everything the review asked for was then a CPU job, and it is decisive.
+    
+    The placebo stratum, which was the reviewer's own proposal: three of the eight
+    test cell lines have no chromatin track, so both arms see identical zeros there.
+    On those 1,201 rows the arms differ by -0.02263. That is a within-comparison
+    training-noise floor, measured on these runs and these rows with no transferred
+    variance estimate, and it is about five times the +0.0042 once attributed to
+    chromatin.
+    
+    The correct denominator changes the sign. Rows within a cell line share the
+    chromatin vector exactly, so the unit is the cell line. Cluster bootstrap over
+    the eight test cells gives a mean of -0.01411 with a 95 percent interval of
+    -0.03666 to +0.00102, and only two of eight cell lines are positive. The
+    row-bootstrap interval quoted in section 45, +0.0036 to +0.0049, does not overlap
+    it. The pooled positive number was an artefact of MCF7 and HT29 holding 78.7
+    percent of the rows and happening to be the two positives.
+    
+    Settled statement: cell-line chromatin conditioning does not contribute
+    measurably to unseen-cell-line generalisation in this architecture. Stated with
+    equal care in the other direction, this is not evidence that chromatin hurts --
+    the interval spans zero. It is evidence of no effect, with the earlier positive
+    explained. The novelty claim is untouched; the benefit is gone.
+    
+    The guards that never ran on the section 45 number ran here: row_index identical
+    across arms, y_true and ctl_true byte-identical, every scored row confirmed a
+    test row, eight test cells against thirty-two train cells with an empty
+    intersection, zero degenerate rows counted rather than absorbed.
+    
+    Also RESULTS 53, from the reviewer's reply. It accepted the correction to its own
+    arithmetic and then corrected mine: section 52's ~24 runs and 250 hours is the 51
+    percent power point, not a decision point; at 80 percent power it is 48 runs and
+    499 hours. And it ran the robustness check section 52 should have: the floor is
+    an n=3 estimate whose 95 percent interval on 2 df is 0.00271 to 0.03268, and the
+    effect is 1.10 sigma even at the most favourable end, so the retraction never
+    depended on the floor being exactly 0.0052. It also checked whether our sds were
+    a range-over-two shortcut, found they were not because the n=3 range-to-sd ratio
+    is confined to root-three to two, and explicitly declined to report it as a
+    finding.
+    
+    Method rules 11 amended and 12 added: check what kind of statistic a measurement
+    is, since ranges and sds and sems all read as 'the spread' in prose; and before
+    buying compute, enumerate what is already on disk including gitignored artefact
+    directories. This project has now twice paid for something already in hand --
+    the supplementary tables in 46.1 and the saved predictions here.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ V9_HANDOFF.md                                      |   3 +-
+ model/results/CLAIMS.md                            |   2 +-
+ model/results/RESULTS.md                           | 159 +++++++++++++++++++
+ ...v9_chromatin_ablation_cold_cell_1_RESCORED.json | 139 +++++++++++++++++
+ model/v9/chromatin_ablation_analysis.py            | 169 +++++++++++++++++++++
+ .../bus/processed/001_note_to_reviewer.md          |  65 ++++++++
+ orchestration/bus/to_pi/001_note_reply.md          |  56 +++++++
+ 7 files changed, 591 insertions(+), 2 deletions(-)
+commit c0c070291e7cabbd13d2fd5fdae5fb010c713c1e
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Sun Sep 20 14:28:09 2026 +0530
+
+    The chromatin effect is 0.57 sigma of the run-to-run difference, which drops a 62 GPU-hour item
+    
+    RESULTS 52. The reviewer raised no new challenges but made an arithmetic point
+    about action item 3, and it had one figure wrong in a way that strengthens its
+    own conclusion.
+    
+    It read section 30's `0.005-0.045 on our cold splits'' as a standard deviation.
+    Those are RANGES. The three-seed table is explicit: unseen cell range 0.0103 and
+    sd 0.0052, unseen both range 0.0457 and sd 0.0232. Using the range span as an sd
+    inflates the noise floor about twofold.
+    
+    Done with the directly relevant number -- our regime is unseen cell, whose seed
+    sd this project measured in August at 0.0052 -- two independent single-seed runs
+    differ with sd 0.0052 times root two, which is 0.0074. The observed chromatin
+    effect is 0.0042, so it sits at 0.57 sigma of the run-to-run difference
+    distribution. It is not unproven against an unmeasured floor; it is inside a
+    floor we already measured, by a factor of two.
+    
+    One cold-cell arm costs 37,290 seconds. Three seeds per arm is six runs and 62
+    GPU-hours, which is over two weeks of a 30-hour weekly quota, and it would only
+    re-measure a spread section 21 already recorded. Powering an 0.0042 effect at
+    sd_diff 0.0074 needs roughly 24 runs and 250 hours. Action item 3 is therefore
+    dropped as a decision procedure, and if the this-split spread is ever wanted for
+    the record it is a separate purchase that must be labelled as such.
+    
+    The reviewer's second point is simply correct: items 1 and 2 were listed
+    separately but are one experiment, because the re-run produces exactly the saved
+    predictions the placebo stratum needs. Revised to two runs and about 21
+    GPU-hours, with save_pred, distinct filenames, args written into the JSON, and
+    the comparison routed through head_to_head_mdmt.py so its row-alignment guards
+    actually execute.
+    
+    Method rule 10, from the reviewer's generalisation: compute the direction of a
+    selection bias, never assume it. Section 44 asserted that per-arm-best lambda
+    favoured the chromatin arm and it had deflated it instead. Rule 11: size an
+    experiment against a measured noise floor before buying it, and do not use
+    section 30's ranges as standard deviations.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ V9_HANDOFF.md                                      |  2 +
+ model/results/RESULTS.md                           | 59 ++++++++++++++++++
+ .../bus/adjudicated/001_adjudication_ack.md        | 42 +++++++++++++
+ orchestration/bus/processed/001_adjudication.md    | 72 ++++++++++++++++++++++
+ .../bus/to_critic/001_note_to_reviewer.md          | 65 +++++++++++++++++++
+ 5 files changed, 240 insertions(+)
