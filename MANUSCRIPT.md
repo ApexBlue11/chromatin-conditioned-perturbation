@@ -1,5 +1,23 @@
 # Chromatin-conditioned, attributable prediction of drug-induced transcriptional response
 
+> ## 🔴 STOP — THIS DRAFT IS v5-ERA AND CONTAINS RETRACTED CLAIMS (flagged 2026-09-20)
+>
+> Do not submit, quote or build on this document until it is rewritten. Specific defects:
+>
+> | in this draft | actual status |
+> |---|---|
+> | Abstract: "atom→gene attention **is enriched for known drug targets** … 2.6× gold" | **RETRACTED** [4.1]. Robust statistic over 149 gold pairs: median rank percentile **0.560, worse than chance** [4.1a]. And the mechanism is **not ours** — XPert has the same gene×atom cross-attention [7.3, §41] |
+> | Abstract + §5.2: chromatin "contributes measurably (ΔR² = +0.089)" as the paper's contribution | Measured in the regime that matters (unseen cell lines, deep-model ablation): **+0.0042**, i.e. **2.4 % of v9's margin over a ridge** [7.1, §45]. A ridge with the same chromatin gains +0.0029 [§44] |
+> | §5.1: "All beat Mean/Meancell/Meandrug baselines" | **RETRACTED** [1.1]. On the reproducible stratum Meandrug **beats** v5 on unseen cells [1.8] |
+> | §6: "Requires LINCS Level 3 — NOT YET RUN" | Done. Level-3 substrate at **99.65 %** coverage [6d.1], and v9 has been run head-to-head against XPert on their own benchmark [§43] |
+> | All accuracy numbers (0.440 / 0.471 / 0.451) | v5, single fold, single seed. Seed sd reaches 0.0232 [M.10]. Superseded by v9 [§33, §43, §45] |
+>
+> **The framing is also wrong.** This draft is a chromatin paper. The measured results are a
+> benchmarking-and-generalisation paper: v9 beats XPert's released checkpoint on their own benchmark
+> [§43], beats a ridge by +0.178 on unseen cell lines [§45.0], and sits +0.090 above their published
+> cold-cell number [§46.4]. Chromatin is a supporting measured-minor result inside that, not the headline.
+> Rewrite is gated on the 5-fold × 3-seed cold-cell run [§46.5].
+
 **Status: DRAFT.** Sections marked 🔲 are blocked on measurements that have not been run — they are
 deliberately left empty rather than filled with plausible text. Every number below traces to
 `model/results/CLAIMS.md` (claim id in brackets) and was produced by a script named in `METHODOLOGY.md`.

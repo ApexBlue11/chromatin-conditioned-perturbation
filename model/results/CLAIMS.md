@@ -172,6 +172,19 @@ benchmarking papers that exist to catch what we try to catch in ourselves.
 | 6e.7 | **A closed-form ridge reaches delta Pearson 0.6054 on their own held-out rows** (`split_1`, n=13,766), where copy-the-control is 0 by construction and mean-drug-delta is 0.2211. Any delta number on this benchmark must be read against 0.605 | `xpert_mdmt_baselines.py` | **A** |
 | 6e.8 | **18.9 % of their benchmark rows pool 2–8 distinct doses into one condition**; their model only ever sees the dose BIN (`pert_dose_idx`), so v9 is given the same resolution and no finer | `xpert_mdmt_extract.py`, flag carried per row | **A** |
 
+## 6f. Their published numbers, read from the Supplementary Information (2026-09-20) — detail in `RESULTS.md` §46
+
+| # | Claim | Evidence | Strength |
+|---|---|---|---|
+| 6f.1 | 🔴 **§36.3 was false and cost six weeks.** "The per-model absolute values live inside figure panels and are not extractable" — they are in **Supplementary Table R8**, fetched unauthenticated from Springer static-content in ~30 s. Every number this project reverse-engineered (§23, §30, §39–42) was published | `external/xpert/supplementary/` | **A (negative, ours)** |
+| 6f.2 | ✅ **XPert L1000_mdmt, fivefold CV, PCC on xdeg: warm 0.688 ± 0.011, cold-drug 0.645 ± 0.008, cold-cell 0.383 ± 0.027.** TranSiGen cold-cell 0.293 ± 0.017; Mean 0.224 | Supplementary Table R8 | **A** |
+| 6f.3 | 🟢 **§42 is a SUCCESSFUL INDEPENDENT REPRODUCTION.** Our recovered honest number for their released checkpoint on `split_2` is **0.6933** against their published **0.688 ± 0.011** — within half an sd. Validates the Zenodo range-fetch, the `strict=True` load under `--include_cell_idx`, the flash-attention shim and the metric convention | §42.2 vs Table R8 | **A** |
+| 6f.4 | 🔴 **§42's "contamination" framing is retracted as loaded.** Their Methods: *"all datasets are strictly split using fivefold cross-validation."* They trained five models and released one; that it is fold 2's is expected. Surviving content is a **usage note** — scoring it on `split_1/3/4/5` gives an inflated 0.738–0.745 | paper Methods | **A (retraction, ours)** |
+| 6f.5 | 🔴 **0.8440 is retracted as a benchmark reference.** It is the Fig. 4 vorinostat/HDACi **case study**, not their benchmark number. Cited wrongly by this project for six weeks | paper text; §36.2 | **A (retraction, ours)** |
+| 6f.6 | 🟢 **v9 sits +0.090 above XPert's published cold-cell PCC** (0.4734 vs 0.383 ± 0.027) — 3.3 of their own fold sd. **Calibration anchor:** our ridge scores 0.2959 where their published TranSiGen scores 0.293 | §44, §45, Table R8 | **B — our-number-vs-their-number, 1 fold of 5, 1 seed, batch 8. NOT a head-to-head** |
+| 6f.7 | ✅ **XPert can now be trained by us** — §41 recovered every missing input, shim verified to 5e-7. They released no cold-cell checkpoint, so a direct cold-cell head-to-head requires training theirs. Same machinery admits TranSiGen / PRnet / DeepCE / CIGER, never run here | §41, §46.5 | **A (feasibility)** |
+| 6f.8 | Their Methods list **four** split strategies for L1000_mdmt; the fourth, `cold-dose&time`, has never been tested here despite our nonlinear dose/time FiLM | paper Methods; [M.4] | **A (gap)** |
+
 ## 7. Novelty (to verify before asserting)
 
 | # | Claim | Status |

@@ -257,6 +257,13 @@ gate every step on a measurement.**
 5. **Verify a measurement tests what it claims** — most errors here were valid computations of the wrong quantity.
 6. **A readout's chance level must be measured, not assumed** (0.218 vs 0.229).
 7. **Within-run ablation is trustworthy; between-run comparison is not.**
+8. **Before reverse-engineering any published number, DOWNLOAD THE SUPPLEMENTARY.** Their L1000_mdmt
+   numbers were in Supplementary Table R8 the whole time, reachable unauthenticated in 30 s. This omission
+   cost more than the NaN quantiser [RESULTS §46.1]. Springer pattern:
+   `https://static-content.springer.com/esm/art%3A10.1038%2F<doi-suffix>/MediaObjects/<doi_underscored>_MOESM<n>_ESM.pdf`
+9. **Our-number-vs-their-number is NOT a model comparison**, however well the split, metric and convention
+   match. §39 got this wrong, §40 reversed it, and §46.4 is currently in the same form. Only identical rows
+   scored by both models count.
 
 ## G. Compute
 - Kaggle **T4 x2** via `machine_shape: "NvidiaTeslaT4"` + `"enable_gpu": true`; non-TPU docker image. Copy metadata from `apexblue/lincs-train-v5`.

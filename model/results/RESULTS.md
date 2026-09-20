@@ -1152,8 +1152,11 @@ reads (`deepce`, `prnet`, `transigen`, `xpert`) are **not** in the release.
 
 From the paper (text, not figures): XPert's PCC beats the next-best model by **8.85 % (cold-drug)** and
 **30.54 % (cold-cell)**, and **in the cold-cell scenario only XPert and DeepCE avoid negative R²** — i.e.
-PRnet, TranSiGen and CIGER score *worse than predicting the mean* on unseen cell lines. The per-model
-absolute values live inside figure panels and are not extractable, so they are not quoted here.
+PRnet, TranSiGen and CIGER score *worse than predicting the mean* on unseen cell lines. ~~The per-model
+absolute values live inside figure panels and are not extractable, so they are not quoted here.~~
+🔴 **RETRACTED 2026-09-20 — see §46.1. They are in Supplementary Table R8**, a plain table in the public
+Supplementary Information. This sentence sent the project on a six-week detour reverse-engineering numbers
+that were published. XPert cold-cell PCC = **0.383 ± 0.027**; TranSiGen = **0.293 ± 0.017**.
 
 ### 36.4 A concrete difference in objective, worth testing
 Their `loss_weight: [0.2, 0.003, 0.2, 1]` = absolute 0.2, control-reconstruction 0.003, delta 0.2,
@@ -1847,6 +1850,86 @@ itself, faintly.
   the contrast is unaffected, but the absolute 0.4734 is not comparable to the batch-48 Kaggle runs.
 - The ablated arm still receives the **lineage** vector. This isolates chromatin specifically; it is not a
   test of cell identity as an input.
+
+## 46. 🔴 THEIR NUMBERS WERE PUBLISHED ALL ALONG — and reading them corrects three of our claims (2026-09-20)
+
+`external/xpert/supplementary/` (gitignored). Retrieved from the public Springer static-content endpoint,
+no authentication, ~30 seconds:
+`https://static-content.springer.com/esm/art%3A10.1038%2Fs42256-025-01165-w/MediaObjects/42256_2025_1165_MOESM{1,2}_ESM.pdf`
+
+### 46.1 The claim that sent this project down a six-week detour
+
+§36.3 states: *"The per-model absolute values live inside figure panels and are not extractable, so they are
+not quoted here."* 🔴 **That is false.** They are in **Supplementary Table R8**, a plain text table in the
+63-page Supplementary Information. Every number this project reverse-engineered from released prediction
+arrays, checkpoint forensics and fold sweeps (§23, §30, §39–42) was published with the paper.
+
+**METHOD RULE 8 (new): before reverse-engineering any published number, download the supplementary.**
+This cost more time than the NaN quantiser [§32] and it was pure omission rather than a bug.
+
+### 46.2 Their actual benchmark numbers — L1000_mdmt, fivefold CV mean ± sd, PCC on xdeg
+
+Table R8. Our benchmark, our metric convention (mean of per-row Pearson), their splits.
+
+| scenario | Mean | CIGER | PRnet | TranSiGen | **XPert** |
+|---|---|---|---|---|---|
+| warm-start | 0.236 | 0.525 | 0.352 | 0.635 | **0.688 ± 0.011** |
+| cold-drug | 0.236 | 0.397 | 0.344 | 0.609 | **0.645 ± 0.008** |
+| **cold-cell** | 0.224 | 0.236 | 0.195 | 0.293 ± 0.017 | **0.383 ± 0.027** |
+
+### 46.3 🟢 §42 was a SUCCESSFUL REPRODUCTION, not an exposé
+
+| | published | ours |
+|---|---|---|
+| XPert warm-start, L1000_mdmt | **0.688 ± 0.011** | their checkpoint on `split_2`: **0.6933** |
+
+**We recovered their published warm-start PCC to within half a standard deviation**, by identifying which
+fold their single released checkpoint belongs to and scoring it only there. That independently validates
+the whole apparatus: the Zenodo range-fetch, the `strict=True` load under `--include_cell_idx`, the dense
+flash-attention stand-in, and the mean-vs-median convention.
+
+🔴 **Two framings in §42 are retracted as loaded.** Their Methods state plainly: *"all datasets are
+strictly split using fivefold cross-validation."* They trained five models and released one. That the
+released one is fold 2's is **expected and innocent**, not "the shape contamination makes". The surviving
+content is a **usage note**: scoring their released checkpoint on `split_1/3/4/5` yields 0.738–0.745, which
+is inflated, because those folds' test rows are inside `split_2`'s training set. Useful for anyone running
+a head-to-head; not a criticism of the paper.
+
+🔴 **§23/§39/§40's 0.8440 is retracted as a benchmark reference.** It is the Fig. 4 vorinostat/HDACi
+**case study**, confirmed from the paper text. It was never their benchmark number. §36.2 caught half of
+this; the rest of the project kept citing it for six weeks.
+
+### 46.4 🟢 The comparison that now matters — cold-cell
+
+| `split_cold_cell_1`, their metric, their split, xdeg | PCC |
+|---|---|
+| Mean baseline (published) | 0.224 |
+| TranSiGen (published, next-best) | 0.293 ± 0.017 |
+| **our ridge** (measured, §44) | **0.2959** |
+| **XPert (published)** | **0.383 ± 0.027** |
+| **v9 (measured, §45, 1 fold, 1 seed, batch 8)** | **0.4734** |
+
+- 🟢 **v9 sits +0.090 above XPert's published cold-cell PCC — 3.3 of their own fold-to-fold sd.**
+- 🟢 **Free calibration check:** our ridge scores 0.2959 where their published TranSiGen scores 0.293. Our
+  apparatus is anchored to their scale independently of any claim we make.
+- 🔴 **This is NOT yet a head-to-head.** It is our measured number against their published number — the
+  exact form §39 got wrong. It is safer than §39 (their released fold, their metric, their task, their
+  convention) but it is one fold of five, one seed, batch 8 on a 4 GB laptop GPU against a fivefold CV mean.
+  **Do not quote it as a model comparison until §46.5 is done.**
+
+### 46.5 The test that converts it into a head-to-head
+
+They released **no cold-cell checkpoint** — only the warm one, which trained on those cell lines and cannot
+be scored here. But §41 recovered every missing input and the shim is verified to 5e-7, so **XPert can now
+be trained by us** on `split_cold_cell_1..5`. That yields both models on identical rows in the regime that
+is model-limited rather than noise-limited [§42.5].
+
+Required before any claim: **5 cold-cell folds × 3 seeds** for v9, and XPert trained on the same folds.
+Same machinery admits TranSiGen / PRnet / DeepCE / CIGER, which have never been run here at all.
+
+### 46.6 A fourth split we have never tested
+Their Methods list **four** strategies for L1000_mdmt; the fourth is `cold-dose&time` (partitioning each
+drug–cell pair by dose/time). We have nonlinear dose/time FiLM and have never tested it [M.4].
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
