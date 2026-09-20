@@ -78,6 +78,13 @@ class V9Config:
     # 'raw'    : a linear layer on the continuous value, as v3-v7 did
     # 'binned' : quantise to n_bins levels and embed, as XPert does (n_bins: 128)
     # Gated: model/v9/ab_encoder.py must show it before a full train commits to it.
+    # RESULTS 47: XPert's crossEncoder runs drug_SA over the drug tokens INSIDE every cross-encoder block,
+    # so gene queries attend over a molecule whose atoms have been mutually contextualised. v9 built
+    # D = [global; linear(atoms)] once, outside the block loop, and reused it -- our atoms never saw each
+    # other. That is the leading explanation for [RESULTS 37] "removing atom tokens IMPROVES accuracy"
+    # (-0.007 / -0.025 / -0.022): uncontextualised per-atom vectors are noise.
+    # DEFAULT FALSE so the A/B changes exactly one thing and every v9 checkpoint still loads.
+    drug_self_attn: bool = False
     expr_encoder: str = 'binned'
     n_bins: int = 128
     bin_mode: str = 'global'    # 'global' keeps values comparable ACROSS genes (XPert's setting);

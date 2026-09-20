@@ -38,6 +38,7 @@ sys.path.insert(0, HERE)
 
 from modules import DoseTimeFiLM
 from modules_v9 import (RMSNorm, CrossAttention, StochasticDepth, PPIMessagePassing, BinnedExpression,
+                        _DrugBlock,
                         RawExpression, GeneRepresentation, ControlEncoder, NamedPathwayReadout,
                         MultiTaskHeads, _GeneBlock)
 
@@ -49,12 +50,19 @@ class PerturbBlock(nn.Module):
         self.cross = CrossAttention(cfg.d_model, cfg.n_heads, cfg.dropout)
         self.sdc = StochasticDepth(p_drop)
         self.gene = _GeneBlock(cfg, p_drop)
+        # RESULTS 47.2 -- contextualise the drug tokens before the genes attend over them, as XPert's
+        # crossEncoder does. Default off; `--drug_self_attn` turns it on for the A/B.
+        self.drug_sa = _DrugBlock(cfg, p_drop) if getattr(cfg, 'drug_self_attn', False) else None
 
     def forward(self, h, D, key_mask, return_attn=False):
+        # The updated D is RETURNED, so contextualisation compounds across blocks exactly as it does in
+        # XPert, where crossEncoder.forward emits drug_SA_embed alongside the cell output.
+        if self.drug_sa is not None:
+            D = self.drug_sa(D, key_mask=key_mask)
         a = self.cross(self.nc(h), D, key_mask)
         h = h + self.sdc(a)
         h = self.gene(h)
-        return (h, a) if return_attn else h
+        return (h, D, a) if return_attn else (h, D)
 
 
 class LincsV9(nn.Module):
@@ -137,9 +145,9 @@ class LincsV9(nn.Module):
         attn = None
         for i, blk in enumerate(self.perturb):
             if return_interp and i == len(self.perturb) - 1:
-                h, attn = blk(h, D, key_mask, return_attn=True)
+                h, D, attn = blk(h, D, key_mask, return_attn=True)
             else:
-                h = blk(h, D, key_mask)
+                h, D = blk(h, D, key_mask)
 
         out, epi_contrib = self.heads(h, E, r, x_ctl)
         if return_aux or return_interp:

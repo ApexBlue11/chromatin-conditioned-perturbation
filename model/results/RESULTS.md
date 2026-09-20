@@ -1994,6 +1994,50 @@ Predictions, both falsifiable: (a) the atom-token ablation flips sign, from −0
 does not, atom-level attribution in this architecture is dead and deletion is then justified **with a
 mechanism attached** rather than as a bare empirical result.
 
+### 47.5 IMPLEMENTED 2026-09-20 — built, tested, default OFF, not yet trained
+
+`model/v9/modules_v9.py::_DrugBlock`, wired into `model_v9.py::PerturbBlock` behind
+`config_v9.drug_self_attn` (**default False**, so the A/B changes exactly one thing and every existing v9
+checkpoint still loads). The updated `D` is **returned** from each block, so contextualisation compounds
+across blocks as it does in XPert, where `crossEncoder.forward` emits `drug_SA_embed` alongside the cell
+output.
+
+**Guards, written against [§32]'s lesson.** §32's quantiser test asserted `fitted == 1.0` — that `fit()`
+had been *called* — while the bins were NaN and the expression input was dead. So `test_drugsa_v9.py`
+does not check that the module exists; it checks that it **discriminates**:
+
+| check | result |
+|---|---|
+| perturbing atom 3 moves atom 1 (**contextualisation**) | ✅ \|d\|max **0.2754** |
+| with the arm off, atom 1 is bit-identical when atom 3 changes (**it really is a bag**) | ✅ exact |
+| changing a **padded** atom does not move a real one | ✅ \|d\|max **0.00e+00** |
+| shape preserved, output finite | ✅ |
+| flag defaults False, switchable | ✅ |
+
+`test_v9.py` still passes **55/55** with the arm off, so the change is backward-compatible. Both arms of
+the full model build, run and produce finite, *different* predictions.
+
+Incidentally, the integration attempt hit `BinnedExpression`'s §32 guard — it refused to run with
+unfitted bins rather than silently bucketing everything to zero. **The fix from §32 is doing its job.**
+
+### 47.6 🔴 A confound in this A/B that must be controlled BEFORE it is run
+
+**The arm adds parameters: +65,736 at the reduced test width, +11.38 %.** If the contextualised arm wins,
+"was it the contextualisation or the extra capacity?" is unanswered, and this project has already been
+burned once by a comparison that changed two things at once [§33].
+
+Required control, one of:
+1. a **matched-capacity** arm that adds the same parameter budget to the gene side (where §37 says the
+   representation is already load-bearing), so capacity is held constant and only *where* it sits varies; or
+2. a **width-matched** arm: shrink `d_model` in the drug-SA arm until total parameter counts agree.
+
+(1) is the more informative control, because it tests *placement* rather than *amount*.
+
+⇒ **Do not launch the A/B until one of these is in place.** The prediction being tested is specific: with
+contextualisation on, the atom-token ablation from [§37] should flip from **−0.025** to positive. That is
+a within-run ablation, so it is immune to seed variance [method rule 7] and does not need 3 seeds — which
+makes it a far cheaper decisive test than a headline accuracy comparison.
+
 ### 47.4 A second difference in the same place, worth a separate arm
 Their drug sequence is `[dose, time, HG_embed, atom_1..atom_n]` (`unimol_Embeddings`, `model_utils.py:133`)
 — **dose and time are tokens INSIDE the drug stream**, so cross-attention can re-weight individual atoms

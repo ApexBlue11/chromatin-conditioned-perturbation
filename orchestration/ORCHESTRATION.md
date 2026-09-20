@@ -141,28 +141,57 @@ destroys the signal; the PI tracks calibration in the registry.
 
 ---
 
-## 5. Safety gates — non-negotiable
+## 5. Safety gates — as set by the principal, 2026-09-20
 
-The loop is **closed for analysis, open for consequence.** Autonomous iteration is permitted only for
-reading, measuring, reviewing and writing to the repo. The following always require explicit human
-approval, every time, and approval never generalises to the next occurrence:
+The loop runs **autonomously** on this project. The principal has explicitly delegated GPU spend,
+deletion and pushing. Recorded here so the delegation is auditable and so a future session does not
+quietly re-tighten or re-loosen it.
 
-1. Spending GPU quota (Kaggle or otherwise)
-2. `git push`, PR creation, or anything leaving the machine
-3. Deleting or overwriting data
-4. Anything touching credentials
-5. Publishing, sending, or posting
+### Delegated — proceed without asking
+| action | why it is safe here |
+|---|---|
+| **Kaggle GPU spend** | the principal's own quota, resets weekly, no external effect |
+| **`git push`** to the project's own private repo | it is the backup mechanism; withholding it is the larger risk |
+| **Deleting files** | see the engineering practice below |
 
-**Kill switch.** A file named `orchestration/STOP` halts both loops at the next wake. Both pollers check
-it first. Delete it to resume.
+### Still gated — NOT delegated, ask every time
+| action | why |
+|---|---|
+| **Credentials** — entering, storing, or moving any secret | never delegable |
+| **Publishing or sending outward** — posting, emailing, submitting, or putting project content on any external service | irreversible in a way a git push is not; content can be cached or indexed even if retracted. Particularly relevant here, since this project holds findings about a published paper |
+| **Anything targeting a repo or account that is not the principal's** | out of scope |
 
-**Iteration cap.** `orchestration/bus/state.json` holds `iteration` and `max_iterations` (default 12).
-The PI refuses to open a new iteration past the cap without a human saying so.
+### Engineering practice on deletion (not a permission gate)
+Deletion is delegated. Carelessness is not. Before removing anything that is not scratch:
+1. confirm the thing is **derived or re-obtainable**, and say from where;
+2. confirm the **downstream consumers** are satisfied by what remains;
+3. leave a **manifest** recording what was removed and how to get it back.
 
-**Local-CPU thermal rule.** This is a laptop. No multi-hour local compute. CPU-bound work goes to free
-Kaggle CPU kernels first; local CPU only for short interactive jobs. Never the local GPU for training.
+This is the pattern used when 27 GB of raw Level-5 GCTX was removed: consumers traced, derived arrays
+verified intact, `DELETED_MANIFEST.txt` written, GEO accessions recorded. It costs a minute and it is why
+that deletion is reversible.
 
----
+### Periodic human checkpoint
+`bus/state.json` carries `responses_since_checkpoint` and `checkpoint_every` (**30**). The PI increments
+the counter each turn and, on reaching the threshold, **stops and reports** rather than opening new work:
+what ran, what it cost, what changed in the claims ledger, what it proposes next. The principal resumes
+or redirects. This replaces per-action approval with periodic review.
+
+### Kill switch
+`orchestration/STOP` halts both loops at the next wake. Both pollers check it before anything else.
+Delete the file to resume.
+
+### Iteration cap
+`bus/state.json` caps `iteration` at `max_iterations` (12). At the cap the PI stops and reports rather
+than opening iteration 13.
+
+### Standing compute constraints (unchanged — these are physical, not policy)
+- **Never the local GPU for training.** 4 GB; inference sweeps only.
+- **No multi-hour local CPU.** This is a laptop; thermal limits are real. Free Kaggle CPU first.
+- **Never P100** on Kaggle (no sm_60 kernels). T4 x2 only. Max 2 concurrent GPU, 5 concurrent CPU.
+- **Never hard-cancel a long Kaggle run** — `/kaggle/working` is discarded.
+- **Gate GPU spend on a free-CPU result where one exists.** Not a permission gate; a cost discipline.
+  A ridge that costs nothing has repeatedly predicted what the GPU run would show.
 
 ## 6. Worker routing
 

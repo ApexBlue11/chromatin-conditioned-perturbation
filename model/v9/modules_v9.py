@@ -200,6 +200,35 @@ class _GeneBlock(nn.Module):
         return h + self.sd2(self.ff(self.n2(h)))
 
 
+class _DrugBlock(nn.Module):
+    """Self-attention + FFN over the DRUG token sequence [global; atom_1..atom_n], masked for padding.
+
+    Exactly parallel to _GeneBlock, with two differences that matter: it carries `key_mask`, because the
+    atom sequence is ragged, and it runs on the drug side rather than the gene side.
+
+    Why this exists [RESULTS 47.2]: XPert's `crossEncoder.forward` calls `drug_SA(drug, ...)` inside every
+    cross-encoder block before the genes cross-attend, so their 978 gene queries attend over a molecule
+    whose atoms have been mutually contextualised. v9 handed every block the same
+    `D = [global; linear(atoms)]` built once outside the loop, so our genes attended over a BAG of
+    independent per-atom Uni-Mol vectors with no intramolecular structure.
+
+    Falsifiable prediction attached: with this on, the atom-token ablation in [RESULTS 37] should flip
+    sign from -0.025 to positive. If it does not, atom-level attribution in this architecture is dead and
+    deleting the atom tokens is justified WITH A MECHANISM rather than as a bare empirical result.
+    """
+
+    def __init__(self, cfg, p_drop=0.0):
+        super().__init__()
+        self.n1, self.n2 = RMSNorm(cfg.d_model), RMSNorm(cfg.d_model)
+        self.attn = QKNormAttention(cfg.d_model, cfg.n_heads, cfg.dropout)
+        self.ff = SwiGLU(cfg.d_model, cfg.d_ff, cfg.dropout)
+        self.sd1, self.sd2 = StochasticDepth(p_drop), StochasticDepth(p_drop)
+
+    def forward(self, D, key_mask=None):
+        D = D + self.sd1(self.attn(self.n1(D), key_mask=key_mask))
+        return D + self.sd2(self.ff(self.n2(D)))
+
+
 class NamedPathwayReadout(nn.Module):
     """800 NAMED nodes (Reactome + GO:BP), one row of M per named term, verified against pathway_info at
     load. Nothing here is a latent bottleneck: every unit has a curated name and a member gene list.

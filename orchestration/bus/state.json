@@ -1,7 +1,28 @@
-﻿{
-  "iteration": 0,
+{
+  "iteration": 1,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
-  "note": "PI refuses to open an iteration past max_iterations without explicit human approval."
+  "note": "PI refuses to open an iteration past max_iterations without explicit human approval.",
+  "responses_since_checkpoint": 0,
+  "checkpoint_every": 30,
+  "autonomy": {
+    "delegated": [
+      "kaggle_gpu_spend",
+      "git_push_own_repo",
+      "file_deletion"
+    ],
+    "still_gated": [
+      "credentials",
+      "external_publishing_or_sending",
+      "non_principal_repos"
+    ],
+    "set_by": "principal",
+    "set_on": "2026-09-20"
+  },
+  "loop_state": "RUNNING",
+  "open_packets": [
+    "001_cold_cell_chromatin"
+  ],
+  "_encoding_note": "UTF-8 WITHOUT BOM. Do not rewrite this file with PowerShell Set-Content -Encoding utf8 (it adds a BOM and breaks json.load). Use Out-File -Encoding utf8NoBOM, or python io.open(...,encoding=utf-8)."
 }
