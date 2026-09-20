@@ -1931,6 +1931,75 @@ Same machinery admits TranSiGen / PRnet / DeepCE / CIGER, which have never been 
 Their Methods list **four** strategies for L1000_mdmt; the fourth is `cold-dose&time` (partitioning each
 drug–cell pair by dose/time). We have nonlinear dose/time FiLM and have never tested it [M.4].
 
+## 47. 🔴 THE HANDOFF'S "top-k sparse vs dense" IS DEAD CODE — and the real difference is drug self-attention (2026-09-20)
+
+Read from the executed code path in `external/xpert/code/XPert/models/model_utils.py` and
+`models/model_XPert.py`, not from the config or the constructor signatures.
+
+### 47.1 The claimed difference does not exist
+
+V9_HANDOFF §C's architecture table asserts: *their* `width / heads` = "256 / 8, **top-k sparse attention
+(128 cell, 32 drug)**" against *ours* = "256 / 8, **dense**". 🔴 **False, three times over:**
+
+| check | finding |
+|---|---|
+| is `topk` stored? | `SelfAttention.__init__` and `CrossAttention.__init__` both **accept** `topk` and **never assign it to `self`**. `grep "self.topk"` in `model_utils.py` returns nothing. |
+| is `sparse_flag` read? | It is threaded through **every** forward signature (`SelfAttention`, `CrossAttention`, `Encoder`, `crossEncoder`) and **never referenced in any attention body**. It is passed down the chain and dies. |
+| what does their config say? | `configs/config_l1000.yaml`: `topk_cell: 128`, `topk_drug: 32`, and **`sparse_flag: False`**. |
+
+Both attention branches are dense: a manual dense softmax when `output_attention=True`, and
+`flash_attn_func` — which is exact, not approximate — otherwise. **XPert's attention is dense. Ours is
+dense. There is no sparsity difference between the two models.**
+
+This is the **ninth** instance of this project's characteristic failure: a claim derived from reading a
+config and a constructor signature rather than the code that runs [method rule 5]. It came within one step
+of shaping an architecture change — "add top-k sparse atom attention to match their config" — that would
+have implemented a feature the reference model does not use, against a baseline that never had it.
+
+### 47.2 🟢 The real difference: they contextualise the drug tokens, we do not
+
+`crossEncoder.forward` (`model_utils.py:361`) runs, **in every cross-encoder block**:
+
+```
+drug_SA_embed, _ = self.drug_SA(drug, drug_attention_mask, ...)   # 1. drug tokens SELF-ATTEND
+cell_attention_out_0, _ = self.attention(cell, ...)               # 2. gene tokens self-attend
+cell_attention_output_1, _ = self.attention_CA(cell_embed, drug_SA_embed, ...)   # 3. genes attend over
+                                                                  #    the CONTEXTUALISED drug
+```
+
+Ours (`model/v9/model_v9.py:125-127`) builds the drug side **once**, outside the block loop:
+
+```
+D = torch.cat([(ln_u(w_u(u)) + type_drug).unsqueeze(1),
+               ln_atom(w_a(atoms)) + type_atom], dim=1)
+```
+
+— a global token concatenated with **independently linearly-projected per-atom Uni-Mol vectors** — and
+hands that same `D` unchanged to every perturb block. **There is no drug self-attention anywhere in v9.
+Our atoms never see each other.**
+
+So our 978 gene queries cross-attend over a **bag of uncontextualised atoms** carrying no intramolecular
+structure, while theirs attend over a molecule whose atoms have been mutually contextualised first.
+
+### 47.3 Why this is the leading explanation for §37's atom-token result
+
+§37 measured that **removing atom tokens IMPROVES accuracy** on all three splits
+(−0.007 / −0.025 / −0.022) — flagged there as "the next deletion candidate". §47.2 supplies a mechanism:
+uncontextualised per-atom vectors are noise injected into the gene stream, so deleting them helps.
+
+⇒ **Do NOT delete the atom tokens. Test the contextualisation first.**
+Single-factor A/B: add a drug self-attention encoder over the ~33 drug tokens before cross-attention,
+change nothing else. Cheap — the drug sequence is two orders of magnitude shorter than the gene sequence.
+Predictions, both falsifiable: (a) the atom-token ablation flips sign, from −0.025 to positive; (b) if it
+does not, atom-level attribution in this architecture is dead and deletion is then justified **with a
+mechanism attached** rather than as a bare empirical result.
+
+### 47.4 A second difference in the same place, worth a separate arm
+Their drug sequence is `[dose, time, HG_embed, atom_1..atom_n]` (`unimol_Embeddings`, `model_utils.py:133`)
+— **dose and time are tokens INSIDE the drug stream**, so cross-attention can re-weight individual atoms
+by exposure. Ours applies dose/time as a FiLM scale/shift on the gene tokens, far from the atoms. Same
+information, structurally unable to express the same interaction. Test separately; do not bundle with 47.3.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

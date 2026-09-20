@@ -172,7 +172,7 @@ They report **both** conventions: `metrics['Pearson']` (absolute) and `metrics['
 | **knowledge use** | heterogeneous graph **pretrained by link prediction** → drug embeddings + **drug-specific gene embeddings injected additively between layers** | one graph-conv step on a raw adjacency |
 | **branches** | treated `CA+SA+SA+CA`, control `SA+SA+SA+SA` (a **separate control encoder**) | single stream |
 | **drug features** | UniMol molecule + atom + dose + time embeddings | same (UniMol CLS + atoms + ECFP4 + descriptors) |
-| width / heads | 256 / 8, top-k sparse attention (128 cell, 32 drug) | 256 / 8, dense |
+| width / heads | 256 / 8, ~~top-k sparse attention (128 cell, 32 drug)~~ 🔴 **FALSE, see RESULTS §47.1 — `topk` is never stored, `sparse_flag` is never read, and their config sets it False. Their attention is DENSE.** | 256 / 8, dense — **identical to theirs** |
 
 **The specific defect that is ours:** we truncated STRING and Reactome **to the 978 landmarks**, deleting
 every path that routes *through* a non-landmark gene. That is why **231 of our landmarks sit in no Reactome

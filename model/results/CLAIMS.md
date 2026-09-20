@@ -185,6 +185,16 @@ benchmarking papers that exist to catch what we try to catch in ourselves.
 | 6f.7 | ✅ **XPert can now be trained by us** — §41 recovered every missing input, shim verified to 5e-7. They released no cold-cell checkpoint, so a direct cold-cell head-to-head requires training theirs. Same machinery admits TranSiGen / PRnet / DeepCE / CIGER, never run here | §41, §46.5 | **A (feasibility)** |
 | 6f.8 | Their Methods list **four** split strategies for L1000_mdmt; the fourth, `cold-dose&time`, has never been tested here despite our nonlinear dose/time FiLM | paper Methods; [M.4] | **A (gap)** |
 
+## 6g. Architecture, read from the executed code path (2026-09-20) — detail in `RESULTS.md` §47
+
+| # | Claim | Evidence | Strength |
+|---|---|---|---|
+| 6g.1 | 🔴 **V9_HANDOFF §C's "they use top-k sparse attention, we use dense" is FALSE.** `topk` is accepted by both attention constructors and never assigned to `self`; `sparse_flag` is threaded through every forward signature and never read in any attention body; and their config sets `sparse_flag: False`. Both models are dense | `model_utils.py:170-233, 234-290`; `configs/config_l1000.yaml:8-10` | **A (negative, ours)** |
+| 6g.2 | 🔴 **Ninth instance of the same error class** — claim derived from a config + constructor signature rather than the executed path [method rule 5]. It nearly produced an architecture change implementing a feature the reference model does not use | §47.1 | **A (process)** |
+| 6g.3 | 🟢 **The real difference is drug-token contextualisation.** `crossEncoder.forward` runs `drug_SA` (drug self-attention) inside every cross-encoder block, so genes attend over a mutually-contextualised molecule. v9 builds `D = [global; linear(atoms)]` once outside the block loop and reuses it; **v9 has no drug self-attention at all**, so genes attend over a bag of independent per-atom vectors | `model_utils.py:361-376` vs `model/v9/model_v9.py:125-127` | **A** |
+| 6g.4 | **Leading explanation for [§37] "atom tokens are actively harmful" (−0.007/−0.025/−0.022):** uncontextualised atom vectors are noise. ⇒ **do not delete atom tokens — test contextualisation first.** Falsifiable: the ablation should flip sign; if it does not, deletion is justified with a mechanism attached | §47.3 | **C — hypothesis, A/B written not run** |
+| 6g.5 | Their drug sequence is `[dose, time, HG_embed, atom_1..atom_n]`, so dose/time are tokens **inside** the drug stream and cross-attention can re-weight atoms by exposure. Ours applies dose/time as FiLM on gene tokens — same information, structurally unable to express that interaction. Separate arm | `model_utils.py:133` | **A (difference); C (that it matters)** |
+
 ## 7. Novelty (to verify before asserting)
 
 | # | Claim | Status |
