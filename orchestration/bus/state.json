@@ -1,0 +1,7 @@
+﻿{
+  "iteration": 0,
+  "max_iterations": 12,
+  "opened": "2026-09-20",
+  "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
+  "note": "PI refuses to open an iteration past max_iterations without explicit human approval."
+}
