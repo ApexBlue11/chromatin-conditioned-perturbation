@@ -1,0 +1,206 @@
+{
+  "key": "atoms",
+  "batch": 48,
+  "n_boot": 20000,
+  "device": "cuda",
+  "note": "C4 of adversarial review 003. probe_v9.py emits no interval; these are the missing ones.",
+  "seeds": {
+    "0": {
+      "ckpt": "r0_ckpt_v9_fold0_seed0.pt",
+      "epoch": 11,
+      "splits": {
+        "unseen_cell": {
+          "n_rows": 1500,
+          "d_median": -0.0032,
+          "d_median_ci95": [
+            -0.00834,
+            0.00343
+          ],
+          "d_paired_mean": -0.00155,
+          "d_paired_mean_ci95": [
+            -0.00264,
+            -0.00046
+          ],
+          "frac_rows_intact_better": 0.4813,
+          "dY_max": 2.4946,
+          "fired": true
+        },
+        "unseen_compound": {
+          "n_rows": 1500,
+          "d_median": -0.01556,
+          "d_median_ci95": [
+            -0.0242,
+            -0.01044
+          ],
+          "d_paired_mean": -0.01726,
+          "d_paired_mean_ci95": [
+            -0.01907,
+            -0.01551
+          ],
+          "frac_rows_intact_better": 0.3233,
+          "dY_max": 1.9501,
+          "fired": true
+        },
+        "unseen_both": {
+          "n_rows": 1500,
+          "d_median": -0.02448,
+          "d_median_ci95": [
+            -0.02992,
+            -0.01297
+          ],
+          "d_paired_mean": -0.01444,
+          "d_paired_mean_ci95": [
+            -0.01598,
+            -0.01287
+          ],
+          "frac_rows_intact_better": 0.2847,
+          "dY_max": 2.1505,
+          "fired": true
+        }
+      }
+    },
+    "1": {
+      "ckpt": "r1_ckpt_v9_fold0_seed1.pt",
+      "epoch": 11,
+      "splits": {
+        "unseen_cell": {
+          "n_rows": 1500,
+          "d_median": -0.00389,
+          "d_median_ci95": [
+            -0.00662,
+            0.00268
+          ],
+          "d_paired_mean": 0.00037,
+          "d_paired_mean_ci95": [
+            -0.00049,
+            0.00123
+          ],
+          "frac_rows_intact_better": 0.4873,
+          "dY_max": 1.2968,
+          "fired": true
+        },
+        "unseen_compound": {
+          "n_rows": 1500,
+          "d_median": -0.01756,
+          "d_median_ci95": [
+            -0.02103,
+            -0.00968
+          ],
+          "d_paired_mean": -0.00976,
+          "d_paired_mean_ci95": [
+            -0.01101,
+            -0.00851
+          ],
+          "frac_rows_intact_better": 0.384,
+          "dY_max": 1.7891,
+          "fired": true
+        },
+        "unseen_both": {
+          "n_rows": 1500,
+          "d_median": -0.01085,
+          "d_median_ci95": [
+            -0.01766,
+            -0.00412
+          ],
+          "d_paired_mean": -0.00698,
+          "d_paired_mean_ci95": [
+            -0.00811,
+            -0.00585
+          ],
+          "frac_rows_intact_better": 0.3647,
+          "dY_max": 1.3303,
+          "fired": true
+        }
+      }
+    },
+    "2": {
+      "ckpt": "r2_ckpt_v9_fold0_seed2.pt",
+      "epoch": 11,
+      "splits": {
+        "unseen_cell": {
+          "n_rows": 1500,
+          "d_median": -0.0015,
+          "d_median_ci95": [
+            -0.00486,
+            0.00332
+          ],
+          "d_paired_mean": -0.00073,
+          "d_paired_mean_ci95": [
+            -0.00146,
+            -0.0
+          ],
+          "frac_rows_intact_better": 0.4567,
+          "dY_max": 1.7531,
+          "fired": true
+        },
+        "unseen_compound": {
+          "n_rows": 1500,
+          "d_median": -0.01066,
+          "d_median_ci95": [
+            -0.01848,
+            -0.00397
+          ],
+          "d_paired_mean": -0.01227,
+          "d_paired_mean_ci95": [
+            -0.0136,
+            -0.01094
+          ],
+          "frac_rows_intact_better": 0.318,
+          "dY_max": 2.5052,
+          "fired": true
+        },
+        "unseen_both": {
+          "n_rows": 1500,
+          "d_median": -0.01072,
+          "d_median_ci95": [
+            -0.01852,
+            -0.00434
+          ],
+          "d_paired_mean": -0.00896,
+          "d_paired_mean_ci95": [
+            -0.01004,
+            -0.00788
+          ],
+          "frac_rows_intact_better": 0.288,
+          "dY_max": 1.9642,
+          "fired": true
+        }
+      }
+    }
+  },
+  "cross_seed": {
+    "unseen_cell": {
+      "per_seed": [
+        -0.0032,
+        -0.00389,
+        -0.0015
+      ],
+      "range": 0.00239,
+      "sd": 0.00123,
+      "mean_ci_width": 0.00975,
+      "range_exceeds_ci_width": false
+    },
+    "unseen_compound": {
+      "per_seed": [
+        -0.01556,
+        -0.01756,
+        -0.01066
+      ],
+      "range": 0.0069,
+      "sd": 0.00355,
+      "mean_ci_width": 0.01321,
+      "range_exceeds_ci_width": false
+    },
+    "unseen_both": {
+      "per_seed": [
+        -0.02448,
+        -0.01085,
+        -0.01072
+      ],
+      "range": 0.01376,
+      "sd": 0.00791,
+      "mean_ci_width": 0.01489,
+      "range_exceeds_ci_width": false
+    }
+  }
+}

@@ -2824,6 +2824,87 @@ layer, and reported the claim as **sound**. Read from the executed path, not fro
 Running tally: **29 of 30 challenges upheld across three reviews**, the single miss caused by a packet
 defect [§54.1].
 
+## 57. C4 GATE RESULT: the atom-token effect is REAL and seed-stable — at HALF the size, on 2 of 3 splits (2026-09-20)
+
+`model/v9/atom_ablation_ci.py` → `model/results/v9_atom_ablation_CI.json`. Review 003's C4 demanded an
+interval and a cross-seed check before any GPU was bought. **Cost: 0 GPU-hours** — three fold0 checkpoints
+already on disk [§56.2], local-GPU inference only, `pearson_rows` copied verbatim from `probe_v9.py` so
+the intervals attach to *that* number.
+
+Bootstrap is over **rows**, on the **difference of medians** — the statistic §37 actually quotes — with the
+paired mean reported beside it. Chunking held at `batch 48` because `ablate_to_mean` uses the **chunk**
+mean, so a different batch is a different ablation.
+
+### 57.1 The result, 3 seeds x 3 splits, n = 1500 each
+
+| split | per-seed d_median | all 3 CIs exclude 0? | verdict |
+|---|---|---|---|
+| **unseen_cell** | −0.0032, −0.0039, −0.0015 | 🔴 **NO — all three SPAN ZERO** | **NULL. §37's −0.00671 was noise.** |
+| **unseen_compound** | −0.0156, −0.0176, −0.0107 | ✅ **yes, all three** | **REAL** |
+| **unseen_both** | −0.0245, −0.0109, −0.0107 | ✅ **yes, all three** | **REAL** (range 0.0138 sits just inside its 0.0149 CI width) |
+
+### 57.2 ✅ The cross-seed check PASSES on all three
+| split | range across seeds | mean CI width | stable? |
+|---|---|---|---|
+| unseen_cell | 0.00239 | 0.00975 | ✅ |
+| unseen_compound | 0.00690 | 0.01321 | ✅ |
+| unseen_both | 0.01376 | 0.01489 | ✅ (narrowly) |
+
+Seed-to-seed movement is **smaller than the within-seed interval in every case**, so where the effect is
+non-zero it is **not a training-run artefact**. That is the question `probe_v9.py` never asked.
+
+### 57.3 🔴 But the headline was inflated ~1.7x, and one third of it was noise
+
+§37 reports **−0.00671 / −0.02549 / −0.02187** from one checkpoint at n = 480.
+At n = 1500 over three seeds the medians are **−0.0029 / −0.0146 / −0.0142** (mean of per-seed).
+
+- **unseen_cell: retract.** −0.00671 becomes a null whose interval spans zero on every seed.
+- **unseen_compound: halve.** −0.02549 → **−0.0146** (range −0.0107…−0.0176).
+- **unseen_both: shrink.** −0.02187 → −0.0142.
+
+Consistent with n = 480 being an underpowered sample — see §57.4.
+
+### 57.4 🔴 CORRECTION TO REVIEW 003 C4: 480 was a CAP, not the split size
+
+C4 states 480 is *"the whole split, not a cap: `--n_eval` defaults to 1500 and the code takes
+`min(n_eval, len(idx))`"*. **That cannot be right.** All three splits report **exactly 480** — for strata
+drawn from 47,002 / 58,796 / 15,083 signatures. Three different populations cannot each yield exactly 480
+eligible rows. And this run finds **≥1500** eligible rows in `unseen_cell` alone under identical filters.
+
+⇒ `probe_v9.py` was invoked with `--n_eval 480`, presumably for a CPU budget. **The cap is undocumented
+in the output JSON**, which is why the reviewer read it as the population size.
+**This is the first factual error in 30 challenges** — and it cuts *for* C4's conclusion, not against it:
+the sample was arbitrarily small for compute reasons, which is exactly why the effect needed an interval.
+Review 003 stands at **5 of 6 upheld**, running tally **34 of 36**.
+
+⇒ **Fix: `probe_v9.py` must record `n_eval` and whether it bound.** A sample size that is silently a
+budget cap and reads as a population is the same class as §56.2's missing interval.
+
+### 57.5 A disagreement between estimators, recorded rather than resolved
+On `unseen_cell` seed 1 the two estimators differ in **sign**: d_median **−0.00389** vs paired_mean
+**+0.00037**. Both intervals are near zero, so this is what a null looks like under two estimators rather
+than a contradiction — but it is worth noting that the paired mean is the tighter estimator throughout
+(CI widths ~0.002 vs ~0.010) and would have been the better choice for §37. Per method rule 13 the
+estimator is now fixed in advance: **difference of medians**, because that is what §37 quoted and what the
+comparison must attach to.
+
+### 57.6 ✅ What this licenses — the GPU spend is now justified, at a smaller predicted effect
+The phenomenon is real on unseen compounds and unseen both, stable across three seeds, with `dY_max`
+1.3–2.5 so the component fires. **There is something to explain.**
+
+But §56.1 still stands: the atom vectors are Uni-Mol **`atomic_reprs`**, already contextualised by a
+transformer with a 3D distance bias, so the mechanism under test is a **second, in-loop
+re-contextualisation** — not "adding structure where there was none". **The prediction must therefore be
+calibrated to −0.0146, not −0.025**, and a confirmatory result means that figure moving toward zero or
+positive on `unseen_compound`, which is now the primary split (unseen_cell is out — there is no effect
+there to move).
+
+**Remaining before spend, in review 003's order:** C1 (add S00) and C2 (diagonal-attention operator,
+delegated as W4) are code-only; C5 (measure real step time with the module on) is two minutes. Then packet
+004 carries the revised design and the revised prediction.
+
+**GPU hours committed this session: 0.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
