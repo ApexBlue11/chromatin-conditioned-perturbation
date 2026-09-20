@@ -2071,6 +2071,83 @@ State (bioRxiv 2025.06.26.661135) and PertAdapt (PMC13341120): **REPORTED, NOT V
 a preprint for State and an XML extraction for PertAdapt; preprint and published versions can differ. Do
 not cite either without a verification pass [method rule 8 family].
 
+## 49. Adversarial novelty sweep on the chromatin claim: SURVIVES, but flanked — and the field has named it (2026-09-20)
+
+`research/W3_novelty_REPORT.md`. An `agy` worker was briefed **to destroy** claim 7.1, not to defend it,
+with the four known near-misses supplied up front so it could not waste effort re-finding them.
+**I then verified every checkable assertion against primary sources.** The worker was accurate on all of
+them — including the one that decides the verdict.
+
+### 49.1 Verdict: CLAIM WEAKENED, not killed. No paper meets all four criteria.
+
+Criteria a killer must meet: (1) **predicts**, not analyses; (2) output is a **continuous multi-gene
+response profile**; (3) input is **measured prior chromatin state**; (4) perturbation is a **small molecule**.
+
+| paper | status | criterion it fails | verified by me? |
+|---|---|---|---|
+| **Agrawal et al.**, *F1000Research* 2023/2025 (PMC12103705) | 🔴 **closest flank** | **(2)** — binary up-vs-down classification restricted to the **top 1000 up + top 1000 down** genes, not a continuous profile over unselected genes | ✅ **VERIFIED** — *"we first identified the top 1000 up-regulated and 1000 down-regulated genes"*, task is *"to distinguish up versus downregulated genes after HDACi-treatment"* |
+| **BaiZe**, bioRxiv 2026 (10.64898/2026.07.15.738608) | flank | **(3×4)** — architecture accepts *optional* ATAC, but the chemical arm never receives it | ✅ **VERIFIED** — for Sci-Plex, *"BaiZe received control-state RNA, Morgan fingerprints derived from SMILES strings and treatment dose as inputs"*; ATAC assessed only *"in K562/RPE1 and human embryo tasks"* |
+| **MultiFlow**, bioRxiv 2026 (10.64898/2026.08.20.746112) | adjacent | **(4)** — and it *predicts* ATAC as an output rather than conditioning drug response on prior chromatin | ⚠️ **PARTIAL** — preprint, title, authors, abstract verified; the "CRISPR-only" detail is **NOT verified** (abstract does not name datasets) |
+| ExPO, GRIP-Lung, DEPICT, PrePR-CT | adjacent | **(3)** — no chromatin input at all | ✅ ExPO verified |
+
+**Agrawal et al. is the paper a hostile reviewer will cite.** Pre-treatment H3K27ac in 21 genic bins →
+direction of change under HDAC inhibitors, ROC AUC 0.71–0.89, cross-cell-line and cross-drug. Our claim
+survives on four distinctions — continuous magnitude vs binary direction; 978 unselected genes vs the 2,000
+most-changed; 40+ cell lines vs 2; three marks vs one — **but it must be cited and distinguished
+pre-emptively, not discovered at review.**
+
+### 49.2 🟢 Three independent 2026 groups have now named this direction as the open frontier
+
+| source | what they say |
+|---|---|
+| **ExPO**, J Cheminform 2026 | ✅ **verbatim, verified:** *"further gains may require richer cell context (e.g., chromatin marks)"* — in their leave-cell-line-out discussion, i.e. **our exact regime** |
+| latent-diffusion L1000, Bioinformatics 2026 | lists its own gap as *"additional cellular information like chromatin state or pathway activity"* [CLAIMS M.8] |
+| **BaiZe**, bioRxiv 2026 | built the optional-ATAC socket into the architecture and **did not plug it in for drugs** |
+
+This cuts **both** ways and both must be stated. It validates the direction — the field independently
+converged on chromatin conditioning as the next thing to try. It also means **we are not alone here and the
+window is closing**: BaiZe has the socket already built.
+
+### 49.3 🟢 The reframe this licenses — and it is stronger than the original claim
+
+Our chromatin effect is +0.0042 on unseen cells [§45]. Set beside §49.2 that stops being a disappointing
+number and becomes a **result the field has asked for**:
+
+> Three 2026 papers name chromatin conditioning as the missing cellular context for drug-response
+> prediction. **We are the first to actually build it for chemical perturbation at scale — 40 cell lines,
+> 978 genes, three marks, a proper cold-cell ablation — and we measure that it contributes
+> +0.0042 [+0.0036, +0.0049], about 2.4 % of our margin over a ridge.**
+
+That is a *useful* negative: it tells three groups the socket is not worth plugging in **in this form**,
+with the measurement to back it. Far more defensible than the original framing, which claimed chromatin as
+the contribution while the ledger said +0.004.
+
+### 49.4 🟢 Agrawal supplies the lead for the one chromatin form we have NOT tried
+
+They reach **AUC 0.71–0.89** — not nothing — by predicting **direction of change**, on the **extreme
+responders only**, from H3K27ac. We predict **continuous magnitude for every gene** and get +0.004.
+
+Those two facts are consistent, and together they suggest we have been asking chromatin the wrong question:
+
+- chromatin may carry **which genes move and which way**, not **how much**;
+- the signal may live in the **tails** (the genes that actually respond), which our
+  reproducible-stratum filter keeps but our per-gene regression loss dilutes across all 978;
+- our own [2.2/2.2a] measured exactly this — signed correlations of the right sign surviving all four
+  baseline-expression quartiles — a **directional** finding we then fed into a magnitude head.
+
+⇒ **New arm, cheap, and independent of the token-vs-additive question:** an auxiliary
+**direction/sign head** conditioned on chromatin, scored as AUC on the top-k up vs top-k down genes —
+Agrawal's task on our data and our scale. Its null is the same head with chromatin mean-ablated. If
+chromatin carries direction but not magnitude, this is where it shows, and it is the one form of the
+question this project has never put.
+
+### 49.5 Worker reliability, recorded
+W3 was accurate on **every** claim I could check, including the decisive BaiZe detail on which the verdict
+turned, and it correctly placed Agrawal in *Partial* rather than inflating it to a kill. Contrast [§48.4],
+where W2's errors were concentrated in a conclusion that flattered the requester's hypothesis. **Adversarial
+briefs verify better than confirmatory ones** — worth carrying into every future delegation.
+Open item: MultiFlow's perturbation-type detail still needs the full text.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
