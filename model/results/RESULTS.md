@@ -2022,7 +2022,7 @@ unfitted bins rather than silently bucketing everything to zero. **The fix from 
 
 ### 47.6 🔴 A confound in this A/B that must be controlled BEFORE it is run
 
-**The arm adds parameters: +65,736 at the reduced test width, +11.38 %.** If the contextualised arm wins,
+**The arm adds parameters: +65,736 at the reduced test width, +11.38 %.** 🔴 **CORRECTED 2026-09-20 — at FULL width the confound is ~3x larger: 10,466,725 → 13,612,741 params, +3,146,016 = +30.06 %** (`_DrugBlock` is 786,504 params x `l_perturb` 4). Measured by construction, not extrapolated. The reduced-width figure understated the confound threefold [packet 003]. If the contextualised arm wins,
 "was it the contextualisation or the extra capacity?" is unanswered, and this project has already been
 burned once by a comparison that changed two things at once [§33].
 
@@ -2037,6 +2037,8 @@ Required control, one of:
 contextualisation on, the atom-token ablation from [§37] should flip from **−0.025** to positive. That is
 a within-run ablation, so it is immune to seed variance [method rule 7] and does not need 3 seeds — which
 makes it a far cheaper decisive test than a headline accuracy comparison.
+
+**Cost, measured rather than guessed (2026-09-20).** §29.1 gives Kaggle T4 x2, d_model 256, full depth, 12 epochs = **5.62 h** over 179,772 rows (1,636 s/epoch = 0.0091 s per row-epoch). So fold0 ≈ **5.6 h/run**, `split_cold_drug_1` ≈ 1.7 h, `split_cold_cell_1` ≈ 1.5 h, against a **30 h weekly quota**. A three-arm headline comparison at fold0 is ~16.8 h (56 % of quota) and would STILL need ≥3 seeds to clear the ±0.046 band — unaffordable and not decisive. **Proposed instead: ONE run with TWO within-run ablations** (the atom tokens, and the `drug_sa` module itself), measuring their interaction inside a single set of weights. **That also removes the need for the capacity control, since capacity is identical across both ablation arms** — capacity only confounds a headline accuracy comparison, which this design does not make. Sent to adversarial review as **packet 003 BEFORE any spend**.
 
 ### 47.4 A second difference in the same place, worth a separate arm
 Their drug sequence is `[dose, time, HG_embed, atom_1..atom_n]` (`unimol_Embeddings`, `model_utils.py:133`)
