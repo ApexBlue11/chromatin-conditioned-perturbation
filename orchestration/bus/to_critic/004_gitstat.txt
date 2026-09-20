@@ -1,0 +1,186 @@
+﻿commit c1cced5ffcfc516611bf4cf216b6095c86b75df0
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Sun Sep 20 20:23:14 2026 +0530
+
+    The 2x2 interaction harness, delegated and verified
+    
+    Implements review 003's C1. The design proposed in packet 003 measured two main
+    effects and called their comparison an interaction; the quantity wanted is
+    (S11-S01) - (S10-S00), and S00, both ablated, was not in the design. Without it
+    the only available contrast was against section 37's SA-off run, which is the
+    between-run comparison the design existed to avoid.
+    
+    Written by a delegated worker under the 6b division and verified by me rather
+    than by its report:
+    
+      test_interaction_2x2.py  4/4 on a small untrained model. All four cells finite;
+        the diagonal flag demonstrably changes both scores and activations; the
+        interaction reproduces (S11-S01)-(S10-S00) independently to 6.07e-18.
+      interaction_2x2.py on a real SA-off checkpoint: REFUSES, explaining that
+        evaluating the diagonal ablation without _DrugBlock would silently return
+        S10 == S11 and fabricate a false null of exactly 0.0. It writes a refusal
+        record rather than numbers. That is the section 32 failure class designed out
+        rather than hoped away, and it is better than the brief required.
+    
+    Four substantive requirements checked directly rather than taken on trust.
+    pearson_rows is byte-identical to probe_v9's apart from an added docstring, so
+    the numbers attach to that one. The atom ablation is ref.mean(dim=0,
+    keepdim=True).expand_as(ref), matching interp_v9.ablate_to_mean exactly, which
+    matters because the chunk mean makes batch size part of the ablation. n_eligible
+    and n_eval_bound are both recorded, closing the provenance gap that made section
+    37's 480 read as a population size and produced the reviewer's only factual error
+    in 36 challenges. And the bootstrap draws one row resample and computes all four
+    medians on those same rows, which is what a difference of differences requires.
+    
+    Second consecutive successful delegation since the foreground constraint was
+    added to the brief template.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ .../v9_interaction_2x2_r0_ckpt_v9_fold0_seed0.json |  11 +
+ model/v9/interaction_2x2.py                        | 431 +++++++++++++++++++++
+ model/v9/test_interaction_2x2.py                   | 175 +++++++++
+ 3 files changed, 617 insertions(+)
+commit 76cedb45b64e17685ff8db2e8230fc0ef9417c32
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Sun Sep 20 20:18:05 2026 +0530
+
+    C5 discharged: the module costs 1.009x per step, measured in a regime 34x off target
+    
+    Review 003's C5 pointed out the 5.6-hour figure scaled a rate measured with the
+    module off, making it a floor of unknown tightness. Measured directly: 50
+    optimiser steps per arm at full width on the local 3050 at batch 8. The module
+    costs 1.009 times as much per step, 2.4858 seconds against 2.4636. Structurally
+    that is expected, since the drug sequence is about 40 tokens against 978 gene
+    tokens, so attention added on the drug side is a rounding error even at 30
+    percent more parameters.
+    
+    But the measurement does not transfer cleanly and I am not quoting it as the
+    projected cost. The local step is 2.464 seconds where Kaggle T4x2 at batch 48 is
+    0.437, which is 5.6 times slower per step and 33.8 times slower per row. That is
+    a memory-bound regime on 4 GB where a large fixed cost dominates, and a fixed
+    cost compresses ratios, so the true ratio on Kaggle is plausibly larger.
+    
+    Defensible version: the cost is structurally small, measured at 1.009x in an
+    unrepresentative regime, and the definitive figure is the first epoch of the real
+    run. Budget 5.7 hours with a stated risk of more, and abort on the budget guard
+    rather than on this estimate.
+    
+    Also documents a monitoring gotcha in watch_bus.ps1. Backgrounding it from a
+    shell that appends anything after it returns the last command's status, so a
+    TIMEOUT becomes indistinguishable from a NEW message in the harness
+    notification. Propagate the exit code, or read line 1 of the output, which is
+    always NEW, TIMEOUT or STOPPED.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md    | 23 +++++++++++++++++++++++
+ orchestration/watch_bus.ps1 |  9 +++++++++
+ 2 files changed, 32 insertions(+)
+commit bc4ec17cee048e2749a9c13ed2d60d4a4c932193
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Sun Sep 20 19:57:27 2026 +0530
+
+    Diagonal-attention ablation operator, delegated and verified
+    
+    Implements review 003's C2. Mean-ablating _DrugBlock's output kills the SwiGLU
+    branch along with the cross-atom mixing, making the ablated arm a
+    smaller-capacity model and reintroducing the +30 percent parameter confound that
+    staying inside one run was supposed to avoid. The operator that does not is
+    diagonal attention: mask the attention matrix to the identity so each token
+    attends only to itself, leaving parameters, normalisations, the SwiGLU branch and
+    both residuals live, and removing only cross-token information flow.
+    
+    Written by a delegated worker under the 6b division -- I wrote the spec, the five
+    behaviour tests and the exact verification contract; it wrote the body. Verified
+    by me rather than by its report:
+    
+      test_drugsa_v9.py  11/11, including 'diagonal removes cross-atom flow:
+        perturbing atom 3 moves atom 1 by exactly 0.00e+00', identical parameter
+        count under diagonal, and 'not a no-op' at |d|max 1.1266 confirming the
+        SwiGLU and residual are still live
+      test_v9.py         55/55, unchanged
+    
+    The implementation is a _DrugAttention(QKNormAttention) subclass that delegates
+    to super() when not diagonal, so the default path is bit-identical by
+    construction rather than merely by test. It added two threading checks beyond the
+    spec, for PerturbBlock and LincsV9.
+    
+    I also tested something the spec did not require: under diagonal plus key_mask a
+    padded query row is entirely -inf and could softmax to NaN. Zero non-finite
+    elements -- scaled_dot_product_attention handles it. A passing suite is not the
+    same as an absent failure mode.
+    
+    The registry logs both attempts. The first returned exit code 0 having changed
+    nothing and written no report, because it backgrounded its own tests, went idle,
+    and terminated them on exit. Two lessons recorded: an agy exit code of 0 means
+    the process ended rather than that the task succeeded, so always verify the
+    artefact and never the exit code; and briefs must require every command to run in
+    the foreground. That one-line fix turned a total failure into a clean success on
+    the same model and the same task, which suggests most worker failures here are
+    harness-shaped rather than capability-shaped.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/v9/model_v9.py                    |  15 +-
+ model/v9/modules_v9.py                  |  65 +++++-
+ model/v9/test_drugsa_v9.py              |  92 ++++++++-
+ orchestration/AGENT_REGISTRY.json       |  20 ++
+ research/W4_diagonal_ablation_REPORT.md | 349 ++++++++++++++++++++++++++++++++
+ 5 files changed, 532 insertions(+), 9 deletions(-)
+commit 26168e7c522f0495729132ae23c8abdfc4062dd7
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Sun Sep 20 19:55:17 2026 +0530
+
+    C4 gate: the atom-token effect is real and seed-stable, at half the size, on two of three splits
+    
+    RESULTS 57. Review 003's C4 demanded an interval and a cross-seed check before
+    any GPU was bought. Cost: zero GPU-hours -- three fold0 checkpoints were already
+    on disk, local-GPU inference only, and pearson_rows was copied verbatim from
+    probe_v9.py so the intervals attach to that number. Bootstrap is over rows on the
+    difference of medians, the statistic section 37 actually quotes, with the paired
+    mean beside it. Chunking held at batch 48 because ablate_to_mean uses the chunk
+    mean, so a different batch would be a different ablation.
+    
+    The gate passes on two splits and kills the third. On unseen_cell all three
+    seeds span zero, so section 37's -0.00671 was noise. On unseen_compound and
+    unseen_both every one of the three seeds excludes zero, so the effect is real.
+    And the cross-seed check passes everywhere: seed-to-seed range is smaller than
+    the within-seed interval on all three splits, which is the question probe_v9
+    never asked.
+    
+    But the headline was inflated about 1.7 times. Section 37 reports -0.00671,
+    -0.02549 and -0.02187 from one checkpoint at n=480; at n=1500 across three seeds
+    the medians are -0.0029, -0.0146 and -0.0142. unseen_cell retracts to a null,
+    unseen_compound halves, unseen_both shrinks.
+    
+    That leads to the first factual error in thirty challenges. C4 states 480 is 'the
+    whole split, not a cap'. It cannot be: all three splits report exactly 480, drawn
+    from strata of 47,002, 58,796 and 15,083 signatures, and this run finds at least
+    1500 eligible rows in unseen_cell alone under identical filters. probe_v9.py was
+    invoked with --n_eval 480 for a budget, and the cap is undocumented in the output
+    JSON, which is why the reviewer read it as a population size. The error cuts for
+    C4's conclusion rather than against it -- an arbitrarily small sample is exactly
+    why the effect needed an interval. Review 003 stands at five of six upheld,
+    running tally thirty-four of thirty-six. Fix owed: probe_v9.py must record n_eval
+    and whether it bound.
+    
+    Also recorded: on unseen_cell seed 1 the two estimators differ in sign, d_median
+    -0.00389 against paired_mean +0.00037, both near zero. That is what a null looks
+    like under two estimators rather than a contradiction, but the paired mean is the
+    tighter estimator throughout and would have been the better choice for section
+    37. Per method rule 13 the estimator is fixed in advance as the difference of
+    medians, because that is what the comparison must attach to.
+    
+    The spend is now justified, at a smaller predicted effect. Section 56.1 still
+    stands -- the atom vectors are Uni-Mol atomic_reprs, already contextualised by a
+    transformer with a 3D distance bias -- so the mechanism under test is a second
+    in-loop recontextualisation rather than adding structure where there was none.
+    The prediction is calibrated to -0.0146 rather than -0.025, on unseen_compound as
+    the primary split, since unseen_cell has no effect left to move.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md               |  81 +++++++++++++
+ model/results/v9_atom_ablation_CI.json | 206 +++++++++++++++++++++++++++++++++
+ 2 files changed, 287 insertions(+)
