@@ -1,0 +1,11 @@
+{
+  "ckpt": "r0_ckpt_v9_fold0_seed0.pt",
+  "epoch": 11,
+  "diagonal_available": false,
+  "error": "diagonal mode unavailable for this checkpoint: cfg.drug_self_attn=False, perturb blocks with drug_sa=0/4",
+  "n_eval": 96,
+  "batch": 48,
+  "n_boot": 200,
+  "seed": 0,
+  "splits": {}
+}
