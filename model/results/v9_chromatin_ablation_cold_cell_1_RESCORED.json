@@ -1,0 +1,139 @@
+{
+  "split": "split_split_cold_cell_1",
+  "n_rows": 21151,
+  "n_degenerate_rows": 0,
+  "metric": "per-row Pearson on delta; mean is XPert metrics.py convention",
+  "source": "RE-SCORED from saved predictions in external/v9_mdmt_preds/ -- ZERO GPU",
+  "seeds_per_arm": 1,
+  "epi_on_mean": 0.4734,
+  "epi_ablated_mean": 0.4692,
+  "paired_diff_mean": 0.004237,
+  "frac_rows_epi_better": 0.5584,
+  "test_cells": {
+    "BJAB": {
+      "n_rows": 73,
+      "n_chromatin_tracks": 0
+    },
+    "CD34": {
+      "n_rows": 295,
+      "n_chromatin_tracks": 3
+    },
+    "H1975": {
+      "n_rows": 54,
+      "n_chromatin_tracks": 0
+    },
+    "HS578T": {
+      "n_rows": 1074,
+      "n_chromatin_tracks": 0
+    },
+    "HT29": {
+      "n_rows": 5837,
+      "n_chromatin_tracks": 2
+    },
+    "MCF7": {
+      "n_rows": 10815,
+      "n_chromatin_tracks": 3
+    },
+    "MDAMB231": {
+      "n_rows": 2188,
+      "n_chromatin_tracks": 3
+    },
+    "THP1": {
+      "n_rows": 815,
+      "n_chromatin_tracks": 2
+    }
+  },
+  "strata": {
+    "chromatin_present": {
+      "n_rows": 19950,
+      "cells": [
+        "CD34",
+        "HT29",
+        "MCF7",
+        "MDAMB231",
+        "THP1"
+      ],
+      "epi_on": 0.4717,
+      "epi_ablated": 0.4659,
+      "paired_diff": 0.005855
+    },
+    "NO_chromatin_PLACEBO": {
+      "n_rows": 1201,
+      "cells": [
+        "BJAB",
+        "H1975",
+        "HS578T"
+      ],
+      "epi_on": 0.5019,
+      "epi_ablated": 0.5245,
+      "paired_diff": -0.022625
+    },
+    "pooled": {
+      "n_rows": 21151,
+      "cells": [
+        "BJAB",
+        "CD34",
+        "H1975",
+        "HS578T",
+        "HT29",
+        "MCF7",
+        "MDAMB231",
+        "THP1"
+      ],
+      "epi_on": 0.4734,
+      "epi_ablated": 0.4692,
+      "paired_diff": 0.004237
+    }
+  },
+  "per_cell_line": {
+    "BJAB": {
+      "n_rows": 73,
+      "n_tracks": 0,
+      "paired_diff": -0.007694
+    },
+    "CD34": {
+      "n_rows": 295,
+      "n_tracks": 3,
+      "paired_diff": -0.007828
+    },
+    "H1975": {
+      "n_rows": 54,
+      "n_tracks": 0,
+      "paired_diff": -0.086518
+    },
+    "HS578T": {
+      "n_rows": 1074,
+      "n_tracks": 0,
+      "paired_diff": -0.020428
+    },
+    "HT29": {
+      "n_rows": 5837,
+      "n_tracks": 2,
+      "paired_diff": 0.009459
+    },
+    "MCF7": {
+      "n_rows": 10815,
+      "n_tracks": 3,
+      "paired_diff": 0.007016
+    },
+    "MDAMB231": {
+      "n_rows": 2188,
+      "n_tracks": 3,
+      "paired_diff": -0.004662
+    },
+    "THP1": {
+      "n_rows": 815,
+      "n_tracks": 2,
+      "paired_diff": -0.002187
+    }
+  },
+  "cluster_bootstrap_over_cell_lines": {
+    "n_clusters": 8,
+    "mean_of_cell_line_means": -0.014105,
+    "ci95": [
+      -0.03666,
+      0.001017
+    ],
+    "frac_cell_lines_positive": 0.25
+  }
+}

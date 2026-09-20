@@ -2472,6 +2472,165 @@ lambda showed the opposite: the per-arm argmax *deflated* the chromatin gain (+0
 anyway, which is why it found the inversion. **Whenever a per-arm argmax, best-of-N, or tuned
 hyperparameter appears in a comparison, recompute at matched setting. It is one solve per value.**
 
+## 53. The chromatin retraction is robust to the noise floor being wrong (2026-09-20)
+
+`orchestration/bus/to_pi/001_note_reply.md`. The reviewer accepted §52's correction to its own arithmetic
+("keep the correction, not my arithmetic") and then **corrected mine**, and added the robustness check
+§52 should have run. **All three points verified numerically before acceptance.**
+
+### 53.1 🔴 §52's cost table quoted the 51 % power point as though it were the decision point
+
+§52.3 gave "~24 runs / ~250 h" to power +0.0042. That is where the effect merely **equals** the critical
+value — about 51 % power, i.e. a coin flip. Recomputed at sd 0.0052, α = 0.05 two-sided, 10.36 h/run:
+
+| power | n/arm | runs | GPU-h |
+|---|---|---|---|
+| 51 % (§52's figure) | 11.8 | 23.6 | 244 |
+| **80 % (the decision-grade number)** | **24.1** | **48.1** | **499** |
+| 90 % | 32.2 | 64.4 | 667 |
+
+⇒ **The experiment §52 declined costs twice what §52 said it did.** Conclusion unchanged, margin doubled.
+
+### 53.2 🟢 The retraction does not rest on the floor being exactly 0.0052
+
+The obvious objection to resting a retraction on one small measurement: sd = 0.0052 is an **n = 3**
+estimate. On 2 df its 95 % CI is **[0.00271, 0.03268]**. So does the effect survive *anywhere* in that
+interval?
+
+| σ | sd_diff | +0.0042 in σ |
+|---|---|---|
+| 0.00271 (CI low — most favourable) | 0.0038 | **1.10** |
+| 0.0052 (point) | 0.0074 | **0.57** |
+| 0.03268 (CI high) | 0.0462 | **0.09** |
+
+⇒ **There is no value of the noise floor consistent with the August measurement at which +0.0042 becomes
+detectable.** At the most favourable end of the floor's own confidence interval the effect is still 1.10 σ.
+The retraction is robust to the floor estimate being wrong in the direction that would rescue it.
+
+### 53.3 🟢 A check the reviewer ran and then declined to report as a finding
+
+Both sds are almost exactly half their range (0.0103/0.0052 = 1.98; 0.0457/0.0232 = 1.97). That is the
+signature of an `sd = range/2` shortcut, which is biased low and would have inflated every σ argument here.
+
+It is **not** that. For n = 3 the sample range/sd ratio is algebraically confined to **[√3, 2]**, reaching
+2.000 only for a perfectly evenly-spaced triple. Both ratios sit inside the legal band, so they are real
+sample sds. Verified independently.
+
+The reviewer wrote: *"Raising this as a finding would have been manufacturing one, so I am recording it as
+a check that passed."* **That is the calibration behaviour the review contract asks for**, and it is worth
+recording as prominently as the challenges it did raise.
+
+### 53.4 METHOD RULE 11, amended by the reviewer
+The original: *size an experiment against a measured noise floor before buying it.* The amendment, which
+is what this whole exchange actually turned on:
+
+> **… and check WHAT KIND of statistic the measurement is.**
+> Ranges, sds and sems all render as "the spread" in prose. The failure here was not using an *unmeasured*
+> floor — it was two parties in a row using a *measured* number whose definition neither had read.
+> The reviewer read a range as an sd [§52.1]; §52 then read a 51 % power point as a decision point [§53.1].
+
+### 53.5 Why the 21-hour re-run is STILL worth buying
+The argument above rests on an **n = 3 sd measured on v7, on a different target, in August**. The C5
+placebo stratum gives a noise-floor estimate from **these two runs, on these rows, in this architecture** —
+1,212 rows from the 3 test cell lines with no chromatin track, where both arms see identical zeros. That is
+strictly better evidence than a transferred variance estimate, it is a within-comparison quantity needing
+no extra seeds, and it arrives free inside a re-run that has to happen anyway because [§51.3] the current
+number has no generating script.
+
+## 54. 🔴 CHROMATIN, SETTLED: the correct denominator gives a NEGATIVE point estimate. Cost: 0 GPU-hours (2026-09-20)
+
+`model/v9/chromatin_ablation_analysis.py` → `model/results/v9_chromatin_ablation_cold_cell_1_RESCORED.json`.
+
+### 54.1 The 21 GPU-hours were never needed
+
+§51.8/§52.4 planned a ~21 GPU-hour re-run to obtain saved predictions. **They already existed** — both arms,
+since 2026-08-31, in `external/v9_mdmt_preds/`:
+`v9_cc1_epi_seed0.npz` and `v9_cc1_noepi_seed0.npz`, each carrying `deg_pred`, `y_true`, `ctl_true` and
+`row_index` for all 21,151 rows, plus `.pt` checkpoints.
+
+Review 001's C2(c) — *"No `--save_pred` `.npz` exists for either cold-cell arm, so nothing can be re-scored
+without retraining"* — is therefore **the one challenge that does not hold**, and the fault is **ours**:
+`external/` is gitignored, so a reviewer reading the repository could not see them.
+**Packet defect. Every future packet lists artefact paths explicitly.**
+
+Adjudication updated: review 001 stands at **11 of 12 upheld**, with the single miss caused by a
+deficiency in the packet rather than by the reviewer.
+
+### 54.2 🟢 C5, the placebo stratum — the reviewer's own test, and it is decisive
+
+3 of the 8 test cell lines have **no chromatin track**, so **both arms see identical zeros** there. The
+paired delta on those rows is a direct, within-comparison estimate of the training-noise floor — no extra
+seeds, no variance transferred from another split or another model version.
+
+| stratum | n | epi ON | epi ABLATED | paired Δ |
+|---|---|---|---|---|
+| chromatin present (MCF7, HT29, MDAMB231, CD34, THP1) | 19,950 | 0.4717 | 0.4659 | **+0.00586** |
+| **NO chromatin — PLACEBO** (HS578T, BJAB, H1975) | 1,201 | 0.5019 | 0.5245 | **−0.02263** |
+| pooled — the §45 number | 21,151 | 0.4734 | 0.4692 | +0.00424 |
+
+🔴 **The training-noise floor, measured from these two runs on these rows, is ≈0.023 in magnitude — five
+times the claimed effect of +0.0042.** On rows where neither arm can possibly use chromatin, the arms
+differ by more than the entire effect attributed to chromatin.
+
+### 54.3 🔴 C1, the correct denominator — and the point estimate goes NEGATIVE
+
+Rows within a cell line **share the chromatin vector exactly**, so for a claim that generalises over cell
+lines the unit is the cell line, not the row.
+
+| cell line | n rows | tracks | paired Δ |
+|---|---|---|---|
+| HT29 | 5,837 | 2 | **+0.00946** |
+| MCF7 | 10,815 | 3 | **+0.00702** |
+| THP1 | 815 | 2 | −0.00219 |
+| MDAMB231 | 2,188 | 3 | −0.00466 |
+| CD34 | 295 | 3 | −0.00783 |
+| BJAB | 73 | 0 | −0.00769 |
+| HS578T | 1,074 | 0 | −0.02043 |
+| H1975 | 54 | 0 | **−0.08652** |
+
+**Cluster bootstrap over the 8 cell lines (20,000 resamples):**
+
+| | |
+|---|---|
+| mean of per-cell-line means | **−0.01411** |
+| 95 % CI | **[−0.03666, +0.00102]** |
+| cell lines with a positive effect | **2 of 8 (25 %)** |
+| row-bootstrap CI quoted in §45 | **[+0.0036, +0.0049]** |
+
+🔴 **The two intervals do not overlap.** The row bootstrap was answering a different question, exactly as
+[§51.1 C1] said. Under the correct denominator the point estimate is **negative**, only a quarter of cell
+lines show a positive effect, and **the pooled +0.0042 is an artefact of MCF7 and HT29 holding 78.7 % of
+the rows** and happening to be the two positives.
+
+### 54.4 The settled statement
+
+> **Cell-line chromatin conditioning does not contribute measurably to unseen-cell-line generalisation in
+> this architecture.** The effect is indistinguishable from zero on the correct unit of analysis, its
+> point estimate there is negative (−0.014, 95 % CI [−0.037, +0.001]), and the training-noise floor
+> measured within the same comparison is ≈ 5x larger than the effect once claimed for it.
+
+Stated with equal care in the other direction: **this is not evidence that chromatin HURTS.** The cluster
+CI spans zero. The correct reading is *no measurable effect*, with the earlier positive number explained.
+
+Chromatin's tally is now: +0.0029 ridge [§44] → +0.0038 ridge at matched λ [§51.4] → +0.0042 pooled rows,
+retracted [§51] → **−0.014 on the correct denominator** [§54]. **The question is closed.** The novelty
+claim is untouched [§49]; what is gone is the benefit.
+
+### 54.5 Guards that executed here and never executed on the §45 number
+`row_index` identical across arms (n=21,151) · `y_true` and `ctl_true` byte-identical (max\|diff\| 0.0e+00)
+· every scored row confirmed a **test** row of `split_cold_cell_1` · 8 test cells vs 32 train cells,
+intersection **empty** · 0 degenerate rows, counted rather than absorbed [C12].
+
+### 54.6 Method note: the cheapest experiment was the one already paid for
+§52 was about to buy 21 GPU-hours — and §53.1 showed the decision-grade version of the same question would
+have cost **499**. The answer was on disk, and it is **better** evidence than the retrain would have been,
+because the placebo stratum is a within-comparison floor rather than a variance estimate imported from v7
+in August.
+
+> **METHOD RULE 12: before buying compute, enumerate what is already on disk — including gitignored
+> artefact directories.** This project has now twice spent effort on something already in hand
+> (§46.1 supplementary tables; §54.1 saved predictions).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
