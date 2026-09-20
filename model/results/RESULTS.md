@@ -2724,6 +2724,106 @@ claim is untouched [§49]; there is no benefit to claim. This is a *null*, not a
 Running tally: **23 of 24 challenges upheld across two reviews**, the single miss caused by a packet
 defect [§54.1].
 
+## 56. 🔴 PRE-SPEND REVIEW KILLS THE DESIGN — and §47's mechanism premise is FALSE (2026-09-20)
+
+Review 003 (`orchestration/bus/to_pi/003_review.md`) returned `NOT-SUPPORTED` on the **design**, before any
+GPU was committed. **6 challenges, 6 upheld.** The two load-bearing ones I verified directly against the
+code. **The gate paid for itself on its first use.**
+
+### 56.1 🔴 C3: "a bag of atoms with no intramolecular structure" is FALSE — §47.2's premise collapses
+
+`drug_atom_reprs.npy` holds Uni-Mol **`atomic_reprs`** — confirmed from
+`drug/scripts/step8_integrate_atom_tokens.py` and `drug_atom_meta.json` (`remove_hs: True`,
+`mean_tokens_per_mol` 33.2, dim 512). Those are the **per-atom outputs of Uni-Mol's transformer encoder**,
+which attends over every atom with a 3D distance bias.
+
+⇒ **Atom i's 512-d vector already encodes its molecular environment.** `linear(atoms)` is a linear map of
+**already-contextualised** representations. §47.2's claim that v9's genes attend over "a BAG of
+independently projected per-atom Uni-Mol vectors with no intramolecular structure" — repeated in the
+`_DrugBlock` docstring and in packet 003 — is **wrong**.
+
+What v9 actually lacks relative to XPert is a **second, in-loop re-contextualisation that co-evolves with
+the cell embedding across blocks**. Real, but a far weaker deficit. And critically: **§47.3's falsifiable
+prediction (−0.025 flips positive) was calibrated against a baseline that does not exist.** A null would
+have been over-read as "atom-level attribution here is dead" when it would only license "a second round of
+contextualisation adds little on top of Uni-Mol's".
+
+Free test of the strong premise, if wanted: are a molecule's `atomic_reprs` predictable from its own CLS
+token plus atom identity? If largely not, the structure is already there.
+
+### 56.2 🔴 C4: the effect being explained has NO error bar, and n = 480
+
+Verified: `grep -c "bootstrap\|ci95\|percentile" model/v9/probe_v9.py` → **0**. The −0.00671 / −0.02549 /
+−0.02187 figures come from **one checkpoint, one seed**, on **480 signatures per regime** — and 480 is the
+whole split, not a cap (`--n_eval` defaults to 1500 and the code takes `min(n_eval, len(idx))`).
+
+⇒ **§47 was about to spend 5.6 GPU-h explaining a number whose uncertainty has never been computed.**
+
+And the check is free: **three fold0 seeds are already on disk** — `r0_ckpt_v9_fold0_seed0.pt`,
+`r1_ckpt_v9_fold0_seed1.pt`, `r2_ckpt_v9_fold0_seed2.pt` in `external/v9_checkpoints/`. Inference only.
+**If −0.025's interval spans zero, or moves across seeds by more than its own width, there is no
+phenomenon and the run must not be bought.** Same lesson as §54.1 and §46.1: *the answer was already on
+disk.* **Third time.**
+
+### 56.3 🔴 C1: the 2x2 is missing its fourth cell, so I measured two main effects and called it an interaction
+
+Packet 003 proposed S11 (intact), S01 (atoms ablated), S10 (`drug_sa` ablated). The quantity actually
+wanted is **`(S11−S01) − (S10−S00)`**, and **S00 — both ablated — was not in the design.** Without it,
+"does the atom contribution revert toward −0.025?" can only be answered against §37's SA-**off** run —
+which is precisely the between-run comparison the design existed to avoid.
+
+**Direct answer to my own ask 1: I moved the problem, I did not remove it.** Fix costs one extra eval
+pass, zero GPU.
+
+### 56.4 🔴 C2: mean-ablating `drug_sa` re-admits the +30 % capacity confound INSIDE the run
+
+`_DrugBlock.forward` is two residual branches: `D + attn(n1(D))` then `D + ff(n2(D))`. Neutralising the
+module's output kills **the SwiGLU as well as the cross-atom mixing**, so the ablated arm is not "the same
+model without contextualisation" — it is a **smaller-capacity model**. That is exactly the confound
+§47.6 claimed to escape by staying within one run.
+
+✅ **Better operator, adopted: ablate to DIAGONAL ATTENTION.** Mask the attention matrix to the identity so
+each atom attends only to itself. Parameters, FFN, residual scale and the per-atom pathway all survive;
+only cross-atom information flow is removed — which is the hypothesis, exactly. **Validation is already
+built**: under diagonal attention, perturbing atom 3 must move atom 1 by **exactly 0.00e+00**, matching
+the arm-off case in `test_drugsa_v9.py`. Report `|dY|max` so a true null stays distinguishable from a
+module that never fired.
+
+### 56.5 C5/C6: the cost figure is a floor, and the cheap-split option is not free
+§47.6's ~5.6 h scales §29.1's 0.0091 s/row-epoch — **measured with the module OFF**. `_DrugBlock` adds
+O(A²)-in-atoms attention per block plus a SwiGLU on top of +30 % parameters, so the direction is known and
+the magnitude is not. Fix: time 50 steps at full width with the flag on. Two minutes.
+
+And `probe_v9.py` takes `--ckpt` but no `--bundle`/`--split` — it is wired to the fold0 pipeline. The
+"cheap 1.7 h split" costs porting work that was not in the cost table.
+
+### 56.6 🟢 The one useful asymmetry, which the reviewer stated better than I did
+> A **null** interaction needs no capacity control and is decisive on its own. Only a **positive** result
+> obliges buying the matched-capacity arm.
+
+So the design is a sound **one-sided screen** — once C1 and C2 are fixed. That is worth keeping.
+
+### 56.7 DECISION: GPU spend DEFERRED. Free work first, in the reviewer's order.
+1. **C4 — free.** Add a paired row bootstrap to `probe_v9.py` and run it across the three fold0 seeds on
+   disk. Inference only. **If −0.025 is not solidly non-zero and stable, stop.**
+2. **C3 — restate the mechanism** in §47, the `_DrugBlock` docstring and the config comment, and
+   re-derive what effect size would count as confirmation.
+3. **C1 + C2 — add S00; switch the operator to diagonal attention.** Code only.
+4. **C5 — measure real step time**, then choose the split.
+5. Only then spend.
+
+**GPU hours committed so far this session: 0.**
+
+### 56.8 Reviewer calibration
+6 of 6 upheld. It also **nearly made a retraction-class-8 error and caught itself**: its first grep for
+`drug_SA` covered only `external/xpert/code/XPert/*.py`, returned nothing, and looked like a config-vs-code
+failure on our side — it then found it in `models/`, confirmed `crossEncoder.__init__:359`,
+`forward:364`, the cross-attention at `:371`, and `model_XPert.py:44/65` reassigning `drug_embed` per
+layer, and reported the claim as **sound**. Read from the executed path, not from the first grep.
+
+Running tally: **29 of 30 challenges upheld across three reviews**, the single miss caused by a packet
+defect [§54.1].
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

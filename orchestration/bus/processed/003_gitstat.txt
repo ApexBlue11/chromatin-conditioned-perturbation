@@ -1,0 +1,67 @@
+﻿commit f8e185cda005f0f29be9b013c779f839521fdedd
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Sun Sep 20 18:38:37 2026 +0530
+
+    Chromatin final: +0.0004 on the right estimand, a clean null rather than a negative
+    
+    RESULTS 55. Review 002 reproduced every number in packet 002 independently from
+    the raw npz and then caught section 54 committing the mirror image of the error
+    section 51 had just retracted. Three load-bearing challenges, all verified
+    numerically before acceptance.
+    
+    The 8-cell unweighted mean of -0.0141 draws 102 percent of its value from the
+    three cell lines that have no chromatin track at all. Those are cells where the
+    treatment does not exist, so they cannot carry information about whether
+    chromatin helps, and weighting them as three of eight clusters is what
+    manufactured the negative. Restricted to the five cells where chromatin is
+    actually present -- the estimand the objective asks for -- the unweighted per-cell
+    mean is +0.000360 with a cluster interval of -0.005433 to +0.006153, two of five
+    positive, sign test p = 1.000. A tight, well-centred null, and the number that
+    belongs in the paper.
+    
+    Section 54.2's claim that both arms see identical zeros on the placebo rows is
+    false, in the docstring and in the results text, and it is my error. E_final for
+    HS578T is all-zero and BJAB and H1975 are absent from the cell index, so the ON
+    arm feeds zeros there -- but xpert_arm.py sets E and r to the training mean for
+    every row, so the ABLATED arm feeds a non-zero in-distribution constant on those
+    same rows. The inputs differ and the direction handicaps the ON arm, because
+    zeros are out of distribution for a model trained mostly on real chromatin. So
+    -0.0226 is a noise floor plus a handicap and it overstates the floor by an
+    unknown amount. Withdrawn.
+    
+    Five defensible estimators of the same effect span two signs and a fourfold
+    magnitude range: +0.0042 size-weighted, -0.0141 unweighted, -0.0060 trimmed,
+    -0.0038 drop-one, +0.0004 treated-only. With eight clusters no directional
+    statement survives the choice, which is method rule 13: fix the estimand and its
+    estimator before computing the number, and keep units with no treatment out of a
+    treatment estimate.
+    
+    And the per-cell pattern tracks cell size rather than chromatin coverage.
+    Spearman of row count against effect is 0.762 at p = 0.028, the two positive
+    cells are the two largest, and there is no dose-response in track count -- three
+    tracks gives -0.0018 against two tracks at +0.0036. If chromatin were doing the
+    work, three-track cells should lead. A reason to stop rather than to run another
+    experiment.
+    
+    Chromatin's arc closes: +0.0029, then +0.0038 at matched lambda, then +0.0042
+    retracted, then -0.0141 on the wrong estimand, and finally +0.0004 as a clean
+    null on the correct one. The novelty claim is untouched; there is no benefit to
+    claim. Stating it as 'chromatin hurts' would repeat section 54's error a third
+    time.
+    
+    Reviewer calibration continues to be worth recording. It cut against its own C2
+    by pointing out that HT29, which is partially covered and should therefore carry
+    the handicap, is the most positive cell. And for the second review running it
+    hunted a bug, failed to find one, and reported the passing check rather than
+    manufacturing a finding. Tally across two reviews: 23 of 24 challenges upheld,
+    the single miss caused by a packet defect.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ V9_HANDOFF.md                                      |   1 +
+ model/results/CLAIMS.md                            |   2 +-
+ model/results/RESULTS.md                           |  91 ++++++++++++++++
+ orchestration/bus/adjudicated/002_review.md        |  68 ++++++++++++
+ .../bus/processed/002_chromatin_rescored.md        |  95 ++++++++++++++++
+ orchestration/bus/processed/002_gitstat.txt        | 119 +++++++++++++++++++++
+ 6 files changed, 375 insertions(+), 1 deletion(-)

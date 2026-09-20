@@ -1,10 +1,10 @@
 {
-  "iteration": 5,
+  "iteration": 6,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
   "note": "PI refuses to open an iteration past max_iterations without explicit human approval.",
-  "responses_since_checkpoint": 5,
+  "responses_since_checkpoint": 6,
   "checkpoint_every": 30,
   "autonomy": {
     "delegated": [
@@ -21,14 +21,13 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "003_drugsa_design"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
-    "002_chromatin_rescored"
+    "002_chromatin_rescored",
+    "003_drugsa_design"
   ],
   "gpu_hours_spent_this_session": 0,
-  "pending_decision": "packet 003 design review must return before any GPU spend"
+  "pending_decision": "GPU DEFERRED by review 003. Free work first: C4 bootstrap on existing seeds, then C3 restate, then C1+C2 code fixes, then C5 timing."
 }
