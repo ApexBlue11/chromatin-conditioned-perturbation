@@ -2928,6 +2928,102 @@ delegated as W4) are code-only; C5 (measure real step time with the module on) i
 
 **GPU hours committed this session: 0.**
 
+## 58. ✅ SPEND APPROVED — the design IS powered; I propagated the wrong interval (2026-09-20)
+
+Review 004 (`orchestration/bus/to_pi/004_review.md`) **reversed its own 003 verdict**: `SOUND-WITH-CAVEATS`,
+buy the run. The crux in packet 004's ASK 1 resolved **from data already in our own JSON and a line already
+in our own code.** Both claims verified before acceptance.
+
+### 58.1 🔴 My power table used the wrong one of two intervals our code emits
+
+`atom_ablation_ci.py` emits **two** intervals per cell. I propagated the **difference-of-medians** width.
+The **paired-mean** width sitting beside it is 3.9–6.6x tighter:
+
+| split | median CI width | paired-mean CI width | ratio |
+|---|---|---|---|
+| unseen_cell | 0.0082–0.0118 | 0.0015–0.0022 | **5.4–5.6x** |
+| unseen_compound | 0.0114–0.0145 | 0.0025–0.0036 | **3.9–5.5x** |
+| unseen_both | 0.0135–0.0170 | 0.0022–0.0031 | **5.5–6.6x** |
+
+Redone in paired-mean units on `unseen_compound`, mean over three seeds (atom effect **−0.01310**,
+paired CI width **0.00291**, propagated interaction width **0.00411**):
+
+| scenario | interaction | §004 ASK 1 claimed | **actual** |
+|---|---|---|---|
+| full rescue | +0.01310 | 3.06 σ | **12.5 σ** |
+| **partial (half)** | +0.00655 | **1.5 σ — "not detectable"** | **6.2 σ** |
+| quarter rescue | +0.00327 | — | **3.1 σ** |
+
+⇒ **The design is powered for partial rescue, and for a quarter rescue.** Packet 004's headline objection
+was my own arithmetic error, not a property of the experiment. And **0.00411 is an upper bound** — it
+assumes zero correlation between the two atom contrasts, which share rows *and* weights.
+
+### 58.2 ✅ ASK 2 was already implemented — `interaction_2x2.py:236`
+
+I asked whether a blocked bootstrap on the per-row interaction contrast would beat √2 propagation. It
+would, and the delegated harness already does it:
+```python
+diff_interaction = (a11 - a01) - (a10 - a00)        # PER-ROW double difference
+boot_mean_inter  = diff_interaction[idx].mean(axis=1)   # line 236
+```
+Resamples rows once and recomputes the per-row double difference, so the row main effect and both
+single-factor row components **cancel inside each draw**. The reviewer's point that `boot_inter` (a
+difference of four medians) lacks this property is correct — a difference of medians does not decompose
+per row. **Both are emitted; only one is the quantity ASK 1's reasoning described.**
+
+### 58.3 🔴 C3: a tight interval is NOT a licence to read one run as decisive
+The counterexample is in our own C4 table. `unseen_cell`:
+
+| seed | d_paired_mean | CI95 | |
+|---|---|---|---|
+| 0 | **−0.00155** | [−0.00264, −0.00046] | **excludes zero** |
+| 1 | **+0.00037** | [−0.00049, +0.00123] | spans zero, **opposite sign** |
+
+Two tight row-level intervals, incompatible signs, seed variance dominating. **This is review 001's C1
+reappearing under a new estimator.** The interaction is a genuine within-run contrast, so method rule 7
+exempts it from ≥3 seeds for *validity* — but its **magnitude is not thereby seed-stable**.
+
+### 58.4 ✅ PRE-COMMITMENT, recorded BEFORE the spend (method rule 13)
+The estimand is **`interaction_paired_mean`** = mean over rows of `(S11−S01) − (S10−S00)`, with the
+blocked-bootstrap interval `interaction_paired_mean_ci95`. Primary split **`unseen_compound`**. Reading
+rule, fixed now:
+
+| result | reading |
+|---|---|
+| interaction **≥ 3 σ** on the paired-mean interval | **report as a result from one seed** |
+| **1.5–3 σ** | **explicitly INCONCLUSIVE** — needs a second seed at another ~5.7 h, a separate decision |
+| **< 1.5 σ**, with `\|dY\|max` confirming **both** ablations fired | **informative null** — contextualisation does not change what atoms are worth |
+| either ablation shows `\|dY\|max ≈ 0` | **void** — a branch never fired; not a null [method rule 2] |
+
+Read against **`S10−S00` from the same run**, never against the historical −0.0146 [C5] — so the question
+of whether the SA-off effect transfers never arises.
+
+### 58.5 Two corrections to our own record
+- 🔴 **`unseen_cell` was excluded for the wrong stated reason.** "All three CIs span zero" is true of
+  `d_median` but **false of `d_paired_mean` at seed 0** (which excludes zero). The defensible reason is
+  **seed-instability with a sign flip** [§58.3]. §57.1 said there is *no effect*; the data say the effect is
+  too small and too seed-unstable to move. Restated.
+- ✅ **C5 is discharged better than I allowed.** Parameters overstate FLOPs here because the sequences
+  differ ~29x: drug side ≈ 34 tokens (703,851 atoms / 21,220 compounds ≈ 33, plus the global token) against
+  978 genes. Drug-side FFN ≈ 3.5 % of gene-side; **drug self-attention is 34²/978² ≈ 0.1 %** of gene
+  self-attention. So +30 % parameters buys almost no compute, and **1.009x is probably close to right
+  rather than a compressed floor.** Budget guard kept regardless.
+
+### 58.6 The reviewer conceded my correction, and classified its own error
+It accepted that 480 was an `--n_eval` cap and recorded the error **as its own**, not as our packet defect:
+*"I read an invocation parameter as a data property, which is the same class of error as reading a config
+over the executed path — the thing I am here to catch."* It also noted C4 was the most valuable item in
+review 003 **because** running it halved the effect and removed a split.
+
+### 58.7 ✅ DECISION
+**Buy the run.** One SA-on training run, fold0, 12 epochs, `drug_self_attn=True`, budget ~5.7 h with the
+guard armed. Then `interaction_2x2.py` on its checkpoint, read by §58.4's pre-committed rule.
+
+Three design iterations, an effect halved, a split removed, a false premise retracted and a power error
+caught — **all before the first GPU hour.** Running tally: **39 of 42 challenges upheld**, and the two
+reversals in this project's favour both came from the reviewer reading our own artefacts more carefully
+than we did.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
