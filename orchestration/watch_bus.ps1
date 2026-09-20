@@ -10,6 +10,15 @@
     2  TIMEOUT  - nothing arrived within -TimeoutSec
     3  STOPPED  - orchestration/STOP exists; both loops must halt
 
+  GOTCHA, learned 2026-09-20. If you background this from a shell that appends anything after it
+  (e.g. `; echo done`), the shell returns the LAST command's status and a TIMEOUT becomes
+  indistinguishable from a NEW message in the harness notification. Always propagate:
+
+      powershell -File watch_bus.ps1 -Lane to_pi -TimeoutSec 3600; c=$?; echo "EXIT=$c"; exit $c
+
+  Or just read line 1 of the output, which is always NEW / TIMEOUT / STOPPED. Do not infer a wake
+  from the notification's exit code alone.
+
   It does not "wake" an agent by itself — an agent calls it and blocks. The agent-side loop is
   Claude Code's /loop skill, which re-invokes the agent; this script is what makes each wake cheap,
   because it returns instantly when there is nothing to do.

@@ -2040,6 +2040,29 @@ makes it a far cheaper decisive test than a headline accuracy comparison.
 
 **Cost, measured rather than guessed (2026-09-20).** §29.1 gives Kaggle T4 x2, d_model 256, full depth, 12 epochs = **5.62 h** over 179,772 rows (1,636 s/epoch = 0.0091 s per row-epoch). So fold0 ≈ **5.6 h/run**, `split_cold_drug_1` ≈ 1.7 h, `split_cold_cell_1` ≈ 1.5 h, against a **30 h weekly quota**. A three-arm headline comparison at fold0 is ~16.8 h (56 % of quota) and would STILL need ≥3 seeds to clear the ±0.046 band — unaffordable and not decisive. **Proposed instead: ONE run with TWO within-run ablations** (the atom tokens, and the `drug_sa` module itself), measuring their interaction inside a single set of weights. **That also removes the need for the capacity control, since capacity is identical across both ablation arms** — capacity only confounds a headline accuracy comparison, which this design does not make. Sent to adversarial review as **packet 003 BEFORE any spend**.
 
+**C5 discharged, with its limit stated (2026-09-20).** Review 003 C5 noted the 5.6 h figure scaled a rate
+measured with the module OFF, so it was a floor. Measured: 50 optimiser steps at full width, both arms,
+local RTX 3050, batch 8, 40 atoms.
+
+| arm | s/step |
+|---|---|
+| `drug_self_attn=False` | 2.4636 |
+| `drug_self_attn=True` | 2.4858 |
+| **ratio** | **1.009x** |
+
+Structurally this is expected: the drug sequence is ~40 tokens against 978 gene tokens, so attention added
+on the drug side is a rounding error even at +30 % parameters.
+
+🔴 **But the measurement is NOT a clean transfer and must not be quoted as the projected cost.** The
+local step is **2.464 s** where Kaggle T4 x2 at batch 48 is **0.437 s/step** (1,636 s/epoch over 179,772
+rows, §29.1) — **5.6x slower per step and 33.8x slower per row.** That is a memory-bound regime on 4 GB,
+where a large fixed cost dominates and therefore **compresses** any ratio. The true ratio in the Kaggle
+regime is plausibly larger.
+
+⇒ Defensible statement: **the module's wall-time cost is structurally small and measured at 1.009x in an
+unrepresentative regime; the definitive figure is the first epoch of the real run.** Budget the run at
+~5.7 h with a stated risk that it is higher, and abort on the budget guard rather than on this estimate.
+
 ### 47.4 A second difference in the same place, worth a separate arm
 Their drug sequence is `[dose, time, HG_embed, atom_1..atom_n]` (`unimol_Embeddings`, `model_utils.py:133`)
 — **dose and time are tokens INSIDE the drug stream**, so cross-attention can re-weight individual atoms
