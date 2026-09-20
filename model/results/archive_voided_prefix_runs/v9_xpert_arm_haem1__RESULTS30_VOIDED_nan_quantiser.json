@@ -1,0 +1,35 @@
+{
+  "split": "split_haematopoietic_and_lymphoid_tissue_1",
+  "runs": [
+    {
+      "seed": 0,
+      "Pearson": 0.9858,
+      "Pearson_deg": 0.7068,
+      "seconds": 1571.9
+    },
+    {
+      "seed": 1,
+      "Pearson": 0.9858,
+      "Pearson_deg": 0.7081,
+      "seconds": 1571.8
+    },
+    {
+      "seed": 2,
+      "Pearson": 0.9857,
+      "Pearson_deg": 0.7053,
+      "seconds": 1571.8
+    }
+  ],
+  "nulls": {
+    "copy_ctl_abs": 0.9718,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.2999
+  },
+  "their_reported": {
+    "Pearson": 0.9804,
+    "Pearson_deg": 0.844
+  },
+  "known_cell_frac": 0.8437,
+  "n_train": 17362,
+  "n_test": 1943
+}
