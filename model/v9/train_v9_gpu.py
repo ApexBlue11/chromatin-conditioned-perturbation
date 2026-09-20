@@ -119,6 +119,10 @@ def main():
     ap.add_argument('--no_epi_embedding', action='store_true')
     ap.add_argument('--no_cell_ctl', action='store_true')
     ap.add_argument('--use_ccle', action='store_true')
+    # RESULTS 47/58: give the drug tokens self-attention before the genes cross-attend over them,
+    # as XPert's crossEncoder does. Default OFF so every prior checkpoint and result is unaffected;
+    # this flag is the only way the arm is ever enabled.
+    ap.add_argument('--drug_self_attn', action='store_true')
     # Capacity knobs. The encoder A/B measured 0.197 s/step at d=128, 4 blocks, batch 48 -- and that run
     # was I/O bound (cache_in_ram=False). Scaled to d=256 and full depth a 12-epoch run projects past
     # Kaggle's 9 h session limit, and a run cut off mid-schedule is not comparable across seeds, so the
@@ -146,6 +150,7 @@ def main():
     cfg.use_ppi = not a.no_ppi
     cfg.use_gene_vectors = not a.no_gene_vectors
     cfg.epi_as_gene_embedding = not a.no_epi_embedding
+    cfg.drug_self_attn = bool(a.drug_self_attn)
 
     names = probe_gpu(require_n=a.gpus)
     torch.backends.cudnn.benchmark = True
@@ -154,7 +159,7 @@ def main():
     device = 'cuda'
     n_gpu = torch.cuda.device_count()
     print(f'GPUs: {names} | seed={a.seed} encoder={cfg.expr_encoder} aux={cfg.use_aux} ppi={cfg.use_ppi} '
-          f'gene_vec={cfg.use_gene_vectors} epi_emb={cfg.epi_as_gene_embedding}', flush=True)
+          f'gene_vec={cfg.use_gene_vectors} epi_emb={cfg.epi_as_gene_embedding} drug_sa={cfg.drug_self_attn}', flush=True)
 
     dc = resolve_v9(V9DataConfig())
     dc.cell_fold = tc.fold
