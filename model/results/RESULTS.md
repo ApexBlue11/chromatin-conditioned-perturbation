@@ -2148,6 +2148,92 @@ where W2's errors were concentrated in a conclusion that flattered the requester
 briefs verify better than confirmatory ones** — worth carrying into every future delegation.
 Open item: MultiFlow's perturbation-type detail still needs the full text.
 
+## 50. 🔴 A May-2026 benchmark says SEVEN L1000 MODELS DO NOT USE THEIR DRUG FEATURES (2026-09-20)
+
+Surfaced by an `agy` worker (`research/W1_lincs_competitors_REPORT.md`). **Verified by me against the
+preprint full text**, which also caught one worker error (§50.5).
+
+### 50.1 The paper
+
+**"Deep learning models for chemical perturbation prediction do not yet utilise drug molecular features"**
+— Jinming Bai, Sharon Prince, Geoff S. Nitschke. bioRxiv, 15 May 2026, doi `10.64898/2026.05.13.724458`.
+Code: `github.com/baijinming97/drug-perturbation-benchmark` (✅ exists, last push 2026-05-13, verified via
+`gh repo view`). Harness vendors all seven upstream repos at pinned commits.
+
+Abstract, verbatim:
+> *"We retrained seven such models from scratch with zeroed or shuffled drug inputs, and compared them with
+> a multilayer perceptron that uses only cell-line basal expression. Under drug-blind evaluation, ablation
+> caused negligible performance changes and the drug-free baseline matched all models. Current
+> architectures do not yet utilise drug molecular features for generalisation to unseen compounds."*
+
+| ✅ verified from full text | value |
+|---|---|
+| drug-free MLP (cell basal expression only), PCC_DEG | **0.637** |
+| XPert, strongest full model, PCC_DEG | **0.633** |
+| max ΔPCC_DEG from **zeroing** drug features, across all 7 models | **0.012** |
+| max ΔPCC_DEG from **shuffling** drug features | **0.027** |
+| Mean (global) null | 0.099 |
+| Mean (cell-line) null | **0.243** |
+| ablation procedure | *"All models were retrained from scratch under both ablation conditions"* |
+| split | drug-blind only — *"test drugs were entirely absent from the training set"*; **cell-line generalisation was not evaluated as a separate condition** |
+
+### 50.2 🔴 Which of our claims this threatens
+
+| ours | status |
+|---|---|
+| [1.9] *"chemical generalisation is real and large"* — unseen-compound, v5 beats best linear by +0.089 | **THREATENED** |
+| [5.1] *"ECFP4 and per-atom UniMol tokens are the two pillars"* | **THREATENED** |
+| [§37] drug global features +0.151 / **+0.223** / +0.148 (ablate-to-mean) | **see §50.3** |
+| V9_HANDOFF §B *"Drug features are the model"* (+0.25…+0.30) | **OVERREACH — must be rewritten** |
+
+### 50.3 🟢 The distinction that decides this — and both measurements are valid
+
+They are **not** measuring the same thing, and the difference is exactly this project's method rule 5:
+
+- **Ours (§37) is an INFERENCE-TIME ablate-to-mean on a trained model.** It answers *"does the trained
+  model USE this input?"* Our answer: heavily, +0.15…+0.22.
+- **Theirs is a RETRAIN-FROM-SCRATCH ablation.** It answers *"does the TASK REQUIRE this input?"* Their
+  answer: no — a from-scratch model compensates through cell-line expression pathways.
+
+**Both can be true at once.** A trained model can lean on drug features while a drug-free model retrained
+from scratch matches it, if the drug information is redundant with what basal expression plus the training
+distribution already supply. ⇒ **§37 is not refuted, and it does not refute them.** But
+*"drug features are the model"* claims the second thing on the strength of the first, and **that is an
+overreach we have to correct before a reviewer does it for us.**
+
+### 50.4 🟢 What this does NOT threaten — and the gap it opens for us
+
+Their evaluation is **drug-blind only**. By their own methods, *"cell-line generalisation was not evaluated
+as a separate condition."* So:
+
+- Our cold-cell result [§45.0] — v9 **0.4734** vs ridge **0.2959**, +0.178 on 21,151 paired rows — is
+  **outside their scope**. And our ridge baseline already carries ECFP4 + descriptors, so that margin is
+  not a drug-feature artefact in the first place.
+- Their `Mean (cell-line)` null of 0.243 **cannot even be computed in our headline regime**: on an unseen
+  cell line there is no per-cell training mean to take. The baseline that dominates their benchmark is
+  undefined on ours.
+
+⇒ **The open question nobody has asked: do drug features matter for unseen-CELL generalisation?** Bai et al.
+answered it for unseen compounds and explicitly did not test unseen cells. That is a clean, novel, cheap
+experiment and it sits directly on our headline regime.
+
+### 50.5 Required experiments, in priority order
+
+1. **Bai's ablation on v9, their regime** — retrain from scratch on `split_cold_drug_1` with drug features
+   zeroed. If v9 matches its full self, we inherit the field's problem and must say so. If it does not,
+   v9 is the exception and that is a result worth the paper.
+2. **Bai's ablation on v9, OUR regime** — the same retrain on `split_cold_cell_1`. Untested by anyone.
+3. **Their drug-free MLP as a baseline on our splits.** It beat seven published models; it belongs beside
+   our ridge in every table. Their harness is runnable, so this is cheap.
+4. Rewrite V9_HANDOFF §B's *"Drug features are the model"* to state the inference-vs-retrain distinction.
+
+### 50.6 Worker error caught by verification
+W1 reported `Mean (cell) = 0.395`. The full text says **0.243**. The rest of its extraction
+(0.637 / 0.633 / 0.012, repo status, the DEPICT 404) verified correct. Logged to
+`orchestration/AGENT_REGISTRY.json`. **This is the second delegated batch in which a worker's numbers were
+right and one figure was not** — the verification pass is not optional, and the error is never where the
+worker sounds least confident.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

@@ -2,7 +2,6 @@
   "_README": "Capability + reliability registry. OBSERVED reliability outranks PUBLISHED benchmarks: published scores are priors, observations are evidence. Append to observations[] after every delegation; never rewrite history. Update published_benchmarks[] periodically and always record the as_of date.",
   "schema_version": 1,
   "last_updated": "2026-09-20",
-
   "surfaces": [
     {
       "id": "agy",
@@ -12,15 +11,39 @@
       "verified_on": "2026-09-20",
       "auth": "inherits the desktop Antigravity session (Windows Credential Manager); no API key needed",
       "headless": "-p '<prompt>' --output-format text|json|stream-json",
-      "key_flags": ["--model", "--effort low|medium|high", "--mode plan (read-only)", "--add-dir", "--json-schema", "--dangerously-skip-permissions", "--output-format"],
-      "tools_available": ["search_web", "read_url_content", "view_file", "write_to_file", "replace_file_content", "run_command", "define_subagent", "invoke_subagent", "schedule", "call_mcp_tool"],
+      "key_flags": [
+        "--model",
+        "--effort low|medium|high",
+        "--mode plan (read-only)",
+        "--add-dir",
+        "--json-schema",
+        "--dangerously-skip-permissions",
+        "--output-format"
+      ],
+      "tools_available": [
+        "search_web",
+        "read_url_content",
+        "view_file",
+        "write_to_file",
+        "replace_file_content",
+        "run_command",
+        "define_subagent",
+        "invoke_subagent",
+        "schedule",
+        "call_mcp_tool"
+      ],
       "can_spawn_subagents": true,
       "cost_class": "subscription (Google AI Pro) — treat as cheap, not free",
       "models": [
-        "gemini-3.8-flash-high", "gemini-3.8-flash-medium", "gemini-3.8-flash-low",
-        "gemini-3.7-flash-high", "gemini-3.6-flash-high",
-        "gemini-3.1-pro-high", "gemini-3.1-pro-low",
-        "claude-sonnet-4-6", "claude-opus-4-6-thinking",
+        "gemini-3.8-flash-high",
+        "gemini-3.8-flash-medium",
+        "gemini-3.8-flash-low",
+        "gemini-3.7-flash-high",
+        "gemini-3.6-flash-high",
+        "gemini-3.1-pro-high",
+        "gemini-3.1-pro-low",
+        "claude-sonnet-4-6",
+        "claude-opus-4-6-thinking",
         "gpt-oss-120b-medium"
       ],
       "notes": "Primary worker pool. Buffers all stdout until the turn completes, so always run in background and poll the log. Needs --dangerously-skip-permissions in headless mode or it blocks on approval. Cross-vendor models here are useful for independent second opinions on the same brief."
@@ -31,7 +54,13 @@
       "command": "copilot",
       "status": "INSTALLED-NOT-YET-EXERCISED",
       "headless": "-p '<prompt>'",
-      "key_flags": ["--effort low|medium|high|xhigh", "--add-dir", "--agent", "--additional-mcp-config", "--acp"],
+      "key_flags": [
+        "--effort low|medium|high|xhigh",
+        "--add-dir",
+        "--agent",
+        "--additional-mcp-config",
+        "--acp"
+      ],
       "cost_class": "subscription, lower volume than agy",
       "notes": "Second pool. Has an xhigh reasoning tier agy lacks. Reserve for when a Gemini pass fails a check."
     },
@@ -40,7 +69,9 @@
       "name": "GitHub coding agent (cloud, async)",
       "command": "gh agent-task create -F <brief.md>",
       "status": "AUTHED-NOT-YET-EXERCISED",
-      "models": ["haiku-4.5"],
+      "models": [
+        "haiku-4.5"
+      ],
       "cost_class": "lowest volume — spend deliberately",
       "notes": "Async and cloud; returns a PR. Best for well-specified mechanical code changes, not research. Weakest model of the three, so scope tightly and always review the diff."
     },
@@ -58,7 +89,12 @@
       "status": "VERIFIED-WORKING",
       "cost_class": "30 h/week quota — HUMAN APPROVAL GATE",
       "concurrency": "2 concurrent GPU sessions",
-      "constraints": ["NEVER P100 (no sm_60 kernels)", "no CPU fallback", "a cancelled kernel's /kaggle/working is DISCARDED", "TPU abandoned — v5e multi-process init fails and it is slower per core than a T4"],
+      "constraints": [
+        "NEVER P100 (no sm_60 kernels)",
+        "no CPU fallback",
+        "a cancelled kernel's /kaggle/working is DISCARDED",
+        "TPU abandoned — v5e multi-process init fails and it is slower per core than a T4"
+      ],
       "notes": "Gate every spend on a free-CPU ridge result first."
     },
     {
@@ -76,21 +112,55 @@
       "notes": "~12x faster than CPU for inference sweeps. NEVER training. 4 GB forces batch 8, so absolute numbers from it are not comparable to batch-96 Kaggle runs."
     }
   ],
-
   "dead_ends": [
-    {"id": "gemini-cli", "why": "Google deprecated it for Gemini Code Assist individuals; IneligibleTierError directs users to Antigravity. Sunsets for AI Pro/Ultra 2026-06-18.", "checked": "2026-09-20"},
-    {"id": "trae", "why": "IDE launcher only (--diff/--goto/--wait). No headless agent.", "checked": "2026-09-20"},
-    {"id": "cursor", "why": "IDE launcher only. No headless agent CLI found.", "checked": "2026-09-20"},
-    {"id": "antigravity-ide", "why": "VS Code-style launcher. The agent is GUI-only. Use `agy` instead.", "checked": "2026-09-20"},
-    {"id": "codex/chatgpt", "why": "No CLI installed. Would need `npm i -g @openai/codex` and an OpenAI auth the PI must not set up unilaterally.", "checked": "2026-09-20"}
+    {
+      "id": "gemini-cli",
+      "why": "Google deprecated it for Gemini Code Assist individuals; IneligibleTierError directs users to Antigravity. Sunsets for AI Pro/Ultra 2026-06-18.",
+      "checked": "2026-09-20"
+    },
+    {
+      "id": "trae",
+      "why": "IDE launcher only (--diff/--goto/--wait). No headless agent.",
+      "checked": "2026-09-20"
+    },
+    {
+      "id": "cursor",
+      "why": "IDE launcher only. No headless agent CLI found.",
+      "checked": "2026-09-20"
+    },
+    {
+      "id": "antigravity-ide",
+      "why": "VS Code-style launcher. The agent is GUI-only. Use `agy` instead.",
+      "checked": "2026-09-20"
+    },
+    {
+      "id": "codex/chatgpt",
+      "why": "No CLI installed. Would need `npm i -g @openai/codex` and an OpenAI auth the PI must not set up unilaterally.",
+      "checked": "2026-09-20"
+    }
   ],
-
   "published_benchmarks": [
-    {"model": "gemini-3.8-flash", "metric": "Terminal-Bench 2.1", "score": 90.8, "as_of": "2026-09", "note": "vs 81.6 for 3.7 Flash; leads 3.1 Pro on the like-for-like coding row"},
-    {"model": "gemini-3.8-flash", "metric": "SWE-Bench Pro", "score": 61.6, "as_of": "2026-09"},
-    {"model": "gemini-3.1-pro", "metric": "SWE-Bench Verified", "score": 80.6, "as_of": "2026-02", "note": "DIFFERENT benchmark from the 3.8 Flash row — not comparable"}
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "Terminal-Bench 2.1",
+      "score": 90.8,
+      "as_of": "2026-09",
+      "note": "vs 81.6 for 3.7 Flash; leads 3.1 Pro on the like-for-like coding row"
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "SWE-Bench Pro",
+      "score": 61.6,
+      "as_of": "2026-09"
+    },
+    {
+      "model": "gemini-3.1-pro",
+      "metric": "SWE-Bench Verified",
+      "score": 80.6,
+      "as_of": "2026-02",
+      "note": "DIFFERENT benchmark from the 3.8 Flash row — not comparable"
+    }
   ],
-
   "observations": [
     {
       "id": "W2",
@@ -124,12 +194,20 @@
       "surface": "agy",
       "model": "gemini-3.8-flash-high",
       "task_class": "competitor landscape, 8+ sources, PDFs and supplementary",
-      "wall_time_min": ">40 (still running at time of writing)",
-      "verdict": "PENDING",
-      "lesson": "Many-source tasks with PDF/supplementary fetching are slow. Dispatch early, background, do not block on them."
+      "wall_time_min": 55,
+      "verdict": "HIGH VALUE. Surfaced 'Deep learning models for chemical perturbation prediction do not yet utilise drug molecular features' (Bai et al., bioRxiv 2026-05), which directly threatens two of this project's claims and was not on the PI's radar. Correctly used 'UNKNOWN - figure panel only' for figure-locked numbers in 3 papers rather than estimating, correctly flagged DEPICT's repo as 404 (verified), and separated third-party-audited numbers from self-reported ones.",
+      "lesson": "Wide landscape sweeps are where a worker earns its cost - it found the paper that reframes the project. But one figure in eleven was wrong, and it was not flagged as uncertain. Verify every number that will be cited; the error is never where the worker sounds least confident.",
+      "verifiable_claims": 9,
+      "survived_verification": 8,
+      "failure_mode": "SINGLE-FIGURE-ERROR: reported Bai et al. Mean(cell) null as 0.395; full text says 0.243. Everything else verified correct."
+    },
+    {
+      "id": "VERIFICATION-META",
+      "date": "2026-09-20",
+      "note": "Across the first three delegations: 21 verifiable claims, 19 survived PI verification. The two failures were (a) W2 - a synthesis conclusion that flattered the PI hypothesis, and (b) W1 - a single null-baseline figure misread. NEITHER was flagged as uncertain by the worker. Per-item findings with verbatim quotes were reliable in all three runs; the unreliable parts were a conclusion and a number, both stated with full confidence.",
+      "routing_implication": "Delegate extraction and search freely. Verify every number that will be cited and read every synthesis section adversarially. Worker confidence carries no information about worker accuracy."
     }
   ],
-
   "routing_policy": {
     "_derived_from": "observations[] first, published_benchmarks[] as prior",
     "never_delegate": [
@@ -145,6 +223,7 @@
     "mechanical_pr_shaped_code": "gh agent-task (haiku-4.5), tight scope, always review the diff",
     "escalation_when_a_check_fails": "copilot --effort xhigh",
     "cpu_compute": "kaggle-cpu (free, 5 concurrent) before local-cpu",
-    "gpu_compute": "kaggle-gpu T4x2 only, gated on a free-CPU ridge result AND human approval"
+    "gpu_compute": "kaggle-gpu T4x2 only, gated on a free-CPU ridge result AND human approval",
+    "wide_landscape_sweep": "agy + gemini-3.8-flash-high. Slow (~55 min for 11 models with PDFs + supplementary) but the highest-value class run so far. Dispatch early, always background."
   }
 }
