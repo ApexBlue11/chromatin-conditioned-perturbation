@@ -1,10 +1,10 @@
 {
-  "iteration": 1,
+  "iteration": 5,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
   "note": "PI refuses to open an iteration past max_iterations without explicit human approval.",
-  "responses_since_checkpoint": 0,
+  "responses_since_checkpoint": 5,
   "checkpoint_every": 30,
   "autonomy": {
     "delegated": [
@@ -22,7 +22,13 @@
   },
   "loop_state": "RUNNING",
   "open_packets": [
-    "001_cold_cell_chromatin"
+    "003_drugsa_design"
   ],
-  "_encoding_note": "UTF-8 WITHOUT BOM. Do not rewrite this file with PowerShell Set-Content -Encoding utf8 (it adds a BOM and breaks json.load). Use Out-File -Encoding utf8NoBOM, or python io.open(...,encoding=utf-8)."
+  "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
+  "closed_packets": [
+    "001_cold_cell_chromatin",
+    "002_chromatin_rescored"
+  ],
+  "gpu_hours_spent_this_session": 0,
+  "pending_decision": "packet 003 design review must return before any GPU spend"
 }
