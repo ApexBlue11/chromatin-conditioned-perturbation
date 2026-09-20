@@ -2000,6 +2000,77 @@ Their drug sequence is `[dose, time, HG_embed, atom_1..atom_n]` (`unimol_Embeddi
 by exposure. Ours applies dose/time as a FiLM scale/shift on the gene tokens, far from the atoms. Same
 information, structurally unable to express the same interaction. Test separately; do not bundle with 47.3.
 
+## 48. How the 2026 SOTA actually uses graphs — and why our STRING null was predictable (2026-09-20)
+
+Delegated to an `agy` worker (`research/W2_mechanisms_REPORT.md`, brief in the commit). **Its TxPert claims
+were then verified by me directly against the arXiv full text** before any of this was written down; the
+quoted strings below are from that verification pass, not from the worker's summary. State and PertAdapt
+claims are recorded as REPORTED-NOT-VERIFIED and must be checked before they are cited.
+
+### 48.1 TxPert (Nat Biotech 2026), verified against arXiv:2505.14919
+
+| question | finding | quote |
+|---|---|---|
+| combining graphs | union of edges, with a **multi-hot edge feature** encoding which source graph each edge came from | *"Exphormer-MG, an extension of the Graph Transformer architecture adapted for multi-graph learning via a union graph methodology"* |
+| which graphs | **STRINGdb, GO, PxMap, TxMap** — and all four together is best | *"STRINGdb, GO, PxMap and TxMap…when all four graphs were combined"* |
+| graph conditioning | **static prior** over learnable node embeddings, independent of basal state | *"each perturbation p is associated with a randomly initialized input node embedding h_p⁰ … treated as model parameters learned via backpropagation"* |
+| unseen cell lines | **no basal-state encoder**; predict a delta onto the raw control | *"no basal state encoder is by far the most effective option…the model predicts delta instead: ŷ = x + gφ(Σ z_p)"* |
+
+### 48.2 🔴 This CUTS AGAINST my own "additive injection is the problem" hypothesis
+
+TxPert's graph is **static**, operates on learnable node embeddings **independent of the cell**, and its
+output is **summed** into the basal representation — and it is SOTA for OOD transfer to unseen cell lines.
+So "static + additive" is not disqualifying on its own, and [§47]'s framing must not be over-generalised.
+
+**The difference that does survive is WHAT the graph is used for:**
+
+- **TxPert uses the graph to represent the PERTURBATION.** In genetic perturbation the perturbation *is a
+  gene*, so a gene–gene graph directly answers "what does perturbing gene X do" through X's neighbourhood.
+  The graph is doing causal work.
+- **We use the graph to SMOOTH THE TARGET.** Our STRING step message-passes over gene representations,
+  drug-invariantly. It answers no question about the perturbation at all.
+
+⇒ That is a better explanation of our true null (−0.0003, \|dY\|max 0.5 [§37]) than "it is additive", and it
+survives the fact that a static additive graph works elsewhere. **For a chemical perturbation the analogue
+of TxPert's move is to propagate from the DRUG'S TARGETS outward through the graph**, not to smooth the
+978 landmark genes. We hold `dti_reference.tsv` (19,174 edges, 1,718 drugs) as a held-out validation set,
+so doing this costs us that validation set — an explicit trade to decide, not to make silently.
+
+### 48.3 Two directly actionable findings
+
+1. **Union multiple graphs with multi-hot provenance edge features.** We have STRING, Reactome, GO:BP and
+   DTI and have only ever used them separately or not at all. TxPert's ablation says combining helps
+   monotonically and all four beats the best three (p < 0.027). Exact per-graph numbers are
+   **UNKNOWN — figure panel only** (worker checked the LaTeX source; values are not in text or tables).
+2. **Test removing the control ENCODER on cold-cell.** TxPert found *"no basal state encoder is by far the
+   most effective option"* for cross-cell-line transfer. v9 runs **two** control encoders (`ctl_enc`,
+   `cell_enc`) mixed into the gene tokens. We already anchor absolute as control + delta [§43.1], so we are
+   half-way there; the untested half is whether encoding the basal state at all hurts on unseen cells.
+   Cheap ablation, directly on the split that matters.
+
+### 48.4 🔴 REJECTED: the worker's novelty claim, as an example of the failure mode to watch for
+
+The worker concluded that supplying auxiliary biology as *its own attended token set* is
+**"a completely novel comparison against the current literature."** **I am not accepting that, and it is
+recorded here as a caution rather than a finding.**
+
+- It generalises from **three papers** — all genetic and all single-cell — to "the current literature".
+- It is contradicted inside our own reference set: XPert carries `HG_embed` as a **token** in the drug
+  sequence, and **our own named pathway layer is already a token set**.
+- It is the flattering answer. The brief asked whether the literature addresses the PI's hypothesis, and
+  the answer came back "your hypothesis is novel". Agent output that confirms the requester's prior is
+  exactly where verification effort belongs.
+
+**What IS defensible:** these three papers use auxiliary biology as an additive embedding (TxPert, State)
+or a static attention mask (PertAdapt), and **none of them ablates tokens-vs-additive**. That is a gap in
+the evidence, not an established novelty. Settling it needs W3-style adversarial search.
+
+### 48.5 Provenance
+`research/W2_mechanisms_REPORT.md`. TxPert: verified by me against arXiv:2505.14919 full text.
+State (bioRxiv 2025.06.26.661135) and PertAdapt (PMC13341120): **REPORTED, NOT VERIFIED.** The worker read
+a preprint for State and an XML extraction for PertAdapt; preprint and published versions can differ. Do
+not cite either without a verification pass [method rule 8 family].
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
