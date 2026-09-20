@@ -261,6 +261,8 @@ gate every step on a measurement.**
    numbers were in Supplementary Table R8 the whole time, reachable unauthenticated in 30 s. This omission
    cost more than the NaN quantiser [RESULTS §46.1]. Springer pattern:
    `https://static-content.springer.com/esm/art%3A10.1038%2F<doi-suffix>/MediaObjects/<doi_underscored>_MOESM<n>_ESM.pdf`
+10. **Compute the direction of a selection bias; never assume it.** §44 asserted that per-arm-best lambda "favours the chromatin arm"; at matched lambda it turned out to have *deflated* it (+0.0029 reported vs +0.0038 matched), which inverted the reading [RESULTS §51.4, §52.5]. Any per-arm argmax or tuned hyperparameter in a comparison gets recomputed at matched setting — one solve per value.
+11. **Size the experiment against a MEASURED noise floor before buying it.** The chromatin effect is 0.57 sigma of the run-to-run difference using this project’s own unseen-cell seed sd of 0.0052 [§21]; three seeds per arm would have cost 62 GPU-hours to re-measure a known spread, and powering the effect would cost ~250 [RESULTS §52]. Also: §30’s "0.005–0.045" are RANGES, not sds — do not use them as sds.
 9. **Our-number-vs-their-number is NOT a model comparison**, however well the split, metric and convention
    match. §39 got this wrong, §40 reversed it, and §46.4 is currently in the same form. Only identical rows
    scored by both models count.

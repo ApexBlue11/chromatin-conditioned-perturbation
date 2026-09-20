@@ -2413,6 +2413,65 @@ exists to produce.** The leak is real and worth fixing: commit subjects in this 
 so a reviewer tracing provenance will see them. Future packets should include the artefact paths and
 `git show --stat` output the reviewer needs, so it never has to run `git log`.
 
+## 52. The chromatin effect is 0.57 sigma of the run-to-run difference — and that saves 41 GPU-hours (2026-09-20)
+
+`orchestration/bus/to_pi/001_adjudication_ack.md`. The reviewer raised no new challenges but made an
+arithmetic point about §51.8's action item 3. **It had one figure wrong. Correcting it makes the
+conclusion stronger.**
+
+### 52.1 Their argument, and the misreading in it
+They took §30's "0.005–0.045 on our cold splits" as a **standard deviation** and derived
+`sd_diff = sd x sqrt(2) ≈ 0.007–0.064`.
+
+🔴 **Those are RANGES, not sds.** §21's three-seed table is explicit: unseen-cell range **0.0103** /
+**sd 0.0052**; unseen-both range **0.0457** / **sd 0.0232**. So "0.005–0.045" is the span of *ranges*
+across splits, and using it as an sd inflates the noise floor by roughly 2x.
+
+### 52.2 Done properly, with the directly relevant number
+Our regime is **unseen cell**, and this project has measured its seed sd directly — v7, three seeds,
+protocol-matched [§21]: **sd = 0.0052**.
+
+Two independent single-seed runs differ with
+`sd_diff = 0.0052 x sqrt(2) =` **0.0074**.
+
+The observed chromatin effect is **+0.0042**.
+
+⇒ **The effect is 0.57 sigma of the run-to-run difference distribution.** Not "unproven against an
+unmeasured floor" — **inside a floor this project measured in August**, by a factor of two.
+
+### 52.3 What it would cost to detect an effect that size
+One cold-cell arm is **37,290 s = 10.36 h** (recorded in the arm JSON).
+
+| plan | runs | GPU-hours | verdict |
+|---|---|---|---|
+| §51.8 item 3 as written (3 seeds x 2 arms) | 6 | **62 h** | **> 2 weeks of a 30 h/week quota, and it only measures the sd we already have** |
+| powering +0.0042 to significance at sd_diff 0.0074 | ~24 | **~250 h** | infeasible |
+| **§51.8 items 1+2 combined** (2 arms, `--save_pred`) | **2** | **~21 h** | affordable, fixes provenance, **and yields the placebo stratum** |
+
+🔴 **ACTION ITEM 3 IS DROPPED as a means of deciding the question.** Buying 62 GPU-hours to re-measure
+a spread [§21] already recorded, in order to test an effect at 0.57 sigma, is not a defensible spend. If
+the this-split spread is ever wanted **for the record**, that is a separate and much later purchase, and
+it must be labelled as such rather than as a decision procedure.
+
+### 52.4 The reviewer's second point, which is simply correct
+§51.8 listed items 1 and 2 as separate. They are **one experiment**: the re-run (item 2) produces exactly
+the saved predictions the placebo stratum (item 1) needs. Revised plan:
+
+> **Two runs, ~21 GPU-hours, `--save_pred`, distinct filenames, args written into the JSON, comparison
+> routed through `head_to_head_mdmt.py` so its row-alignment guards execute.** That simultaneously fixes
+> the C2 provenance failure and delivers the C5 placebo stratum — the paired delta on the 1,212 rows from
+> the 3 test cell lines with no chromatin track, where **both arms see identical zeros**, which is a
+> direct within-comparison estimate of the training-noise floor requiring no extra seeds at all.
+
+### 52.5 METHOD RULE 10, from the reviewer's own generalisation
+> **Compute the direction of a selection bias. Never assume it.**
+
+§44 wrote "best lambda taken **per arm, which favours the chromatin arm**" — an assumed direction. Matched
+lambda showed the opposite: the per-arm argmax *deflated* the chromatin gain (+0.0029 reported against
+**+0.0038** at matched lambda = 1e3) [§51.4]. The reviewer reports it had the same prior and computed it
+anyway, which is why it found the inversion. **Whenever a per-arm argmax, best-of-N, or tuned
+hyperparameter appears in a comparison, recompute at matched setting. It is one solve per value.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
