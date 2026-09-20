@@ -225,6 +225,26 @@
       "date": "2026-09-20",
       "note": "The PI hand-wrote a ~200-line analysis script (atom_ablation_ci.py) while holding a precise spec and a cheap mechanical check, instead of delegating the body. Flagged by the principal. Also under-used free Kaggle CPU: the same script then exceeded the local foreground timeout, which is precisely the tier-2 case.",
       "routing_implication": "Delegation is not a fallback for when the PI is busy; it is the default for any implementation task with a mechanical verification contract. The PI's scarce output is judgement, not typing."
+    },
+    {
+      "id": "W4-attempt1-FAILED",
+      "date": "2026-09-20",
+      "surface": "agy",
+      "model": "gemini-3.8-flash-high",
+      "task_class": "code implementation from a spec (diagonal-attention ablation)",
+      "verdict": "FAILED SILENTLY WITH EXIT CODE 0. Changed no files, wrote no report.",
+      "failure_mode": "It launched its verification tests in the BACKGROUND, went idle waiting on them, and its session TERMINATED THE BACKGROUND TASKS ON EXIT. Log ends: \"terminating 2 background task(s) on exit\".",
+      "lesson": "An agy exit code of 0 means the process ended, NOT that the task succeeded. ALWAYS verify the artefact -- git diff, the report file -- never the exit code. Caught here only because the PI checked the diff. And briefs must forbid backgrounding: tell the worker to run every command in the FOREGROUND and block on it."
+    },
+    {
+      "id": "W4-attempt2-SUCCEEDED",
+      "date": "2026-09-20",
+      "surface": "agy",
+      "model": "gemini-3.8-flash-high",
+      "task_class": "code implementation from a spec (same task, brief amended with the foreground constraint)",
+      "verdict": "SUCCESS, independently verified by the PI. 11/11 drug-SA checks pass including the decisive \"perturbing atom 3 moves atom 1 by exactly 0.00e+00\" and identical parameter count under diagonal; test_v9.py still 55/55. Implemented as a _DrugAttention(QKNormAttention) subclass that delegates to super() when not diagonal, so the default path is bit-identical BY CONSTRUCTION rather than by test. Wrote house-style docstrings citing the review that forced the design. It also added two threading tests beyond the spec (PerturbBlock, LincsV9).",
+      "pi_extra_check": "The PI tested something the spec did not require: under diagonal + key_mask a padded query row is fully -inf and could softmax to NaN. Verified 0 non-finite elements -- SDPA handles it. Worth keeping as a habit: a passing suite is not the same as an absent failure mode.",
+      "lesson": "The one-line brief fix (forbid backgrounding) converted a total failure into a clean success on the same model and the same task. Most worker failures are harness-shaped, not capability-shaped."
     }
   ],
   "routing_policy": {

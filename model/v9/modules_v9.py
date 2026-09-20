@@ -9,6 +9,7 @@ import os, sys
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(os.path.dirname(HERE), 'v7'))
@@ -200,6 +201,38 @@ class _GeneBlock(nn.Module):
         return h + self.sd2(self.ff(self.n2(h)))
 
 
+class _DrugAttention(QKNormAttention):
+    """QKNormAttention with an identity-masked diagonal ablation mode.
+
+    Why diagonal ablation [TASK W4]: Adversarial review rejected mean-ablating _DrugBlock's output
+    because zeroing or mean-ablating the block kills both cross-atom mixing AND the SwiGLU branch,
+    turning the ablated arm into a smaller-capacity model and reintroducing a +30 % parameter confound
+    the experiment exists to avoid.
+
+    With `diagonal=True`, the attention matrix is masked to the identity (combined with key_mask for
+    ragged padding), so each token attends exclusively to itself. All parameters, normalisations,
+    the SwiGLU branch, and residual connections remain identical and live; only cross-token information
+    flow is eliminated.
+    """
+
+    def forward(self, x, key_mask=None, diagonal=False):
+        if not diagonal:
+            return super().forward(x, key_mask=key_mask)
+        B, L, _ = x.shape
+        q, k, v = self.qkv(x).chunk(3, dim=-1)
+        sp = lambda t: t.view(B, L, self.h, self.dh).transpose(1, 2)
+        q, k, v = self.q_norm(sp(q)), self.k_norm(sp(k)), sp(v)
+        q = q * self.scale.exp().unsqueeze(0)
+        # Follow QKNormAttention style: broadcast over heads (avoid allocating [B, heads, L, L]).
+        diag_mask = torch.full((L, L), float("-inf"), device=x.device, dtype=q.dtype)
+        diag_mask.fill_diagonal_(0.0)
+        mask = diag_mask[None, None, :, :]
+        if key_mask is not None:
+            mask = mask.masked_fill(key_mask[:, None, None, :], float("-inf")).contiguous()
+        out = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, scale=1.0)
+        return self.drop(self.o(out.transpose(1, 2).reshape(B, L, self.h * self.dh)))
+
+
 class _DrugBlock(nn.Module):
     """Self-attention + FFN over the DRUG token sequence [global; atom_1..atom_n], masked for padding.
 
@@ -215,18 +248,44 @@ class _DrugBlock(nn.Module):
     Falsifiable prediction attached: with this on, the atom-token ablation in [RESULTS 37] should flip
     sign from -0.025 to positive. If it does not, atom-level attribution in this architecture is dead and
     deleting the atom tokens is justified WITH A MECHANISM rather than as a bare empirical result.
+
+    Diagonal ablation mode [TASK W4]: `forward(D, key_mask=None, diagonal=False)`.
+    When `diagonal=True`, the self-attention matrix is masked to the identity (each atom attends only to
+    itself). This eliminates cross-atom information flow without removing the module's capacity (SwiGLU,
+    residuals, and normalisations are fully preserved).
     """
 
     def __init__(self, cfg, p_drop=0.0):
         super().__init__()
         self.n1, self.n2 = RMSNorm(cfg.d_model), RMSNorm(cfg.d_model)
-        self.attn = QKNormAttention(cfg.d_model, cfg.n_heads, cfg.dropout)
+        self.attn = _DrugAttention(cfg.d_model, cfg.n_heads, cfg.dropout)
         self.ff = SwiGLU(cfg.d_model, cfg.d_ff, cfg.dropout)
         self.sd1, self.sd2 = StochasticDepth(p_drop), StochasticDepth(p_drop)
 
-    def forward(self, D, key_mask=None):
-        D = D + self.sd1(self.attn(self.n1(D), key_mask=key_mask))
+    def forward(self, D, key_mask=None, diagonal=False):
+        if hasattr(self.attn, 'forward') and 'diagonal' in self.attn.forward.__code__.co_varnames:
+            attn_out = self.attn(self.n1(D), key_mask=key_mask, diagonal=diagonal)
+        elif diagonal:
+            attn_out = self._attn_diagonal(self.n1(D), key_mask=key_mask)
+        else:
+            attn_out = self.attn(self.n1(D), key_mask=key_mask)
+        D = D + self.sd1(attn_out)
         return D + self.sd2(self.ff(self.n2(D)))
+
+    def _attn_diagonal(self, x, key_mask=None):
+        attn = self.attn
+        B, L, _ = x.shape
+        q, k, v = attn.qkv(x).chunk(3, dim=-1)
+        sp = lambda t: t.view(B, L, attn.h, attn.dh).transpose(1, 2)
+        q, k, v = attn.q_norm(sp(q)), attn.k_norm(sp(k)), sp(v)
+        q = q * attn.scale.exp().unsqueeze(0)
+        diag_mask = torch.full((L, L), float("-inf"), device=x.device, dtype=q.dtype)
+        diag_mask.fill_diagonal_(0.0)
+        mask = diag_mask[None, None, :, :]
+        if key_mask is not None:
+            mask = mask.masked_fill(key_mask[:, None, None, :], float("-inf")).contiguous()
+        out = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, scale=1.0)
+        return attn.drop(attn.o(out.transpose(1, 2).reshape(B, L, attn.h * attn.dh)))
 
 
 class NamedPathwayReadout(nn.Module):
