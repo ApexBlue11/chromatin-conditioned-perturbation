@@ -3185,6 +3185,70 @@ difference-of-medians all agree in sign and rough magnitude. This survives every
 because it never touches S10 or S00. **It is the finding this run bought:** giving the drug tokens in-loop
 self-attention did not make v9's per-atom features worth their place.
 
+### 60.8 ✅ THE NULL-KEY CONTROL — it first looked like a failure, and the per-row dump says otherwise
+`--key x_cell`: the identical 2x2 with the ablation pointed at the **cell control expression**, an input
+the drug self-attention block has no path to. Identical rows and chunks and weights — verified, not
+assumed: `rows` arrays byte-identical between the two runs and the `r11` per-row vectors byte-identical on
+all three splits. Artefacts `..._key-x_cell.json` / `..._key-x_cell_rows.npz`. Cost: 0 GPU-hours (local
+inference).
+
+**First read — apparent failure.** On the pre-committed estimand the control is *not* null:
+
+| split | control interaction (paired mean) | atoms, for comparison |
+|---|---|---|
+| unseen_cell | −0.00074 [−0.00247, +0.00098] **spans zero** | +0.01200, 8.4 σ |
+| **unseen_compound** | **+0.00616** [+0.00327, +0.00910] — **4.1 σ** | −0.00938, 4.7 σ |
+| unseen_both | **+0.00519** [+0.00355, +0.00689] — **6.2 σ** | −0.00258, spans zero |
+
+At that point the honest conclusion was that the operator has a non-specific component of ≈0.006 on the
+compound splits and the atom interaction, at 1.5x that, is not cleanly above it. **That is what I believed
+for about ten minutes.**
+
+**Second read — the per-row vectors say the contamination is entirely in the MEAN's tail.**
+
+| split | key | median | frac of rows > 0 | **sign test p** | skew |
+|---|---|---|---|---|---|
+| unseen_cell | atoms | +0.00849 | 0.6213 | **4.6e−21** | +0.06 |
+| unseen_cell | x_cell | **+0.00000** | **0.5057** | **0.69** | −0.62 |
+| **unseen_compound** | **atoms** | **−0.00803** | **0.4220** | **1.7e−09** | −1.75 |
+| **unseen_compound** | **x_cell** | **+0.00016** | **0.5053** | **0.70** | +1.58 |
+| unseen_both | atoms | −0.00225 | 0.4600 | 2.1e−03 | −1.14 |
+| unseen_both | x_cell | +0.00000 | 0.5316 | 2.0e−02 | +1.84 |
+
+The control's +0.00616 comes from a **right tail with skew +1.58 sitting on a distribution whose median is
++0.00016 and whose rows split 50.5/49.5** — i.e. no location shift at all. The atoms' −0.00938 comes from a
+distribution whose **median is −0.00803 and whose rows split 42/58**. Under a sign test, which ignores
+magnitude entirely, **the control is a textbook null on the primary split (p = 0.70) and the atom effect is
+p = 1.7e−09.**
+
+⇒ **The control passes, read as a location shift.** The operator's non-specific component lives in the
+mean's tail sensitivity, not in where the distribution sits. §60.4's worry was real and is now bounded.
+⇒ And the contamination on `unseen_compound` is **positive** while the atom interaction is **negative**, so
+it would mask a negative effect rather than manufacture one.
+
+### 60.9 What this round establishes, stated at the strength the evidence supports
+1. ✅ **Atoms still hurt under full attention.** −0.01814 [−0.02635, −0.00916] on `unseen_compound`,
+   −0.02637 [−0.03618, −0.01628] on `unseen_both`; per row they hurt on **two rows in three**; mean, median
+   and difference-of-medians agree. Touches neither S10 nor S00, so it inherits nothing above. **This is
+   the finding the 6.23 GPU-hours bought, and §58.7's mechanism is dead.**
+2. ✅ **The interaction on the primary split is negative and IS specific to the atom tokens.** Pre-committed
+   paired mean −0.00938 at 4.7 σ, location median −0.00803 at sign-test p = 1.7e−09, null-key control
+   p = 0.70 on the same rows. In-loop re-contextualisation makes the atom tokens **slightly more harmful**,
+   not less.
+3. 🔴 **The interaction's sign is stratum-dependent and that is not explained.** +0.01200 at 8.4 σ on
+   `unseen_cell` against −0.00938 at 4.7 σ on `unseen_compound`, both surviving the control on
+   `unseen_cell` and the sign test on both. One seed. **Not a result; an open question.**
+4. ✅ One seed is sufficient for (1) and (2) by method rule 7 — within-run contrasts on identical rows and
+   identical weights — but §58.3 stands: **the magnitudes are not established as seed-stable**, and (3)
+   would need seeds to become anything.
+
+### 60.10 Method rule 16
+**A paired mean over per-row correlation differences is tail-sensitive; never report it alone.** Report the
+median and a **sign test** on the same rows beside it, and put the null-key control through **all three**.
+Here the mean said the control was contaminated at 4.1 σ and the sign test said it was null at p = 0.70;
+the same pair of statistics separated a genuine location shift from a tail artefact in §60.6 as well. Two
+reversals from one npz dump in one afternoon — the dump is now unconditional in `interaction_2x2.py`.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

@@ -1,0 +1,72 @@
+### RUN A: atoms (determinism + npz) ###
+=== v9 2x2 Interaction Harness [TASK W5] ===
+Checkpoint: sa0_ckpt_v9_fold0_seed0.pt | Device: cuda
+Config: batch=48, n_eval=1500, n_boot=20000, seed=0
+
+--- unseen_cell (eligible=7276, requested=1500, bound=True, evaluated=1500) ---
+  Scores (median Pearson) : S11=+0.51687  S01=+0.51156  S10=+0.42636  S00=+0.43648
+  Atom effect (with ctx)  : +0.00530  CI95 [+0.00023, +0.01383]
+  Atom effect (no ctx)    : -0.01012  CI95 [-0.01616, -0.00190]
+  Context effect (w/ atoms: +0.09050 | w/o atoms: +0.07508
+  INTERACTION             : +0.01542  CI95 [+0.00616, +0.02516]  (excludes 0)
+  Paired-mean interaction : +0.01200  CI95 [+0.00920, +0.01480]
+  |dY|max                 : atom=5.6847  context=9.1892
+
+--- unseen_compound (eligible=10384, requested=1500, bound=True, evaluated=1500) ---
+  Scores (median Pearson) : S11=+0.56877  S01=+0.58690  S10=+0.45198  S00=+0.46895
+  Atom effect (with ctx)  : -0.01814  CI95 [-0.02635, -0.00916]
+  Atom effect (no ctx)    : -0.01697  CI95 [-0.02353, -0.01093]
+  Context effect (w/ atoms: +0.11679 | w/o atoms: +0.11795
+  INTERACTION             : -0.00116  CI95 [-0.01080, +0.00998]  (SPANS ZERO)
+  Paired-mean interaction : -0.00938  CI95 [-0.01326, -0.00547]
+  |dY|max                 : atom=3.7750  context=6.0822
+
+--- unseen_both (eligible=2988, requested=1500, bound=True, evaluated=1500) ---
+  Scores (median Pearson) : S11=+0.47750  S01=+0.50387  S10=+0.37954  S00=+0.39797
+  Atom effect (with ctx)  : -0.02637  CI95 [-0.03618, -0.01628]
+  Atom effect (no ctx)    : -0.01843  CI95 [-0.02381, -0.00883]
+  Context effect (w/ atoms: +0.09796 | w/o atoms: +0.10590
+  INTERACTION             : -0.00794  CI95 [-0.02182, +0.00161]  (SPANS ZERO)
+  Paired-mean interaction : -0.00258  CI95 [-0.00567, +0.00039]
+  |dY|max                 : atom=3.5266  context=5.3395
+
+Wrote 2x2 interaction results to C:\Projects\LINCS\model\results\v9_interaction_2x2_sa0_ckpt_v9_fold0_seed0.json
+Wrote per-row vectors to C:\Projects\LINCS\model\results\v9_interaction_2x2_sa0_ckpt_v9_fold0_seed0_rows.npz
+### RUN A exit=0 ###
+### RUN B: x_cell SPECIFICITY CONTROL ###
+=== v9 2x2 Interaction Harness [TASK W5] ===
+Checkpoint: sa0_ckpt_v9_fold0_seed0.pt | Device: cuda
+Config: batch=48, n_eval=1500, n_boot=20000, seed=0
+
+C:\Projects\LINCS\model\v9\modules_v9.py:98: UserWarning: torch.searchsorted(): input value tensor is non-contiguous, this will lower the performance due to extra data copy when converting non-contiguous tensor to contiguous, please use contiguous input value tensor if possible. This message will only appear once per program. (Triggered internally at C:/actions-runner/_work/pytorch/pytorch/aten/src\ATen/native/BucketizationUtils.h:34.)
+  return torch.bucketize(x, self.edges[0].to(x.dtype), right=False).clamp_(0, self.n_bins - 1)
+--- unseen_cell (eligible=7276, requested=1500, bound=True, evaluated=1500) ---
+  Scores (median Pearson) : S11=+0.51687  S01=+0.50279  S10=+0.42636  S00=+0.41026
+  Atom effect (with ctx)  : +0.01408  CI95 [+0.00927, +0.02024]
+  Atom effect (no ctx)    : +0.01611  CI95 [+0.00900, +0.02174]
+  Context effect (w/ atoms: +0.09050 | w/o atoms: +0.09253
+  INTERACTION             : -0.00203  CI95 [-0.00883, +0.00751]  (SPANS ZERO)
+  Paired-mean interaction : -0.00074  CI95 [-0.00247, +0.00098]
+  |dY|max                 : atom=4.7213  context=9.3434
+
+--- unseen_compound (eligible=10384, requested=1500, bound=True, evaluated=1500) ---
+  Scores (median Pearson) : S11=+0.56877  S01=+0.53331  S10=+0.45198  S00=+0.42182
+  Atom effect (with ctx)  : +0.03545  CI95 [+0.02854, +0.04848]
+  Atom effect (no ctx)    : +0.03016  CI95 [+0.02065, +0.03803]
+  Context effect (w/ atoms: +0.11679 | w/o atoms: +0.11150
+  INTERACTION             : +0.00529  CI95 [-0.00404, +0.02127]  (SPANS ZERO)
+  Paired-mean interaction : +0.00616  CI95 [+0.00327, +0.00910]
+  |dY|max                 : atom=6.5420  context=5.7478
+
+--- unseen_both (eligible=2988, requested=1500, bound=True, evaluated=1500) ---
+  Scores (median Pearson) : S11=+0.47750  S01=+0.45507  S10=+0.37954  S00=+0.37689
+  Atom effect (with ctx)  : +0.02244  CI95 [+0.00998, +0.02957]
+  Atom effect (no ctx)    : +0.00266  CI95 [-0.00446, +0.01245]
+  Context effect (w/ atoms: +0.09796 | w/o atoms: +0.07818
+  INTERACTION             : +0.01978  CI95 [+0.00362, +0.02785]  (excludes 0)
+  Paired-mean interaction : +0.00519  CI95 [+0.00355, +0.00689]
+  |dY|max                 : atom=4.6684  context=4.9912
+
+Wrote 2x2 interaction results to C:\Projects\LINCS\model\results\v9_interaction_2x2_sa0_ckpt_v9_fold0_seed0_key-x_cell.json
+Wrote per-row vectors to C:\Projects\LINCS\model\results\v9_interaction_2x2_sa0_ckpt_v9_fold0_seed0_key-x_cell_rows.npz
+### RUN B exit=0 ###
