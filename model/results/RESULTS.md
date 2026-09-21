@@ -3431,7 +3431,7 @@ Cost of this round: **0 GPU-hours.** Local inference on a checkpoint already pai
 `alpha_sweep.py --n_eval 1500 --n_boot 20000 --seed 0 --alphas 0,0.25,0.5,0.75,1.0`, SA-on checkpoint.
 Artefact `model/results/v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0.json`, log `alpha_full.log`. **0 GPU-hours.**
 
-**The null-key gate (§62.2) has not returned. Under §62.2 the curve is therefore not read in this section.**
+**The null-key gate (§62.2) has not returned. Under §62.2 the curve is therefore not read in this section.** — 🔴 **RESOLVED IN §65: the gate FAILED and this curve is never read.**
 What follows is the arithmetic, and one defect in my own pre-commitment, both recorded before the gate
 result exists so neither can be said to have been shaped by it.
 
@@ -3578,6 +3578,85 @@ confound that with the gating question.
 "three-graph union" is closer to **STRING plus one co-annotation blob**. TxPert's monotone-improvement
 result (§48.1, p < 0.027) was obtained on graphs with different provenance than ours, and should not be
 assumed to transfer to two sources this correlated.
+
+## 65. 🔴 THE GATE FAILS. The attention-masking probe is retired. (2026-09-21)
+
+`alpha_sweep.py --key x_cell`, identical rows, identical chunks, identical weights, same code as the
+hypothesis run — the script was deliberately not modified between the two (§63.4). Artefact
+`model/results/v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0_key-x_cell.json`. **0 GPU-hours.**
+
+### 65.1 The null key on the primary split, in the estimand of record
+
+| alpha | **null key `x_cell`** | hypothesis key `atoms` |
+|---|---|---|
+| 0.00 | **+0.01140** | −0.00637 |
+| 0.25 | **+0.01303** | −0.00753 |
+| 0.50 | **+0.01404** | −0.00831 |
+| 0.75 | **+0.01502** | −0.00894 |
+| 1.00 | **+0.01444** | −0.01129 |
+| successive diffs | **+0.00163 +0.00101 +0.00098 −0.00058** | −0.00116 −0.00078 −0.00063 −0.00235 |
+| endpoint span | **0.00304** | 0.00492 |
+
+Sign-test p on the null key runs 1.0e−30 to 2.8e−64 at every alpha. `dY_max` 6.32–6.54, so nothing is void.
+
+### 65.2 The gate fails under BOTH readings of §62.2, so the wording's ambiguity does not matter
+§62.2 said: *"If the null key shows a monotone trend in alpha on the primary split, the hypothesis key's
+curve is not read at all."* "Monotone trend" is not as sharp as it should have been, so both readings:
+
+- **As monotonicity.** The null key rises monotonically across the first **four** alphas and then dips by
+  −0.00058. Strictly monotone? No. A monotone trend? Plainly yes — three substantial positive steps.
+- **As magnitude.** Ignoring monotonicity entirely: the null key's alpha dependence is **0.00304 against
+  the hypothesis key's 0.00492 — a specificity ratio of 1.6 : 1** on an input the drug-attention block
+  **cannot reach.**
+
+Neither reading supports attributing the hypothesis curve to a drug-side mechanism. **The verdict is
+robust to how I read my own wording**, which is the only reason I can state it without the charge of
+choosing the convenient reading — a charge review 005 C1 correctly brought against my last attempt.
+
+⇒ **Under §62.2 the alpha curve is NOT READ.** §63's monotone, strictly-ordered, razor-thin-but-passing
+primary-split curve is **not interpretable as mechanism.** Recording that plainly: it is the prettiest
+curve this project has produced and it does not survive its own control.
+
+### 65.3 The probe is retired, not re-specified
+§62.3's last-resort row said a failure means *"the operator is retired rather than re-specified."* That
+now applies, and for a reason bigger than one estimand:
+
+| probe | null key | outcome |
+|---|---|---|
+| binary diagonal masking, 2x2 interaction | `x_cell`, paired mean | **failed** — null key 4.1 σ on the primary split, 6.1 σ on `unseen_both` where the hypothesis key gave 1.7 σ [§61.1] |
+| continuous alpha masking, dose-response | `x_cell`, median of per-row contrast | **failed** — null key trend 62 % of the hypothesis key's, monotone over four of five points |
+
+**Two different estimands, two different operators, one architecture, the same failure.** The conclusion
+is not "find a third statistic" — it is that **masking a trained attention module and reading the change
+in some other input's marginal value does not isolate mechanism in this model.** The masked arm is far off
+its training manifold (`S11−S10` = +0.09 to +0.12, five to seven times any effect being measured, §61.3)
+and a model in that state redistributes what it leans on across **every** input, including ones the masked
+module never touches. That is a property of the architecture and the probe, not of a choice of summary.
+
+⇒ **No further mechanism claim will be built on attention masking.** A mechanism claim needs an arm that
+is *trained* in the configuration being compared, which is the between-run comparison this design existed
+to avoid — so it costs GPU hours and must be priced as such, not smuggled in as a free inference-time
+probe.
+
+### 65.4 Method rule 19
+**Write the gate as an inequality, not as an adjective.** §62.2 said "monotone trend" and §62.3 said
+"strictly monotone"; had the null key landed between those two readings the verdict would have been mine
+to choose, which is exactly the position a pre-commitment exists to prevent. State a number:
+*the null key's endpoint span must be below X % of the hypothesis key's*, fixed before the run.
+
+### 65.5 What survives, for the third time unchanged
+§61.7, which uses only alpha=1 and touches no masked arm:
+
+> With drug self-attention present and trained, ablating the per-atom drug tokens still **improves**
+> median row Pearson on unseen compounds — −0.01814 [−0.02635, −0.00916], per-row median −0.01129
+> [−0.01395, −0.00908], improving **66 %** of rows.
+
+Three probes have now been aimed at *why* the atom tokens fail and all three have been retracted or
+retired. The fact that they fail has survived every one of them, on three seeds SA-off (§57) and one seed
+SA-on (§61.7), and it is the finding this round delivers.
+
+**Round cost: 6.23 GPU-hours total**, all of it the single training run. Every probe, control, gate and
+correction after it was free.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
