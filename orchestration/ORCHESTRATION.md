@@ -297,6 +297,16 @@ repositories. Git warns, but it warns *after* staging and the commit still succe
 
 > **Rule.** `LINCS/` is in `.gitignore`. Read the output of `git add`, not just its exit code.
 
+### `git add -A` while a delegated worker is editing the tree (hit 1x, 2026-09-21)
+I committed and **pushed** a worker's half-finished edits to `modules_v9.py` and `model_v9.py` — two files
+every v9 result depends on — in a commit whose message said the task had been *delegated*, before a single
+test had run. The code happened to be structurally sound. That was luck, not process.
+
+> **Rule.** While a worker is running, stage **explicit paths** you have verified, never `-A`. If a commit
+> must go out mid-delegation, `git add` the specific files you wrote and check `git status` for the
+> worker's. And the commit that first carries a worker's code must be the commit that reports its test
+> output — those two facts belong in the same message or the history lies about what was verified.
+
 ### An `agy` exit code of 0 means the process ended, not that the task succeeded
 A worker that backgrounds its own tests, goes idle, and gets its tasks killed on session exit returns 0
 having changed nothing. See §6b: **verification is running the tests yourself**, never reading the report.
