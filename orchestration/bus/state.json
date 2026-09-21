@@ -1,5 +1,5 @@
 {
-  "iteration": 11,
+  "iteration": 12,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,21 +21,21 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "006_alpha_gate_and_edgegate_design"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
     "002_chromatin_rescored",
     "003_drugsa_design",
     "004_drugsa_design_v2",
-    "005_drugsa_result"
+    "005_drugsa_result",
+    "006_alpha_gate_and_edgegate_design"
   ],
   "gpu_hours_spent_this_session": 6.23,
-  "pending_decision": "packet 006: (a) is the null-key gate a fail, given my wording sat between \"monotone trend\" and \"strictly monotone\"? (b) is retiring attention masking right or an overreaction? (c) what estimand and null key for the edge-gate arm, specified independently since I have chosen wrongly twice? (d) is edge-gating the best 5.8 GPU-h buy against 50.5 and 46.5?",
-  "note_current": "Round closed. Attention-masking probe RETIRED: two operators, two estimands, same null-key failure. 61.7 survives all three probes and is the round deliverable. A2 built free (81,846-edge union graph, 17.13% dense, tests 7/7). Direction set by the principal: mechanism line leads, dissection and cold-cell kept alive. Packet 006 out with the gate result and the edge-gate design, pre-spend.",
-  "challenges_upheld": "45 of 48",
+  "pending_decision": null,
+  "note_current": "Review 006: gate FAIL confirmed independently; my magnitude-ratio justification dropped as not pre-committed. C1 found in code that every masking operator so far also cut the GLOBAL TOKEN off from the atoms (it is position 0 and the blend covered the whole matrix), which is very likely most of the 0.09-0.12 degradation that killed every estimand. Atom-only mask is the untried operator matching the hypothesis, free, pre-committed in RESULTS 67 with an inequality gate at 25%. Union graph reframed: 95.77% co-annotation, 4.23% STRING-only. Edge-gate arm repriced at ~11.6 GPU-h because the real null needs a second TRAINED run.",
+  "challenges_upheld": "51 of 54",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
-  "checkpoint_count": 1
+  "checkpoint_count": 1,
+  "next_gpu_spend": "46.5 -- train XPert (and then TranSiGen) ourselves on split_cold_cell_1..5 for a paired head-to-head on identical rows. ~5.8 GPU-h. Chosen over the edge gate and over 50.5 because it converts the project OBJECTIVE from inadmissible (review 001 C8) to admissible, and because it is a direct paired comparison with no null-key problem -- the last two probes both died on their null keys."
 }

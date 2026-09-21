@@ -3623,8 +3623,11 @@ curve is not read at all."* "Monotone trend" is not as sharp as it should have b
   the hypothesis key's 0.00492 — a specificity ratio of 1.6 : 1** on an input the drug-attention block
   **cannot reach.**
 
-Neither reading supports attributing the hypothesis curve to a drug-side mechanism. **The verdict is
-robust to how I read my own wording**, which is the only reason I can state it without the charge of
+Neither reading supports attributing the hypothesis curve to a drug-side mechanism. — ⚠️ **AMENDED by
+review 006 [§66.1]: drop the magnitude ratio from the justification.** It was not part of the
+pre-committed rule, and leaning on it implies the trend alone would not have been disqualifying. It would.
+The gate fails **on the monotone trend**, full stop; 1.6:1 is a description, not a criterion. **The verdict
+is robust to how I read my own wording**, which is the only reason I can state it without the charge of
 choosing the convenient reading — a charge review 005 C1 correctly brought against my last attempt.
 
 ⇒ **Under §62.2 the alpha curve is NOT READ.** §63's monotone, strictly-ordered, razor-thin-but-passing
@@ -3647,7 +3650,13 @@ its training manifold (`S11−S10` = +0.09 to +0.12, five to seven times any eff
 and a model in that state redistributes what it leans on across **every** input, including ones the masked
 module never touches. That is a property of the architecture and the probe, not of a choice of summary.
 
-⇒ **No further mechanism claim will be built on attention masking.** A mechanism claim needs an arm that
+⇒ ⚠️ **AMENDED by review 006 C1 [§66.2]: "the whole family is confounded" was too strong.** The
+operator masked the **global token's** access to the atoms as well as atom–atom flow, because the global
+token is position 0 of the drug sequence and the blend covered the whole matrix. The hypothesis is about
+atom–atom only. So *this* operator is retired, and the family has an **untried member that matches the
+hypothesis**: blend only `A[..., 1:, 1:]`. Free.
+
+⇒ **No mechanism claim will be built on the FULL-MATRIX masking operator.** A mechanism claim needs an arm that
 is *trained* in the configuration being compared, which is the between-run comparison this design existed
 to avoid — so it costs GPU hours and must be priced as such, not smuggled in as a free inference-time
 probe.
@@ -3671,6 +3680,204 @@ SA-on (§61.7), and it is the finding this round delivers.
 
 **Round cost: 6.23 GPU-hours total**, all of it the single training run. Every probe, control, gate and
 correction after it was free.
+
+## 66. Review 006: the gate call stands, and the operator was masking the wrong thing all along (2026-09-21)
+
+`orchestration/bus/to_pi/006_review.md`, reviewed at `5076f9c`. Six challenges, **all six upheld** — three
+of them verified by me against the code or the arithmetic before acceptance. Running tally:
+**51 of 54 challenges upheld.**
+
+Verdict: *"Part 1: your gate call is correct... Part 2: I would not buy this run."*
+
+### 66.1 ✅ Ask 1 answered independently: the gate is a fail, and my justification was half wrong
+The reviewer reaches FAIL on its own reading, and corrects how I got there:
+
+> *"Resolving a pre-committed ambiguity in the direction that lets you read your hypothesis, after seeing
+> which reading does that, is the degree of freedom pre-commitment exists to remove."*
+
+It also tells me to **drop the 1.6:1 magnitude ratio from the justification** — that ratio was not part of
+the pre-committed rule, and leaning on it implies the trend alone would not have been disqualifying. It
+would. §65.2 is amended: the gate fails **on the monotone trend**, full stop. The magnitude ratio is a
+description, not a criterion.
+
+**Ask 3 answered, and against the obvious move:** `unseen_cell` cannot be read. Removed as primary in
+§58.3 *before* this run, null key not flat (21 %), and its hypothesis effect at alpha=1 is +0.00290 — there
+is almost nothing there to rescue. *"Promoting the split where the result looks best, after the
+pre-committed split failed its gate, is the textbook case the pre-commitment forbids."*
+
+### 66.2 🔴 C1, verified in the code: THE OPERATOR HAS BEEN MASKING MORE THAN THE HYPOTHESIS IS ABOUT
+This is the most consequential finding in six rounds on this question, and neither of us caught it until
+now. Verified directly:
+
+`model/v9/model_v9.py:139-140`
+```python
+D = torch.cat([(self.ln_u(self.w_u(u)) + self.type_drug).unsqueeze(1),
+               self.ln_atom(self.w_a(atoms)) + self.type_atom], dim=1)
+```
+**The global token is position 0 of the drug sequence.** It carries `u` — ECFP4 (2048) + RDKit
+descriptors (20) + Uni-Mol CLS (512).
+
+`model/v9/modules_v9.py:244`
+```python
+A_blend = alpha * A + (1.0 - alpha) * I
+```
+applied to the **whole** L×L matrix, L = 1 + n_atoms.
+
+⇒ At `alpha=0`, **row 0 attends only to itself**: the global token can no longer read the atoms, and no
+atom can read the global token. So the operator removes **global↔atom flow together with atom↔atom flow**,
+while the hypothesis (§56.1, as restated) is about **atom↔atom only** — a second in-loop
+re-contextualisation of the atom tokens.
+
+That is very likely where most of the 0.09–0.12 `S11−S10` comes from, and therefore why every estimand
+built on this operator drowned: the global token holds essentially all the drug information that §50's
+benchmark says these models actually use, and cutting its contextualisation is a far larger intervention
+than removing atom mixing.
+
+⇒ **§65.3 is amended.** *This* operator is retired, correctly. But "the whole family is confounded" was
+too strong: the family has an **untried member that actually matches the hypothesis** — blend only the
+atom–atom submatrix, `A[..., 1:, 1:]`, leaving row 0 and column 0 at their learned values. One line,
+inference-only, reuses the entire harness, and should collapse `S11−S10` toward the size of the effect
+being measured. **Zero GPU-hours.**
+
+### 66.3 ✅ C2, arithmetic verified: it is not a three-source union
+| | edges | share |
+|---|---|---|
+| Reactome ∪ GO | **78,381** | **95.77 %** |
+| STRING-only | **3,465** | **4.23 %** |
+
+With Reactome∩GO Jaccard at 0.546, the two co-annotation sources are largely one source counted twice.
+⇒ **The "unioned biological graph" framing is dropped.** The artefact is a **co-annotation graph plus a
+4.2 % STRING increment**, and §64/IDEAS A2 are corrected to say so. TxPert's monotone-improvement result
+was obtained over sources that are not 55 % overlapping and is not assumed to transfer.
+⇒ One free consequence worth keeping: the provenance bit makes it costless to report any future gate's
+behaviour separately on the 3,465 STRING-only edges — the only subset that is not co-annotation.
+
+### 66.4 🔴 C3: I re-imported a row-level estimand into a cell-level question
+I proposed "median of the per-row contrast plus a sign test" as the estimand for a **chromatin claim on
+unseen cell lines**. That is the estimand for the *drug* question, where the unit is the signature. For a
+cell-level claim the unit of generalisation is the **cell line** — and this project has already been
+burned by exactly this substitution:
+
+| | row bootstrap | cluster over cell lines |
+|---|---|---|
+| the retracted chromatin effect | +0.0042 [+0.0036, +0.0049] | **+0.00036 [−0.0054, +0.0062]** |
+
+⇒ Pre-commitment for any chromatin arm, replacing my proposal: **per-cell-line paired delta, reported
+individually and summarised over cells; restricted to the five cells that HAVE chromatin tracks** (the
+no-track cells cannot carry the treatment — this is §54's error); **cluster bootstrap plus per-cell
+signs**; and the informative-width threshold stated **before** the run, accepting in advance that ~5
+clusters give a wide interval.
+
+### 66.5 🔴 C4: my own argument for the design, turned against it
+I argued a 17 %-dense graph is near-uniform smoothing, so a per-cell mechanism selecting edges is what
+would make it informative. The reviewer completes the thought: **if that is true, then *any* learned gate
+helps and chromatin is incidental.** The gate's benefit may be **sparsification per se**.
+
+So the free inference-time null (mean-ablate `E` inside the trained gate) answers *"does this trained gate
+use cell-specific chromatin?"* — not the claim, which is *"chromatin selects which edges conduct"*, whose
+null is *"a static learned edge weight does just as well"*. Only a **second training run** with `E` held
+at its training mean separates them.
+⇒ **The edge-gate arm costs ~11.6 GPU-h, not 5.8.** Budget both runs or neither. Shuffled-`E` is
+second-line and only worth buying if the primary separates. The inference-time ablation may be reported
+but **must not be presented as the null for the claim.**
+
+### 66.6 ✅ C6: the margin is a stable tie, and it does not matter
+The reviewer calls the 0.00005 margin a tie rather than a pass and asks whether its sign is
+bootstrap-stable. Checked over 12 seeds: **12/12 positive**, margins +0.00001 to +0.00006, CI width
+0.00486–0.00491. So it is a *consistent* tie, not a coin flip — and it is 0.2–1.2 % of the width, so it
+bears no weight either way. Recorded as **"met to within bootstrap resolution"**. Moot regardless: the
+gate failed.
+
+### 66.7 The reviewer built a rescue and refused to use it
+It noticed that `score_full` rises 0.4520 → 0.5688 (+26 %) across alpha, so the operator is partly a
+model-quality dial, and that dividing by it makes the null key's trend nearly vanish (0.02522 → 0.02540,
+non-monotone) while the hypothesis key's survives (34 % span). Then:
+
+> *"I am not offering this as a reason to read the hypothesis curve. I constructed this normalisation
+> after seeing that the pre-committed gate failed... That is precisely the move I objected to in review
+> 005 C2, and I will not make it while criticising it."*
+
+It also declined to compute the alternative normalisations (`1−score`, `score−chance`) **specifically to
+avoid selecting among them.** Recorded as hypothesis-generating for a future pre-commitment, beside
+§66.2's atom-only mask — and recorded as the standard to hold.
+
+### 66.8 ✅ DECISION: the next 5.8 GPU-hours go to §46.5, not the edge gate
+C5, accepted. `state.json`'s objective is *"establish whether v9 generalises to unseen cell lines better
+than published SOTA"*, and review 001 C8 left that claim **inadmissible**: v9's 0.4734 is fold 1, one
+seed, 21,151 rows; XPert's 0.383 ± 0.027 is a five-fold mean on 21,321 rows; **no XPert run exists on any
+cold-cell fold.** §46.5 converts the project's headline claim from inadmissible to admissible on identical
+rows, through `head_to_head_mdmt.py`, which exists and is already guarded.
+
+The decisive argument is one I should have made myself: **§46.5 has no null-key problem.** It is a direct
+paired comparison, not an ablation contrast — and the last two probes both died on their null keys.
+
+Ranking adopted: **§46.5 first**, §50.5 (drug-blind retrain) second, **edge gate third** — *"a new
+hypothesis stacked on a measured null (+0.000360), on a graph that is 96 % co-annotation."* The reviewer
+explicitly does not defend the §50.5-versus-edge-gate ordering strongly; it does defend §46.5 first.
+
+Free work queued ahead of any of it, both zero GPU-hours: **§66.2's atom-only mask** (pre-committed
+first, per method rule 17) and the STRING-only-subset reporting from §66.3.
+
+## 67. PRE-COMMITMENT for the atom-only mask, written before it is implemented (2026-09-21)
+
+Review 006 C1 [§66.2] identified that every masking operator used so far also cut the **global token's**
+access to the atoms, because the global token is position 0 and the blend covered the whole matrix. The
+untried operator that matches the hypothesis blends only the atom–atom submatrix. Method rule 17 says the
+gate is fixed **before** the run, and method rule 19 says as an **inequality, not an adjective**. Both are
+applied here, before a line of it exists.
+
+### 67.1 The operator
+`alpha_atoms`: `A[..., 1:, 1:] <- alpha * A[..., 1:, 1:] + (1 - alpha) * I`, with **row 0 and column 0
+left at their learned values**. Rows must still sum to 1, so the atom rows are renormalised over their
+(atom-submatrix + preserved column 0) support rather than blended and left unnormalised — the
+implementation must state which it does and a test must confirm rows sum to 1 to float tolerance.
+
+Acceptance tests, all of which must be able to fail:
+1. `alpha_atoms=1.0` **bit-identical** to the default path (0.00e+00).
+2. `alpha_atoms=0.0` removes atom→atom flow **exactly**: perturbing atom 3 moves atom 1 by 0.00e+00.
+3. `alpha_atoms=0.0` **preserves** global→atom and atom→global flow: perturbing the global token must
+   still move atom 1 by a **non-zero** amount, and perturbing atom 3 must still move the global token by
+   a **non-zero** amount. **This is the check that distinguishes the new operator from the retired one**
+   — under the old full-matrix blend both are exactly zero.
+4. Attention rows sum to 1 at every alpha.
+5. Parameter count identical at every alpha; padding holds; no NaN.
+
+### 67.2 The diagnostic that decides whether this operator is usable at all
+The retired operator's disqualifying property was `S11−S10` = **+0.09 to +0.12**, five to seven times any
+effect being measured. The prediction under §66.2 is that most of that came from the global↔atom cut.
+
+> **Pre-committed: if `S11−S10` under the atom-only mask is not below +0.03 on `unseen_compound`, the
+> operator is abandoned without computing any interaction.** A masked arm that still costs more than
+> 3x the measured effect is not a usable counterfactual, and no estimand fixes that.
+
+That number is chosen now, from the ratio that killed the last one, not after seeing the result.
+
+### 67.3 The gate, as an inequality
+Null key `x_cell`, identical rows and chunks and weights, same code, run **before** the hypothesis key's
+curve is read.
+
+> **The null key's endpoint span must be below 25 % of the hypothesis key's endpoint span** on the primary
+> split, in the estimand of record. At or above 25 %, the hypothesis curve is **not read at all.**
+
+25 % is chosen because the two failed gates came in at 62 % and 66 % on the compound splits, and because
+`unseen_cell` — the split whose null key I was tempted to call quiet — sat at 21 %. Setting the bar at 25 %
+means the quietest null key seen so far would only just have passed, which is the level of specificity
+this operator has to reach before anything is attributed to it.
+
+### 67.4 Estimand and primary split
+Unchanged from §61.2, and this is a **drug-side** question so the row-level estimand is correct here — the
+unit is the signature, not the cell line [§66.4 applies only to chromatin claims]:
+`atom_effect_median_per_row` plus a two-sided sign test; primary split `unseen_compound`; paired mean and
+difference-of-medians reported alongside; per-row vectors dumped; `rows_sha` required to equal
+`160865d7b95cbc06`.
+
+### 67.5 What no outcome of this can rescue
+§61.7 is unaffected either way, and §65.5 stands: three probes have been aimed at *why* the atom tokens
+fail, and all three are retracted or retired. This is a fourth attempt at the *why*. **The fact that they
+fail is not under test and does not depend on it.**
+
+Cost: **0 GPU-hours.** If it fails its own diagnostic in §67.2 or its gate in §67.3, it is abandoned and
+recorded as abandoned, and the GPU decision in §66.8 (§46.5 next) is untouched either way.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
