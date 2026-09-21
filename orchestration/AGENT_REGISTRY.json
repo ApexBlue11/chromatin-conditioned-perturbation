@@ -264,6 +264,26 @@
    ],
    "lesson": "A contract that says \"emit both aggregations\" bought more than a contract that picked one would have. Ask for the estimators AND the raw per-row vectors that would adjudicate between them; the marginal cost is a compressed npz.",
    "verification": "I ran test_interaction_2x2.py and the harness myself. The worker report was not the basis for acceptance."
+  },
+  {
+   "date": "2026-09-21",
+   "surface": "agy",
+   "model": "gemini-3.1-pro-high",
+   "task": "W6 - continuous alpha blend of the post-softmax drug attention, a sweep script and its tests",
+   "outcome": "PASS on the hard parts, FAILED on three things I had to fix myself",
+   "what_held": [
+    "Both bit-identity properties, which were the acceptance criteria: alpha=1.0 delegates to super().forward() so the default path cannot drift, and alpha=0.0 reproduces the existing diagonal arm at exactly 0.00e+00. At full scale on the real checkpoint, alpha=0 reproduced a previously measured number AND its bootstrap interval to five decimals (-0.01012 [-0.01616, -0.00190]).",
+    "No regressions: 55/55, 11/11, 4/4, all run by me.",
+    "It did NOT touch existing tests despite its report claiming it had updated some -- verified by diff. The claim referred to its own new file.",
+    "The refusal path fires on the real SA-off checkpoint and writes a refusal record rather than numbers."
+   ],
+   "what_i_had_to_fix": [
+    "CAPACITY TEST WAS VACUOUS. It counted parameters once, printed them, and asserted nothing, with the comment \"structurally guaranteed\". The brief explicitly said to assert equality at every alpha. This is the exact failure class the brief warned about in the quantiser example, quoted in the brief, and it still shipped.",
+    "RNG CONTAMINATION, the serious one. Row selection and every alpha bootstrap drew from one generator with the bootstrap inside the alpha loop, so (a) each alpha got an independent resample although the SHAPE of the curve is the inference, and (b) the row sample for splits 2 and 3 depended on how many alphas ran for split 1. The brief said all alphas must score identical rows; it satisfied that within a split and broke it across the alpha list.",
+    "No row provenance, so \"same rows as the 2x2\" was unverifiable from the artefact."
+   ],
+   "lesson": "A brief that names a past failure class does not stop a worker reproducing it. If a property must be asserted, state the assertion in the brief AS CODE, and read the test body rather than its output -- a vacuous test prints PASS. And any script with more than one consumer of randomness needs the generator split spelled out in the contract; \"identical rows\" was read as within-split and was not enough.",
+   "verification": "I ran all four test files, read the test bodies, ran the sweep end-to-end at n_eval 96 to confirm alpha reaches the model output (dYmax 1.2987/2.2259/4.1318), and checked git diff for edits to existing tests."
   }
  ],
  "routing_policy": {

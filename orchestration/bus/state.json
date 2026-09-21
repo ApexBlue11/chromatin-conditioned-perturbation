@@ -4,7 +4,7 @@
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
   "note": "PI refuses to open an iteration past max_iterations without explicit human approval.",
-  "responses_since_checkpoint": 26,
+  "responses_since_checkpoint": 0,
   "checkpoint_every": 30,
   "autonomy": {
     "delegated": [
@@ -32,6 +32,8 @@
   ],
   "gpu_hours_spent_this_session": 6.23,
   "pending_decision": null,
-  "note_current": "Review 005 SOUND-WITH-CAVEATS, one BLOCKING. The 2x2 interaction is NOT interpretable from this run: the pre-committed estimand returns 6.1 sigma on the null key where the hypothesis key returns 1.7 sigma. RESULTS 60.9 item 2 retracted; the 47.5 parameter pair retracted and reconciled (+34.5% on trainable params, not +30.06%). What stands: with drug self-attention trained and present, ablating the atom tokens still improves accuracy on unseen compounds (-0.01814, 66% of rows). W6 delegated: the alpha dose-response the reviewer proposed, inference-only, zero GPU hours.",
-  "challenges_upheld": "45 of 48"
+  "note_current": "HUMAN CHECKPOINT reached. Round closed: SA-on run bought (6.23 GPU-h), 2x2 measured, hypothesis refuted, review 005 returned one BLOCKING, 60.9 item 2 retracted, the 47.5 parameter pair retracted and reconciled. W6 alpha operator delegated, verified by me, and its reading rule pre-committed in RESULTS 62 before the sweep finished. IN FLIGHT: full alpha sweep on the SA-on checkpoint. NEXT AUTOMATIC STEP: the --key x_cell null-key sweep, which RESULTS 62.2 makes a gate -- the hypothesis curve is not read at all unless the null key is non-monotone. Both are zero GPU-hours. AWAITING A HUMAN DECISION: whether to buy 50.5 (Bai et al. retrain-from-scratch drug ablation, ~5.8 GPU-h) given atoms and chromatin are both now measured nulls.",
+  "challenges_upheld": "45 of 48",
+  "last_human_checkpoint": "2026-09-21 (iteration 10)",
+  "checkpoint_count": 1
 }
