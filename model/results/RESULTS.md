@@ -3113,7 +3113,7 @@ already removed as primary for being tiny and seed-unstable. So the single split
 the hypothesis is the split we pre-committed to *not* reading. Had the primary split not been fixed in
 advance, §58.4 would have let me pick the +8.4 σ one.
 
-### 60.3 🔴 The two estimators disagree by 8x on the primary split, and one of them spans zero
+### 60.3 🔴 The two estimators disagree by 8x on the primary split — and §60.6 shows I diagnosed it wrong
 Median-based interaction −0.00116 (**spans zero**, width 0.0208); paired-mean −0.00938 (**excludes zero**,
 width 0.0078). These are not two estimates of one number — mean-of-per-row-differences and
 difference-of-medians are different functionals, and a 8x gap means the per-row double differences are
@@ -3123,6 +3123,10 @@ is what I read — but **a reader told only "−0.0094, excludes zero" would not
 same rows is indistinguishable from zero.** Both are in the JSON and both are quoted here.
 The four per-row vectors are now dumped to `*_rows.npz` so the shape of that distribution is answerable
 without another inference pass.
+
+> **Superseded by §60.6.** I attributed the gap to skew in the per-row double differences. The npz says
+> the gap is **loss of pairing**, not skew, and the paired estimand is the defensible one. Kept as written
+> so the wrong diagnosis is on the record next to the measurement that replaced it.
 
 ### 60.4 🔴 The interpretive limit I have to raise against myself: S10/S00 are a badly damaged model
 The context effect `S11−S10` is **+0.0905 / +0.1168 / +0.0980** — masking drug attention to the identity
@@ -3144,6 +3148,42 @@ Run the identical 2x2 on an input the ablated module cannot reach. Without it, "
 M is live" is indistinguishable from "M is load-bearing and breaking it degrades everything". This should
 have been in the design at §56, not added after the number arrived — logged as a design miss, and the
 reason it is being run before the packet goes out rather than after.
+
+### 60.6 ✅ The estimator question is settled from data already on disk, and my §60.3 diagnosis was wrong
+The npz dump answers ASK 1 without another inference pass. Per-row double difference
+`(r11−r01) − (r10−r00)`, n=1500 per split:
+
+| split | mean | **median** | sd | skew | frac > 0 | Wilcoxon signed-rank p |
+|---|---|---|---|---|---|---|
+| unseen_cell | +0.01200 | **+0.00849** | 0.0552 | +0.06 | 0.621 | **1.3e−30** |
+| **unseen_compound** | −0.00938 | **−0.00803** | 0.0766 | −1.75 | 0.422 | **1.4e−07** |
+| unseen_both | −0.00258 | −0.00225 | 0.0595 | −1.14 | 0.460 | 0.072 |
+
+**The mean and the median of the per-row contrast agree on every split.** So the 8x gap on
+`unseen_compound` is **not** a skew artefact as §60.3 claimed. It is the difference between two things I
+was calling "the median": the pre-committed statistic is the **median of the paired per-row contrast**
+(−0.00803), while `interaction` is a **difference of four independently-taken medians** (−0.00116) — a
+functional that discards the pairing entirely and is therefore much noisier. A nonparametric paired test
+that assumes nothing about shape gives **p = 1.4e−07**, and 57.8 % of rows are negative.
+
+⇒ **ASK 1 answers itself: the paired estimand is the defensible one**, and §58.2 picked it for the right
+reason even though §58.1's justification was only about variance. The wide-spanning −0.00116 is not a
+competing estimate of the same quantity; it is a worse estimator of it.
+⇒ `unseen_both` is a **clean null** on this test too (p = 0.072), consistent with its CI spanning zero.
+
+### 60.7 ✅ ASK 4 is independent, and it is the robust part
+The atom effect under full attention, per row, needs no interaction and no diagonal arm at all:
+
+| split | mean | median | frac of rows where atoms HELP |
+|---|---|---|---|
+| unseen_cell | +0.00562 | +0.00290 | 57.2 % |
+| **unseen_compound** | **−0.01901** | **−0.01129** | **34.0 %** |
+| **unseen_both** | **−0.01434** | **−0.01414** | **33.7 %** |
+
+On both compound splits the atom tokens hurt on **two rows in three**, and mean, median and
+difference-of-medians all agree in sign and rough magnitude. This survives every objection in §60.2–60.4,
+because it never touches S10 or S00. **It is the finding this run bought:** giving the drug tokens in-loop
+self-attention did not make v9's per-atom features worth their place.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
