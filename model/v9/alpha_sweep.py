@@ -103,7 +103,15 @@ def main():
 
     ckpt_fn = os.path.basename(ckpt_path)
     ckpt_stem = os.path.splitext(ckpt_fn)[0]
+    # A smoke test at --n_eval 96 overwrote a completed --n_eval 1500 result, 2026-09-21. It was
+    # recoverable only because the full run had already been committed. --key was in the filename and
+    # --n_eval was not, which is the same defect one argument along: the output path must carry EVERY
+    # argument that changes the numbers. n_eval is in the JSON body too, but a body field does not stop
+    # an overwrite. Full runs at the default n_eval keep the bare name so existing artefacts are not
+    # orphaned; anything else is tagged.
     key_tag = '' if a.key == 'atoms' else f'_key-{a.key}'
+    if a.n_eval != 1500:
+        key_tag += f'_n{a.n_eval}'
     dst_json = os.path.join(ROOT, 'model', 'results', f'v9_alpha_sweep_{ckpt_stem}{key_tag}.json')
     os.makedirs(os.path.dirname(dst_json), exist_ok=True)
 
@@ -174,6 +182,7 @@ def main():
     # `row_rng` is advanced only by row selection, in the same order as interaction_2x2.py, so the rows
     # here are identical to the 2x2's and the two sets of numbers are directly comparable.
     row_rng = np.random.default_rng(a.seed)
+    row_dumps = {}
     
     for name, key in [('unseen_cell', 'test_coldcell'),
                       ('unseen_compound', 'test_colddrug'),
@@ -214,6 +223,7 @@ def main():
 
         for alpha in alphas:
             r_full, r_ablated, dymax_atom = evaluate_chunks_alpha(model, chunks, alpha, key=a.key)
+            row_dumps[f'{name}__a{alpha}'] = (r_full, r_ablated)
             ok = np.isfinite(r_full) & np.isfinite(r_ablated)
             r_f, r_a = r_full[ok], r_ablated[ok]
             
@@ -243,12 +253,21 @@ def main():
             boot_a = np.median(r_a[boot_idx], axis=1)
             boot_effect = boot_f - boot_a
             ci95 = [float(np.percentile(boot_effect, 2.5)), float(np.percentile(boot_effect, 97.5))]
+            # METHOD RULE 18 [RESULTS 63.4]: the only interval this script used to emit was for
+            # `atom_effect`, a DIFFERENCE OF MEDIANS, while the estimand of record [61.2] is the MEDIAN OF
+            # THE PER-ROW CONTRAST. RESULTS 62.3 then wrote a threshold against "the alpha=1 bootstrap CI"
+            # and silently got the wrong one -- 3.5x too wide on the primary split. A pre-committed
+            # threshold must name the statistic its interval belongs to AND the script must emit that
+            # interval. Same resample matrix, so the two are directly comparable.
+            boot_med = np.median(diff[boot_idx], axis=1)
+            ci95_med = [float(np.percentile(boot_med, 2.5)), float(np.percentile(boot_med, 97.5))]
             
             split_results['results_by_alpha'][str(alpha)] = {
                 'score_full': s_full,
                 'score_ablated': s_ablated,
                 'atom_effect': atom_effect,
                 'atom_effect_median_per_row': atom_effect_median_per_row,
+                'atom_effect_median_per_row_ci95': ci95_med,
                 'sign_test_p': sign_test_p,
                 'atom_effect_ci95': ci95,
                 'dY_max': dymax_atom
@@ -261,6 +280,15 @@ def main():
     with io.open(dst_json, 'w', encoding='utf-8', newline='\n') as fh:
         fh.write(json.dumps(out, indent=2) + '\n')
     print(f"\nWrote results to {dst_json}", flush=True)
+
+    if row_dumps:
+        flat = {}
+        for tag, (rf, ra) in row_dumps.items():
+            flat[tag + "__r_full"] = np.asarray(rf)
+            flat[tag + "__r_abl"] = np.asarray(ra)
+        dst_npz = os.path.splitext(dst_json)[0] + "_rows.npz"
+        np.savez_compressed(dst_npz, **flat)
+        print("Wrote per-row vectors to " + dst_npz, flush=True)
 
 if __name__ == '__main__':
     main()

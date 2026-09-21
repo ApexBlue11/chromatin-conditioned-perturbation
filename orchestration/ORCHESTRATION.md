@@ -297,6 +297,16 @@ repositories. Git warns, but it warns *after* staging and the commit still succe
 
 > **Rule.** `LINCS/` is in `.gitignore`. Read the output of `git add`, not just its exit code.
 
+### A smoke test overwrote a finished result (hit 1x, 2026-09-21)
+`alpha_sweep.py` keyed its output path on `--key` but not `--n_eval`, so a 96-row smoke test run to check
+a code change **overwrote a completed 1500-row result** that had taken forty minutes. It was recoverable
+only because the full run had already been committed. `n_eval` was recorded inside the JSON body — which
+documents the file but does nothing to stop the overwrite.
+
+> **Rule.** The output path carries **every** argument that changes the numbers, not just the one that
+> bit last time. And commit a finished result **before** touching the script that produced it — the commit
+> is the only backup, and it cost nothing here because it was already policy.
+
 ### `git add -A` while a delegated worker is editing the tree (hit 1x, 2026-09-21)
 I committed and **pushed** a worker's half-finished edits to `modules_v9.py` and `model_v9.py` — two files
 every v9 result depends on — in a commit whose message said the task had been *delegated*, before a single
