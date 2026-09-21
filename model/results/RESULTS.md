@@ -3598,6 +3598,20 @@ hypothesis run — the script was deliberately not modified between the two (§6
 | endpoint span | **0.00304** | 0.00492 |
 
 Sign-test p on the null key runs 1.0e−30 to 2.8e−64 at every alpha. `dY_max` 6.32–6.54, so nothing is void.
+`rows_sha` on the control run matches the 2x2's row set on **all three splits**, so hypothesis and null key
+ran on byte-identical rows.
+
+### 65.1a The other two splits show the same pattern, so the failure is not primary-split-specific
+
+| split | null-key span | hypothesis-key span | null as % of hypothesis | null key monotone? |
+|---|---|---|---|---|
+| unseen_cell | 0.00160 (+0.00797→+0.00957, peak at 0.25) | 0.00758 | **21 %** | no — rises then falls |
+| **unseen_compound** | **0.00304** | 0.00492 | **62 %** | over four of five points |
+| unseen_both | 0.00192 (+0.00186→+0.00378, peak at 0.75) | 0.00292 | **66 %** | over four of five points |
+
+`unseen_cell` is the one split where the null key is comparatively quiet (21 %) — and it is the split
+§57/§58.3 removed as primary for seed-instability, so it cannot be promoted now to carry the claim. On both
+compound splits the null key reproduces **roughly two thirds** of the hypothesis key's alpha dependence.
 
 ### 65.2 The gate fails under BOTH readings of §62.2, so the wording's ambiguity does not matter
 §62.2 said: *"If the null key shows a monotone trend in alpha on the primary split, the hypothesis key's
