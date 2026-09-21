@@ -23,7 +23,7 @@ Stratifications reported, because each is a caveat a reader would otherwise have
 
     python model/v9/head_to_head_mdmt.py --theirs xpert_split_1.npy --ours v9_split_1_seed0.npz
 """
-import os, sys, json, argparse
+import os, sys, json, re, argparse
 
 import numpy as np
 
@@ -142,7 +142,12 @@ def main():
     res = {'split': a.split, 'n_rows': int(len(y)), 'n_seeds': len(seeds),
            'metric': 'per-row Pearson; mean is XPert metrics.py convention',
            'theirs_label': a.theirs_label,
-           'XPert_released_ckpt': {'abs': summarize(r_them_abs), 'delta': summarize(r_them_deg)},
+           # The key used to be the literal string 'XPert_released_ckpt' whatever --theirs actually was,
+           # so `v9_vs_ridge_cold_cell_1.json` on disk right now contains a block named after a model it
+           # was never computed against. --theirs_label recorded the truth two fields up while the key
+           # contradicted it, and prose written from the key would have been wrong. Neutral key; the
+           # label is the only place the competitor is named.
+           'theirs': {'abs': summarize(r_them_abs), 'delta': summarize(r_them_deg)},
            'ours_label': a.label,
            'v9_ours': {'abs': summarize(r_ours_abs), 'delta': summarize(r_ours_deg)},
            'copy_the_control': {'abs': summarize(r_copy_abs), 'delta': 0.0},
@@ -152,11 +157,12 @@ def main():
                               for O in seeds]}
 
     print('\n' + '=' * 100)
-    print('XPERT vs v9 ON XPERT\'S OWN mdmt BENCHMARK (%s), %d identical held-out rows' % (a.split, len(y)))
+    print('%s vs %s ON the mdmt BENCHMARK (%s), %d identical held-out rows'
+          % (a.theirs_label, a.label, a.split, len(y)))
     print('=' * 100)
     print('  %-26s %-26s %-26s' % ('', 'absolute Pearson', 'delta Pearson (Pearson_deg)'))
-    for name, ab, dl in [(a.theirs_label, res['XPert_released_ckpt']['abs'],
-                          res['XPert_released_ckpt']['delta']),
+    for name, ab, dl in [(a.theirs_label, res['theirs']['abs'],
+                          res['theirs']['delta']),
                          (a.label, res['v9_ours']['abs'], res['v9_ours']['delta']),
                          ('copy-the-control', res['copy_the_control']['abs'], None)]:
         d = '%.4f %s' % (dl['mean'], dl['ci95']) if dl else '0.0000  (by construction)'
@@ -252,7 +258,11 @@ def main():
         for nm, v in strat.items():
             print('    %-34s %6d %9.4f %9.4f' % (nm, v['n'], v['XPert'], v['ours']))
 
-    dst = a.out or os.path.join(os.path.dirname(HERE), 'results', 'v9_vs_xpert_mdmt_%s.json' % a.split)
+    # The default filename said 'xpert' regardless of --theirs, so a ridge run had to remember --out
+    # or it would sit in results/ under a name naming the wrong competitor. Slug the label in.
+    _slug = re.sub(r'[^a-z0-9]+', '-', a.theirs_label.lower()).strip('-') or 'theirs'
+    dst = a.out or os.path.join(os.path.dirname(HERE), 'results',
+                                'v9_vs_%s_mdmt_%s.json' % (_slug, a.split))
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     json.dump(res, open(dst, 'w'), indent=2, default=lambda o: (
         float(o) if isinstance(o, np.floating) else int(o) if isinstance(o, np.integer)

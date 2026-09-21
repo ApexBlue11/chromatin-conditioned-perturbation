@@ -160,5 +160,6 @@
       "XPert": 0.2959,
       "ours": 0.4734
     }
-  }
+  },
+  "_provenance_correction": "2026-09-21: the block keyed 'XPert_released_ckpt' in this file is NOT XPert. It is the ridge baseline, as 'theirs_label' correctly records. head_to_head_mdmt.py hard-coded that key regardless of --theirs; the key is now 'theirs'. No number in this file changed - only this note was added. Anything written from the key rather than from theirs_label is wrong."
 }

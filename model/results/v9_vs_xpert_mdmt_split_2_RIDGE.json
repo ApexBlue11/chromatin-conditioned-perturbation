@@ -117,5 +117,6 @@
       "XPert": 0.6933,
       "ours": 0.6062
     }
-  }
+  },
+  "_provenance_correction": "2026-09-21: 'RIDGE' in this filename refers to --ours, not --theirs: ours_label='ridge' and the 'XPert_released_ckpt' block really is XPert's checkpoint. This run predates --theirs_label, which is why that field is null. No number in this file changed - only this note was added."
 }

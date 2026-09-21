@@ -3074,6 +3074,77 @@ defaults were never the baseline's settings; `--batch 96` was an explicit choice
 silence reverted it. Before any future arm is launched, diff the full `tcfg` of the intended baseline
 checkpoint against the argv being sent, and log the diff in the kernel.
 
+## 60. 🔴 The pre-committed reading REFUTES the hypothesis on the primary split (2026-09-21)
+
+`interaction_2x2.py` on `sa0_ckpt_v9_fold0_seed0.pt`, n_eval 1500/split, batch 48, n_boot 20000, seed 0.
+Artefacts: `model/results/v9_interaction_2x2_sa0_ckpt_v9_fold0_seed0.json`, run log
+`v9_interaction_2x2_sa0_run1.log`. **Both branches fired on every split** (`|dY|max` atom 3.5–5.7,
+context 5.3–9.2), so nothing here is void under method rule 2.
+
+| split | S11 | S01 | S10 | S00 |
+|---|---|---|---|---|
+| unseen_cell | 0.51687 | 0.51156 | 0.42636 | 0.43648 |
+| **unseen_compound** | 0.56877 | **0.58690** | 0.45198 | 0.46895 |
+| unseen_both | 0.47750 | **0.50387** | 0.37954 | 0.39797 |
+
+| split | atom w/ context | atom w/o context | interaction (median) | **interaction (paired mean)** | σ |
+|---|---|---|---|---|---|
+| unseen_cell | **+0.00530** [+0.00023,+0.01383] | −0.01012 [−0.01616,−0.00190] | +0.01542 [+0.00616,+0.02516] | **+0.01200** [+0.00920,+0.01480] | **8.4** |
+| **unseen_compound** | **−0.01814** [−0.02635,−0.00916] | −0.01697 [−0.02353,−0.01093] | −0.00116 [−0.01080,+0.00998] **spans 0** | **−0.00938** [−0.01326,−0.00547] | **4.7** |
+| unseen_both | −0.02637 [−0.03618,−0.01628] | −0.01843 [−0.02381,−0.00883] | −0.00794 [−0.02182,+0.00161] **spans 0** | −0.00258 [−0.00567,+0.00039] | 1.7 |
+
+### 60.1 Applying §58.4 exactly as written
+Estimand `interaction_paired_mean`, primary split `unseen_compound`, both ablations confirmed fired.
+**−0.00938 at 4.7 σ** clears the ≥3 σ bar, so by the rule fixed before the spend this **is a result from
+one seed** — and it is **negative**. The hypothesis of §58.7 was that in-loop re-contextualisation would
+make the atom tokens stop hurting. On the primary split the atoms hurt **slightly more** with
+contextualisation live than without it.
+
+The plainer statement needs no interaction at all: **in the SA-on model the atom tokens still hurt.**
+−0.01814 with contextualisation on `unseen_compound`, CI excluding zero; −0.02637 on `unseen_both`. Every
+split's best configuration is `S01` or `S11` with atoms ablated (`S01 > S11` on both compound splits).
+**Drug self-attention did not rescue the atoms.** That is the finding, and it cost 6.23 GPU-hours to get.
+
+### 60.2 The splits disagree in SIGN, both at high σ — §58.3's warning, realised
+`unseen_cell` gives **+0.01200 at 8.4 σ**; `unseen_compound` gives **−0.00938 at 4.7 σ**. Tight intervals,
+incompatible signs, across strata this time rather than across seeds. `unseen_cell` is also the one split
+where the atom effect turns **positive** under contextualisation (+0.00530), and the one split §57/§58.3
+already removed as primary for being tiny and seed-unstable. So the single split that appears to support
+the hypothesis is the split we pre-committed to *not* reading. Had the primary split not been fixed in
+advance, §58.4 would have let me pick the +8.4 σ one.
+
+### 60.3 🔴 The two estimators disagree by 8x on the primary split, and one of them spans zero
+Median-based interaction −0.00116 (**spans zero**, width 0.0208); paired-mean −0.00938 (**excludes zero**,
+width 0.0078). These are not two estimates of one number — mean-of-per-row-differences and
+difference-of-medians are different functionals, and a 8x gap means the per-row double differences are
+skewed. §58.2 chose the paired mean on a **variance** argument (it cancels row main effects inside each
+draw), which says nothing about which functional is the honest summary. §58.4 pre-committed to it, so it
+is what I read — but **a reader told only "−0.0094, excludes zero" would not learn that the median of the
+same rows is indistinguishable from zero.** Both are in the JSON and both are quoted here.
+The four per-row vectors are now dumped to `*_rows.npz` so the shape of that distribution is answerable
+without another inference pass.
+
+### 60.4 🔴 The interpretive limit I have to raise against myself: S10/S00 are a badly damaged model
+The context effect `S11−S10` is **+0.0905 / +0.1168 / +0.0980** — masking drug attention to the identity
+costs about **0.10 median Pearson**, roughly 7x the entire atom effect. S10 and S00 are therefore not
+"the model without in-loop contextualisation"; they are *this* model with a module it was trained on
+crippled, operating far off its training manifold. A model that degraded may use **every** input worse,
+which would produce a non-zero interaction with no drug-specific mechanism behind it whatsoever.
+
+This is not a hypothetical. It is testable for free, and the test is running: the same 2x2 with `--key`
+pointed at **`x_cell`**, the cell control expression — an input with **no mechanistic path to drug
+self-attention at all**. If ablating `x_cell` also shows an interaction of order ±0.01, then the
+interaction operator measures generic damage and **§60.1's 4.7 σ is uninterpretable in either direction**
+— which would not rescue the hypothesis, because §60.1's plain statement (atoms still hurt at −0.018 with
+context on) does not depend on the interaction at all.
+
+### 60.5 Method rule 15
+**A within-model ablation contrast needs a null-key control before its interaction is read as mechanism.**
+Run the identical 2x2 on an input the ablated module cannot reach. Without it, "X matters more when module
+M is live" is indistinguishable from "M is load-bearing and breaking it degrades everything". This should
+have been in the design at §56, not added after the number arrived — logged as a design miss, and the
+reason it is being run before the packet goes out rather than after.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
