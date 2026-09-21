@@ -1,0 +1,121 @@
+commit 7e36626bd0e03d80108e811062666a2178e78a58
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 20:44:54 2026 +0530
+
+    RESULTS 60.8-60.10: the null-key control, which looked like a failure for ten minutes
+    
+    Ran the identical 2x2 with --key x_cell -- the cell control expression, which drug self-attention has
+    no path to. Rows, chunks and weights verified identical between the two runs, not assumed: the row
+    index arrays and the per-row r11 vectors are byte-identical on all three splits. Zero GPU-hours.
+    
+    On the pre-committed estimand the control is NOT null: +0.00616 at 4.1 sigma on the primary split and
+    +0.00519 at 6.2 sigma on unseen_both. Read that way, the operator has a non-specific component of
+    ~0.006 and the atom interaction at 1.5x that is not cleanly above it. That was the conclusion for
+    about ten minutes.
+    
+    The per-row vectors say the contamination is entirely in the mean's tail. The control's +0.00616
+    sits on a distribution whose median is +0.00016 and whose rows split 50.5/49.5 with skew +1.58 --
+    no location shift at all. The atoms' -0.00938 sits on a distribution whose median is -0.00803 and
+    whose rows split 42/58. Under a sign test, which ignores magnitude, the control is a textbook null
+    on the primary split at p=0.70 and the atom effect is p=1.7e-09. The control passes, read as
+    location. And its contamination is POSITIVE where the atom interaction is NEGATIVE, so it would mask
+    a negative effect rather than manufacture one.
+    
+    60.9 states the round at the strength the evidence supports: the atom main effect under full
+    attention and the specificity of the negative interaction both hold; the stratum-dependent SIGN of
+    the interaction (+8.4 sigma on unseen_cell against -4.7 sigma on unseen_compound) is an open
+    question, not a result.
+    
+    Method rule 16: a paired mean over per-row correlation differences is tail-sensitive, so never report
+    it alone -- median and sign test on the same rows beside it, and the null-key control through all
+    three. That pair of statistics reversed a conclusion twice in one afternoon, so the per-row dump is
+    now unconditional.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md                           |  64 +++++++++
+ ...ion_2x2_sa0_ckpt_v9_fold0_seed0_key-x_cell.json | 145 +++++++++++++++++++++
+ ...2x2_sa0_ckpt_v9_fold0_seed0_key-x_cell_rows.npz | Bin 0 -> 76409 bytes
+ model/results/v9_interaction_2x2_sa0_followups.log |  72 ++++++++++
+ 4 files changed, 281 insertions(+)
+
+commit 2bf145d6dd678c5d1a21ccaad7813da7dcad04c1
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 20:42:30 2026 +0530
+
+    Registry: the W5 delegation outcome, including the two omissions that were mine not the worker's
+    
+    The harness held up under a use its author never saw. Two things in it mattered more than the brief
+    asked for: it emitted BOTH interaction aggregations, which is the only reason the estimator question
+    could later be settled from disk rather than by another inference pass, and it wrote the ablation
+    function generic over --key, which is why the null-key specificity control cost minutes instead of a
+    new delegation.
+    
+    What I had to fix was mine: the output filename was keyed on the checkpoint alone, so the control
+    would have overwritten the atoms result, and there was no per-row dump. Neither was in the contract.
+    
+    Lesson recorded: ask a worker for the estimators AND the raw per-row vectors that would adjudicate
+    between them. The marginal cost is a compressed npz.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ orchestration/AGENT_REGISTRY.json | 555 ++++++++++++++++++++------------------
+ 1 file changed, 287 insertions(+), 268 deletions(-)
+
+commit 0e3443f6fa4e229e35d04a83cad792f8d5f1096c
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 20:41:41 2026 +0530
+
+    README: the front door was still asserting the retracted chromatin claim as the core contribution
+    
+    The README is a v5/v6-era document that names chromatin conditioning as the project's central
+    contribution and quotes a chromatin benefit of dR2 +0.089. Section 55 retracted that to +0.000360,
+    CI [-0.005433, +0.006153], 2 of 5 cells positive, sign test p=1.000. Anyone reading the repo's first
+    page was being told something the repo's own measurements had already killed.
+    
+    Added a status block at the top that says so plainly, with a table of what the README below claims
+    against what is measured now (chromatin, current model version, the Level 3 target gate, and the
+    atom tokens), and what currently stands: section 43 against XPert's released checkpoint on their own
+    mdmt benchmark, 45.0 against ridge on cold-cell, the benchmark forensics, and two measured negatives.
+    The two specific wrong claims are struck through in place rather than deleted, so the record shows
+    what was believed and when.
+    
+    The body below is still v5-era and needs a real rewrite; that belongs with the MANUSCRIPT.md rewrite,
+    not ahead of it.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ README.md | 34 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 33 insertions(+), 1 deletion(-)
+
+commit b64688bba60c4b7635f66521ba64a9cdd52863f2
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 20:39:50 2026 +0530
+
+    RESULTS 60.6/60.7: the estimator question answers itself from the npz, and my 60.3 diagnosis was wrong
+    
+    I attributed the 8x gap between the two interaction estimators to skew in the per-row double
+    differences. The per-row dump says otherwise. Mean and median of the paired contrast AGREE on every
+    split (unseen_compound -0.00938 vs -0.00803), so the gap is not about shape at all -- it is the
+    difference between the median of the paired contrast and a difference of four independently-taken
+    medians, which discards the pairing and is simply a noisier estimator of the same quantity. A
+    Wilcoxon signed-rank test, which assumes nothing about shape, gives p=1.4e-07 on unseen_compound
+    and p=1.3e-30 on unseen_cell, with unseen_both a clean null at p=0.072.
+    
+    So 58.2 picked the right estimand even though 58.1 justified it only on variance, and the
+    wide-spanning -0.00116 is not a competing estimate. 60.3 is kept as written with the correction
+    noted beside it.
+    
+    60.7 is the part that survives every objection in 60.2-60.4 because it never touches S10 or S00:
+    under full attention the atom tokens hurt on two rows in three on both compound splits
+    (-0.01901 mean / -0.01129 median on unseen_compound, 34.0% of rows helped; -0.01434 / -0.01414 on
+    unseen_both, 33.7%). Mean, median and difference-of-medians agree in sign and magnitude. Giving the
+    drug tokens in-loop self-attention did not make the per-atom features worth their place.
+    
+    Determinism: run A reproduced all three splits to five decimals.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md                           |  42 ++++++++++++++++++++-
+ ...nteraction_2x2_sa0_ckpt_v9_fold0_seed0_rows.npz | Bin 0 -> 76417 bytes
+ 2 files changed, 41 insertions(+), 1 deletion(-)
