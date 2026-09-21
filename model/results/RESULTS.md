@@ -3373,6 +3373,59 @@ passes is how a failed design becomes a published claim. The control here was ru
 out, which is the only reason this is a retraction inside one afternoon rather than a retraction after
 review.
 
+## 62. PRE-COMMITTED reading of the alpha dose-response, written before the numbers exist (2026-09-21)
+
+Review 005 C3 proposed the dose-response and stated the qualitative reading: *"Smooth and monotone means
+mechanism. Flat then collapsing means the interaction is an out-of-distribution artifact."* That is not yet
+a rule — "smooth" and "flat" need thresholds, and method rule 17 says the null key must be a **gate** fixed
+in advance rather than a reassurance run afterwards. So this section is written while
+`alpha_sweep.py --n_eval 1500` is still executing and **before any output of it has been read.** The
+operator was verified first (§W6 commit `02d8aa4`: alpha=1 bit-identical to the default path, alpha=0
+bit-identical to the existing diagonal arm, 55/55 + 11/11 + 4/4).
+
+### 62.1 The estimand, fixed
+Per §61.2, the estimand of record is **`atom_effect_median_per_row`** — the median over rows of the
+per-row difference between the full and atom-ablated predictions — with a **two-sided sign test** on the
+same rows. The paired mean and the difference-of-medians are reported alongside and are **not** the
+estimand. Primary split **`unseen_compound`**, as in §58.4. All five alphas score identical rows in
+identical chunks, and `rows_sha` in the output must equal `160865d7b95cbc06` on that split, which is the
+row set `interaction_2x2.py` used — so the curve's alpha=0 and alpha=1 endpoints are directly comparable
+to §60's S10-S00 and S11-S01.
+
+### 62.2 The gate, fixed BEFORE the result is read
+`alpha_sweep.py --key x_cell` runs the identical sweep on the cell control expression. Method rule 17:
+
+> **If the null key shows a monotone trend in alpha on the primary split, the hypothesis key's curve is
+> not read at all.** No statistic chosen afterwards rescues it, and no partial reading is admissible.
+
+This is the exact discipline whose absence cost §60.9 item 2. The null key is not expected to be flat at
+zero — it has a large main effect (+0.0355) and §61.1 notes a mixed partial between any two inputs of a
+non-separable model is generically non-zero. What is required is **no monotone alpha dependence**: the
+mechanism claim is that the atom tokens' worth tracks how much cross-atom information flows, and that
+claim is only distinguishable from generic degradation if degradation does not produce the same shape on
+an input the module cannot reach.
+
+### 62.3 The reading rule, fixed
+Let `m(alpha)` be `atom_effect_median_per_row` on `unseen_compound`, and let the alphas be
+0, 0.25, 0.5, 0.75, 1.
+
+| pattern | reading |
+|---|---|
+| `m` **monotone across all five alphas** (no sign reversal of successive differences), endpoints differing by more than the alpha=1 bootstrap CI width, **and** the null key non-monotone | **consistent with mechanism** — the atom tokens' contribution tracks cross-atom information flow. One seed; magnitude not established. |
+| `m` **flat for alpha in [0.25, 1]** (spread across those four within one CI width) with a **jump at alpha=0** | **the binary diagonal contrast was an out-of-distribution artefact.** §60.9 item 2 stays retracted and §60.4's worry is confirmed as the explanation. |
+| `m` **non-monotone / reversing** | **uninterpretable.** No mechanism claim, and the operator is retired rather than re-specified. |
+| null key **monotone on the primary split** | **the hypothesis curve is not read**, whatever it looks like. |
+| any alpha with `dY_max` near 0 | **void at that alpha**, not a null [method rule 2]. |
+
+### 62.4 What cannot be rescued by any outcome
+Nothing here revives §58.7's mechanism. §61.7 stands independently and is unaffected by every branch
+above: with drug self-attention present and trained, ablating the atom tokens **still improves** accuracy
+on unseen compounds (−0.01814 [−0.02635, −0.00916], per-row median −0.01129, 66 % of rows). The
+dose-response decides whether the *interaction* was ever measuring anything — not whether the atoms earn
+their place. They do not, on either reading.
+
+Cost of this round: **0 GPU-hours.** Local inference on a checkpoint already paid for.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
