@@ -215,22 +215,37 @@ class _DrugAttention(QKNormAttention):
     flow is eliminated.
     """
 
-    def forward(self, x, key_mask=None, diagonal=False):
-        if not diagonal:
+    def forward(self, x, key_mask=None, diagonal=False, alpha=1.0):
+        if diagonal:
+            alpha = 0.0
+        if alpha == 1.0:
             return super().forward(x, key_mask=key_mask)
+            
         B, L, _ = x.shape
         q, k, v = self.qkv(x).chunk(3, dim=-1)
         sp = lambda t: t.view(B, L, self.h, self.dh).transpose(1, 2)
         q, k, v = self.q_norm(sp(q)), self.k_norm(sp(k)), sp(v)
         q = q * self.scale.exp().unsqueeze(0)
-        # Follow QKNormAttention style: broadcast over heads (avoid allocating [B, heads, L, L]).
-        diag_mask = torch.full((L, L), float("-inf"), device=x.device, dtype=q.dtype)
-        diag_mask.fill_diagonal_(0.0)
-        mask = diag_mask[None, None, :, :]
+        
+        # Post-softmax attention matrix blending
+        attn = q @ k.transpose(-2, -1)
         if key_mask is not None:
-            mask = mask.masked_fill(key_mask[:, None, None, :], float("-inf")).contiguous()
-        out = F.scaled_dot_product_attention(q, k, v, attn_mask=mask, scale=1.0)
-        return self.drop(self.o(out.transpose(1, 2).reshape(B, L, self.h * self.dh)))
+            attn = attn.masked_fill(key_mask[:, None, None, :], float("-inf"))
+            
+        A = F.softmax(attn, dim=-1)
+        # Avoid NaN on fully masked rows (e.g. completely padded sequences)
+        A = torch.nan_to_num(A, nan=0.0)
+        
+        if key_mask is not None:
+            # Explicitly zero padded columns to ensure they are strictly 0.0 before blending
+            A = A.masked_fill(key_mask[:, None, None, :], 0.0)
+            
+        I = torch.eye(L, device=x.device, dtype=A.dtype)[None, None, :, :]
+        
+        A_blend = alpha * A + (1.0 - alpha) * I
+        
+        out = self.drop(A_blend) @ v
+        return self.o(out.transpose(1, 2).reshape(B, L, self.h * self.dh))
 
 
 class _DrugBlock(nn.Module):
@@ -262,10 +277,12 @@ class _DrugBlock(nn.Module):
         self.ff = SwiGLU(cfg.d_model, cfg.d_ff, cfg.dropout)
         self.sd1, self.sd2 = StochasticDepth(p_drop), StochasticDepth(p_drop)
 
-    def forward(self, D, key_mask=None, diagonal=False):
-        if hasattr(self.attn, 'forward') and 'diagonal' in self.attn.forward.__code__.co_varnames:
+    def forward(self, D, key_mask=None, diagonal=False, alpha=1.0):
+        if hasattr(self.attn, 'forward') and 'alpha' in self.attn.forward.__code__.co_varnames:
+            attn_out = self.attn(self.n1(D), key_mask=key_mask, diagonal=diagonal, alpha=alpha)
+        elif hasattr(self.attn, 'forward') and 'diagonal' in self.attn.forward.__code__.co_varnames:
             attn_out = self.attn(self.n1(D), key_mask=key_mask, diagonal=diagonal)
-        elif diagonal:
+        elif diagonal or alpha == 0.0:
             attn_out = self._attn_diagonal(self.n1(D), key_mask=key_mask)
         else:
             attn_out = self.attn(self.n1(D), key_mask=key_mask)

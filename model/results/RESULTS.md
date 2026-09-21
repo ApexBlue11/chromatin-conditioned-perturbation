@@ -3047,6 +3047,8 @@ the arm was actually enabled: `drug_sa=True`. The checkpoint carries `cfg['drug_
 **I did not pass `--batch` to this kernel**, so it trained at 48. Comparing the two runs therefore varies
 batch size *and* drug self-attention *and* +26.9 % parameters (11,706,043 -> 14,852,059) at once:
 
+**🔴 NON-COMPARABLE TABLE — do not quote any cell of it.** Three things vary at once.
+
 | split | SA-off (batch 96) | SA-on (batch 48) | naive difference |
 |---|---|---|---|
 | unseen_cell | 0.5152 | 0.5165 | +0.0013 |
@@ -3221,8 +3223,10 @@ distribution whose **median is −0.00803 and whose rows split 42/58**. Under a 
 magnitude entirely, **the control is a textbook null on the primary split (p = 0.70) and the atom effect is
 p = 1.7e−09.**
 
-⇒ **The control passes, read as a location shift.** The operator's non-specific component lives in the
-mean's tail sensitivity, not in where the distribution sits. §60.4's worry was real and is now bounded.
+⇒ **The control passes, read as a location shift** — but see §61.1: that reading uses a statistic chosen
+after the data were seen, and the **estimand of record failed**. The operator's non-specific component
+lives in the mean's tail sensitivity; that diagnosis stands. What does not stand is treating it as a
+rescue. §60.4's worry was real and is **not** bounded by this run.
 ⇒ And the contamination on `unseen_compound` is **positive** while the atom interaction is **negative**, so
 it would mask a negative effect rather than manufacture one.
 
@@ -3231,10 +3235,10 @@ it would mask a negative effect rather than manufacture one.
    −0.02637 [−0.03618, −0.01628] on `unseen_both`; per row they hurt on **two rows in three**; mean, median
    and difference-of-medians agree. Touches neither S10 nor S00, so it inherits nothing above. **This is
    the finding the 6.23 GPU-hours bought, and §58.7's mechanism is dead.**
-2. ✅ **The interaction on the primary split is negative and IS specific to the atom tokens.** Pre-committed
-   paired mean −0.00938 at 4.7 σ, location median −0.00803 at sign-test p = 1.7e−09, null-key control
-   p = 0.70 on the same rows. In-loop re-contextualisation makes the atom tokens **slightly more harmful**,
-   not less.
+2. 🔴 **RETRACTED by review 005 C1 — see §61.1.** ~~The interaction on the primary split is negative and
+   IS specific to the atom tokens.~~ The pre-committed estimand fails its own negative control, and the
+   statistic under which the control passes was chosen **after** seeing the data. The reading is not
+   admissible from this run. What the numbers are is unchanged; what they license is not.
 3. 🔴 **The interaction's sign is stratum-dependent and that is not explained.** +0.01200 at 8.4 σ on
    `unseen_cell` against −0.00938 at 4.7 σ on `unseen_compound`, both surviving the control on
    `unseen_cell` and the sign test on both. One seed. **Not a result; an open question.**
@@ -3248,6 +3252,126 @@ median and a **sign test** on the same rows beside it, and put the null-key cont
 Here the mean said the control was contaminated at 4.1 σ and the sign test said it was null at p = 0.70;
 the same pair of statistics separated a genuine location shift from a tail artefact in §60.6 as well. Two
 reversals from one npz dump in one afternoon — the dump is now unconditional in `interaction_2x2.py`.
+
+## 61. Review 005: SOUND-WITH-CAVEATS, one BLOCKING, and the sharper form of my own objection (2026-09-21)
+
+`orchestration/bus/to_pi/005_review.md`, reviewed at commit `7e36626`. Six challenges. **All six upheld** —
+two of them after I checked the arithmetic myself, which is the only reason to accept a factual claim.
+Running tally: **45 of 48 challenges upheld.**
+
+The verdict is scoped rather than global: *"The design failed; the conduct did not."*
+
+### 61.1 🔴 C1 BLOCKING — the objection I made, in the form I failed to make it
+I wrote in §60.8 that the control "passes, read as a location shift." The reviewer makes the point I
+stopped one step short of:
+
+> On `unseen_both` the null key returns **+0.00519 at 6.1 σ** while the hypothesis key returns −0.00258 at
+> **1.7 σ** — the control is **larger and more significant than the thing it controls for.**
+
+I had both numbers in my own table and did not put them next to each other. An estimand that returns 6.1 σ
+where no mechanism exists and 1.7 σ where one is hypothesised is not measuring the mechanism. And the
+rescue — reading the median and the sign test instead — uses a statistic **chosen after seeing the data**,
+which makes it hypothesis-generating and nothing more. My own packet said as much ("the estimand was fixed
+in §58.4 before the spend and the sign test was not"); the reviewer's instruction is to hold that line
+rather than argue past it, and it is right.
+
+⇒ **§60.9 item 2 is retracted.** The 2x2 interaction **is not interpretable from this run**, in either
+direction. §60.8's diagnosis of *why* the estimand failed stands; its conclusion does not.
+
+One thing the reviewer adds that I had wrong in the other direction: I called `x_cell` an input with "no
+mechanistic path" and therefore null by construction. It is not. For any model that is not additively
+separable in two inputs, the second-order mixed partial between them is **generically non-zero**, so a null
+key was never guaranteed to return zero. It did its job anyway — as a control, not as a proof.
+
+### 61.2 ✅ C2 — the correct estimand is a THIRD quantity, and we never emitted it
+The reviewer accepts responsibility for review 004 C1 having pushed me from difference-of-medians to the
+paired mean: *"That was right about which of those two is better and silent about the paired mean's
+non-robustness to skew."* The estimand that separates the two keys cleanly on every split is **median of
+the per-row contrast** — −0.00803 on the primary split — which is **neither** of the two statistics
+`interaction_2x2.py` emits. I computed it ad hoc from the npz; it was never in the JSON.
+
+**Pre-commitment for the next round, fixed now and before any spend:**
+
+| | |
+|---|---|
+| estimand of record | **`median(per-row contrast)` plus a two-sided sign test on the same rows** |
+| reported alongside | paired mean and difference-of-medians, always |
+| built-in diagnostic | **mean/median disagreement** flags skew; if they disagree, the mean is not a location estimate |
+| **gate** | **the null key must be null on the estimand of record BEFORE the hypothesis key is read** |
+| forbidden | re-reading *this* run under the robust estimand |
+
+### 61.3 ✅ C3 — ask 2 answered against me, with a free experiment attached
+Yes, `S11−S10` at +0.09 to +0.12 (5–7x the effect measured) compromises the interaction, and the reviewer
+classes the diagonal operator as **its own** recommendation from 004 C2: it preserves parameters, FFN and
+residual scale exactly as claimed, and *"I did not anticipate that removing cross-atom mixing would itself
+be catastrophic, which makes the ablated arm a poor stand-in for a model that never had it."*
+
+The proposed discriminator is inference-only on the checkpoint we already have: blend the post-softmax
+attention as **alpha·A + (1−alpha)·I** for alpha in {0, 0.25, 0.5, 0.75, 1} and plot the atom effect
+against alpha. **Smooth and monotone means mechanism. Flat then collapsing means an out-of-distribution
+artefact.** Zero GPU hours. Delegated as task W6 (`research/W6_alpha_doseresponse.md`) the same hour the
+review landed; alpha=1 must be bit-identical to the default path and alpha=0 bit-identical to the existing
+diagonal path, which is a test rather than a hope. Also noted: a sharper null key would be
+**magnitude-matched** — `x_cell`'s main effect (+0.0355) is about twice the atom main effect (−0.0181), so
+it was never like-for-like.
+
+### 61.4 ✅ C4 — the stratum-dependent sign tracks the main effect, not a mechanism
+Atoms *help* on `unseen_cell` (S11−S01 = +0.00530) and *hurt* on both compound splits (−0.01814, −0.02637),
+and the interaction's sign follows. *"A single mechanism does not do that."* So the interaction is
+inheriting the stratum's answer to a different question. §60.9 item 3 already called it an open question
+rather than a result; it is now closed as uninterpretable rather than open.
+
+### 61.5 ✅ C5 — the batch discrepancy does not reach the within-checkpoint quantities
+Confirmed independently: all four cells come from one set of weights, one loop iteration, `--batch 48`,
+chunk-mean semantics matched to §57, so batch size is held constant *inside* the contrast by construction.
+The cross-run training-metrics table is the part that is non-comparable, and the reviewer is right that
+flagging it in prose while leaving the table clean invites the wrong reading. **§59.2's table is now
+labelled NON-COMPARABLE in place.**
+
+### 61.6 ✅ C6 — both halves verified against the checkpoint, and both resolve
+**(a) "32,868 params/block" — the reviewer is right and I can say what it is.** It is the parameter count of
+the **throwaway probe block the guard itself constructs**, at `d_model=64, d_ff=128`, not of the trained
+module. Reproduced exactly: 32,868. The block at training shape (`d_model=256, d_ff=1024`) is **786,504**,
+and 786,504 x 4 blocks = **3,146,016**, which is the reviewer's figure to the digit. Nothing was mis-wired —
+the other two numbers on that line (0.4526 and 0.0e+00) also describe the probe, and the probe is what the
+guard is testing. But the line is cited as evidence about the trained model, so printing a 24x-smaller
+count in it is a provenance defect. The guard will print the training-shape count too.
+
+**(b) 🔴 The §47.5/§58 parameter pair 10,466,725 to 13,612,741 (+30.06 %) is RETRACTED.** It cannot be
+reproduced from either checkpoint, and I found what it was instead. Reconciling everything:
+
+| counting | SA-off | SA-on | increase |
+|---|---|---|---|
+| `parameters()` on the checkpoint's own cfg | 9,117,717 | 12,263,733 | **+34.5 %** |
+| `state_dict` total (adds the `ppi.A`, `pathway.M_norm`, `gene_repr.vec` buffers, 1,864,068) | 11,706,043 | 14,852,059 | **+26.9 %** |
+| **§47.5's pair** | 10,466,725 | 13,612,741 | +30.06 % |
+
+§47.5's pair is `V9Config()` **defaults** (`l_control=2`, not the `l_control=1` that was trained) with
+**both `use_gene_vectors` and `use_ppi` disabled** — 10,690,725 − 158,208 − 65,792 = **10,466,725**, exact,
+and the same three deltas reproduce the SA-on figure. So it described a model differing from the trained one
+in **three** ways, and the trainer's own log (`params 12.26M`, `ppi=True gene_vec=True`) contradicted it all
+along. The delta 3,146,016 was right in every version, which is why the error survived.
+
+⇒ The real capacity confound is **+34.5 %, larger than the +30.06 % quoted** — which strengthens rather than
+weakens the case for the within-checkpoint design, and means any future capacity-matched arm must match
+3.15 M parameters against a **9.12 M** base, not a 10.47 M one.
+
+### 61.7 What survives, and it is the reviewer's own sentence
+> With drug self-attention present and trained, ablating the per-atom drug tokens still **improves** median
+> row Pearson on unseen compounds — S11−S01 = −0.01814 [−0.02635, −0.00916], per-row median −0.01129,
+> improving 66 % of rows. A second in-loop contextualisation pass does not rescue the atom tokens.
+
+No S10, no S00, no interaction, no null key, no cross-run comparison. It survives C1 through C6 intact, it
+answers the objective, and it is what 6.23 GPU-hours bought. §58.7's mechanism is dead and the empirical
+fact that motivated it is now stronger, not weaker.
+
+### 61.8 Method rule 17
+**A negative control must be pre-committed as a gate, not run as a reassurance.** State before the spend:
+*this is the null key, this is the estimand, and if the null key is not null on that estimand the hypothesis
+key will not be read at all.* Running the control afterwards and then choosing the statistic under which it
+passes is how a failed design becomes a published claim. The control here was run before the packet went
+out, which is the only reason this is a retraction inside one afternoon rather than a retraction after
+review.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

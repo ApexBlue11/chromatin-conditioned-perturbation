@@ -1,10 +1,10 @@
 {
-  "iteration": 9,
+  "iteration": 10,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
   "note": "PI refuses to open an iteration past max_iterations without explicit human approval.",
-  "responses_since_checkpoint": 22,
+  "responses_since_checkpoint": 26,
   "checkpoint_every": 30,
   "autonomy": {
     "delegated": [
@@ -21,17 +21,17 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "005_drugsa_result"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
     "002_chromatin_rescored",
     "003_drugsa_design",
-    "004_drugsa_design_v2"
+    "004_drugsa_design_v2",
+    "005_drugsa_result"
   ],
   "gpu_hours_spent_this_session": 6.23,
-  "pending_decision": "packet 005: does the null-key control license reading the atom interaction as specific, given the control is 4.1 sigma on the pre-committed paired mean but p=0.70 under a sign test on the same rows?",
-  "note_current": "Run complete (6.23 GPU-h), 2x2 measured, hypothesis refuted on the primary split, null-key control run at zero cost and analysed per-row. Packet 005 out; PI armed on to_pi. Next candidate: 50.5 -- Bai et al. retrain-from-scratch drug ablation, to be priced through the critic before any spend."
+  "pending_decision": null,
+  "note_current": "Review 005 SOUND-WITH-CAVEATS, one BLOCKING. The 2x2 interaction is NOT interpretable from this run: the pre-committed estimand returns 6.1 sigma on the null key where the hypothesis key returns 1.7 sigma. RESULTS 60.9 item 2 retracted; the 47.5 parameter pair retracted and reconciled (+34.5% on trainable params, not +30.06%). What stands: with drug self-attention trained and present, ablating the atom tokens still improves accuracy on unseen compounds (-0.01814, 66% of rows). W6 delegated: the alpha dose-response the reviewer proposed, inference-only, zero GPU hours.",
+  "challenges_upheld": "45 of 48"
 }

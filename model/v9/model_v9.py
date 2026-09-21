@@ -54,13 +54,13 @@ class PerturbBlock(nn.Module):
         # crossEncoder does. Default off; `--drug_self_attn` turns it on for the A/B.
         self.drug_sa = _DrugBlock(cfg, p_drop) if getattr(cfg, 'drug_self_attn', False) else None
 
-    def forward(self, h, D, key_mask, return_attn=False, diagonal=False, drug_diagonal=False):
+    def forward(self, h, D, key_mask, return_attn=False, diagonal=False, drug_diagonal=False, drug_alpha=1.0):
         # The updated D is RETURNED, so contextualisation compounds across blocks exactly as it does in
         # XPert, where crossEncoder.forward emits drug_SA_embed alongside the cell output.
         # TASK W4: diagonal=True masks drug_sa to the identity for the zero-cross-atom ablation arm.
         diag = diagonal or drug_diagonal
         if self.drug_sa is not None:
-            D = self.drug_sa(D, key_mask=key_mask, diagonal=diag)
+            D = self.drug_sa(D, key_mask=key_mask, diagonal=diag, alpha=drug_alpha)
         a = self.cross(self.nc(h), D, key_mask)
         h = h + self.sdc(a)
         h = self.gene(h)
@@ -113,10 +113,11 @@ class LincsV9(nn.Module):
         self.expr_cell.fit(X_cell_train if X_cell_train is not None else X_ctl_train)
         return self
 
-    def forward(self, batch, return_aux=False, return_interp=False, diagonal=False, drug_diagonal=False):
+    def forward(self, batch, return_aux=False, return_interp=False, diagonal=False, drug_diagonal=False, drug_alpha=1.0):
         diag = (diagonal or drug_diagonal or
                 (batch.get('drug_diagonal', False) if isinstance(batch, dict) else False) or
                 (batch.get('diagonal', False) if isinstance(batch, dict) else False))
+        alpha = batch.get('drug_alpha', drug_alpha) if isinstance(batch, dict) else drug_alpha
         E, r = batch['E'], batch['r']
         x_ctl = batch['x_ctl']
         x_cell = batch.get('x_cell', x_ctl)
@@ -150,9 +151,9 @@ class LincsV9(nn.Module):
         attn = None
         for i, blk in enumerate(self.perturb):
             if return_interp and i == len(self.perturb) - 1:
-                h, D, attn = blk(h, D, key_mask, return_attn=True, diagonal=diag)
+                h, D, attn = blk(h, D, key_mask, return_attn=True, diagonal=diag, drug_alpha=alpha)
             else:
-                h, D = blk(h, D, key_mask, diagonal=diag)
+                h, D = blk(h, D, key_mask, diagonal=diag, drug_alpha=alpha)
 
         out, epi_contrib = self.heads(h, E, r, x_ctl)
         if return_aux or return_interp:
