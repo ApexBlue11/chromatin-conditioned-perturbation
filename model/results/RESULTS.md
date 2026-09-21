@@ -3426,6 +3426,85 @@ their place. They do not, on either reading.
 
 Cost of this round: **0 GPU-hours.** Local inference on a checkpoint already paid for.
 
+## 63. The alpha curve, and a defect in §62's own threshold — written before the gate returns (2026-09-21)
+
+`alpha_sweep.py --n_eval 1500 --n_boot 20000 --seed 0 --alphas 0,0.25,0.5,0.75,1.0`, SA-on checkpoint.
+Artefact `model/results/v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0.json`, log `alpha_full.log`. **0 GPU-hours.**
+
+**The null-key gate (§62.2) has not returned. Under §62.2 the curve is therefore not read in this section.**
+What follows is the arithmetic, and one defect in my own pre-commitment, both recorded before the gate
+result exists so neither can be said to have been shaped by it.
+
+### 63.1 ✅ The operator is anchored to §60 — row-identical and endpoint-identical
+`rows_sha` in the output matches `interaction_2x2.py`'s row set on **all three splits**
+(`434418d7677d3f9c`, `160865d7b95cbc06`, `02fb5b09d78a8d7e`), as §62.1 required. And the endpoints
+reproduce §60's 2x2 cells exactly:
+
+| | alpha=0 vs §60's S10−S00 | alpha=1 vs §60's S11−S01 |
+|---|---|---|
+| unseen_cell | −0.01012 = −0.01012 ✓ | +0.00530 = +0.00530 ✓ |
+| unseen_compound | −0.01697 = −0.01697 ✓ | −0.01814 = −0.01814 ✓ |
+| unseen_both | −0.01843 = −0.01843 ✓ | −0.02637 = −0.02637 ✓ |
+
+Bootstrap intervals match too. A new code path reproducing a previously measured number **and its CI** on
+byte-identical rows is the strongest available evidence that the continuous operator is the same
+measurement as the binary one, extended.
+
+### 63.2 The curve, in the estimand of record
+`atom_effect_median_per_row` — median over rows of the per-row full-minus-ablated difference (§61.2):
+
+| alpha | unseen_cell | **unseen_compound** | unseen_both |
+|---|---|---|---|
+| 0.00 | −0.00468 | **−0.00637** | −0.01122 |
+| 0.25 | −0.00093 | **−0.00753** | −0.01195 |
+| 0.50 | +0.00105 | **−0.00831** | −0.01267 |
+| 0.75 | +0.00208 | **−0.00894** | −0.01266 |
+| 1.00 | +0.00290 | **−0.01129** | −0.01414 |
+
+Sign-test p at every alpha on every split is between 2.8e−02 and 6.9e−69; `dY_max` rises with alpha on
+every split (1.32–1.72 at alpha=0 up to 3.53–5.95 at alpha=1), so no cell is void.
+
+### 63.3 🔴 §62.3's magnitude threshold names a CI the script does not emit for the estimand
+§62.3 required "endpoints differing by more than the **alpha=1 bootstrap CI width**". But §62.1 fixed the
+estimand as `atom_effect_median_per_row`, and the only interval `alpha_sweep.py` emits is for
+`atom_effect` — the **difference of medians**. Those are different statistics, which is exactly the
+distinction §58.1 already caught me getting wrong once and §61.2 identified as a **third** quantity.
+
+The estimand's own interval is computable from the 2x2 npz at zero cost for the two endpoints, and it is
+**3.5x tighter** than the one §62.3 accidentally named (0.00487 against 0.01719 on the primary split).
+Both numbers are given so a reader can apply either rule:
+
+| split | strictly monotone? | endpoint span | estimand CI width (alpha=1) | difference-of-medians CI width |
+|---|---|---|---|---|
+| unseen_cell | **yes**, +0.00375 +0.00198 +0.00102 +0.00082 | 0.00758 | 0.00202 → **span exceeds** | 0.01360 → span does not |
+| **unseen_compound** | **yes**, −0.00116 −0.00078 −0.00063 −0.00235 | **0.00492** | **0.00487 → span exceeds, by 0.00005** | 0.01719 → span does not |
+| unseen_both | **no** — diffs −0.00073 −0.00072 **+0.00001** −0.00148 | 0.00292 | 0.00355 → span does **not** exceed | 0.00990 → does not |
+
+Reading the threshold against the estimand's own CI is the faithful reading of §62 — the rule fixed the
+estimand in 62.1 and the natural referent of "the alpha=1 bootstrap CI" is that estimand's. Using the
+difference-of-medians width instead would repeat §58.1's error. But the honest summary of the primary
+split is: **monotonicity is clean and strict; the magnitude criterion is met by 1.01x, a margin smaller
+than the last digit worth quoting.**
+
+And `unseen_both` **fails both halves** — its one positive successive difference is +0.00001, a hundredth
+of its neighbours and plainly noise, but §62.3 was written with no tolerance and by its letter that is a
+reversal. Recorded as a fail rather than waved through.
+
+### 63.4 Method rule 18
+**A pre-committed threshold must name the statistic its interval belongs to, and the script must emit
+that interval.** Three pre-commitments this project has written have now referred to the wrong one of
+several available intervals (§58.1 the power table, §61.2 the estimand, §63.3 the threshold). The pattern
+is always the same: several plausible summaries exist, the code emits one, and the rule silently assumes
+it is the relevant one. Fix in the code, not in the discipline — `alpha_sweep.py` will bootstrap the
+**estimand of record** and dump per-row vectors, as `interaction_2x2.py` now does. That change is deferred
+until the gate run finishes, so the gate is computed by **identical code** to the hypothesis run.
+
+### 63.5 What is still true independently of all of this
+§61.7 is untouched by every line above, because it uses only alpha=1: **with drug self-attention present
+and trained, ablating the atom tokens still improves accuracy on unseen compounds**, −0.01814
+[−0.02635, −0.00916], per-row median −0.01129 [−0.01395, −0.00908], 66 % of rows. The curve decides
+whether the *interaction* ever measured anything. It does not decide whether the atoms earn their place.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

@@ -1,0 +1,26 @@
+=== v9 Alpha Sweep [TASK W6] ===
+Checkpoint: sa0_ckpt_v9_fold0_seed0.pt | Device: cuda
+Alphas: [0.0, 0.25, 0.5, 0.75, 1.0]
+
+--- unseen_cell ---
+Alpha 0.00 | Effect: -0.01012 (CI [-0.01616, -0.00190]) | MedPerRow: -0.00468 | p=6.89e-12 | dYmax=1.7172
+Alpha 0.25 | Effect: +0.00065 (CI [-0.00731, +0.00842]) | MedPerRow: -0.00093 | p=2.82e-02 | dYmax=1.7264
+Alpha 0.50 | Effect: +0.00539 (CI [-0.00063, +0.01192]) | MedPerRow: +0.00105 | p=1.06e-02 | dYmax=4.8042
+Alpha 0.75 | Effect: +0.00490 (CI [+0.00074, +0.01432]) | MedPerRow: +0.00208 | p=7.89e-07 | dYmax=5.9560
+Alpha 1.00 | Effect: +0.00530 (CI [+0.00023, +0.01383]) | MedPerRow: +0.00290 | p=2.69e-08 | dYmax=5.6847
+
+--- unseen_compound ---
+Alpha 0.00 | Effect: -0.01697 (CI [-0.02353, -0.01093]) | MedPerRow: -0.00637 | p=8.67e-20 | dYmax=1.6897
+Alpha 0.25 | Effect: -0.01621 (CI [-0.02486, -0.00991]) | MedPerRow: -0.00753 | p=7.18e-27 | dYmax=2.2248
+Alpha 0.50 | Effect: -0.02323 (CI [-0.03308, -0.01788]) | MedPerRow: -0.00831 | p=4.52e-32 | dYmax=2.7860
+Alpha 0.75 | Effect: -0.01639 (CI [-0.02486, -0.00849]) | MedPerRow: -0.00894 | p=4.05e-27 | dYmax=3.2058
+Alpha 1.00 | Effect: -0.01814 (CI [-0.02635, -0.00916]) | MedPerRow: -0.01129 | p=1.01e-35 | dYmax=3.7750
+
+--- unseen_both ---
+Alpha 0.00 | Effect: -0.01843 (CI [-0.02381, -0.00883]) | MedPerRow: -0.01122 | p=1.06e-54 | dYmax=1.3249
+Alpha 0.25 | Effect: -0.02746 (CI [-0.03504, -0.02068]) | MedPerRow: -0.01195 | p=4.37e-65 | dYmax=1.9809
+Alpha 0.50 | Effect: -0.03829 (CI [-0.04485, -0.02154]) | MedPerRow: -0.01267 | p=8.90e-69 | dYmax=2.5544
+Alpha 0.75 | Effect: -0.03075 (CI [-0.03776, -0.02117]) | MedPerRow: -0.01266 | p=1.22e-46 | dYmax=2.5667
+Alpha 1.00 | Effect: -0.02637 (CI [-0.03618, -0.01628]) | MedPerRow: -0.01414 | p=6.85e-37 | dYmax=3.5266
+
+Wrote results to C:\Projects\LINCS\model\results\v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0.json
