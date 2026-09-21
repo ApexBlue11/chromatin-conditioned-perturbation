@@ -1,0 +1,28 @@
+=== v9 Alpha Sweep [TASK W6] ===
+Checkpoint: sa0_ckpt_v9_fold0_seed0.pt | Device: cuda
+Alphas: [0.0, 0.25, 0.5, 0.75, 1.0]
+
+--- unseen_cell ---
+C:\Projects\LINCS\model\v9\modules_v9.py:98: UserWarning: torch.searchsorted(): input value tensor is non-contiguous, this will lower the performance due to extra data copy when converting non-contiguous tensor to contiguous, please use contiguous input value tensor if possible. This message will only appear once per program. (Triggered internally at C:/actions-runner/_work/pytorch/pytorch/aten/src\ATen/native/BucketizationUtils.h:34.)
+  return torch.bucketize(x, self.edges[0].to(x.dtype), right=False).clamp_(0, self.n_bins - 1)
+Alpha 0.00 | Effect: +0.01611 (CI [+0.00900, +0.02174]) | MedPerRow: +0.00797 | p=5.67e-45 | dYmax=3.9595
+Alpha 0.25 | Effect: +0.02480 (CI [+0.01585, +0.03180]) | MedPerRow: +0.01055 | p=3.81e-81 | dYmax=3.9874
+Alpha 0.50 | Effect: +0.01684 (CI [+0.00845, +0.02240]) | MedPerRow: +0.01032 | p=4.40e-94 | dYmax=4.1872
+Alpha 0.75 | Effect: +0.01295 (CI [+0.00894, +0.02169]) | MedPerRow: +0.00985 | p=1.33e-94 | dYmax=4.6322
+Alpha 1.00 | Effect: +0.01408 (CI [+0.00927, +0.02024]) | MedPerRow: +0.00957 | p=5.38e-91 | dYmax=4.7213
+
+--- unseen_compound ---
+Alpha 0.00 | Effect: +0.03016 (CI [+0.02065, +0.03803]) | MedPerRow: +0.01140 | p=1.01e-30 | dYmax=6.5420
+Alpha 0.25 | Effect: +0.03457 (CI [+0.02556, +0.04427]) | MedPerRow: +0.01303 | p=1.88e-41 | dYmax=6.5259
+Alpha 0.50 | Effect: +0.03588 (CI [+0.02825, +0.04193]) | MedPerRow: +0.01404 | p=3.02e-53 | dYmax=6.5188
+Alpha 0.75 | Effect: +0.03878 (CI [+0.03136, +0.04731]) | MedPerRow: +0.01502 | p=2.78e-64 | dYmax=6.4665
+Alpha 1.00 | Effect: +0.03545 (CI [+0.02854, +0.04848]) | MedPerRow: +0.01444 | p=1.09e-62 | dYmax=6.3234
+
+--- unseen_both ---
+Alpha 0.00 | Effect: +0.00266 (CI [-0.00446, +0.01245]) | MedPerRow: +0.00186 | p=6.85e-07 | dYmax=4.6263
+Alpha 0.25 | Effect: +0.00466 (CI [-0.00080, +0.01396]) | MedPerRow: +0.00305 | p=7.20e-12 | dYmax=4.5920
+Alpha 0.50 | Effect: +0.01489 (CI [+0.00854, +0.02471]) | MedPerRow: +0.00398 | p=5.74e-17 | dYmax=4.5815
+Alpha 0.75 | Effect: +0.02093 (CI [+0.00979, +0.03644]) | MedPerRow: +0.00476 | p=8.45e-24 | dYmax=4.6368
+Alpha 1.00 | Effect: +0.02244 (CI [+0.00998, +0.02957]) | MedPerRow: +0.00378 | p=8.04e-19 | dYmax=4.6684
+
+Wrote results to C:\Projects\LINCS\model\results\v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0_key-x_cell.json
