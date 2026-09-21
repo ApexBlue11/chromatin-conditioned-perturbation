@@ -1,0 +1,49 @@
+{
+  "parameters": {
+    "string_thresh": 0.0,
+    "min_term": 5,
+    "max_term": 200
+  },
+  "file_sha1s": {
+    "STRING_adj_978_v9.npy": "609e289227b4e96da09dcc347667deb5f3645a8a",
+    "M_pathway_v9.npy": "c752c9c25a066af63cbe9595a6565e026441765c",
+    "pathway_info_v9.tsv": "68c4fa6289bc5ab36757b8b355ca62a9ec995b0c",
+    "landmark_symbols_v9.tsv": "e7405ff44f4838d4c43378411aa851514daf71b4",
+    "GO_Biological_Process_2023.gmt": "93f49956f22f95bada11b1b80c4390ca716ecc39"
+  },
+  "landmark_order_sha1": "e7405ff44f4838d4c43378411aa851514daf71b4",
+  "sources": {
+    "STRING": {
+      "raw_edge_count": 13001,
+      "edges_contributed": 13001,
+      "density": 0.02721280661764552
+    },
+    "Reactome": {
+      "raw_term_count": 800,
+      "surviving_terms": 784,
+      "edges_contributed": 59860,
+      "density": 0.1252948699432552
+    },
+    "GO_BP": {
+      "raw_term_count": 5407,
+      "surviving_terms": 1087,
+      "edges_contributed": 61295,
+      "density": 0.12829851408573048
+    }
+  },
+  "union_edges": 81846,
+  "provenance_combinations": {
+    "STRING": 3465,
+    "Reactome": 14922,
+    "STRING_Reactome": 2164,
+    "GO": 17902,
+    "STRING_GO": 619,
+    "Reactome_GO": 36021,
+    "STRING_Reactome_GO": 6753
+  },
+  "jaccard_overlap": {
+    "STRING_Reactome": 0.1394501438758914,
+    "STRING_GO": 0.11015480246249477,
+    "Reactome_GO": 0.5457189880200559
+  }
+}

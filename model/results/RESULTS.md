@@ -3505,6 +3505,80 @@ and trained, ablating the atom tokens still improves accuracy on unseen compound
 [−0.02635, −0.00916], per-row median −0.01129 [−0.01395, −0.00908], 66 % of rows. The curve decides
 whether the *interaction* ever measured anything. It does not decide whether the atoms earn their place.
 
+## 64. The union graph exists — and my reason for term-size filtering was factually wrong (2026-09-21)
+
+**A2 is built.** `network/outputs/v9/union_graph_v9.npz` + `..._provenance.json`, from
+`network/scripts/build_union_graph.py` (delegated W7). Tests **7/7, run by me**; I read the test bodies as
+well as their output, and they can fail — check 2 asserts STRING presence **and absence**
+(`is_in_string == in_union`), check 3 walks every co-member pair of 50 sampled pathways, check 5 asserts
+`raw > surviving`, check 7 asserts an edge unique to each source. Cost: **0 GPU-hours, nothing downloaded.**
+
+### 64.1 The artefact
+81,846 undirected edges over the 978 landmarks, each with a multi-hot `[STRING, Reactome, GO]` provenance
+bit and the three sources' own unnormalised weights.
+
+| source | raw | surviving size filter | edges contributed | density |
+|---|---|---|---|---|
+| STRING v12 | 13,001 edges | — | 13,001 | 2.72 % |
+| Reactome | 800 terms | **784** | 59,860 | 12.53 % |
+| GO:BP | 5,407 terms | **1,087** | 61,295 | 12.83 % |
+
+| provenance | edges | | provenance | edges |
+|---|---|---|---|---|
+| STRING only | 3,465 | | GO only | 17,902 |
+| Reactome only | 14,922 | | STRING+GO | 619 |
+| STRING+Reactome | 2,164 | | Reactome+GO | **36,021** |
+| | | | all three | 6,753 |
+
+Jaccard: STRING∩Reactome 0.139, STRING∩GO 0.110, **Reactome∩GO 0.546**.
+
+### 64.2 🔴 My justification for the filter was wrong on the facts
+The W7 brief asserted: *"A 400-gene pathway contributes a 79,800-edge clique encoding almost no
+specificity, and `A_copathway.npy` at 12.83 % density is the symptom of exactly this."* Checked against
+`M_pathway_v9.npy`:
+
+- Reactome's landmark-restricted terms have **median 14 members and a maximum of 79**.
+- **Zero** terms exceed 200 members. **Zero** exceed 100.
+- So `max_term=200` was **entirely non-binding** — it removed nothing, and the 16 terms dropped went for
+  being *too small*.
+- The largest single term contributes 3,081 edges, **0.64 %** of all possible pairs. There is no giant
+  clique. The 12.53 % density is the **aggregate of 784 medium terms**, not the symptom of a few large ones.
+
+The filter only starts to bite far lower, and it costs terms to do it:
+
+| max_term | terms kept | unique edges | density |
+|---|---|---|---|
+| 200 / 100 | 784 | 59,860 | 12.53 % |
+| 50 | 774 | 52,669 | 11.02 % |
+| 30 | 706 | 37,489 | 7.85 % |
+| 20 | 590 | 26,097 | 5.46 % |
+
+The worker implemented the brief correctly. **The wrong premise was mine**, and it was the kind that is
+cheap to check and was not checked before being written into a delegation.
+
+### 64.3 ✅ This makes A1 a stronger idea, not a weaker one
+The union is **17.13 %** dense (81,846 of 477,753 possible pairs). Message passing or an attention bias
+over a graph that connects one pair in six is close to uniform smoothing — which is a concrete mechanism
+for why §48 called our STRING null *"predictable"*, and the density is **intrinsic to co-membership over a
+978-gene landmark panel**, not a fixable artefact of filtering.
+
+So the union graph is **not useful as a static prior**, and that is exactly the argument for A1 rather than
+against it: if a generic biological graph carries little information at this density, then **the thing that
+would make it informative is a per-cell mechanism selecting which of its edges conduct.** Chromatin gating
+turns a 17 %-dense generic graph into a sparse, cell-specific one — and the sparsification *is* the
+hypothesis, not a preprocessing step.
+
+⇒ **Consequence for A1's design, recorded before it is built:** the consumer must **not** be "message
+passing over the union". It must be a **chromatin-gated edge weight**, where the gate does the
+sparsification and the null is the same gate with chromatin mean-ablated. An arm that message-passes over
+the raw union first would be testing the dense prior, which §64.3 predicts is worth little, and would
+confound that with the gating question.
+
+⇒ **Also recorded:** `Reactome∩GO = 0.546` means the two co-annotation sources are half-redundant, so the
+"three-graph union" is closer to **STRING plus one co-annotation blob**. TxPert's monotone-improvement
+result (§48.1, p < 0.027) was obtained on graphs with different provenance than ours, and should not be
+assumed to transfer to two sources this correlated.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
