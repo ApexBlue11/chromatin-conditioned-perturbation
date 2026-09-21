@@ -12,11 +12,25 @@
 > | §6: "Requires LINCS Level 3 — NOT YET RUN" | Done. Level-3 substrate at **99.65 %** coverage [6d.1], and v9 has been run head-to-head against XPert on their own benchmark [§43] |
 > | All accuracy numbers (0.440 / 0.471 / 0.451) | v5, single fold, single seed. Seed sd reaches 0.0232 [M.10]. Superseded by v9 [§33, §43, §45] |
 >
+> **Three further retractions since this block was written (2026-09-21):**
+>
+> | in this draft | actual status |
+> |---|---|
+> | chromatin as "a supporting measured-minor result" | **A MEASURED NULL.** §55: **+0.000360**, CI [−0.005433, +0.006153], 2 of 5 treated cells positive, sign test **p = 1.000**. §54 first re-scored it at zero GPU cost; the earlier −0.01411 drew 102 % of its magnitude from cells that have no chromatin data at all |
+> | "atom-level molecular representations" as a contribution | **Ablating them IMPROVES accuracy.** §57 (3 seeds): +0.0146 on unseen compounds. §61.7, after buying a run with drug self-attention trained in: still −0.01814 [−0.02635, −0.00916], per-row median −0.01129, **atoms hurt on 66 % of rows** |
+> | any claim resting on the drug branch at all | §50: a **May-2026 benchmark** finds seven L1000 models do not use their drug features — a **drug-free MLP scores 0.637 against XPert's 0.633**. Our own §61.7 is consistent with it |
+>
 > **The framing is also wrong.** This draft is a chromatin paper. The measured results are a
-> benchmarking-and-generalisation paper: v9 beats XPert's released checkpoint on their own benchmark
-> [§43], beats a ridge by +0.178 on unseen cell lines [§45.0], and sits +0.090 above their published
-> cold-cell number [§46.4]. Chromatin is a supporting measured-minor result inside that, not the headline.
-> Rewrite is gated on the 5-fold × 3-seed cold-cell run [§46.5].
+> **benchmarking-and-dissection** paper: v9 beats XPert's released checkpoint on their own benchmark
+> [§43, +0.0118, 8/8 metrics], beats a ridge by +0.178 on unseen cell lines [§45.0], and sits +0.090
+> above their published cold-cell number [§46.4] — while **two of the four things this draft names as its
+> substrate are measured not to earn their place.** That combination is the contribution: what is
+> load-bearing in a SOTA-competitive perturbation model, measured, plus the benchmark forensics
+> explaining why the field has not noticed.
+>
+> Rewrite is gated on the 5-fold × 3-seed cold-cell run [§46.5 / `IDEAS.md` C1]. The forward-looking
+> mechanism line — chromatin gating **edges** of a unioned STRING+Reactome+GO graph rather than gating
+> genes — is `IDEAS.md` A1/A2 and is **not** part of this draft.
 
 **Status: DRAFT.** Sections marked 🔲 are blocked on measurements that have not been run — they are
 deliberately left empty rather than filled with plausible text. Every number below traces to
