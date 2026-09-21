@@ -265,6 +265,42 @@ Checked in this order. Do not skip a tier without saying why.
 module *off*, so it was a floor of unknown tightness. And a "runs to power it" figure is the ~51 % point
 unless it used `(z_alpha + z_beta)`; the 80 % number is roughly 2x larger [§53.1].
 
+## 6d. Toolchain hazards on THIS machine — each of these has cost a round trip
+
+These are not bugs to fix, they are properties of the environment. Every one was discovered by a silent
+corruption, not by an error message pointing at the cause.
+
+### BOM on every file PowerShell writes (hit 4x)
+`Set-Content` and `Out-File -Encoding utf8` on Windows PowerShell 5.1 prepend `EF BB BF`. That breaks
+`json.load` and the Kaggle CLI, which fails with the useless `Expecting value: line 1 column 1 (char 0)`.
+`-Encoding utf8NoBOM` **does not exist on 5.1** — it is PowerShell 7+ and errors out here.
+
+> **Rule.** Any file a program will parse is written with Python `io.open(path, "w", encoding="utf-8")`.
+> Never PowerShell redirection, never `Set-Content`. Verify with `head -c 4 file | xxd` if in doubt:
+> `7b0a` is good, `efbb bf7b` is the bug. `state.json` carries this warning in a field of its own.
+
+### Backslashes collapse inside Bash-tool heredocs (hit 1x, 2026-09-21)
+A heredoc with a single-quoted delimiter is supposed to pass its body through literally. It does not pass
+doubled backslashes through: a patch script written with a doubled backslash arrives with a single one,
+so Python then reads it as an escape and the anchor silently fails to match the target file. The failure
+mode is an `AssertionError` on a string that looks identical to the file when printed — only `repr()`
+shows the difference.
+
+> **Rule.** A patch script's anchor must contain **no backslash at all**. If the target line has one
+> (an escaped quote, a regex, a Windows path), match the line by a backslash-free prefix and replace it
+> whole, or pipe the script to `python -` instead of writing it with a heredoc. When an anchor assertion
+> fails on a string that looks right, print `repr()` of both sides before editing anything.
+
+### `git add -A` from the repo root stages the worktrees (hit 1x, 2026-09-21)
+`git worktree` put both sibling checkouts under `LINCS/`, so a blanket add staged them as embedded git
+repositories. Git warns, but it warns *after* staging and the commit still succeeds.
+
+> **Rule.** `LINCS/` is in `.gitignore`. Read the output of `git add`, not just its exit code.
+
+### An `agy` exit code of 0 means the process ended, not that the task succeeded
+A worker that backgrounds its own tests, goes idle, and gets its tasks killed on session exit returns 0
+having changed nothing. See §6b: **verification is running the tests yourself**, never reading the report.
+
 ## 7. Provenance contract
 
 Every number that enters `RESULTS.md` or `CLAIMS.md` carries:
