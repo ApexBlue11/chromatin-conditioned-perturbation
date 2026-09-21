@@ -79,3 +79,4 @@ phase2_assembly/outputs/chip_atlas_human_epi.tab
 
 # External third-party model releases (XPert Zenodo, ~14GB) - never commit
 external/
+LINCS/
