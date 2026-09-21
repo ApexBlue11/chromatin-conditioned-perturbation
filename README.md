@@ -2,9 +2,41 @@
 
 **Predicting drug-induced transcriptional response from chromatin state, molecular structure, and network priors.**
 
+---
+
+> ## 🔴 STATUS — 2026-09-21. This README is a v5/v6-era document and its central claim has been RETRACTED.
+>
+> Everything below the next horizontal rule describes the project as of **v5**, and states as its core
+> contribution a chromatin benefit that **later measurement retracted**. It is kept for provenance, not
+> because it is current. `model/results/RESULTS.md` is the authoritative record — 60 numbered sections,
+> every retraction in place.
+>
+> **What the measurements now say:**
+>
+> | claim | README below says | measured, current |
+> |---|---|---|
+> | chromatin benefit on unseen cells | "contributes, ΔR² +0.089 in-dist" | **+0.000360, CI [−0.005433, +0.006153]**, 2/5 cells positive, sign test p=1.000 (§55) |
+> | current model | v5 trained, v6 launched | **v9**, 12.3–14.9 M params, fold 0 × 3 seeds (§43–§60) |
+> | target | Level 5 MODZ | **Level 3 input passes, Level 3 target gate FAILS** — see §29–§31 |
+> | drug atom tokens | "atom-level molecular representations" as a contribution | **ablating them IMPROVES accuracy** by 0.013–0.018 on unseen compounds; adding in-loop drug self-attention did not fix it (§57, §60.7) |
+>
+> **What currently stands:**
+> - §43 — v9 beats XPert's own released checkpoint on **XPert's own mdmt benchmark**, split_2, paired on
+>   13,766 identical held-out rows: **+0.0118 delta Pearson, 8/8 metrics**.
+> - §45.0 — **+0.178** over the ridge baseline on cold-cell.
+> - §46, §50 — benchmark forensics: what the published numbers are, and what they are not.
+> - §55, §60 — two well-measured **negative** results, at the cost of 6.2 GPU-hours and three design rounds.
+>
+> The chromatin framing is a measured null. It is reported as one.
+
+---
+
+
 A deterministic, fully-attributable cross-attention model that predicts the *differential* transcriptional
 response (978 LINCS L1000 landmark genes) to small molecule perturbations — conditioned on cell-line
 chromatin accessibility, histone modifications, pathway topology, and atom-level molecular representations.
+(Two of those four — chromatin conditioning and the atom tokens — have since been measured and found not to
+earn their place. See the status block above.)
 
 ---
 
@@ -45,7 +77,7 @@ substrate. The core contribution is **chromatin conditioning and what it reveals
 
 **Key findings:**
 
-- **Chromatin contributes (ΔR² +0.089 in-distribution)** with the mechanistically expected sign — low
+- 🔴 **RETRACTED, see §54–§55.** ~~Chromatin contributes (ΔR² +0.089 in-distribution)~~ with the mechanistically expected sign — low
   activation and high Polycomb marking predict larger responses — and this *survives stratification by
   baseline-expression quartile in all four strata for all three marks*, ruling out a floor/headroom
   artefact. The benefit declines monotonically with cell familiarity (+0.089 in-dist → +0.035 unseen
