@@ -55,9 +55,22 @@ checked the LaTeX source.
 
 We hold **STRING, Reactome, GO:BP and DTI** and have only ever used them separately or not at all.
 
-- ⚠️ **Explicit trade to decide, not to make silently:** `dti_reference.tsv` (19,174 edges, 1,718 drugs) is
-  currently a **held-out validation set**. Putting DTI in the graph spends it. Three-graph union avoids this.
-- **Cost:** CPU-only to build. Free.
+- ✅ **The DTI trade turns out not to apply.** §48.3 called this "four graphs", but inspecting the file
+  shows `dti_reference.tsv` is **bipartite drug-to-gene** (`pert_id → gene_symbol`, 19,174 edges), not
+  gene-to-gene, so it cannot be an edge type in a gene-gene union at all. The union is **three** gene-gene
+  sources — STRING, Reactome, GO:BP — and spends no validation set. Connecting drug targets into the gene
+  stream is a **separate** mechanism (and closer to TxPert's actual move, §48.2: propagate from the drug's
+  targets outward), tracked separately rather than folded in here.
+- **Assets confirmed on disk, nothing to download:** `STRING_adj_978_v9.npy` (978², 2.72 % nonzero,
+  weighted), `M_pathway_v9.npy` (800×978 int8), `GO_Biological_Process_2023.gmt` (5,406 terms, **never used
+  by v9**), `landmark_symbols_v9.tsv` (the authoritative row order). Also present:
+  `string_graph_v9.npz` with the **full** 19,496-node / 929,472-edge STRING graph and `landmark_idx` — so a
+  2-hop variant through non-landmark intermediates is possible later, and is deliberately out of scope now.
+- **Status:** delegated as **W7** (`research/W7_union_graph.md`), 2026-09-21. CPU-only. Free.
+- **Two decisions made in the brief, not delegated:** term-size filtering is mandatory (a 400-gene pathway
+  is a 79,800-edge clique with no specificity; `A_copathway.npy` at 12.83 % density is the symptom), and
+  the three source weights are emitted **separately and unnormalised** because they are different
+  quantities and collapsing them is a modelling choice for the consumer.
 
 ### A3. Chromatin direction/sign head — "the one form of the question this project has never put"
 **Source:** §49.4, from Agrawal et al. (F1000Research), the closest flank found by the adversarial novelty
