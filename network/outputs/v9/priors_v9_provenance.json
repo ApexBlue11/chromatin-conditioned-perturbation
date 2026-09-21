@@ -1,0 +1,73 @@
+{
+  "created": "2026-08-26 15:08",
+  "seconds": 12.5,
+  "sources": {
+    "9606.protein.links.v12.0.txt": {
+      "sha256_first64MB": "3563f3f833b5d048845b20155d6006a11fcc7bef584d24cdf0808eb5ffbb09d3",
+      "bytes": 630908617
+    },
+    "9606.protein.info.v12.0.txt": {
+      "sha256_first64MB": "a65e52748022d6a8e953843645a5032b094017225d95de9c6cb6fd4577d0a7ad",
+      "bytes": 6257901
+    },
+    "ReactomePathways.gmt": {
+      "sha256_first64MB": "cf17607f842c1742d3ecb96e6a4b03f11889c39f44005a37c31d12e4c006b65e",
+      "bytes": 1017374
+    },
+    "GO_Biological_Process_2023.gmt": {
+      "sha256_first64MB": "4be7e1b5ed62ab3a8a4837743fa8c9520fc572c5d28dcad8478ed136189908b9",
+      "bytes": 1374880
+    }
+  },
+  "hgnc": {
+    "path": "C:\\Projects\\LINCS\\baseline\\hgnc_complete_set.txt",
+    "sha256_first64MB": "5a2ed2d1ec244d1ad8a096edc04839c83d635ec886f5bc4b0dd77c00964af697"
+  },
+  "symbols": {
+    "renamed": 34,
+    "unresolved": 0
+  },
+  "string": {
+    "threshold": 400,
+    "nodes": 19496,
+    "undirected_edges": 929472,
+    "xpert_reference": {
+      "nodes": 19392,
+      "edges": 901260
+    },
+    "isolated_landmarks": {
+      "old_truncated": 66,
+      "induced_978": 46,
+      "full_graph": 8
+    }
+  },
+  "pathways": {
+    "nodes": 800,
+    "reactome": 367,
+    "go_bp": 433,
+    "size_filter": [
+      5,
+      500
+    ],
+    "min_landmarks": 1,
+    "landmarks_covered": 928,
+    "orphans": 50,
+    "reactome_only_orphans": 213
+  },
+  "gates": {
+    "string_isolated": {
+      "handoff": "66 -> ~0",
+      "measured_from": 66,
+      "measured_to": 8,
+      "met": true,
+      "note": "residual are landmarks with no STRING entry under any symbol"
+    },
+    "reactome_orphans": {
+      "handoff": "231 -> ~0",
+      "reactome_only": 213,
+      "with_go_bp": 50,
+      "met": false,
+      "note": "NOT reachable from Reactome: only 11,963 genes are annotated at all, so 213 landmarks are absent at any filter. GO:BP added as a second NAMED source takes it to 50."
+    }
+  }
+}

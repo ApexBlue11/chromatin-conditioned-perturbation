@@ -1,0 +1,16 @@
+{
+  "dim": 128,
+  "epochs": 30,
+  "nodes": 19496,
+  "train_edges": 882999,
+  "holdout_edges": 46473,
+  "use_dti": false,
+  "seed": 0,
+  "link_auc_uniform": 0.8934,
+  "link_ap_uniform": 0.8907,
+  "link_auc_degree_matched": 0.9198,
+  "link_ap_degree_matched": 0.9199,
+  "comembership_auc": 0.6388,
+  "note": "degree-matched is the honest null; uniform is solvable by degree alone",
+  "seconds": 129.6
+}

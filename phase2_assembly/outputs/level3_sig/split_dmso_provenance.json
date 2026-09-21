@@ -1,0 +1,8 @@
+{
+  "phase": "P1",
+  "min_dmso": 6,
+  "plates": 2018,
+  "signatures": 202956,
+  "half_disagreement_mean": 0.18520906567573547,
+  "seconds": 25.6
+}

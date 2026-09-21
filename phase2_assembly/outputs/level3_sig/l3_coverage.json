@@ -1,0 +1,35 @@
+{
+  "P2": {
+    "n_signatures": 107152,
+    "covered": 106058,
+    "pct": 98.98,
+    "lost_no_well": 0,
+    "lost_plate_lt_min_ctl": 1094,
+    "min_ctl": 3,
+    "agg": "mean",
+    "plate_col": "det_plate",
+    "n_plates": 903,
+    "n_treated_wells": 312570,
+    "n_dmso_wells": 19234,
+    "seconds": 51.5
+  },
+  "TOTAL": {
+    "n_signatures": 310114,
+    "covered": 309020,
+    "pct": 99.65
+  },
+  "P1": {
+    "n_signatures": 202962,
+    "covered": 202962,
+    "pct": 100.0,
+    "lost_no_well": 0,
+    "lost_plate_lt_min_ctl": 0,
+    "min_ctl": 3,
+    "agg": "mean",
+    "plate_col": "rna_plate",
+    "n_plates": 2023,
+    "n_treated_wells": 662576,
+    "n_dmso_wells": 28463,
+    "seconds": 105.2
+  }
+}

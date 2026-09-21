@@ -3024,6 +3024,56 @@ caught — **all before the first GPU hour.** Running tally: **39 of 42 challeng
 reversals in this project's favour both came from the reviewer reading our own artefacts more carefully
 than we did.
 
+## 59. The SA-on run landed: 12/12 epochs, both guards fired, and a batch confound I created (2026-09-21)
+
+`apexblue/lincs-v9-drugsa-s0`, T4x2, seed 0, fold 0, `drug_self_attn=True`. Status COMPLETE, epochs 0-11
+all present, **6.232 h elapsed** against a 7.5 h guard that never tripped. Artefacts retrieved:
+`ckpt_v9_fold0_seed0.pt` (216.98 MB, now `external/v9_checkpoints/sa0_ckpt_v9_fold0_seed0.pt`) and
+`metrics_v9_fold0_seed0.json`. **GPU hours spent this session: 6.23.**
+
+### 59.1 ✅ Both guards fired, and GUARD 2 reproduced the dry run exactly
+From the kernel log, line 4, before a single training step:
+```
+mounted code verified: quantiser fix present; _DrugBlock contextualises (|d|=0.4526)
+and diagonal is exact (|d|=0.0e+00); 32,868 params/block
+```
+`0.4526` and `0.0e+00` are the same values the local dry run produced, so the mounted dataset version was
+the one intended and the diagonal operator is exact **on Kaggle's torch**, not only on ours. Line 5 confirms
+the arm was actually enabled: `drug_sa=True`. The checkpoint carries `cfg['drug_self_attn'] = True` and
+**40 `perturb.*.drug_sa.*` tensors**, so `interaction_2x2.py` will not hit its refusal path.
+
+### 59.2 🔴 The cross-run main effect is CONFOUNDED BY BATCH SIZE. My error, in the invocation.
+`V9TrainConfig.batch = 48`. The three SA-off reference runs (`r0/r1/r2`) were launched with `--batch 96`.
+**I did not pass `--batch` to this kernel**, so it trained at 48. Comparing the two runs therefore varies
+batch size *and* drug self-attention *and* +26.9 % parameters (11,706,043 -> 14,852,059) at once:
+
+| split | SA-off (batch 96) | SA-on (batch 48) | naive difference |
+|---|---|---|---|
+| unseen_cell | 0.5152 | 0.5165 | +0.0013 |
+| unseen_compound | 0.5846 | 0.5703 | **−0.0143** |
+| unseen_both | 0.4679 | 0.4669 | −0.0010 |
+
+**None of these three numbers may be read as the effect of drug self-attention** and none will be quoted as
+such. This is exactly the failure class review 003's C1 forced out of the design: the pre-committed estimand
+[§58.4] is the **within-checkpoint** 2x2 interaction, computed on one set of weights where batch size,
+parameter count and training trajectory are all held fixed by construction. The design survives my
+invocation error; a main-effect design would have been destroyed by it.
+
+If a clean main effect is ever wanted it costs another ~5.8 h at `--batch 96`, and that is a separate
+decision, not something to be inferred from this table.
+
+### 59.3 Step cost, measured rather than projected
+1816.9 s/epoch against the SA-off run's 1684.5 s at half the batch -> **1.079x per epoch**, i.e. the drug
+side is cheap, as §58.5 argued from the 34-vs-978 token asymmetry. The local `1.009x` full-width estimate
+was a floor, as flagged; the true figure is larger but still small, and per *row* the SA-on run did twice
+the optimiser steps.
+
+### 59.4 Method rule 14
+**An A/B invocation must pin every knob the reference run pinned, not rely on defaults matching.** The
+defaults were never the baseline's settings; `--batch 96` was an explicit choice on the reference runs and
+silence reverted it. Before any future arm is launched, diff the full `tcfg` of the intended baseline
+checkpoint against the argv being sent, and log the diff in the kernel.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

@@ -310,7 +310,13 @@ def main():
 
     ckpt_fn = os.path.basename(ckpt_path)
     ckpt_stem = os.path.splitext(ckpt_fn)[0]
-    dst_json = os.path.join(ROOT, 'model', 'results', f'v9_interaction_2x2_{ckpt_stem}.json')
+    # The output path must carry EVERY dimension the run varies, or a later run silently overwrites an
+    # earlier result. `v9_vs_ridge_*.json` was keyed off the checkpoint alone while the competitor label
+    # varied, and the file then claimed to be about a model it had not been computed against. `--key` is
+    # the specificity control's only varying argument, so it belongs in the name. 'atoms' keeps the
+    # original filename so the result already on disk is not orphaned.
+    key_tag = '' if a.key == 'atoms' else f'_key-{a.key}'
+    dst_json = os.path.join(ROOT, 'model', 'results', f'v9_interaction_2x2_{ckpt_stem}{key_tag}.json')
     os.makedirs(os.path.dirname(dst_json), exist_ok=True)
 
     print(f"=== v9 2x2 Interaction Harness [TASK W5] ===", flush=True)
@@ -384,6 +390,7 @@ def main():
     }
 
     rng = np.random.default_rng(a.seed)
+    row_dumps = {}
     for name, key in [('unseen_cell', 'test_coldcell'),
                       ('unseen_compound', 'test_colddrug'),
                       ('unseen_both', 'test_coldboth')]:
@@ -403,6 +410,13 @@ def main():
         chunks = [{k: (v.to(dev) if torch.is_tensor(v) else v) for k, v in c.items()} for c in chunks]
 
         r11, r01, r10, r00, dy_stats = evaluate_chunks_2x2(model, chunks, key=a.key)
+        # RESULTS 60: on unseen_compound the difference-of-medians interaction (-0.00116, spans zero) and
+        # the paired-mean interaction (-0.00938, excludes zero) disagree by ~8x. They are different
+        # functionals, not two estimates of one number, and which is the honest summary depends on the
+        # shape of the per-row double-difference distribution -- which no statistic in this JSON can
+        # answer. Keep the four per-row vectors so that question is answerable without paying for
+        # another inference pass.
+        row_dumps[name] = {'r11': r11, 'r01': r01, 'r10': r10, 'r00': r00, 'rows': idx_eval}
         st = boot_2x2(r11, r01, r10, r00, n_boot=a.n_boot, seed=a.seed)
         st['n_eligible'] = n_eligible
         st['n_eval_requested'] = a.n_eval
@@ -425,6 +439,15 @@ def main():
     with io.open(dst_json, 'w', encoding='utf-8', newline='\n') as fh:
         fh.write(json.dumps(out, indent=2) + '\n')
     print(f"Wrote 2x2 interaction results to {dst_json}", flush=True)
+
+    if row_dumps:
+        flat = {}
+        for nm, d in row_dumps.items():
+            for k, v in d.items():
+                flat[nm + '__' + k] = np.asarray(v)
+        dst_npz = os.path.splitext(dst_json)[0] + '_rows.npz'
+        np.savez_compressed(dst_npz, **flat)
+        print("Wrote per-row vectors to " + dst_npz, flush=True)
 
 
 if __name__ == '__main__':

@@ -98,7 +98,8 @@ def main():
         if not model.bins_fitted:
             raise SystemExit('FATAL: quantiser did not fit.')
     out = {'ckpt': 'untrained' if a.untrained else os.path.basename(a.ckpt),
-           'epoch': int(ck.get('epoch', -1)), 'splits': {}}
+           'epoch': int(ck.get('epoch', -1)), 'n_eval_requested': int(a.n_eval),
+           'batch': int(a.batch), 'splits': {}}
 
     for name, key in [('unseen_cell', 'test_coldcell'), ('unseen_compound', 'test_colddrug'),
                       ('unseen_both', 'test_coldboth')]:
@@ -106,8 +107,14 @@ def main():
         idx = idx[ds.has_l3[idx]]
         if len(idx) < 300:
             continue
+        # RESULTS 58/004: the reviewer read this script's `n` (480) as the size of the split and built a
+        # power argument on it. It was an `--n_eval` CAP, and the cap was not recorded anywhere in the JSON,
+        # so nothing in the artefact could have corrected the reading. Record both numbers and whether the
+        # cap actually bound. Method rule: a count in a result file must say what it is a count OF.
+        n_eligible = int(len(idx))
         idx = np.sort(rng.choice(idx, min(a.n_eval, len(idx)), replace=False))
-        rec = {'n': int(len(idx))}
+        rec = {'n': int(len(idx)), 'n_eligible': n_eligible,
+               'n_eval_requested': int(a.n_eval), 'n_eval_bound': bool(a.n_eval < n_eligible)}
         print(f'\n=== {name} (n={len(idx)}) ===', flush=True)
 
         # one big batch per chunk, kept for the ablations so every ablation sees identical rows
