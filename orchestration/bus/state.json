@@ -1,5 +1,5 @@
 {
-  "iteration": 10,
+  "iteration": 11,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "006_alpha_gate_and_edgegate_design"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -31,8 +33,8 @@
     "005_drugsa_result"
   ],
   "gpu_hours_spent_this_session": 6.23,
-  "pending_decision": null,
-  "note_current": "HUMAN CHECKPOINT reached. Round closed: SA-on run bought (6.23 GPU-h), 2x2 measured, hypothesis refuted, review 005 returned one BLOCKING, 60.9 item 2 retracted, the 47.5 parameter pair retracted and reconciled. W6 alpha operator delegated, verified by me, and its reading rule pre-committed in RESULTS 62 before the sweep finished. IN FLIGHT: full alpha sweep on the SA-on checkpoint. NEXT AUTOMATIC STEP: the --key x_cell null-key sweep, which RESULTS 62.2 makes a gate -- the hypothesis curve is not read at all unless the null key is non-monotone. Both are zero GPU-hours. AWAITING A HUMAN DECISION: whether to buy 50.5 (Bai et al. retrain-from-scratch drug ablation, ~5.8 GPU-h) given atoms and chromatin are both now measured nulls.",
+  "pending_decision": "packet 006: (a) is the null-key gate a fail, given my wording sat between \"monotone trend\" and \"strictly monotone\"? (b) is retiring attention masking right or an overreaction? (c) what estimand and null key for the edge-gate arm, specified independently since I have chosen wrongly twice? (d) is edge-gating the best 5.8 GPU-h buy against 50.5 and 46.5?",
+  "note_current": "Round closed. Attention-masking probe RETIRED: two operators, two estimands, same null-key failure. 61.7 survives all three probes and is the round deliverable. A2 built free (81,846-edge union graph, 17.13% dense, tests 7/7). Direction set by the principal: mechanism line leads, dissection and cold-cell kept alive. Packet 006 out with the gate result and the edge-gate design, pre-spend.",
   "challenges_upheld": "45 of 48",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1

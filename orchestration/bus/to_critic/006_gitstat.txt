@@ -1,0 +1,185 @@
+commit 5076f9ccac81365f480bc54b757f46e833c6bdeb
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 21:36:21 2026 +0530
+
+    The gate artefacts themselves, which my earlier add silently missed
+    
+    The 65 commit recorded the gate's verdict but not the two files it rests on -- an earlier `git add`
+    with a `2>/dev/null` on the end swallowed the failure for these paths. Reading the output of git add
+    rather than its exit code is already ORCHESTRATION 6d's rule for the worktree case; it applies here too.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ ...a_sweep_sa0_ckpt_v9_fold0_seed0_key-x_cell.json | 245 +++++++++++++++++++++
+ model/results/v9_alpha_sweep_sa0_gate.log          |  28 +++
+ 2 files changed, 273 insertions(+)
+
+commit ec06e43d26d448a3bb77dc2ce22c83771f8d19c9
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 21:36:07 2026 +0530
+
+    Method rule 18 applied in code: alpha_sweep emits the estimand's own CI and dumps per-row vectors
+    
+    The script emitted an interval only for atom_effect, a difference of medians, while the estimand of
+    record is the median of the per-row contrast. RESULTS 62.3 then wrote a threshold against "the alpha=1
+    bootstrap CI" and silently got the wrong one, 3.5x too wide on the primary split. Now both intervals
+    come from the same resample matrix, so they are directly comparable, and the four per-row vectors dump
+    to npz -- which has twice today overturned a conclusion a summary statistic had suggested.
+    
+    Safe to change now: both the hypothesis run and the gate run are complete and were computed by
+    identical code, which is why this was deferred in 63.4.
+    
+    Also: the smoke test I ran to check this change OVERWROTE the finished 1500-row result, because the
+    output path carried --key but not --n_eval. Recoverable only because the full run was already
+    committed. n_eval was in the JSON body, which documents a file but does not stop an overwrite. Path now
+    carries n_eval when non-default, full run restored from git and verified intact, and the rule is in
+    ORCHESTRATION 6d: the output path carries EVERY argument that changes the numbers, not just the one
+    that bit last time.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/v9/alpha_sweep.py        | 28 ++++++++++++++++++++++++++++
+ orchestration/ORCHESTRATION.md | 10 ++++++++++
+ 2 files changed, 38 insertions(+)
+
+commit bbd7fe48bf44ddab5c21191d5122d7c10fd3ad70
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 21:33:53 2026 +0530
+
+    65.1a: the gate fails the same way on all three splits, so it is not primary-split-specific
+    
+    Null-key alpha dependence as a fraction of the hypothesis key's: unseen_cell 21%, unseen_compound 62%,
+    unseen_both 66%. Both compound splits have the null key reproducing roughly two thirds of the effect
+    on an input drug attention cannot reach, and on both it is monotone over four of five alphas.
+    
+    unseen_cell is the one split where the null key is comparatively quiet -- and it is precisely the split
+    57 and 58.3 removed as primary for seed-instability with a sign flip, so it cannot be promoted now to
+    carry the claim. Noting that explicitly because promoting it is the obvious available move and it is
+    not a legitimate one.
+    
+    rows_sha on the control run matches the 2x2 row set on all three splits, so hypothesis and null key ran
+    on byte-identical rows. Gate artefacts and log committed.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+commit eac184af62d34906814d70850d5b7d9ffcc5d565
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 21:31:51 2026 +0530
+
+    The gate FAILS. The attention-masking probe is retired, and the prettiest curve we made is not read.
+    
+    Null key on the primary split, estimand of record: +0.01140 +0.01303 +0.01404 +0.01502 +0.01444.
+    Monotone across the first four alphas, endpoint span 0.00304 against the hypothesis key's 0.00492 --
+    a specificity ratio of 1.6:1 on an input drug attention cannot reach.
+    
+    62.2 said "monotone trend" and 62.3 said "strictly monotone", which was sloppy, so I checked both
+    readings. As monotonicity: three substantial positive steps then a -0.00058 dip -- a trend, plainly.
+    As magnitude, ignoring monotonicity entirely: 62% of the hypothesis effect. The gate fails either way,
+    and that robustness is the only reason I can state the verdict without the charge review 005 C1
+    correctly brought last time -- that I picked the reading that suited me.
+    
+    So 63's curve is NOT READ. It is strictly monotone on the primary split, ordered, and clears its
+    magnitude bar, and it does not survive its own control.
+    
+    65.3 retires the operator rather than re-specifying it. Two different estimands, two different
+    operators, same architecture, same failure: the binary diagonal 2x2 (null key 4.1 sigma on the primary
+    split, 6.1 sigma on unseen_both where the hypothesis key gave 1.7) and now the continuous alpha
+    dose-response. The conclusion is not "find a third statistic". Masking a trained attention module puts
+    the model 0.09-0.12 off its manifold -- five to seven times any effect being measured -- and a model in
+    that state redistributes what it leans on across every input, including ones the masked module never
+    touches. No further mechanism claim will be built on attention masking; a mechanism claim needs an arm
+    TRAINED in the configuration being compared, which costs GPU hours and must be priced, not smuggled in
+    as a free inference-time probe.
+    
+    Method rule 19: write the gate as an inequality, not an adjective. Had the null key landed between my
+    two wordings the verdict would have been mine to choose, which is the exact position a pre-commitment
+    exists to prevent.
+    
+    What survives, unchanged for the third time: 61.7. Three probes have been aimed at WHY the atom tokens
+    fail and all three are retracted or retired. That they fail has survived all three -- three seeds
+    SA-off, one seed SA-on, 66% of rows.
+    
+    Round cost: 6.23 GPU-hours, all of it the one training run. Every probe, control, gate and correction
+    after it was free.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md | 81 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 80 insertions(+), 1 deletion(-)
+
+commit e4ff4c54c668530f81a33dc0d69fcc9f04a4a952
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 21:30:45 2026 +0530
+
+    A2 built: the unioned gene-gene graph, 7/7 verified by me, and a false premise of mine corrected
+    
+    81,846 edges over the 978 landmarks with multi-hot [STRING, Reactome, GO] provenance and the three
+    sources' own unnormalised weights. Tests 7/7, run by me, and I read the bodies as well as the output:
+    check 2 asserts STRING presence AND absence, check 3 walks every co-member pair of 50 sampled
+    pathways, check 5 asserts raw > surviving, check 7 asserts an edge unique to each source. They can
+    fail. Zero GPU-hours, nothing downloaded.
+    
+    64.2 is my error. The W7 brief justified mandatory term-size filtering by asserting a 400-gene pathway
+    contributes a 79,800-edge clique and that A_copathway's 12.83% density is the symptom. Checked against
+    M_pathway_v9.npy: Reactome's landmark-restricted terms have median 14 members and a MAXIMUM of 79.
+    Zero exceed 100. So max_term=200 was entirely non-binding and removed nothing; the 16 terms dropped
+    went for being too SMALL. The largest single term contributes 0.64% of all possible pairs. The 12.53%
+    density is the aggregate of 784 medium terms, not a few giant cliques. The worker implemented the
+    brief correctly; the wrong premise was mine, and it was cheap to check and I did not check it.
+    
+    64.3 is the part that matters for the principal's A1. The union is 17.13% dense -- one pair in six --
+    so message passing or an attention bias over it is close to uniform smoothing, which is a concrete
+    mechanism for why 48 called our STRING null predictable. And the density is INTRINSIC to co-membership
+    over a 978-gene panel, not fixable by filtering.
+    
+    That argues FOR A1, not against it: if a generic biological graph carries little at this density, the
+    thing that would make it informative is a per-cell mechanism selecting which edges conduct. So A1's
+    consumer must not be message passing over the union -- it must be a chromatin-gated edge weight, where
+    the gate does the sparsification and the sparsification IS the hypothesis. An arm that message-passes
+    the raw union first would be testing the dense prior and confounding it with the gating question.
+    Recorded before the arm is built.
+    
+    Also recorded: Reactome and GO overlap at Jaccard 0.546, so the "three-graph union" is really STRING
+    plus one co-annotation blob, and TxPert's monotone-improvement result should not be assumed to
+    transfer to two sources this correlated.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md                          |  74 ++++++++
+ network/outputs/v9/union_graph_v9.npz             | Bin 0 -> 255247 bytes
+ network/outputs/v9/union_graph_v9_provenance.json |  49 +++++
+ network/scripts/build_union_graph.py              | 211 ++++++++++++++++++++++
+ network/scripts/test_union_graph.py               | 137 ++++++++++++++
+ research/W7_union_graph_REPORT.md                 | 182 +++++++++++++++++++
+ 6 files changed, 653 insertions(+)
+
+commit 82588fdab9d8177853764c61476e9641e58dff77
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 21:25:40 2026 +0530
+
+    MANUSCRIPT: the STOP block was accurate but predated three retractions
+    
+    Not rewriting the draft -- its own STOP block correctly gates that on the 5-fold x 3-seed cold-cell
+    run, and rewriting ahead of a pending gate result would risk writing a claim I then retract. What was
+    wrong is that the block still described chromatin as "a supporting measured-minor result" when 55 had
+    already measured it as a null, and still listed atom-level representations as a contribution when 57
+    and 61.7 measure them as a cost.
+    
+    Added: chromatin at +0.000360 CI [-0.005433, +0.006153] with sign test p=1.000; the atom tokens
+    hurting on 66% of rows even with drug self-attention trained in; and Bai et al., where a drug-free
+    MLP scores 0.637 against XPert's 0.633.
+    
+    Also restated the framing. Two of the four things this draft names as its substrate are now measured
+    not to earn their place, while v9 still beats XPert's released checkpoint on their own benchmark and
+    a ridge by +0.178 on cold-cell. That combination IS the contribution rather than an embarrassment:
+    what is load-bearing in a SOTA-competitive perturbation model, measured, plus the forensics explaining
+    why the field has not noticed. The forward-looking mechanism line is pointed at IDEAS A1/A2 and
+    explicitly excluded from this draft.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ MANUSCRIPT.md | 22 ++++++++++++++++++----
+ 1 file changed, 18 insertions(+), 4 deletions(-)
