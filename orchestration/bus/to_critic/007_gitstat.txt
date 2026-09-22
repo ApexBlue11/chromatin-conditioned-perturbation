@@ -1,0 +1,103 @@
+commit 726a5a23f37c4d112a45846bd5415c80c9243805
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Tue Sep 22 06:14:31 2026 +0530
+
+    46.5 feasibility audit: three blockers, and XPert's training path does not apply its attention mask
+    
+    Before buying an hour of the 5.8 that 66.8 committed, I audited whether their code runs here. It does,
+    but not for 5.8 h and not without declared deviations. Zero GPU-hours.
+    
+    Good news first: their trainer takes --nfold split_cold_cell_1 natively and the 68,830-row subset
+    carries split_cold_cell_1..5 as native obs columns -- the same splits v9 was evaluated on. So the
+    comparison is their code, their data, their split definition, and head_to_head_mdmt.py already refuses
+    to pair unless row_index matches exactly.
+    
+    Blocker 1: num_epochs 2500 with patience 50. Runtime is early-stopping driven and unbounded. My 5.8 h
+    figure was a v9-shaped estimate and does not transfer. Needs a wall-clock guard and a max-epoch cap,
+    and the cap is itself a deviation from their recipe.
+    
+    Blocker 2: flash_attn is a hard training dependency. My first reading was that it is dead code under
+    sparse_flag=False by analogy with 47.6 -- WRONG, and I checked before acting. The branch is on
+    output_attention, which train_xpert.py defaults to False, so training takes the flash path. 47.6 is
+    confirmed from a second angle though: sparse_flag is threaded through four signatures and never
+    branched on anywhere.
+    
+    Blocker 3 is the finding. The flash branch is called with no mask argument, while the drug attention
+    mask IS constructed by get_unimol_drug_feat and passed at model_XPert.py:225. So in the training
+    configuration the mask is computed, passed, and not applied. Measured on their own data: mean 53.9
+    valid atoms of 122 slots, 55.8% of all slots are padding, padded features exactly zero. Padded slots
+    are not inert -- key and value are nn.Linear with bias=True, so each emits one identical constant --
+    and at equal scores padding takes 55.8% of the softmax mass on average, 95.9% for the smallest
+    molecules. All ~68 padded slots share one key, so suppressing them requires beating a count of 68.
+    
+    68.5 lists what I am NOT claiming, because I have been wrong three times criticising this paper and
+    the pattern each time was asserting from code-reading without exhausting alternatives. I cannot verify
+    what the RELEASED CHECKPOINT was trained with; I have not run flash_attn directly; and a constant
+    padded value could in principle be absorbed harmlessly.
+    
+    Consequence: "train XPert as published" is now a choice between two different models -- SDPA without
+    the mask (faithful to the code) or with it (faithful to the intent) -- and they are not the same
+    experiment, because v9 masks padding properly. NOT SPENDING YET. Packet 007 puts the choice and the
+    epoch cap to review first.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md | 106 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 106 insertions(+)
+
+commit 3fc678100b8719e4afb416f52c41ff85d2a64337
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Mon Sep 21 21:45:32 2026 +0530
+
+    Review 006: the operator was masking the wrong thing all along, and 46.5 wins the next 5.8 hours
+    
+    Six challenges, all six upheld, three verified by me against the code or arithmetic first. Tally 51/54.
+    
+    C1 is the most consequential finding in six rounds on this question and neither of us caught it until
+    now. Verified in code: model_v9.py:139 puts the GLOBAL TOKEN at position 0 of the drug sequence -- it
+    carries ECFP4, RDKit descriptors and the Uni-Mol CLS -- and modules_v9.py:244 blends the WHOLE LxL
+    matrix. So at alpha=0 the global token cannot read the atoms and no atom can read it. Every masking
+    operator used so far removed global-atom flow TOGETHER WITH atom-atom flow, while the hypothesis is
+    about atom-atom only. That is very likely where most of the 0.09-0.12 S11-S10 came from, which is why
+    every estimand built on it drowned.
+    
+    So 65.3's "the whole family is confounded" was too strong and is amended: THIS operator is retired, and
+    the family has an untried member that matches the hypothesis -- blend only A[..., 1:, 1:]. Free.
+    RESULTS 67 pre-commits it before a line exists, with method rule 19 honoured: the gate is an
+    INEQUALITY (null key span below 25% of the hypothesis span, chosen because the two failed gates came in
+    at 62% and 66% and the quietest null key yet was 21%), plus a prior diagnostic -- if S11-S10 is not
+    below +0.03 the operator is abandoned without computing any interaction.
+    
+    65.2 also amended: the reviewer told me to drop the 1.6:1 magnitude ratio from the gate justification
+    because it was not in the pre-committed rule, and leaning on it implies the trend alone would not have
+    been disqualifying. It would.
+    
+    C2 verified: Reactome union GO is 78,381 of 81,846 edges, 95.77%, and STRING contributes 3,465 unique,
+    4.23%. It is not a three-source union; it is a co-annotation graph plus a 4% STRING increment. Framing
+    dropped. C3: I re-imported a ROW-level estimand into a CELL-level chromatin question -- the exact
+    substitution that produced the retracted +0.0042 against a cluster estimate of +0.00036. C4: my own
+    argument turned against the design -- if a dense graph is near-uniform smoothing then ANY learned gate
+    helps and chromatin is incidental, so the real null is a second TRAINED run with static E, repricing
+    the edge gate at ~11.6h not 5.8h. C6: the 0.00005 margin is a stable tie -- 12/12 bootstrap seeds
+    positive, magnitude 0.2-1.2% of the width -- recorded as met to within bootstrap resolution, and moot.
+    
+    DECISION, C5 accepted: the next 5.8 GPU-hours go to 46.5, not the edge gate. state.json's objective is
+    whether v9 generalises to unseen cells better than published SOTA, and review 001 C8 left that
+    INADMISSIBLE -- our 0.4734 is fold 1 one seed, XPert's 0.383+-0.027 is a five-fold mean, and no XPert
+    run exists on any cold-cell fold. 46.5 makes the headline claim admissible on identical rows with
+    machinery that already exists and is already guarded. The decisive argument is one I should have made
+    myself: it is a direct paired comparison with NO null-key problem, and the last two probes both died on
+    their null keys.
+    
+    Recorded in 66.7: the reviewer built a normalisation that nearly rescues the hypothesis curve, then
+    refused to use it -- and declined to compute the alternatives specifically to avoid selecting among
+    them -- on the grounds that it was the move it criticised in 005 C2. That is the standard to hold.
+    
+    Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md                           | 213 ++++++++++++++++++++-
+ orchestration/bus/adjudicated/006_review.md        |  99 ++++++++++
+ .../006_alpha_gate_and_edgegate_design.md          |   0
+ .../bus/{to_critic => processed}/006_gitstat.txt   |   0
+ orchestration/bus/state.json                       |  18 +-
+ 5 files changed, 318 insertions(+), 12 deletions(-)

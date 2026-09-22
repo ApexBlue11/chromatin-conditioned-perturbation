@@ -1,5 +1,5 @@
 {
-  "iteration": 12,
+  "iteration": 13,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "007_xpert_coldcell_feasibility"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -32,8 +34,8 @@
     "006_alpha_gate_and_edgegate_design"
   ],
   "gpu_hours_spent_this_session": 6.23,
-  "pending_decision": null,
-  "note_current": "Review 006: gate FAIL confirmed independently; my magnitude-ratio justification dropped as not pre-committed. C1 found in code that every masking operator so far also cut the GLOBAL TOKEN off from the atoms (it is position 0 and the blend covered the whole matrix), which is very likely most of the 0.09-0.12 degradation that killed every estimand. Atom-only mask is the untried operator matching the hypothesis, free, pre-committed in RESULTS 67 with an inequality gate at 25%. Union graph reframed: 95.77% co-annotation, 4.23% STRING-only. Edge-gate arm repriced at ~11.6 GPU-h because the real null needs a second TRAINED run.",
+  "pending_decision": "packet 007: which XPert do we benchmark against? Their flash path applies NO attention mask while 55.8% of atom slots are padding, so SDPA-without-mask (faithful to the code) and SDPA-with-mask (faithful to the intent) are different models. Also: what epoch cap, and one fold or five?",
+  "note_current": "46.5 audited before spending: feasible, but 5.8h was a v9-shaped estimate that does not transfer (num_epochs 2500, patience 50), flash_attn is a hard training dep, and their training path constructs the drug attention mask then never applies it. Prerequisite resolved and guarded: the unimol array their loader wants is derivable from the released npz, all 1970 reachable pert_idx covered, rebuilt in-kernel rather than uploaded. Packet 007 out. NO hours committed.",
   "challenges_upheld": "51 of 54",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1,
