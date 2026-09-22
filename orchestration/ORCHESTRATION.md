@@ -321,6 +321,24 @@ test had run. The code happened to be structurally sound. That was luck, not pro
 A worker that backgrounds its own tests, goes idle, and gets its tasks killed on session exit returns 0
 having changed nothing. See §6b: **verification is running the tests yourself**, never reading the report.
 
+## 6e. Before asking, or claiming a finding: grep the repo (method rule 20)
+
+Three packets have asked the adversary for something this project already had:
+
+| packet | asked for | already existed |
+|---|---|---|
+| 002 | a chromatin re-score needing GPU | the predictions were on disk in `external/v9_mdmt_preds/` |
+| 005 | a paired-mean interval | `interaction_2x2.py` already emitted it |
+| 007 | a decision on how to replace `flash_attn` | `model/v9/_shims/flash_attn/` had made it, tested it, and validated it against a published number |
+
+The 007 case was worse than a wasted round trip: the mask omission was written up in `RESULTS` as a
+**new finding** when a docstring in our own tree had stated it verbatim two days earlier. That is a
+provenance error in our own record, not just a duplicated effort.
+
+> **Rule.** Before writing "we should build X" or "I have found Y":
+> `grep -ril "<concept>" model/ research/ orchestration/ network/` and read `IDEAS.md`.
+> The adversary must not be the mechanism by which we discover what we have already done.
+
 ## 7. Provenance contract
 
 Every number that enters `RESULTS.md` or `CLAIMS.md` carries:

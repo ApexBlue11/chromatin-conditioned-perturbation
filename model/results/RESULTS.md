@@ -3915,7 +3915,7 @@ flash branch.** flash_attn is required to train XPert as released.
 §47.6 is nonetheless confirmed from a second angle: `sparse_flag` is threaded through four signatures
 (`:186, :251, :342, :361`) and **never branched on anywhere**. Two different switches; only one is dead.
 
-### 68.4 🔴 Blocker 3 — and the finding: the flash branch is called WITHOUT an attention mask
+### 68.4 🔴 Blocker 3 — the flash branch is called WITHOUT an attention mask — ⚠️ **NOT A NEW FINDING, see §69.2**
 `SelfAttention.forward(hidden_states, attention_mask=None, sparse_flag=False, output_attention=False)`
 uses `attention_mask` **only inside the `if output_attention:` branch**. The else branch is:
 ```python
@@ -3984,6 +3984,149 @@ for it beyond the one Bai et al. propose.
 ⇒ **Not spending yet.** Packet 007 puts the option choice and the epoch cap to review first. The free
 prerequisite work (building the `pert_idx`-indexed unimol array their loader expects, which we hold as an
 `idx`/`feat` npz rather than `all_drugs_unimol_arr.npy`) proceeds regardless.
+
+## 69. 🔴 Review 007 NOT-SUPPORTED: their recipe selects on the test fold, and I rediscovered our own shim (2026-09-22)
+
+`orchestration/bus/to_pi/007_review.md`, reviewed at `726a5a2`. Seven challenges, **all seven upheld** —
+four verified by me against the code and the released h5ad before acceptance. Running tally:
+**58 of 61 challenges upheld.** Verdict **NOT-SUPPORTED**: the audit was right, the plan was not.
+
+### 69.1 🔴 C1 BLOCKING, verified twice over: XPert's released recipe early-stops on the TEST fold
+`external/xpert/code/XPert/utils.py:127-133`:
+```python
+tr_data   = data[data.obs[nfold] == 'train']
+val_data  = data[data.obs[nfold] == 'valid']
+test_data = data[data.obs[nfold] == 'test']
+
+# for five-fold cross-validation
+if val_data.n_obs == 0:
+    val_data = test_data
+```
+Whether that fallback fires is an empirical question about their data, so I measured it on the released
+`l1000_mdmt_68830_subset.h5ad`. **No split column has a `valid` level:**
+
+| column | levels |
+|---|---|
+| `split_1`, `split_2` | train 55,064 / test 13,766 |
+| **`split_cold_cell_1`** | train 47,509 / **test 21,321** |
+| `split_cold_cell_2` | train 57,337 / test 11,493 |
+| `split_cold_cell_3` | train 56,567 / test 12,263 |
+| `split_cold_drug_1` | train 55,385 / test 13,445 |
+
+`valid` level present: **False on every one.** So the fallback fires on **every fold**, and then
+`train_xpert.py:537-542`:
+```python
+val_loss, ... = validate(model, val_dataloader, ...)   # val_dataloader IS the test set
+early_stop = stopper.step(val_loss4, model, epoch, optimizer)
+...
+best_model = stopper.load_checkpoint(model, optimizer)  # best-by-test-loss checkpoint
+```
+⇒ **Training XPert to its own early-stopping criterion gives it test-guided model selection that v9 does
+not get.** It also explains `:574`'s `test_metrics = val_metrics` as internally consistent rather than a
+bug — under the fallback they are the same rows.
+
+Note `split_cold_cell_1`'s test size is **21,321**, which is exactly the row count XPert's published
+cold-cell number is quoted on. So the published figure is on these rows.
+
+**⇒ DECISION, taken explicitly and recorded before any spend: option (a), as published, disclosed.** We
+run their recipe including the fallback, and state the asymmetry in the paper. The reasoning is the
+reviewer's and I accept it: the objective in `state.json` names *published* SOTA, so the comparison should
+be against what was published. The consequence is asymmetric and must be written down in advance:
+
+| outcome | reading |
+|---|---|
+| **v9 wins** | **conservative** — v9 beat a model that selected its checkpoint on the evaluation rows |
+| **XPert wins** | **uninterpretable** — the win may be the test-guided selection |
+
+Option (b), carving a real validation split out of `train`, is fairer but is no longer XPert-as-published
+and could not be set against 0.383 ± 0.027. Running both doubles the cost to answer a question the
+disclosure already answers.
+
+**What I am NOT putting in the record:** any claim that XPert's *published* 0.383 inherits this. The
+reviewer notes `--mode train` and `--mode test` differ in which metric survives, and neither of us can
+tell from the code which produced Table R8. C1 is solid about **what we would be running**, and that is
+all it is used for.
+
+### 69.2 🔴 C2: my §68.4 "finding" was already in this repo, written by us, tested, and validated
+`model/v9/_shims/flash_attn/flash_attn_interface.py` exists, dated 2026-09-20, and its docstring states
+§68.4's finding **verbatim**:
+
+> *"its attention branches the wrong way round from what the name suggests… `else:` # DEFAULT path:
+> `flash_attn_func(q, k, v, dropout_p)`, NO mask argument… Reproducing their numbers therefore requires
+> reproducing the flash path's semantics — including the fact that it ignores the mask."*
+
+It is installed only when the real package is absent (`xpert_native_eval.py:62-73`), checked by
+`test_xpert_compare.py`, and **it is the path that produced our 0.6933 on warm `split_2` against their
+published 0.688 ± 0.011** (packet 001). So packet 007's ask 1 was not a live choice: **option A is already
+built and already validated against a published number to within 0.005.**
+
+⇒ 🔴 **This is a process failure and the reviewer says it is the third: §002 asked for saved predictions
+already on disk, §005 asked for a paired-mean CI the harness already emitted, §007 asked for a decision
+the repo had already made and tested.** Method rule 20 below.
+
+What in §68.4 *was* new: the **quantification** — 55.8 % of slots padded, mean 53.9 valid atoms of 122,
+padded features exactly zero, `bias=True` on the projections, and the resulting size-dependent
+attenuation. The shim's docstring records that the mask is ignored; it does not record how much that costs.
+That part stands.
+
+### 69.3 ✅ C3, verified: the dense path is broken too, so "faithful to their intent" is not definable
+`models/model_utils.py:212-217`:
+```python
+if attention_mask is not None:
+    if attention_scores.size(-2) != attention_mask.size(-2):
+        attention_mask_pad = torch.ones((attention_scores.size(0), 2), ...)
+        attention_mask = torch.cat([attention_mask_pad, attention_mask], dim=-1)
+    else:
+        attention_scores = attention_scores + attention_mask
+```
+In the shape-mismatch branch — the case the branch exists to handle — the mask is padded, **reassigned,
+and never added.** Only the `else` adds it. And the pad value is `torch.ones(...)`, i.e. **+1 additive**,
+where their own convention from `get_unimol_drug_feat` is `0 = attend, −10000 = block`, so even when added
+it biases those positions *upward*.
+
+⇒ **Option B was never "their intent"; it would be our correction of their code — a third model.** If it
+is ever run it must be labelled that way. It changes nothing about the decision: A is the published path.
+
+### 69.4 ✅ C4: "absorbed harmlessly" does not hold as I stated it, and the counter-argument is testable
+Padded keys are `b_k` and padded values `b_v` — constant but **not zero**, so the output is
+`Σ a_i·v_i + m_pad·b_v` with `m_pad` running ~0 % to ~96 % across the library. Real-atom signal is
+attenuated by `(1 − m_pad)`, which varies **systematically with molecule size**. A constant term would be
+absorbable; this one is not constant.
+
+The reviewer's counter-argument, which I think is strong: all padded keys are **identical**, so the model
+can learn to suppress them by driving `q·b_k` low, and 2,500 epochs is ample. ⇒ Settled empirically by the
+free experiment in §69.6.
+
+### 69.5 ✅ C5, C6, C7 — three of my asks were overreach or wrong
+- **C5 / ask 4:** one fold is admissible. Review 001 C8's defect was that **no** XPert run existed on
+  **any** cold-cell fold; one fold scored by us on identical rows repairs exactly that. And **v9 itself is
+  fold 1 at one seed**, so five XPert folds against one v9 fold reintroduces an asymmetry. **Buy fold 1.**
+- **C6 / ask 3:** "unbounded runtime" was wrong. `patience: 50` with `init_epoch: 70` terminates in
+  practice; `num_epochs: 2500` is a ceiling. The real problem is C1 — the monitored metric is test loss.
+  If a wall-clock guard is imposed, record **per fold** whether early stopping or the guard fired, and
+  exclude guard-tripped folds from any cross-fold statistic.
+- **C7:** `train_xpert.py:573-574` computes `test_metrics` then overwrites it with `val_metrics`. Harmless
+  under C1's fallback, but it becomes silent misreporting under option (b). ⇒ **Stated rule: never read
+  their reported metrics.** Take predictions and score them with `head_to_head_mdmt.py`.
+
+### 69.6 The free experiment that settles A-versus-B by measurement
+Run the **released checkpoint** on warm `split_2` twice — once through the shim (unmasked, as coded) and
+once with their additive drug mask applied — and see which reproduces our **0.6933**. Inference only,
+every asset already on disk, **0 GPU-hours**. Reading pre-committed by the reviewer, adopted verbatim:
+
+> *"If both give ≈0.693 the distinction is moot; if only the unmasked one does, A is confirmed as the
+> published path by measurement rather than by reading."*
+
+This also tests C4's counter-argument directly: if masking barely moves the released checkpoint, the model
+already learned to ignore padding and A ≈ B in practice.
+
+### 69.7 Method rule 20
+**Grep the repo before asking a question, and before calling anything a finding.** Three packets have now
+asked for something this project already had. The cost is not just the round trip — §68.4 was written up as
+a discovery when a file in `model/v9/_shims/` had stated it two days earlier, which is a provenance error
+in our own record. Before any "we should build X" or "I have found Y": `grep -ril` the concept across
+`model/`, `research/` and `orchestration/`, and read `IDEAS.md`. The reviewer should not be the mechanism
+by which we learn what we have already done.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
