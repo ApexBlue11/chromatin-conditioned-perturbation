@@ -1,5 +1,5 @@
 {
-  "iteration": 13,
+  "iteration": 14,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "007_xpert_coldcell_feasibility"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -31,13 +29,20 @@
     "003_drugsa_design",
     "004_drugsa_design_v2",
     "005_drugsa_result",
-    "006_alpha_gate_and_edgegate_design"
+    "006_alpha_gate_and_edgegate_design",
+    "007_xpert_coldcell_feasibility"
   ],
   "gpu_hours_spent_this_session": 6.23,
-  "pending_decision": "packet 007: which XPert do we benchmark against? Their flash path applies NO attention mask while 55.8% of atom slots are padding, so SDPA-without-mask (faithful to the code) and SDPA-with-mask (faithful to the intent) are different models. Also: what epoch cap, and one fold or five?",
-  "note_current": "46.5 audited before spending: feasible, but 5.8h was a v9-shaped estimate that does not transfer (num_epochs 2500, patience 50), flash_attn is a hard training dep, and their training path constructs the drug attention mask then never applies it. Prerequisite resolved and guarded: the unimol array their loader wants is derivable from the released npz, all 1970 reachable pert_idx covered, rebuilt in-kernel rather than uploaded. Packet 007 out. NO hours committed.",
-  "challenges_upheld": "51 of 54",
+  "pending_decision": null,
+  "note_current": "Review 007 NOT-SUPPORTED, all 7 upheld. BLOCKING: their released recipe early-stops on the TEST fold -- no split column has a valid level, so utils.py:133 val=test fires on every fold and the best checkpoint is selected by test loss. Decision (a) taken and recorded. My 68.4 \"finding\" was a rediscovery of our own shim docstring (method rule 20 / ORCHESTRATION 6e). Free experiment running: perturb the PADDED atom slots on their released checkpoint to test whether it learned to ignore them.",
+  "challenges_upheld": "58 of 61",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1,
-  "next_gpu_spend": "46.5 -- train XPert (and then TranSiGen) ourselves on split_cold_cell_1..5 for a paired head-to-head on identical rows. ~5.8 GPU-h. Chosen over the edge gate and over 50.5 because it converts the project OBJECTIVE from inadmissible (review 001 C8) to admissible, and because it is a direct paired comparison with no null-key problem -- the last two probes both died on their null keys."
+  "next_gpu_spend": "46.5 -- train XPert (and then TranSiGen) ourselves on split_cold_cell_1..5 for a paired head-to-head on identical rows. ~5.8 GPU-h. Chosen over the edge gate and over 50.5 because it converts the project OBJECTIVE from inadmissible (review 001 C8) to admissible, and because it is a direct paired comparison with no null-key problem -- the last two probes both died on their null keys.",
+  "decisions_locked": [
+    "XPert cold-cell comparison runs option (a) AS PUBLISHED, including their val=test early-stopping fallback, with the asymmetry disclosed: a v9 win is conservative, an XPert win is uninterpretable.",
+    "Option A (unmasked flash semantics) needs no decision -- the shim already exists, is tested, and produced 0.6933 against their published 0.688 on warm split_2.",
+    "Buy fold 1 only. v9 itself is fold 1 at one seed, so five XPert folds would reintroduce an asymmetry.",
+    "Never read XPert’s own reported metrics (train_xpert.py:573-574 overwrites test with val). Score predictions with head_to_head_mdmt.py."
+  ]
 }

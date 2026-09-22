@@ -86,14 +86,53 @@ def load_everything(device, quiet=True):
                 cfg=cfg, logger=logger)
 
 
-def drug_feat_dict(path=None):
+def drug_feat_dict(path=None, pad_mode='asis', seed=0):
     """{pert_idx: (122, 514) float32}. Their MyDataset indexes drug_feat[pert_idx], so a dict is a
-    drop-in for the full (8981, 122, 514) array without holding 4.5 GB."""
+    drop-in for the full (8981, 122, 514) array without holding 4.5 GB.
+
+    `pad_mode` exists to settle review 007 C4 by measurement [RESULTS 69.6]. Their executed attention
+    path takes no mask (`model_utils.py:226`, verified), and 55.8 % of the 122 atom slots are padding
+    whose features are exactly zero -- but `key`/`value` are `nn.Linear(..., bias=True)`, so each padded
+    slot still emits one identical learned constant and takes softmax mass. The open question is whether
+    the released checkpoint LEARNED to suppress those slots. If it did, masking would change nothing and
+    the unmasked path is fine; if it did not, padding is load-bearing.
+
+    This tests it directly instead of plumbing a mask through their code: perturb ONLY the 512 feature
+    channels of the padded slots and see whether the released weights notice.
+
+      asis  - exactly as released (padded features zero). The reference arm.
+      noise - padded feature channels filled with Gaussian noise matched to the valid-atom scale.
+      ones  - padded feature channels set to 1.0, a large coherent perturbation.
+
+    Channel 0 (validity) and channel 1 (atom symbol) are NEVER touched: channel 0 is what their mask is
+    built from and channel 1 indexes an embedding, so perturbing either would change a different thing
+    and confound the measurement.
+    """
     path = path or UNIMOL
     if not os.path.exists(path):
         raise SystemExit('FATAL: %s missing -- run model/v9/fetch_xpert_unimol.py first' % path)
     z = np.load(path)
-    return {int(i): f for i, f in zip(z['idx'], z['feat'])}
+    out = {int(i): f for i, f in zip(z['idx'], z['feat'])}
+    if pad_mode == 'asis':
+        return out
+    rng = np.random.default_rng(seed)
+    scale = float(np.abs(z['feat'][:, :, 2:][z['feat'][:, :, 0] == 1]).std())
+    n_touched = 0
+    for k in out:
+        f = out[k].copy()
+        pad = f[:, 0] == 0
+        if pad.any():
+            if pad_mode == 'noise':
+                f[pad, 2:] = rng.normal(0.0, scale, size=(int(pad.sum()), f.shape[1] - 2)).astype(f.dtype)
+            elif pad_mode == 'ones':
+                f[pad, 2:] = 1.0
+            else:
+                raise SystemExit('FATAL: unknown pad_mode %r' % pad_mode)
+            n_touched += int(pad.sum())
+        out[k] = f
+    print('pad_mode=%s: perturbed %d padded slots across %d compounds (valid-atom sd %.4f)'
+          % (pad_mode, n_touched, len(out), scale), flush=True)
+    return out
 
 
 def build_model(E, args, device, ckpt=CKPT):
@@ -165,6 +204,9 @@ def main():
     ap.add_argument('--device', default='cpu')
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--out', default=None, help='write a *_predict_profile.npy in THEIR format')
+    ap.add_argument('--pad_mode', default='asis', choices=['asis', 'noise', 'ones'],
+                    help='perturb the PADDED atom slots, to test whether the released '
+                         'checkpoint learned to ignore them [RESULTS 69.6]')
     ap.add_argument('--diagnose', action='store_true',
                     help='score every warm fold, to find which one the checkpoint was trained on')
     a = ap.parse_args()
@@ -173,7 +215,7 @@ def main():
     torch = E['torch']
     print('loading %s' % a.h5ad, flush=True)
     adata = E['ad'].read_h5ad(a.h5ad)
-    feats = drug_feat_dict(a.unimol)
+    feats = drug_feat_dict(a.unimol, pad_mode=a.pad_mode, seed=a.seed)
     print('drug features for %d compounds' % len(feats), flush=True)
 
     rng = np.random.default_rng(a.seed)
