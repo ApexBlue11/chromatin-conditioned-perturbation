@@ -3879,6 +3879,112 @@ fail is not under test and does not depend on it.**
 Cost: **0 GPU-hours.** If it fails its own diagnostic in §67.2 or its gate in §67.3, it is abandoned and
 recorded as abandoned, and the GPU decision in §66.8 (§46.5 next) is untouched either way.
 
+## 68. §46.5 feasibility audit: three blockers, and XPert's training path does not apply its attention mask (2026-09-22)
+
+§66.8 committed the next 5.8 GPU-hours to §46.5 — training XPert ourselves on `split_cold_cell_1..5` for a
+paired head-to-head. Before buying an hour I audited whether their code can actually run here. It can, but
+not for 5.8 h and not without two declared deviations. **Everything below cost 0 GPU-hours.**
+
+### 68.1 ✅ Their trainer takes our folds natively
+`external/xpert/code/XPert/train_xpert.py:27` — `--nfold` with help `'split, split_cold_drug,
+split_cold_cell'`, and `:423` splits it on commas, so it accepts a fold list. And
+`processed_data/l1000_mdmt_68830_subset.h5ad` carries **`split_cold_cell_1..5`, `split_cold_drug_1..5` and
+`split_1..5` as native obs columns** — the same splits v9 was evaluated on. So the comparison is their
+code, their data, their split definition, and `head_to_head_mdmt.py` already refuses to pair unless
+`row_index` matches exactly.
+
+Note for later: `l1000_mdmt_full_336852.h5ad` carries **tissue-holdout** splits instead
+(`split_breast_*`, `split_lung_*`, `split_haematopoietic_*`) — a harder cold-cell variant we have never
+run and which is theirs. Logged in IDEAS, not in scope here.
+
+### 68.2 🔴 Blocker 1 — `num_epochs: 2500`, `patience: 50`. The run is not 5.8 h; it is unbounded.
+`configs/config_l1000.yaml`: `num_epochs: 2500`, `init_epoch: 70`, `patience: 50`, `batch_size: 128`,
+`train_lr: 0.004`. So runtime is early-stopping driven and could be anywhere from ~120 epochs to 2500.
+**The §66.8 figure of 5.8 h was my estimate of a v9-shaped run and does not transfer.** Any purchase here
+needs a wall-clock budget guard and a max-epoch cap, and the cap must be declared as a deviation because
+a run stopped by our cap is not their training recipe.
+
+### 68.3 🔴 Blocker 2 — `flash_attn` is a hard training dependency, and I first got this wrong
+`models/model_utils.py:8` imports `flash_attn_func` unconditionally; it is called at `:226` and `:281`.
+
+My first reading was that this is dead code under `sparse_flag: False`, by analogy with §47.6. **That was
+wrong and I checked it before acting on it.** The branch at `:200` is `if output_attention:` — *not*
+`sparse_flag`. `train_xpert.py:52` defaults `--output_attention` to `False`, so **training takes the
+flash branch.** flash_attn is required to train XPert as released.
+
+§47.6 is nonetheless confirmed from a second angle: `sparse_flag` is threaded through four signatures
+(`:186, :251, :342, :361`) and **never branched on anywhere**. Two different switches; only one is dead.
+
+### 68.4 🔴 Blocker 3 — and the finding: the flash branch is called WITHOUT an attention mask
+`SelfAttention.forward(hidden_states, attention_mask=None, sparse_flag=False, output_attention=False)`
+uses `attention_mask` **only inside the `if output_attention:` branch**. The else branch is:
+```python
+context = flash_attn_func(query, key, value, dropout_p=self.dropout_p if self.training else 0.0)
+```
+No mask argument. `CrossAttention` at `:281` is the same. And the mask **is** constructed and passed:
+`model_XPert.py:204` calls `get_unimol_drug_feat`, which builds the standard additive mask
+`atom_musk = (1.0 - atom_musk_raw) * -10000.0`, and `:225` passes it as `drug_attention_mask`.
+
+⇒ In the training configuration, **the drug attention mask is computed, passed, and then not applied.**
+
+Measured on their own data, `processed_data/unimol_mdmt_1970.npz`, (1970, 122, 514):
+
+| | |
+|---|---|
+| valid atoms per drug | min **5**, max 122, **mean 53.9** of 122 slots |
+| padded slots | **134,172 = 55.8 %** of all slots |
+| padded atom features | **exactly zero** (`|max| = 0`) |
+| padded symbols | exactly zero |
+
+Padded slots are not inert, because `self.key` and `self.value` are `nn.Linear(hidden, hidden)` with
+default `bias=True` (`:179-181`, `:244-246`): a zero feature vector maps to the **learned bias**, so each
+padded slot emits one identical constant key and value. At equal scores the share of softmax mass taken by
+padding is:
+
+| valid atoms | 5 | 27 | **53.9 (mean)** | 80 | 122 |
+|---|---|---|---|---|---|
+| padded mass | **95.9 %** | 77.9 % | **55.8 %** | 34.4 % | 0 % |
+
+The model can learn to push the padded key's score down, but all ~68 padded slots **share one key**, so
+suppressing them requires a margin large enough to beat a count of 68 — and 117 for the smallest molecules.
+
+### 68.5 What I am NOT claiming, and why this goes to review rather than into a result
+I have been wrong three times criticising this paper (§36.3, §47.6, and the retractions in §46), and the
+pattern each time was asserting from code-reading without exhausting alternatives. So, explicitly:
+
+- I **cannot** verify what the **released checkpoint** was trained with. This is what *this code* does with
+  *these defaults*, not necessarily what produced their published numbers.
+- `flash_attn_func`'s signature takes no padding mask (variable-length masking is
+  `flash_attn_varlen_func`), so the omission is not a mask passed by another name — but I have not run
+  flash_attn to confirm its behaviour directly, because it is not installed.
+- A padded slot's **value** is also the learned bias, so the model could in principle absorb a constant
+  additive term harmlessly; that is an argument I can construct but not test without training.
+- The cross-attention `cell_attention_mask` is passed as `None` at `:225` anyway, so for the cell side
+  there is nothing to drop.
+
+### 68.6 What this does to the §46.5 decision
+Training "XPert as published" now requires choosing between **two different models**, and the choice
+changes the benchmark:
+
+| option | what it is | deviation to declare |
+|---|---|---|
+| **A** substitute `F.scaled_dot_product_attention`, **no mask** | faithful to their training path as coded | kernel swap only; same math |
+| **B** substitute SDPA **with** their additive mask applied | faithful to their evident intent, and to how v9 does it | kernel swap **and** a behaviour change |
+| **C** install `flash_attn` on Kaggle | no deviation | build risk, long install, may fail on the image |
+
+Option A is honest to the code, B is honest to the intent, and **they are not the same experiment.** v9
+masks padding properly — our tests assert padding moves real tokens by exactly 0.00e+00 — so B compares
+two masked models and A compares a masked model against an unmasked one.
+
+This also bears on §50 and on our own §61.7. If XPert's atom attention is ~56 % diluted by padding during
+training, then "XPert uses its atom features" is itself in question, which is **consistent** with §50's
+finding that seven L1000 models barely use their drug features — and it is a second, independent mechanism
+for it beyond the one Bai et al. propose.
+
+⇒ **Not spending yet.** Packet 007 puts the option choice and the epoch cap to review first. The free
+prerequisite work (building the `pert_idx`-indexed unimol array their loader expects, which we hold as an
+`idx`/`feat` npz rather than `all_drugs_unimol_arr.npy`) proceeds regardless.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
