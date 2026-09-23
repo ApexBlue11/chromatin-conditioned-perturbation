@@ -118,6 +118,22 @@ os.symlink(os.path.join(SRC, 'HG_data', 'saved_embedding', 'HG_drug_embeddings.n
            os.path.join(X, 'HG_data', 'saved_embedding', 'HG_drug_embeddings.npy'))
 H5AD = os.path.join(X, 'processed_data', 'l1000_mdmt_68830_subset.h5ad')
 NPZ = os.path.join(X, 'processed_data', 'unimol_mdmt_1970.npz')
+
+# Version 1 of this kernel passed every guard below and then died on the trainer's first import:
+#     ModuleNotFoundError: No module named 'datasets.MyDataset'
+# Their `datasets/` and `models/` directories have no __init__.py, so they are NAMESPACE packages, and Python
+# lets a REGULAR package anywhere later on sys.path beat a namespace one. This image ships HuggingFace's
+# `datasets`, so `import datasets` resolved to it. It never showed locally because .venv-cuda has no HF
+# datasets. Reproduced locally with a stand-in regular package, and the fix verified the same way.
+# The fix adds two EMPTY files to the staged copy; no executed line of their code changes. Declared.
+for pkg in ('datasets', 'models'):
+    init = os.path.join(X, pkg, '__init__.py')
+    if not os.path.exists(init):
+        open(init, 'w').close()
+RECORD['deviations'] = ['flash_attn shim on PYTHONPATH (their model imports it at module scope)',
+                        'all_drugs_unimol_arr.npy rebuilt from the released npz (config names it, never released)',
+                        'empty __init__.py in datasets/ and models/ so their packages are not shadowed by '
+                        "the image's HuggingFace `datasets`"]
 log('staged', SRC, '->', X)
 
 # --------------------------------------------------------------------------------------------------------
@@ -180,6 +196,26 @@ if out[1] != 'True':
           'a different model.')
 RECORD['guards']['attention'] = 'our shim, unmasked (option A)'
 log('GUARD C flash_attn ->', out[0], '| unmasked')
+
+# --------------------------------------------------------------------------------------------------------
+# GUARD D -- every module of THEIRS that the trainer imports must resolve INSIDE the staged copy.
+# This is the guard version 1 lacked. It imports exactly what train_xpert.py and utils.py import, in a
+# subprocess with the trainer's PYTHONPATH and cwd, and refuses if any of them comes from anywhere else --
+# shadowing is silent when the impostor happens to have a matching attribute, and loud only by luck.
+# --------------------------------------------------------------------------------------------------------
+probe = ('import os, importlib\n'
+         'for m in ("datasets.MyDataset", "models.model_XPert", "models.model_utils", "metrics", "utils"):\n'
+         '    mod = importlib.import_module(m)\n'
+         '    print(m, os.path.abspath(mod.__file__))\n')
+r = subprocess.run([sys.executable, '-c', probe], capture_output=True, text=True, env=ENV, cwd=X)
+if r.returncode != 0:
+    fatal('GUARD D: importing their modules failed: %s' % r.stderr[-1500:])
+resolved = dict(line.split(' ', 1) for line in r.stdout.strip().splitlines())
+bad = {m: f for m, f in resolved.items() if not os.path.abspath(f).startswith(os.path.abspath(X))}
+if len(resolved) != 5 or bad:
+    fatal('GUARD D: modules resolved outside the staged copy (shadowed): %s' % (bad or resolved))
+RECORD['guards']['their_modules'] = 'datasets.MyDataset, models.*, metrics, utils all resolve inside the staged copy'
+log('GUARD D their modules resolve inside', X)
 
 # --------------------------------------------------------------------------------------------------------
 # 3. TRAIN, their recipe, under a wall-clock guard. Their stopper writes the best checkpoint to disk on

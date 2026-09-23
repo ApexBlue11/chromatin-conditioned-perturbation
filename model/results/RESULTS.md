@@ -4369,6 +4369,33 @@ p = 2e−8, with MCF7 only 15.9 % of warm-split rows. That says §43's win is no
 **post-hoc robustness check of an existing result**, not a pre-committed claim, and warm `split_2` shares its
 cell lines with training, so it says nothing about unseen cells.
 
+### 71.9 🔴 Launch 1 failed on an import, after every guard had passed
+`apexblue/lincs-xpert-cc1` v1 ran ~3 min on one T4 and stopped with `KernelWorkerStatus.ERROR`. Its
+`run_record.json` shows **all four guards passed** — dependencies importable with torch unchanged
+(`2.10.0+cu128`), the split counts exact, the 2.24 GB unimol array built and round-tripped, `flash_attn`
+resolving to our shim unmasked. Then the trainer died on its first import:
+```
+File "/kaggle/working/XPert/utils.py", line 15, in <module>
+    from datasets.MyDataset import MyDataset
+ModuleNotFoundError: No module named 'datasets.MyDataset'
+```
+**Cause, reproduced locally before fixing.** Their `datasets/` and `models/` directories have **no
+`__init__.py`**, so they are namespace packages, and Python lets a *regular* package anywhere later on
+`sys.path` win over a namespace one. The Kaggle image ships HuggingFace's `datasets`; `import datasets`
+resolved to it. It never showed locally because `.venv-cuda` has no HF `datasets`. A stand-in regular package
+placed later on the path reproduces the exact error, and the fix defeats it.
+
+**Fix.** Two empty `__init__.py` files in the **staged copy** of `datasets/` and `models/`. No executed line of
+their code changes; it is recorded as the third declared deviation in the run record. **GUARD D** added: in a
+subprocess with the trainer's exact `PYTHONPATH` and cwd, `datasets.MyDataset`, `models.model_XPert`,
+`models.model_utils`, `metrics` and `utils` must each resolve inside the staged copy, or the run refuses. It
+would have caught v1 with an explicit message instead of a traceback.
+
+**Cost** ~0.05 GPU-hours. **My error in reporting it:** I told the principal training was under way, on the
+strength of a `RUNNING` status one minute before the failure. A status is not evidence that any guard passed,
+let alone training — the log is. Method rule 21: **do not report a remote run's progress from its status;
+report it from its log, or say it is unknown.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

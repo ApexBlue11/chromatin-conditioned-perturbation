@@ -33,9 +33,9 @@
     "007_xpert_coldcell_feasibility",
     "008_masked_result_and_cc1_kernel"
   ],
-  "gpu_hours_spent_this_session": 6.23,
+  "gpu_hours_spent_this_session": 6.28,
   "pending_decision": null,
-  "note_current": "Review 008 SOUND-WITH-CAVEATS and GO, conditional on committing RESULTS 71.7 before launch: a guard-stopped run with counter_at_end < 45 supports no v9-win claim, because XPert would be under-trained and the as-published asymmetry reverses. Kernel fixed per C2 (counter_at_end = last_epoch - best_epoch, exact; the log-line count was total non-improving epochs because improvements reset the counter silently). Launching.",
+  "note_current": "XPert cc1 launch 1 failed on import: their datasets/ has no __init__.py and the image ships HuggingFace datasets, which shadowed it. All four guards had passed. Fixed with empty __init__.py in the staged copy plus GUARD D (their modules must resolve inside the staged copy). Relaunching as v2. Reading rule unchanged (RESULTS 71, 71.7).",
   "challenges_upheld": "63 of 66",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1,

@@ -1,0 +1,31 @@
+{
+  "fold": "split_cold_cell_1",
+  "budget_h": 8.3,
+  "guards": {
+    "deps": "scanpy, torchmetrics, unimol_tools importable; torch unchanged",
+    "split": {
+      "test": 21321,
+      "train": 47509
+    },
+    "unimol_array": [
+      "dense array would be (8950, 122, 514) float32 = 2.24 GB",
+      "round-trip verified on 64 sampled drugs",
+      "wrote /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy (2.24 GB)"
+    ],
+    "attention": "our shim, unmasked (option A)"
+  },
+  "decision": "option (a) as published, disclosed",
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "torch": "2.10.0+cu128",
+  "disclosed_asymmetry": "no valid level -> utils.py:133 sets val_data = test_data -> early stopping and checkpoint selection monitor TEST loss4",
+  "train_cmd": "/usr/bin/python3 -u train_xpert.py --mode train --nfold split_cold_cell_1 --dataset l1000_mdmt --drug_feat unimol --device cuda:0 --output_profile True",
+  "train_returncode": 1,
+  "stopped_by": "crashed",
+  "epochs_seen": 0,
+  "last_epoch_line": "",
+  "train_hours": 0.03,
+  "fatal": "trainer crashed; see train_xpert.log."
+}
