@@ -152,14 +152,29 @@ def subset(E, adata, mask):
     return sub
 
 
-def predict(E, model, ds, batch=64, device='cpu', log_every=20):
+def predict(E, model, ds, batch=64, device='cpu', log_every=20, mask_drug_keys=False):
     torch = E['torch']
     from torch.utils.data import DataLoader
     dl = DataLoader(ds, batch_size=batch, shuffle=False, num_workers=0, drop_last=False)
     y_true, y_pred, ctl_true = [], [], []
     t0 = time.time()
     with torch.no_grad():
+        shim = None
+        if mask_drug_keys:
+            import flash_attn.flash_attn_interface as shim
+            if not hasattr(shim, 'KEY_PAD_MASK'):
+                raise SystemExit('FATAL: --mask_drug_keys needs the model/v9/_shims flash_attn; the real '
+                                 'package is loaded and would silently ignore the mask.')
+            shim.KEY_PAD_APPLIED = 0
         for i, data in enumerate(dl):
+            if shim is not None:
+                # data[4] is drug_feat (B, 122, 514); channel 0 is atom validity. The drug sequence inside
+                # attention is [dose, time] + 122 slots, and slot 0 carries HG_embed whatever its bit says
+                # (model_utils.py: input_embeddings[:,0,:] = HG_embed), so dose, time and slot 0 are
+                # always attendable.
+                pad = data[4][:, :, 0] == 0
+                pad[:, 0] = False
+                shim.KEY_PAD_MASK = torch.cat([torch.zeros(pad.shape[0], 2, dtype=torch.bool), pad], dim=1)
             out = model(data)
             trt_output, ctl_output, deg_output, trt_raw, ctl_raw = out[0], out[1], out[2], out[3], out[4]
             y_true.append(trt_raw.cpu().numpy())
@@ -168,6 +183,13 @@ def predict(E, model, ds, batch=64, device='cpu', log_every=20):
             if log_every and (i + 1) % log_every == 0:
                 done = (i + 1) * batch
                 print('    %d/%d rows  %.0fs' % (done, len(ds), time.time() - t0), flush=True)
+    if shim is not None:
+        n_applied = shim.KEY_PAD_APPLIED
+        shim.KEY_PAD_MASK = None
+        if n_applied == 0:
+            raise SystemExit('FATAL: --mask_drug_keys was requested but the mask was never applied -- no '
+                             'attention call had seqlen_k matching the drug sequence. This run is UNMASKED.')
+        print('drug key-padding mask applied in %d attention calls' % n_applied, flush=True)
     return (np.concatenate(y_true), np.concatenate(y_pred), np.concatenate(ctl_true))
 
 
@@ -204,6 +226,9 @@ def main():
     ap.add_argument('--device', default='cpu')
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--out', default=None, help='write a *_predict_profile.npy in THEIR format')
+    ap.add_argument('--mask_drug_keys', action='store_true',
+                    help='apply a correct key-padding mask to the drug-keyed attention calls '
+                         '(option B of packet 007) [RESULTS 70]')
     ap.add_argument('--pad_mode', default='asis', choices=['asis', 'noise', 'ones'],
                     help='perturb the PADDED atom slots, to test whether the released '
                          'checkpoint learned to ignore them [RESULTS 69.6]')
@@ -242,7 +267,7 @@ def main():
                             max_value=E['cfg']['dataset']['max_value'],
                             min_value=E['cfg']['dataset']['min_value'])
         model, _ = build_model(E, args, a.device, a.ckpt)
-        y, f, c = predict(E, model, ds, a.batch, a.device)
+        y, f, c = predict(E, model, ds, a.batch, a.device, mask_drug_keys=a.mask_drug_keys)
         m = score(E, y, f, c)
         results[nf] = m
         print('  Pearson %.4f  Pearson_deg %.4f  (copy-the-control %.4f)'
@@ -260,8 +285,31 @@ def main():
         for nf, m in sorted(results.items(), key=lambda kv: kv[1]['Pearson_deg']):
             print('  %-10s n=%5d  Pearson %.4f  Pearson_deg %.4f' % (nf, m['n'], m['Pearson'],
                                                                      m['Pearson_deg']))
+    # 2026-09-23: a --pad_mode perturbation run at --max_rows 3000 OVERWROTE this file's committed content --
+    # the full 13,766-row reproduction (Pearson_deg 0.6932) that packet 001 rests on -- with a perturbed
+    # 3,000-row arm scoring 0.6306, and the file recorded neither pad_mode nor max_rows. A reader would have
+    # seen "XPert reproduces at 0.63". Restored from git. This is the THIRD instance of this defect in two
+    # days (interaction_2x2 --key, alpha_sweep --n_eval), and the rule "the output path carries every
+    # argument that changes the numbers" was written the day before --pad_mode was added here without it.
+    # So: every non-default numbers-changing argument goes in the NAME, and all of them go in the BODY.
+    tag = ''
+    if a.pad_mode != 'asis':
+        tag += '_pad-%s' % a.pad_mode
+    if a.mask_drug_keys:
+        tag += '_masked'
+    if a.max_rows:
+        tag += '_n%d' % a.max_rows
+    if a.seed != 0:
+        tag += '_seed%d' % a.seed
+    for v in results.values():
+        if isinstance(v, dict):
+            v.setdefault('pad_mode', a.pad_mode)
+            v.setdefault('mask_drug_keys', bool(a.mask_drug_keys))
+            v.setdefault('max_rows', a.max_rows)
+            v.setdefault('seed', a.seed)
+            v.setdefault('rows', a.rows)
     dst = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'results',
-                       'xpert_native_%s_%s.json' % (a.nfold if not a.diagnose else 'diagnose', a.rows))
+                       'xpert_native_%s_%s%s.json' % (a.nfold if not a.diagnose else 'diagnose', a.rows, tag))
     dst = os.path.abspath(dst)
     os.makedirs(os.path.dirname(dst), exist_ok=True)
     json.dump(results, open(dst, 'w'), indent=2)

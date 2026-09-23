@@ -36,6 +36,21 @@ import torch.nn.functional as F
 
 __all__ = ['flash_attn_func', 'flash_attn_qkvpacked_func']
 
+# ---------------------------------------------------------------------------------------------------------
+# OPTIONAL KEY-PADDING MASK, for one diagnostic only [RESULTS 70, review 007 C2/C4]. Default None, and while
+# it is None this shim is exactly the unmasked flash_attn_func it has always been -- which is what XPert's
+# executed path uses and what reproduced 0.6933. It exists to run the experiment review 007 pre-committed:
+# score the RELEASED checkpoint once as coded (unmasked) and once with the drug padding correctly masked.
+#
+# It is set per batch by xpert_native_eval.py --mask_drug_keys, as a bool tensor (batch, seqlen_k) with
+# True = padded key. It is applied ONLY when its shape equals (k.batch, k.seqlen), which selects exactly the
+# drug-keyed calls -- drug self-attention and gene->drug cross-attention, both seqlen_k = 124
+# ([dose, time, HG, atom_1..atom_121]) -- and leaves the 978-key gene attention untouched. KEY_PAD_APPLIED
+# counts applications, so a run in which the shape never matched cannot pass itself off as a masked run.
+# ---------------------------------------------------------------------------------------------------------
+KEY_PAD_MASK = None
+KEY_PAD_APPLIED = 0
+
 
 def flash_attn_func(q, k, v, dropout_p=0.0, softmax_scale=None, causal=False,
                     window_size=(-1, -1), alibi_slopes=None, deterministic=False,
@@ -57,7 +72,12 @@ def flash_attn_func(q, k, v, dropout_p=0.0, softmax_scale=None, causal=False,
     scale = softmax_scale if softmax_scale is not None else 1.0 / math.sqrt(q.shape[-1])
     # (B, S, H, D) -> (B, H, S, D), the layout SDPA wants
     qt, kt, vt = (t.transpose(1, 2) for t in (q, k, v))
-    out = F.scaled_dot_product_attention(qt, kt, vt, attn_mask=None,
+    global KEY_PAD_APPLIED
+    attn_mask = None
+    if KEY_PAD_MASK is not None and tuple(KEY_PAD_MASK.shape) == (k.shape[0], k.shape[1]):
+        attn_mask = (~KEY_PAD_MASK.to(device=k.device, dtype=torch.bool))[:, None, None, :]
+        KEY_PAD_APPLIED += 1
+    out = F.scaled_dot_product_attention(qt, kt, vt, attn_mask=attn_mask,
                                          dropout_p=dropout_p, is_causal=causal, scale=scale)
     return out.transpose(1, 2).contiguous()
 

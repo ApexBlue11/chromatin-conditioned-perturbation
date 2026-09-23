@@ -1,0 +1,17 @@
+{
+  "split_2": {
+    "Pearson": 0.9725,
+    "Pearson_deg": 0.5991,
+    "Spearman": 0.9707,
+    "Spearman_deg": 0.4969,
+    "MSE": 0.2664,
+    "MSE_deg": 0.2664,
+    "copy_ctl_Pearson": 0.9589,
+    "n": 3000,
+    "abs_value_added": 0.0136,
+    "pad_mode": "noise",
+    "max_rows": 3000,
+    "seed": 0,
+    "rows": "test"
+  }
+}

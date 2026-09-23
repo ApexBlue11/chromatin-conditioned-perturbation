@@ -3938,14 +3938,14 @@ Measured on their own data, `processed_data/unimol_mdmt_1970.npz`, (1970, 122, 5
 
 Padded slots are not inert, because `self.key` and `self.value` are `nn.Linear(hidden, hidden)` with
 default `bias=True` (`:179-181`, `:244-246`): a zero feature vector maps to the **learned bias**, so each
-padded slot emits one identical constant key and value. At equal scores the share of softmax mass taken by
+padded slot emits ~~one identical constant key and value~~ a key and value **distinct per position**, because position embeddings are added before attention [§70.3(a)]. At equal scores the share of softmax mass taken by
 padding is:
 
 | valid atoms | 5 | 27 | **53.9 (mean)** | 80 | 122 |
 |---|---|---|---|---|---|
 | padded mass | **95.9 %** | 77.9 % | **55.8 %** | 34.4 % | 0 % |
 
-The model can learn to push the padded key's score down, but all ~68 padded slots **share one key**, so
+The model can learn to push the padded key's score down, but ~~all ~68 padded slots **share one key**~~ (false — they differ by position embedding, §70.3(a)), so
 suppressing them requires a margin large enough to beat a count of 68 — and 117 for the smallest molecules.
 
 ### 68.5 What I am NOT claiming, and why this goes to review rather than into a result
@@ -3976,7 +3976,7 @@ Option A is honest to the code, B is honest to the intent, and **they are not th
 masks padding properly — our tests assert padding moves real tokens by exactly 0.00e+00 — so B compares
 two masked models and A compares a masked model against an unmasked one.
 
-This also bears on §50 and on our own §61.7. If XPert's atom attention is ~56 % diluted by padding during
+🔴 **RETRACTED in §70.3(b)** — measurement shows the released model scores *better* with its padding attended. ~~This also bears on §50 and on our own §61.7.~~ If XPert's atom attention is ~56 % diluted by padding during
 training, then "XPert uses its atom features" is itself in question, which is **consistent** with §50's
 finding that seven L1000 models barely use their drug features — and it is a second, independent mechanism
 for it beyond the one Bai et al. propose.
@@ -4153,6 +4153,85 @@ no comparison is read.
 | masked **higher** by > 0.005, CI excluding 0 | padding **hurts the released checkpoint even at inference**, i.e. its predictions would improve if its own mask were applied |
 
 Whatever the outcome, the §69.1 decision stands: the head-to-head runs option A, as published.
+
+### 70.1 ✅ RESULT: the gate passes exactly, and the pre-committed reading is "masked lower"
+Released checkpoint, warm `split_2` test, n = 3000, **rows and targets byte-identical across all five arms**
+(verified by `row_index` and `deg_true` equality). Artefacts `model/results/xpert_native_split_2_test_*n3000.json`
+and `external/xpert/padtest/*_profile.npy`. **0 GPU-hours** — local inference.
+
+**Gate §70.0.1: PASS.** `|dY|max`(masked+`asis` vs masked+`noise`) = **0.000e+00**, against a threshold of
+1e-4. Under the mask, padded content has **exactly zero** effect on the output — so the mask is complete,
+there is no pooling or residual path by which the drug padding leaks, and the masked arm is valid. The mask
+applied in 188 attention calls, counted.
+
+**Reading §70.0.2**, paired per row, mean per-row delta Pearson (their `metrics.py` convention):
+
+| arm | delta Pearson |
+|---|---|
+| unmasked, as released | **0.6989** |
+| **masked** (drug keys, correctly) | **0.6844** |
+| paired masked − unmasked | **−0.0144 [−0.0162, −0.0127]**, median −0.0051 |
+| rows where masking helps | **35.4 %**, sign p = 2.8e−57 |
+
+⇒ **Pre-committed row 2 applies: masking lowers the released checkpoint by more than 0.005 with the CI
+excluding zero.** The released model *depends on* the unmasked path it was trained on. **Option A is
+confirmed as XPert's published behaviour by measurement rather than by reading**, and option B is a
+different model that must never be substituted for it. §69.1's decision stands and now has a measurement
+under it.
+
+### 70.2 The perturbation arms, for completeness — and why they were not the pre-committed test
+Unmasked, the same 3000 rows, only the 512 feature channels of padded slots changed:
+
+| perturbation | paired drop vs `asis` | rows hurt | `|dY|max` |
+|---|---|---|---|
+| `noise` (valid-atom scale) | +0.0998 [+0.0950, +0.1045], median +0.0594 | 87.2 % | 7.68 |
+| `ones` | +0.0683 [+0.0643, +0.0723], median +0.0357 | 82.0 % | 7.59 |
+
+In a correctly masked model these are **exactly zero** (v9's tests assert 0.00e+00; §70.1's masked arm gives
+0.000e+00). So the released XPert model does not treat its padding as inert.
+
+These were run first and are **not** the test review 007 pre-committed, for a reason I only saw after
+reading `unimol_Embeddings.forward`: perturbing padded *features* changes padded **keys** as well as values,
+so a model that had learned to suppress the specific padded keys would still be disrupted. The perturbation
+could not separate "padding is attended" from "a learned suppression that does not survive key changes".
+The masked arm can, and it is the one that answered.
+
+### 70.3 🔴 Two corrections, one of them to both of us
+**(a) Padded keys are not identical.** `models/model_utils.py:133-165`:
+```python
+input_embeddings = self.linear(input_embed)          # padded slot -> bias
+input_embeddings[:,0,:] = HG_embed                   # slot 0 is overwritten by the HG token
+... torch.cat([pert_dose_embed, pert_time_embed, input_embeddings], dim=1)   # -> length 124
+embeddings = input_embeddings + position_embeddings  # every slot, padded ones included
+embeddings = self.LayerNorm(embeddings)
+```
+Every padded slot is `LayerNorm(bias + pos_emb[i])` — **distinct per position.** §68.4 said *"each padded slot
+emits one identical constant key"* and review 007 C4 built its counter-argument on *"all padded keys are
+identical, so the model can learn to suppress them."* **Both statements are false**, for the same reason.
+Recorded against both of us; it does not change any verdict, because §70.1 measured the thing directly.
+
+It also explains review 007 C3 concretely: the sequence inside attention is **124** long (dose, time, then
+122 slots with slot 0 carrying HG), while `get_unimol_drug_feat` builds a **122**-long mask. That is exactly
+the `size(-2) != size(-2)` mismatch the dense branch then pads with `+1` and discards.
+
+**(b) 🔴 RETRACTED: my §68.6 suggestion that padding dilution is "a second, independent mechanism" for §50.**
+I proposed that XPert's atom attention being ~56 % diluted by padding might explain why these models
+under-use drug features. The measurement says the opposite of dilution: the released model scores **better
+with its padding attended than with it masked**, by 0.0144. A model trained unmasked has adapted to use
+what it attends to. So padding is not demonstrably *hurting* the released XPert at inference, and §68.6's
+"consistent with §50" line is withdrawn.
+
+What the padding might be carrying is a hypothesis, not a finding: the padded slots are the only positions
+whose count varies by molecule (122 − n_atoms), so an unmasked attention output can encode **molecule
+size**. Untested. Whether an XPert *trained* masked would do better or worse is a separate question that
+needs a training run and is not being bought.
+
+### 70.4 What this closes
+Review 007 **C2 and C4 are closed by measurement.** The remaining pre-spend items for §46.5 are
+engineering, not decisions: the kernel with the shim on the path, the in-kernel unimol builder, a wall-clock
+guard that records whether early stopping or the guard fired, and their `pip` dependencies installed into
+Kaggle's disposable image rather than into `.venv-cuda` — whose dry-run would have pulled ~50 packages
+including a numpy change into the environment every v9 result depends on.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
