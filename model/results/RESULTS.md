@@ -5073,6 +5073,52 @@ One seed, one checkpoint. Inference-time cuts of a model trained with every rout
 **Cost: 0 GPU-hours.** Seven local inference passes at α = 0 only (four cells with key `atoms`, three with
 `x_cell`). Operator and harness flag delegated as W9, verified by me before any run.
 
+## 80. PRE-COMMITTED: what the DataParallel measurement (v6) must show before O2 can be priced (2026-09-23)
+
+Review 012 approved the ~0.15 GPU-h measurement. This fixes, before launch, what counts as DataParallel being the
+same computation, and what the timing is then used for. No training run is bought by this section.
+
+### 80.1 The patch, and why it is not `nn.DataParallel(model)`
+`model/v9/xpert_dp_patch.py` replaces `XPertNet.forward` at runtime: at the top level, in training with grad enabled
+and at least one row per GPU, it calls `torch.nn.parallel.data_parallel` on itself; on each replica it localises
+`self.device` and every plain tensor attribute, then runs their forward unchanged. **The object their code holds stays
+an `XPertNet`**, so `state_dict()` keys carry no `module.` prefix and review 012 C1's silent-restart trap cannot be
+reached through the model itself. Validation and prediction are untouched (single GPU).
+
+### 80.2 The proof, through THEIR `train()`
+`model/v9/xpert_dp_probe.py`, one process per configuration: `single_ckpt` (the v5 recipe), `single_ckpt_repeat`,
+`dp`, `dp_ckpt`. Identical initial weights and one identical recipe batch, loaded strictly from disk. Every gradient
+is taken by calling `train_xpert.train()` itself with an lr-0 SGD step, so it is their `batch_weighted_loss` (epoch 0)
+and their `weighted_loss` (epoch 70), under their GradScaler, in `.train()`.
+
+**Dropout is zeroed on every module, not through the config** (review 012 C4 named the four config rates;
+`model_XPert.py:144, 158, 164, 170` hard-code four more `nn.Dropout(p=0.1)` in the heads, and the attention layers
+carry their own `dropout_p`). The probe asserts none is left.
+
+### 80.3 Pass criteria, as inequalities
+`rel_L2(a, b) = ||g_a − g_b|| / ||g_b||` over all parameter gradients.
+
+| check | criterion |
+|---|---|
+| **same function** — fp32 (their autocast replaced by a null context), first 32 rows, epochs 0 and 70 | `rel_L2(dp, single) < 1e-5` **and** `rel_L2(dp_ckpt, single) < 1e-5`; loss relative difference `< 1e-6` |
+| **within the recipe's own precision noise** — fp16 autocast, same 32 rows, epochs 0 and 70 | `rel_L2(dp, single)` and `rel_L2(dp_ckpt, single)` each **≤** `rel_L2(single fp16, single fp32)` |
+| structure | state-dict keys equal to the unpatched model's, no `module.` prefix; plain tensor attributes exactly `['drug_HG_embed']`; every gradient finite |
+| memory | the variant chosen peaks below **13.0 GiB on each GPU** (the GUARD F ceiling) |
+
+Why these: fp32 isolates the mathematics — the only thing DataParallel changes is reduction order, and a real defect
+(a loss computed per replica, a mis-scattered input) would show at 1e-2 or worse, three orders above the bar. fp16
+is the recipe's precision, where rounding alone moves gradients; the fair scale for "no worse than rounding" is the
+recipe's own fp16-versus-fp32 difference on the same rows and weights. At 128 rows the fp16 comparisons are
+**reported, not gated**, against the `single_ckpt` / `single_ckpt_repeat` floor.
+
+**If any check fails, O2 is not priced** and the choice is O1 or O4 [§78.2].
+
+### 80.4 What the timing is used for
+Each passing variant's steady-state step (Adam, their GradScaler, loader included, five batches after one warm-up)
+gives `epoch_s = 372 × s_train + 167 × s_val`, with `s_val` from GUARD F. The faster variant that passes 80.3 is
+the O2 price: `~210 × epoch_s` GPU-seconds for an admissible run at the §78.2 anchor, and the session count at
+7.95 h of training per session. That number, and nothing else from v6, goes to the O2-versus-O4 decision.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
