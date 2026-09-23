@@ -4945,6 +4945,89 @@ the full recipe on one T4 (~53 h); DataParallel measured first (~0.15 h) and the
 no XPert training at all, with the cold-cell comparison made against the published five-fold mean plus the warm
 split head-to-head we already have on their released weights — which loses §71's per-cell paired estimand.
 
+## 79. PRE-COMMITTED: where the α = 0 residual lives — two inference-only cuts in a 2×2, written before the code exists (IDEAS A9)
+
+§74 left a residual: with direct atom-to-atom attention cut (`atom_alpha = 0`), the atoms still cost
+**−0.00322** per row on `unseen_compound` [CI −0.00433, −0.00226], sign p 1.6e−10. Review 010 ask 3 named the
+carriers. This section fixes how they will be separated, before the operator is written or any number exists.
+Checkpoint `sa0_ckpt_v9_fold0_seed0.pt`, batch 48, n_eval 1500, seed 0 — every knob as in §74 [rule 14].
+
+### 79.1 The route inventory
+At `atom_alpha = 0`, atom content reaches the output **only** through the gene → drug cross-attention of each
+perturb block (`model_v9.py` `PerturbBlock`), by one of two kinds of key: the **atom keys** themselves, or the
+**global key** (position 0), which reads the atoms inside drug self-attention. Two cuts, each leaving every
+parameter, norm, SwiGLU branch and residual live:
+- **X** — in every perturb block's cross-attention, the genes attend to the global key only.
+- **G** — in every drug self-attention block, the global row attends to itself only: the softmax restricted to
+  {0, i} that §67.6 already applies to atom rows, extended to row 0, where it is {0}.
+
+### 79.2 The four cells, all at `atom_alpha = 0`
+Atom effect `E` = median over rows of `r(atoms) − r(atoms → chunk mean)`, the estimand of record [§61.2].
+
+| X | G | the atoms reach the genes through | effect |
+|---|---|---|---|
+| on | on | everything | `E0` (= §74 at α = 0) |
+| on | **cut** | the atom keys only — atoms contextualised by nothing but the global token's `u` features | `Ea` |
+| **cut** | on | the global token only | `Eb` |
+| **cut** | **cut** | **nothing** | **must be exactly 0** |
+
+The cross-block chain of §75.4 (atom → global in block *k*, global → atom in *k*+1, atom → genes) needs both X
+and G on, so it lives only in `E0`. Per row, `e0 = ea + eb + i`, with `i` defined as the remainder: the chain plus
+any non-additivity. **Paired means are additive, medians are not**, so the shares are reported as paired means
+with bootstrap CIs, and each cell's own effect in the estimand of record.
+
+### 79.3 Structural checks — stop on failure, nothing is read
+1. **(on, on) reproduces §74's α = 0 per-row arrays byte for byte**, both keys, all three splits, `rows_sha`
+   `434418d7677d3f9c` / `160865d7b95cbc06` / `02fb5b09d78a8d7e`. Otherwise the harness has drifted.
+2. **(cut, cut) gives `dY_max == 0.0` exactly** for key `atoms` on every split. Anything else means a route is
+   missing from 79.1 or the implementation is wrong; either way the decomposition is void.
+
+### 79.4 Kill switch, per single cut, on `unseen_compound`
+`cost` = median over rows of `r_full(no cut) − r_full(cut)`, both at α = 0, identical rows [paired, per §75.3].
+§67.2's principle: *a masked arm that costs more than 3× the measured effect is not a usable counterfactual.*
+The number it produced (+0.03) was 3× the effect then under test; the effect under test now is |E0| = 0.00322.
+
+> **Pre-committed: a cell is read only if |cost| < 0.00966** (3 × |E0|). **Two-sided**, unlike §67.2: a cut that
+> moves the model's score by three times the effect in either direction is equally far from the trained model.
+
+Stricter than inheriting +0.03, deliberately. Review 010 expected X to be a large perturbation; if it fails here,
+that is the expected outcome, not a defect.
+
+### 79.5 Null-key gate, per single cut, `x_cell` run first
+> **To attribute `E(cut) − E0` to the cut route: |N(cut) − N0| < 0.25 × |E(cut) − E0|**, in the estimand of
+> record, on `unseen_compound`, where `N` is the same effect with key `x_cell`.
+
+The §67.3 bar, applied to a two-point change instead of a five-point span. If the median of the paired per-row
+difference `e(cut) − e0` has a CI95 including 0, the reading is *"this cut removes no detectable atom effect"*;
+the gate is reported, and there is no attribution for it to protect.
+
+### 79.6 Readings — primary split, cells that pass 79.4 and 79.5; "significant" = CI95 of the median per row excludes 0
+| `Ea` | `Eb` | reading |
+|---|---|---|
+| significant < 0 | not significant | the residual harm is carried by the genes reading **atom tokens directly** |
+| not significant | significant < 0 | it is carried **through the global token** |
+| significant < 0 | significant < 0 | both routes carry harm; shares from the paired means |
+| not significant | not significant | neither route alone carries it: the remainder `i` (chain + interaction) |
+| significant > 0 in either | — | the atoms **help** through that route; stated with its sign |
+
+- X fails 79.4 ⇒ `Eb` is not identifiable by this cut; `Ea` is read alone if G passes, and `E0 − Ea` is only
+  "everything that does not go through the atom keys".
+- G fails ⇒ symmetric: `Eb` alone, if X passes.
+- Both fail ⇒ **A9 is not answerable by inference-time cuts.** Recorded as such; the question passes to a trained
+  arm, which is not priced here.
+
+### 79.7 Reported beside it, always
+`unseen_cell` and `unseen_both`, every table, every cell [§75.2]. On `unseen_cell` the atoms *help* at α = 0
+(+0.00100): a route reading there is reported and **not claimed** — `unseen_cell` stopped being primary in §58.3.
+
+### 79.8 What no outcome licenses
+One seed, one checkpoint. Inference-time cuts of a model trained with every route open: it says where the harm
+*flows in this trained model*, not what a model trained without a route would do [§74.3]. "Direct" is scoped as in
+§75.4. And §61.7 — that the atom tokens do not earn their place — is not under test.
+
+**Cost: 0 GPU-hours.** Seven local inference passes at α = 0 only (four cells with key `atoms`, three with
+`x_cell`). Operator and harness flag delegated as W9, verified by me before any run.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

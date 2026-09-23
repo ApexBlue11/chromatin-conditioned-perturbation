@@ -1,7 +1,7 @@
 # PACKET 012 — the XPert cold-cell run cannot be admissible in one session: what to buy, if anything
 packet_id: 012
 created: 2026-09-23
-repo_commit: (the commit carrying this packet)
+repo_commit: b85f835
 type: **PRE-SPEND DECISION.** GPU hours this session: 6.80. Weekly Kaggle quota: 30 h. This packet commits none.
 
 You approved activation checkpointing in 011 with C1: it slows every step, so fewer epochs fit in the 8.3 h guard,
