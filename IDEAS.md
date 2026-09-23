@@ -140,6 +140,8 @@ Each needs a kill switch and the `x_cell` gate **committed before running**. Zer
 **Source:** review 010, offered by the reviewer after seeing the data. Atoms help where test compounds were seen in
 training (`unseen_cell`) and hurt where they were not (both compound splits). **Predicts atoms help most on a fully
 warm split.** A test must commit its prediction first; nothing in §74 is read under it.
+- 🔴 **T2 run 2026-09-23 [§76.3]: NOT SUPPORTED.** Within `unseen_cell`, the atoms help *less* for compounds seen
+  more often in training (Spearman −0.119 over 858 compounds, two-sided p 0.0006; null key flat). T1 still queued.
 
 ### A7. 🔵 "New startup mechanisms" — raised by the principal, no recorded source
 The principal listed this alongside new loss functions on 2026-09-21. **There is no item in RESULTS it maps

@@ -1,0 +1,25 @@
+{
+  "atoms": {
+    "n_compounds": 858,
+    "spearman_rho": -0.1189,
+    "perm_p_one_sided": 0.9997,
+    "perm_p_two_sided": 0.00065,
+    "median_row_effect": 0.0029
+  },
+  "x_cell": {
+    "n_compounds": 858,
+    "spearman_rho": 0.033,
+    "perm_p_one_sided": 0.16685,
+    "perm_p_two_sided": 0.33285,
+    "median_row_effect": 0.00957
+  },
+  "null_key_gate_passes": false,
+  "verdict": "NOT SUPPORTED",
+  "exposure_quantiles": [
+    1.0,
+    13.0,
+    29.0,
+    62.0,
+    1616.0
+  ]
+}

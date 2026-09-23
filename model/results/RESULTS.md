@@ -4755,6 +4755,33 @@ reviewer's prediction: atoms help **most** on a fully warm split.
 
 T1 needs the harness to score `val`, which it does not yet; it runs after T2.
 
+### 76.3 T2 RESULT: the memorisation hypothesis is NOT SUPPORTED — the sign is reversed, specifically for atoms
+`model/v9/memorisation_t2.py`, run after the rule was committed at `55a3098`; artefact
+`model/results/v9_memorisation_T2_unseen_cell.json`. 1,500 `unseen_cell` rows, **858 compounds** (3 rows whose compound
+has no training rows are excluded); training exposure per compound from 1 to 1,616 rows (median 29). 0 GPU-hours.
+
+| key | Spearman ρ(E_c, log n_c) | one-sided p (ρ > 0) | two-sided p |
+|---|---|---|---|
+| **atoms** | **−0.1189** | 0.9997 | **0.0006** |
+| `x_cell` (null key) | +0.0330 | 0.167 | 0.333 |
+
+**Pre-committed row applies: atoms ρ ≤ 0 → NOT SUPPORTED.** Memorisation predicted that the atom tokens would help
+**more** for compounds seen **more often** in training. Within the split where every compound was seen, they help
+**less** — and the null key shows no exposure dependence, so this is not the generic "well-trained compounds are
+predicted better" effect the gate was there to catch.
+
+**What is and is not read from the sign.** ρ = −0.119 at two-sided p = 0.0006 is a real, atom-specific *negative*
+dose-response. But the committed table had no row for "significantly negative", so it is recorded as a **descriptive,
+hypothesis-generating observation**, not a finding: *on seen compounds, the atom tokens' contribution falls as the
+compound's training exposure rises.* One reading — constructed after seeing this and not tested — is that for heavily
+trained compounds the global drug token and the training signal already carry what the atoms would add, so the atoms
+contribute noise; that would make atoms matter most where a compound is least known, which is the opposite of
+memorisation. It does not by itself explain why atoms hurt on compounds never seen at all, and it is not relied on.
+
+⇒ IDEAS A10's memorisation hypothesis is **not supported by the within-split test**. T1, the reviewer's split-level
+prediction on the warm split, remains queued; it can still be run, but it can no longer rescue memorisation as an
+explanation, since T2 contradicts the mechanism T1 would be evidence for.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
