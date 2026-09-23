@@ -3826,7 +3826,7 @@ untried operator that matches the hypothesis blends only the atom–atom submatr
 gate is fixed **before** the run, and method rule 19 says as an **inequality, not an adjective**. Both are
 applied here, before a line of it exists.
 
-### 67.1 The operator
+### 67.1 The operator — ⚠️ **definition superseded by §67.6 before implementation**
 `alpha_atoms`: `A[..., 1:, 1:] <- alpha * A[..., 1:, 1:] + (1 - alpha) * I`, with **row 0 and column 0
 left at their learned values**. Rows must still sum to 1, so the atom rows are renormalised over their
 (atom-submatrix + preserved column 0) support rather than blended and left unnormalised — the
@@ -3878,6 +3878,36 @@ fail is not under test and does not depend on it.**
 
 Cost: **0 GPU-hours.** If it fails its own diagnostic in §67.2 or its gate in §67.3, it is abandoned and
 recorded as abandoned, and the GPU decision in §66.8 (§46.5 next) is untouched either way.
+
+### 67.6 🔴 REFINEMENT of §67.1's operator, before any line of it exists or any data — the first definition was wrong
+§67.1 defined the atom-only mask as: blend `A[..., 1:, 1:]` toward the identity and renormalise the atom rows
+over their atom-submatrix-plus-column-0 support. Working the algebra before writing the contract showed that
+**this operator does not remove atom→atom influence**, and §67.1's own acceptance test 2 — *"perturbing atom 3
+moves atom 1 by exactly 0.00e+00"* — would fail by construction:
+
+Row `i` of `A` is **one** softmax over **all** keys, `A[i, ·] = softmax(q_i · k_· / √d)`. Changing atom 3 changes
+`k_3`, which changes that row's normaliser and therefore **how atom 1 splits its mass between the global token
+and itself**, even with every `A[1, j≥2]` blended to zero. Atom 3 would still reach atom 1 through the softmax
+denominator.
+
+**The operator that matches the hypothesis**, fixed now:
+
+- **Row 0 (the global token): unchanged.** The global token keeps reading every atom, as learned.
+- **Atom rows `i ≥ 1`:** `A'[i, ·] = α · A[i, ·] + (1 − α) · B[i, ·]`, where `B[i, ·]` is the softmax of the
+  **same logits** restricted to the key set `{0, i}` — the global token and the atom itself — and zero elsewhere.
+- Both `A` and `B` are row-stochastic, so every convex combination is; **no renormalisation**.
+- `α = 1` delegates to `super().forward()`, so the default path is bit-identical by construction.
+
+At `α = 0` each atom attends only to the global token and itself, with weights that depend on no other atom's
+key. So **within one block**, perturbing atom 3 moves atom 1 by exactly zero.
+
+**What this operator deliberately does NOT remove, stated before measurement:** across stacked blocks, atom 3 can
+still influence atom 1 **through the global token** — atom 3 → global (row 0 intact) in block `b`, global → atom 1
+in block `b+1`. That is the global↔atom pathway the hypothesis is *not* about [§66.2], so it is kept, and the test
+suite **measures and prints** it on the full model rather than treating it as a defect.
+
+§67.2's kill switch (`S11 − S10 < +0.03` on `unseen_compound`, else abandoned without computing any interaction),
+§67.3's gate (null-key span below 25 % of the hypothesis-key span), and §67.4's estimand are **unchanged**.
 
 ## 68. §46.5 feasibility audit: three blockers, and XPert's training path does not apply its attention mask (2026-09-22)
 
