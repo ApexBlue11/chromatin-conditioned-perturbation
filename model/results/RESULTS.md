@@ -4462,6 +4462,39 @@ one stage later than the last; F is aimed at the next stage.
 Cost of v2 ~0.13 GPU-h. **Method rule 22: "as published" is defined by the authors' scripts and README, never
 by argparse defaults, and the executed arguments are checked against them.**
 
+## 72. The atom-only operator passes its kill switch — and confirms review 006 C1 by measurement (2026-09-23)
+
+`alpha_sweep.py --operator atom_only`, SA-on checkpoint, n_eval 1500, seed 0, rows identical to the 2x2 on all
+three splits (`rows_sha` verified). Operator per §67.6, verified in W8 including a byte-identical regression of
+the default path. **0 GPU-hours.**
+
+### 72.1 §67.2's kill switch, applied exactly as committed
+`S11 − S10` = `score_full(α=1) − score_full(α=0)`, the cost to the model of removing the thing under test.
+Pre-committed: *abandon without computing any interaction unless below +0.03 on `unseen_compound`.*
+
+| split | atom-only operator | retired full-matrix operator [§60] |
+|---|---|---|
+| unseen_cell | **+0.00356** | +0.09050 |
+| **unseen_compound** | **−0.01448** | **+0.11679** |
+| unseen_both | **−0.01469** | +0.09796 |
+
+**PASSES**, by a wide margin. The operator is usable, and the gate (§67.3) is now running.
+
+### 72.2 What the kill-switch quantity itself says — stated at the strength it supports
+Review 006 C1 predicted that most of the retired operator's 0.09–0.12 damage came from cutting the **global
+token** off from the atoms, not from removing atom–atom mixing. **Confirmed:** masking atom→atom alone costs
+−0.014 to +0.004, against +0.09 to +0.12 for the old operator, on byte-identical rows and weights. Every
+estimand that "drowned" in §60–§65 was drowning in the global-token cut.
+
+And on both compound splits the masked model scores **higher**: 0.58325 against 0.56877 on `unseen_compound`,
+0.49220 against 0.47750 on `unseen_both`. That is a measurement on a model **trained with** atom–atom attention,
+evaluated without it at inference; it is **not** evidence that training without atom–atom attention would be
+better, and it is not read as mechanism. It is recorded because it is the pre-committed kill-switch number and
+because it is the opposite of what one would expect from removing a trained component.
+
+**The atom-effect curve is NOT read here.** §67.3 requires the null key's span to be below 25 % of the
+hypothesis key's first, and that run is executing.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

@@ -1,0 +1,27 @@
+=== v9 Alpha Sweep [TASK W6] ===
+Checkpoint: sa0_ckpt_v9_fold0_seed0.pt | Device: cuda
+Alphas: [0.0, 0.25, 0.5, 0.75, 1.0]
+
+--- unseen_cell ---
+Alpha 0.00 | Effect: +0.00961 (CI [+0.00165, +0.01334]) | MedPerRow: +0.00100 | p=1.49e-03 | dYmax=3.3883
+Alpha 0.25 | Effect: +0.01162 (CI [+0.00304, +0.01545]) | MedPerRow: +0.00160 | p=1.03e-06 | dYmax=4.0502
+Alpha 0.50 | Effect: +0.00986 (CI [+0.00410, +0.01504]) | MedPerRow: +0.00186 | p=8.65e-08 | dYmax=4.6468
+Alpha 0.75 | Effect: +0.00590 (CI [+0.00227, +0.01554]) | MedPerRow: +0.00255 | p=8.69e-10 | dYmax=5.2110
+Alpha 1.00 | Effect: +0.00530 (CI [+0.00023, +0.01383]) | MedPerRow: +0.00290 | p=2.69e-08 | dYmax=5.6847
+
+--- unseen_compound ---
+Alpha 0.00 | Effect: -0.01242 (CI [-0.01914, -0.00340]) | MedPerRow: -0.00322 | p=1.64e-10 | dYmax=2.8287
+Alpha 0.25 | Effect: -0.01274 (CI [-0.02174, -0.00618]) | MedPerRow: -0.00453 | p=4.78e-12 | dYmax=2.6797
+Alpha 0.50 | Effect: -0.01410 (CI [-0.02263, -0.00493]) | MedPerRow: -0.00591 | p=2.77e-21 | dYmax=2.6157
+Alpha 0.75 | Effect: -0.01660 (CI [-0.02494, -0.00710]) | MedPerRow: -0.00775 | p=3.19e-24 | dYmax=2.8883
+Alpha 1.00 | Effect: -0.01814 (CI [-0.02635, -0.00916]) | MedPerRow: -0.01129 | p=1.01e-35 | dYmax=3.7750
+
+--- unseen_both ---
+Alpha 0.00 | Effect: -0.01364 (CI [-0.02295, -0.00659]) | MedPerRow: -0.00626 | p=3.48e-37 | dYmax=2.7270
+Alpha 0.25 | Effect: -0.01433 (CI [-0.02452, -0.00702]) | MedPerRow: -0.00738 | p=2.50e-44 | dYmax=2.9768
+Alpha 0.50 | Effect: -0.01601 (CI [-0.02689, -0.00973]) | MedPerRow: -0.00883 | p=6.73e-40 | dYmax=3.2602
+Alpha 0.75 | Effect: -0.02033 (CI [-0.03027, -0.01201]) | MedPerRow: -0.01002 | p=1.41e-34 | dYmax=3.4671
+Alpha 1.00 | Effect: -0.02637 (CI [-0.03618, -0.01628]) | MedPerRow: -0.01414 | p=6.85e-37 | dYmax=3.5266
+
+Wrote results to C:\Projects\LINCS\model\results\v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0_op-atom_only.json
+Wrote per-row vectors to C:\Projects\LINCS\model\results\v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0_op-atom_only_rows.npz
