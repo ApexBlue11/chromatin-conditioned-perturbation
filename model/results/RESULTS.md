@@ -4292,6 +4292,13 @@ check; it can catch a broken run, not validate a good one.
   can tell from the code which mode produced their Table R8.
 - **Anything about the other four folds.** Fold 1 only, by decision [review 007 C5].
 
+### 71.6 ✅ v9's 170 missing rows are exactly the unfeaturisable compounds
+Measured after packet 008 went out. All **170** rows absent from v9's cold-cell predictions have a compound
+missing from `drug/outputs/drug_feature_index.json` (21,220 compounds), and **0 of 21,151** kept rows do. 28
+distinct compounds. The exclusion is the documented, deterministic compound-featurisation drop in
+`xpert_arm.py:94-110`, so pairing on the intersection means "the rows both models can score". It is not a
+random subset of the fold: by cell it removes MCF7 154, BJAB 11, THP1 5.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
