@@ -4799,6 +4799,68 @@ two corrections, both upheld:
 
 
 
+## 77. Launch 4: host memory fixed, then CUDA out of memory — their recipe needs ~15 GiB of activations on a 14.6 GiB card (2026-09-23)
+
+v4 passed **all seven guards** — dependencies, split, unimol array, attention, module resolution, the one-batch probe,
+and the executed-arguments check — and the memory patch worked: host MemAvailable never fell below **18.5 GB**
+(sampled every 60 s, in the run record). The trainer then died on its first training forward:
+```
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 124.00 MiB. GPU 0 has a total capacity of 14.56 GiB
+of which 82.81 MiB is free. ... 14.17 GiB is allocated by PyTorch
+```
+~0.13 GPU-h. Session total **6.74 GPU-h.**
+
+### 77.1 Where the memory goes, measured
+`xpert_gpu_mem.py`, their model and data, one training step (autocast fp16 forward + backward, the recipe's precision
+under `--use_gradscaler True`) at batch 2, 4, 8, extrapolated. The flash SDPA backend is disabled to match a T4 (sm_75;
+PyTorch's flash backend and the real `flash_attn` both need sm_80+):
+
+| SDPA backend | per sample | projected at batch 128 |
+|---|---|---|
+| T4-like default (PyTorch picks memory-efficient) | 0.114 GiB | **14.6 GiB** |
+| math only (materialises the attention matrix) | 0.691 GiB | 88.5 GiB |
+| memory-efficient only | 0.117 GiB | 15.0 GiB |
+
+PyTorch already uses the memory-efficient kernel on this hardware, so **attention matrices are not the problem;
+stored activations are.** 14.6 GiB projected against 14.48 GiB in use at the moment of death: the measurement
+matches the failure.
+
+**A gap in my GUARD F:** its one-batch probe ran the forward pass **under `no_grad`**, so it never held training
+activations and could not have caught this. It is now a real training step at batch 128.
+
+### 77.2 Why neither obvious fix is acceptable
+- **Gradient accumulation (2 × 64) is NOT exact for this recipe.** `train_xpert.py:104-106`: for epochs below
+  `init_epoch = 70` they train on `batch_weighted_loss = sqrt(loss1/num_samples)·a + ... + sqrt(loss3/num_samples)·c`
+  — **square roots of whole-batch means.** `sqrt(mean over 128)` is not the average of two `sqrt(mean over 64)`, so
+  splitting the batch changes the loss itself.
+- **DataParallel over both T4s** would keep the batch whole (outputs gathered to GPU 0, loss computed on all 128), but
+  their forward hard-codes `drug_feat.to(self.device)` (`model_XPert.py:193`) and holds `drug_HG_embed` as a plain
+  tensor attribute rather than a buffer, so replicas would mix devices. It needs edits to their model code.
+
+### 77.3 The fix: activation checkpointing, applied at runtime, proven exact
+Store activations only at layer boundaries and recompute the rest in the backward pass. Same batch 128, same loss,
+same gradients — more compute, not different maths. `model/v9/xpert_ckpt_patch.py` wraps `Encoder.forward` and
+`crossEncoder.forward` (every layer of both their encoders) with `torch.utils.checkpoint`, `use_reentrant=False`
+(preserves the RNG state for dropout replay and the autocast state), active only in training with grad enabled.
+Applied by a wrapper that then calls their `train_xpert.main()`, so **their files stay verbatim**.
+
+`model/v9/prove_checkpoint_exact.py` imports and applies **that module**, and compares one training step with and
+without it, same weights, inputs and seed, under autocast fp16:
+
+| | |
+|---|---|
+| loss, unpatched twice and checkpointed | **7.56921387**, all three |
+| max \|grad\| difference, unpatched vs unpatched (the GPU's own noise floor) | 4.63e−05 |
+| max \|grad\| difference, unpatched vs checkpointed | **4.35e−05 — inside the floor** |
+| projected memory at batch 128 | **14.95 GiB → 3.73 GiB** |
+
+The comparison is against the noise floor because GPU backward kernels are not bitwise deterministic; checkpointing
+cannot be distinguished from running the same step twice.
+
+The kernel embeds the patch source **generated from the repo file** — verified byte-identical — and declares it as the
+fifth deviation. GUARD F now runs a batch-128 **training** step with the patch and refuses if peak GPU memory exceeds
+13.0 GiB. Sent to review as packet 011 before relaunch, because it changes how their model's forward executes.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

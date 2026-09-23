@@ -1,0 +1,103 @@
+{
+  "fold": "split_cold_cell_1",
+  "budget_h": 8.3,
+  "guards": {
+    "deps": "scanpy, torchmetrics, unimol_tools importable; torch unchanged",
+    "split": {
+      "test": 21321,
+      "train": 47509
+    },
+    "unimol_array": [
+      "dense array would be (8950, 122, 514) float32 = 2.24 GB",
+      "round-trip verified on 64 sampled drugs",
+      "wrote /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy (2.24 GB)"
+    ],
+    "attention": "our shim, unmasked (option A)",
+    "their_modules": "datasets.MyDataset, models.*, metrics, utils all resolve inside the staged copy",
+    "one_batch_forward": "pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True",
+    "executed_args": {
+      "mode": "train",
+      "nfold": "split_cold_cell_1",
+      "drug_feat": "unimol",
+      "device": "cuda:0",
+      "model": "XPert",
+      "config": "config_l1000",
+      "seed": "2024",
+      "dataset": "l1000_mdmt",
+      "pretrained_mode": "global",
+      "include_cell_idx": "True",
+      "wo_HG": "False",
+      "wo_atom": "False",
+      "wo_atom_HG": "False",
+      "wo_unimol": "False",
+      "wo_ppi": "False",
+      "use_gene_pos_emed": "False",
+      "use_gradscaler": "True",
+      "lr_scheduler": "True",
+      "resume_from": "None",
+      "saved_model_path": "None",
+      "saved_model": "None",
+      "pretrained_model": "None",
+      "output_profile": "True",
+      "output_attention": "False",
+      "output_cls_embed": "False",
+      "weighted_loss": "False",
+      "kl_loss": "False"
+    }
+  },
+  "decision": "option (a) as published, disclosed",
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "torch": "2.10.0+cu128",
+  "memory_patch": {
+    "file": "datasets/MyDataset.py",
+    "line_replaced": "drug_feat = tensor(drug_feat, dtype=torch.float32) if self.args.drug_feat != 'smi' else drug_feat",
+    "sha1_before": "8d8c50f24a9c",
+    "sha1_after": "31b5ef68355a",
+    "proof": "model/v9/prove_mydataset_patch.py: 6000 tensors torch.equal"
+  },
+  "deviations": [
+    "flash_attn shim on PYTHONPATH (their model imports it at module scope)",
+    "MyDataset: one tensor per drug instead of one per row -- values proven identical, storage shared; the unpatched recipe needs ~24.7 GB of dataset RAM on this fold",
+    "all_drugs_unimol_arr.npy rebuilt from the released npz (config names it, never released)",
+    "empty __init__.py in datasets/ and models/ so their packages are not shadowed by the image's HuggingFace `datasets`"
+  ],
+  "disclosed_asymmetry": "no valid level -> utils.py:133 sets val_data = test_data -> early stopping and checkpoint selection monitor TEST loss4",
+  "train_cmd": "/usr/bin/python3 -u train_xpert.py --mode train --nfold split_cold_cell_1 --device cuda:0 --output_profile True --model XPert --config config_l1000 --drug_feat unimol --dataset l1000_mdmt --use_gradscaler True --include_cell_idx True",
+  "published_command_source": "scripts/train.sh:15 (mdmt) and README; fold list reduced to split_cold_cell_1; folds independent per train_xpert.py:425-455",
+  "seed_note": "seed 2024 set once at train_xpert.py:402 before the fold loop, so this fold starts from a fresh seed-2024 state, not the state their 3-fold sequential run would reach",
+  "host_memory": {
+    "min_available_gb": 18.49,
+    "samples": 5,
+    "trace_min_gb": [
+      [
+        0.0,
+        30.42
+      ],
+      [
+        1.0,
+        29.79
+      ],
+      [
+        2.0,
+        29.31
+      ],
+      [
+        3.0,
+        23.77
+      ],
+      [
+        4.0,
+        18.49
+      ]
+    ]
+  },
+  "train_returncode": 1,
+  "stopped_by": "crashed",
+  "epochs_seen": 0,
+  "last_epoch_line": "",
+  "train_hours": 0.068,
+  "fatal": "trainer crashed; see train_xpert.log."
+}

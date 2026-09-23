@@ -192,9 +192,30 @@ RECORD['memory_patch'] = {'file': 'datasets/MyDataset.py', 'line_replaced': _ORI
                           'sha1_before': hashlib.sha1(_src.encode('utf-8')).hexdigest()[:12],
                           'sha1_after': hashlib.sha1(open(MYDS, 'rb').read()).hexdigest()[:12],
                           'proof': 'model/v9/prove_mydataset_patch.py: 6000 tensors torch.equal'}
+# ACTIVATION CHECKPOINTING [RESULTS 77, packet 011]. v4 died of CUDA OOM at batch 128: stored activations measure
+# ~0.117 GiB/sample, ~14.95 GiB at 128, on a 14.56 GiB T4. Gradient accumulation is NOT exact here (their
+# batch_weighted_loss takes square roots of whole-batch means) and DataParallel needs edits to their forward. The
+# patch below is applied at RUNTIME by a wrapper, so their files stay verbatim. Its source is generated from
+# model/v9/xpert_ckpt_patch.py, the module prove_checkpoint_exact.py tests: gradients within the run-to-run noise
+# floor, loss equal to 8 decimals, ~3.7 GiB at batch 128.
+CKPT_PATCH_SRC = '# -*- coding: utf-8 -*-\n"""Activation checkpointing for XPert\'s encoder layers, applied at RUNTIME so their source files stay verbatim.\n[RESULTS 77, packet 011]\n\nTheir published recipe (batch 128, 978 gene tokens) needs ~0.117 GiB of stored activations per sample in training --\n~14.95 GiB at batch 128 -- against a T4\'s 14.56 GiB. Checkpointing stores only layer-boundary activations and recomputes\nthe rest in the backward pass: same batch, same loss, same gradients (model/v9/prove_checkpoint_exact.py: loss equal to\n8 decimals, gradient difference 5.9e-05 inside the 8.7e-05 run-to-run noise floor), ~3.7 GiB at batch 128.\n\nActive only in training with grad enabled, so inference and evaluation are untouched. use_reentrant=False, which\npreserves the RNG state for dropout replay and the autocast state for recomputation.\n"""\nimport sys\n\nimport torch\nimport torch.utils.checkpoint as cp\n\n\ndef apply(model_utils=None):\n    """Patch models.model_utils.Encoder and .crossEncoder in place. Returns the list of patched class names."""\n    MU = model_utils or sys.modules[\'models.model_utils\']\n    patched = []\n    for cls in (MU.Encoder, MU.crossEncoder):\n        if getattr(cls.forward, \'_lincs_checkpointed\', False):\n            continue\n        orig = cls.forward\n\n        def make(orig):\n            def fwd(self, *a, **k):\n                if self.training and torch.is_grad_enabled():\n                    return cp.checkpoint(orig, self, *a, use_reentrant=False, **k)\n                return orig(self, *a, **k)\n            fwd._lincs_checkpointed = True\n            return fwd\n\n        cls.forward = make(orig)\n        patched.append(cls.__name__)\n    return patched\n'
+open(os.path.join(X, 'xpert_ckpt_patch.py'), 'w', encoding='utf-8').write(CKPT_PATCH_SRC)
+open(os.path.join(X, 'run_train_ckpt.py'), 'w', encoding='utf-8').write(
+    'import sys\n'
+    'sys.argv = ["train_xpert.py"] + sys.argv[1:]\n'
+    'import models.model_utils\n'
+    'import xpert_ckpt_patch\n'
+    'print("LINCS activation checkpointing applied to:", xpert_ckpt_patch.apply(), flush=True)\n'
+    'import train_xpert\n'
+    'train_xpert.main()\n')
+RECORD['activation_checkpointing'] = {'patched': ['Encoder', 'crossEncoder'], 'how': 'runtime wrapper; '
+                                     'their files verbatim', 'proof': 'model/v9/prove_checkpoint_exact.py'}
 RECORD['deviations'] = ['flash_attn shim on PYTHONPATH (their model imports it at module scope)',
                         'MyDataset: one tensor per drug instead of one per row -- values proven identical, '
                         'storage shared; the unpatched recipe needs ~24.7 GB of dataset RAM on this fold',
+                        'activation checkpointing of Encoder/crossEncoder, applied at runtime by a wrapper -- '
+                        'same batch 128, same loss, gradients within the noise floor; the unpatched recipe '
+                        'needs ~14.95 GiB of activations on a 14.56 GiB T4',
                         'all_drugs_unimol_arr.npy rebuilt from the released npz (config names it, never released)',
                         'empty __init__.py in datasets/ and models/ so their packages are not shadowed by '
                         "the image's HuggingFace `datasets`"]
@@ -302,7 +323,7 @@ log('GUARD D their modules resolve inside', X)
 # split_cold_drug_1 run left -- a seed difference, not a recipe difference. Disclosed.
 PUBLISHED = {'model': 'XPert', 'config': 'config_l1000', 'drug_feat': 'unimol', 'dataset': 'l1000_mdmt',
              'use_gradscaler': 'True', 'include_cell_idx': 'True'}
-cmd = [sys.executable, '-u', 'train_xpert.py', '--mode', 'train', '--nfold', FOLD, '--device', 'cuda:0',
+cmd = [sys.executable, '-u', 'run_train_ckpt.py', '--mode', 'train', '--nfold', FOLD, '--device', 'cuda:0',
        '--output_profile', 'True']
 for k, v in PUBLISHED.items():
     cmd += ['--' + k, v]
@@ -336,8 +357,19 @@ probe = ('import sys, logging, yaml, torch, pandas\n'
          'dev = torch.device("cuda:0")\n'
          'model = XPertNet(args, config, dev, logger)\n'
          'model.init_weights(); model.to(dev)\n'
-         'with torch.no_grad():\n'
+         'import xpert_ckpt_patch\n'
+         'xpert_ckpt_patch.apply()\n'
+         'model.train()\n'
+         'torch.cuda.reset_peak_memory_stats()\n'
+         'with torch.cuda.amp.autocast():\n'
          '    out = model(batch)\n'
+         '    loss = sum(o.float().mean() for o in out[:3])\n'
+         'loss.backward()\n'
+         'torch.cuda.synchronize()\n'
+         'peak = torch.cuda.max_memory_allocated() / 2 ** 30\n'
+         'print("GUARD F training step at batch", batch[0].shape[0], "peak GPU GiB", round(peak, 2))\n'
+         'assert batch[0].shape[0] == 128, "not the recipe batch size"\n'
+         'assert peak < 13.0, "training step peak %%.2f GiB leaves no headroom on a T4" %% peak\n'
          'ok = all(torch.isfinite(o).all().item() for o in out[:3])\n'
          'print("pandas", pandas.__version__, "| train batches", len(tr), "| val rows", len(val.dataset),\n'
          '      "| test rows", len(te.dataset), "| out", [tuple(o.shape) for o in out[:3]], "| finite", ok)\n'

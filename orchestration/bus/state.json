@@ -1,5 +1,5 @@
 {
-  "iteration": 20,
+  "iteration": 21,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "011_activation_checkpointing"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -35,8 +37,8 @@
     "009_mydataset_memory_patch",
     "010_atom_only_result"
   ],
-  "gpu_hours_spent_this_session": 6.61,
-  "pending_decision": "packet 009: go / no-go on replacing a per-row torch.tensor copy in their MyDataset with a per-drug shared tensor, values proven identical on 6,000 tensors, because the unpatched recipe needs ~24.7 GB of dataset RAM on this fold",
+  "gpu_hours_spent_this_session": 6.74,
+  "pending_decision": "packet 011: go / no-go on activation checkpointing of their Encoder/crossEncoder, applied at runtime, proven within the gradient noise floor, because their recipe needs ~14.95 GiB of activations at batch 128 on a 14.56 GiB T4",
   "note_current": "No packets open. XPert cc1 v4 running on Kaggle (status only; no claim about progress). Atom line: direct atom-to-atom attention INCREASES the atom tokens' harm on unseen compounds (refutes the 58.7 rescue hypothesis in direction) but masking it HURTS unseen cells (paired +0.00298, p 6.3e-10) -- the objective's regime. Queued free: A9 residual carriers, A10 memorisation test; A8 trained arm now has a pre-registered disqualifier.",
   "challenges_upheld": "72 of 75",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
