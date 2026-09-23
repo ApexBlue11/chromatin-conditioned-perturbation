@@ -45,7 +45,7 @@ def check_diagonal_available(model):
         )
     return True, ""
 
-def evaluate_chunks_alpha(model, chunks, alpha, key='atoms', operator='full'):
+def evaluate_chunks_alpha(model, chunks, alpha, key='atoms', operator='full', cut='none'):
     r_full_list, r_ablated_list = [], []
     dymax_atom = 0.0
 
@@ -66,6 +66,13 @@ def evaluate_chunks_alpha(model, chunks, alpha, key='atoms', operator='full'):
             else:
                 c_alpha['drug_alpha'] = alpha
                 c_ablated_alpha['drug_alpha'] = alpha
+                
+            if cut in ('xattn', 'both'):
+                c_alpha['drug_xattn_global_only'] = True
+                c_ablated_alpha['drug_xattn_global_only'] = True
+            if cut in ('global', 'both'):
+                c_alpha['drug_global_self_only'] = True
+                c_ablated_alpha['drug_global_self_only'] = True
 
             out_full = model(c_alpha)
             y_full = out_full['delta'] if isinstance(out_full, dict) else out_full
@@ -96,7 +103,12 @@ def main():
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--key', default='atoms')
     ap.add_argument('--operator', choices=['full', 'atom_only'], default='full')
+    ap.add_argument('--cut', choices=['none', 'xattn', 'global', 'both'], default='none')
     a = ap.parse_args()
+
+    # RESULTS 79: the two residual-route cuts are defined only on top of the atom-only operator.
+    if a.cut != 'none' and a.operator != 'atom_only':
+        ap.error("--cut requires --operator atom_only")
 
     alphas = [float(x.strip()) for x in a.alphas.split(',')]
 
@@ -118,6 +130,12 @@ def main():
     key_tag = '' if a.key == 'atoms' else f'_key-{a.key}'
     if a.operator != 'full':
         key_tag += f'_op-{a.operator}'
+    if a.cut != 'none':
+        key_tag += f'_cut-{a.cut}'
+    # --alphas changes the numbers too: `--cut none --alphas 0` for the RESULTS 79 regression would have
+    # overwritten the committed five-alpha RESULTS 74 file. Default alphas keep the bare name.
+    if alphas != [0.0, 0.25, 0.5, 0.75, 1.0]:
+        key_tag += '_a' + '-'.join('%g' % x for x in alphas)
     if a.n_eval != 1500:
         key_tag += f'_n{a.n_eval}'
     dst_json = os.path.join(ROOT, 'model', 'results', f'v9_alpha_sweep_{ckpt_stem}{key_tag}.json')
@@ -178,6 +196,8 @@ def main():
         'operator': a.operator,
         'splits': {}
     }
+    if a.cut != 'none':
+        out['cut'] = a.cut
 
     # Two generators, deliberately. The delegated version drew BOTH the row sample and every alpha's
     # bootstrap from one generator, with the bootstrap inside the alpha loop. Two consequences, and the
@@ -231,7 +251,7 @@ def main():
         boot_idx_split = None
 
         for alpha in alphas:
-            r_full, r_ablated, dymax_atom = evaluate_chunks_alpha(model, chunks, alpha, key=a.key, operator=a.operator)
+            r_full, r_ablated, dymax_atom = evaluate_chunks_alpha(model, chunks, alpha, key=a.key, operator=a.operator, cut=a.cut)
             row_dumps[f'{name}__a{alpha}'] = (r_full, r_ablated)
             ok = np.isfinite(r_full) & np.isfinite(r_ablated)
             r_f, r_a = r_full[ok], r_ablated[ok]

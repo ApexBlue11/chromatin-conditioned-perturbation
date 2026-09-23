@@ -215,13 +215,15 @@ class _DrugAttention(QKNormAttention):
     flow is eliminated.
     """
 
-    def forward(self, x, key_mask=None, diagonal=False, alpha=1.0, atom_alpha=1.0):
+    def forward(self, x, key_mask=None, diagonal=False, alpha=1.0, atom_alpha=1.0, global_self_only=False):
+        if global_self_only and (alpha < 1.0 or diagonal):
+            raise ValueError("Cannot combine global_self_only=True with alpha < 1.0 or diagonal=True")
         if atom_alpha < 1.0 and (alpha < 1.0 or diagonal):
             raise ValueError("Cannot combine atom_alpha < 1.0 with alpha < 1.0 or diagonal=True")
 
         if diagonal:
             alpha = 0.0
-        if alpha == 1.0 and atom_alpha == 1.0:
+        if alpha == 1.0 and atom_alpha == 1.0 and not global_self_only:
             return super().forward(x, key_mask=key_mask)
             
         B, L, _ = x.shape
@@ -243,7 +245,7 @@ class _DrugAttention(QKNormAttention):
             # Explicitly zero padded columns to ensure they are strictly 0.0 before blending
             A = A.masked_fill(key_mask[:, None, None, :], 0.0)
             
-        if atom_alpha < 1.0:
+        if atom_alpha < 1.0 or global_self_only:
             allow = torch.zeros(L, L, dtype=torch.bool, device=S.device)
             allow[:, 0] = True                      # every row may attend to the global token
             allow[torch.arange(L), torch.arange(L)] = True   # and to itself
@@ -251,7 +253,12 @@ class _DrugAttention(QKNormAttention):
             B_mat = torch.nan_to_num(torch.softmax(S_b, dim=-1), nan=0.0)
             
             A_new = A.clone()
-            A_new[..., 1:, :] = atom_alpha * A[..., 1:, :] + (1.0 - atom_alpha) * B_mat[..., 1:, :]
+            if atom_alpha < 1.0:
+                A_new[..., 1:, :] = atom_alpha * A[..., 1:, :] + (1.0 - atom_alpha) * B_mat[..., 1:, :]
+            if global_self_only:
+                # RESULTS 79, cut G: allow[0] is {0}, so B_mat's row 0 is exactly the one-hot on the global key --
+                # the global token stops reading the atoms and every other row is untouched.
+                A_new[..., 0, :] = B_mat[..., 0, :]
             
             # max over non-padded query rows of |A_new.sum(-1) - 1|
             rowsum = A_new.sum(-1)
@@ -298,8 +305,16 @@ class _DrugBlock(nn.Module):
         self.ff = SwiGLU(cfg.d_model, cfg.d_ff, cfg.dropout)
         self.sd1, self.sd2 = StochasticDepth(p_drop), StochasticDepth(p_drop)
 
-    def forward(self, D, key_mask=None, diagonal=False, alpha=1.0, atom_alpha=1.0):
-        if hasattr(self.attn, 'forward') and 'atom_alpha' in self.attn.forward.__code__.co_varnames:
+    def forward(self, D, key_mask=None, diagonal=False, alpha=1.0, atom_alpha=1.0, global_self_only=False):
+        has_global_self_only = hasattr(self.attn, 'forward') and 'global_self_only' in self.attn.forward.__code__.co_varnames
+        has_atom_alpha = hasattr(self.attn, 'forward') and 'atom_alpha' in self.attn.forward.__code__.co_varnames
+
+        if global_self_only and not has_global_self_only:
+            raise ValueError('global_self_only=True requested but %s does not implement it; refusing to fall back.' % type(self.attn).__name__)
+
+        if has_global_self_only and has_atom_alpha:
+            attn_out = self.attn(self.n1(D), key_mask=key_mask, diagonal=diagonal, alpha=alpha, atom_alpha=atom_alpha, global_self_only=global_self_only)
+        elif has_atom_alpha:
             attn_out = self.attn(self.n1(D), key_mask=key_mask, diagonal=diagonal, alpha=alpha, atom_alpha=atom_alpha)
         elif hasattr(self.attn, 'forward') and 'alpha' in self.attn.forward.__code__.co_varnames:
             attn_out = self.attn(self.n1(D), key_mask=key_mask, diagonal=diagonal, alpha=alpha)
