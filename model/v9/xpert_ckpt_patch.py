@@ -5,7 +5,8 @@
 Their published recipe (batch 128, 978 gene tokens) needs ~0.117 GiB of stored activations per sample in training --
 ~14.95 GiB at batch 128 -- against a T4's 14.56 GiB. Checkpointing stores only layer-boundary activations and recomputes
 the rest in the backward pass: same batch, same loss, same gradients (model/v9/prove_checkpoint_exact.py: loss equal to
-8 decimals, gradient difference 5.9e-05 inside the 8.7e-05 run-to-run noise floor), ~3.7 GiB at batch 128.
+8 decimals, gradient difference 4.353e-05 inside the 4.630e-05 run-to-run noise floor, measured by the run that
+imports THIS module; an earlier run with an inline copy gave 5.9e-05 within 8.7e-05), ~3.7 GiB at batch 128.
 
 Active only in training with grad enabled, so inference and evaluation are untouched. use_reentrant=False, which
 preserves the RNG state for dropout replay and the autocast state for recomputation.

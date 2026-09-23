@@ -41,6 +41,11 @@ import time
 
 T0 = time.time()
 BUDGET_H = 8.3          # wall-clock guard for TRAINING; prediction needs ~10 min after it
+# Review 011 C1: checkpointing slows every step, so fewer epochs fit in BUDGET_H, and a guard stop while test
+# loss is still improving supports no v9-win claim [RESULTS 71.7]. Nobody knows XPert's convergence epoch, so
+# the real T4 step time is measured FIRST, in a run that stops after GUARD F, and the full run is decided
+# with that number in hand rather than discovered through stopped_by == 'watchdog'.
+MEASURE_ONLY = True
 FOLD = 'split_cold_cell_1'
 W = '/kaggle/working'
 RECORD = {'fold': FOLD, 'budget_h': BUDGET_H, 'guards': {}, 'decision': 'option (a) as published, disclosed'}
@@ -198,7 +203,7 @@ RECORD['memory_patch'] = {'file': 'datasets/MyDataset.py', 'line_replaced': _ORI
 # patch below is applied at RUNTIME by a wrapper, so their files stay verbatim. Its source is generated from
 # model/v9/xpert_ckpt_patch.py, the module prove_checkpoint_exact.py tests: gradients within the run-to-run noise
 # floor, loss equal to 8 decimals, ~3.7 GiB at batch 128.
-CKPT_PATCH_SRC = '# -*- coding: utf-8 -*-\n"""Activation checkpointing for XPert\'s encoder layers, applied at RUNTIME so their source files stay verbatim.\n[RESULTS 77, packet 011]\n\nTheir published recipe (batch 128, 978 gene tokens) needs ~0.117 GiB of stored activations per sample in training --\n~14.95 GiB at batch 128 -- against a T4\'s 14.56 GiB. Checkpointing stores only layer-boundary activations and recomputes\nthe rest in the backward pass: same batch, same loss, same gradients (model/v9/prove_checkpoint_exact.py: loss equal to\n8 decimals, gradient difference 5.9e-05 inside the 8.7e-05 run-to-run noise floor), ~3.7 GiB at batch 128.\n\nActive only in training with grad enabled, so inference and evaluation are untouched. use_reentrant=False, which\npreserves the RNG state for dropout replay and the autocast state for recomputation.\n"""\nimport sys\n\nimport torch\nimport torch.utils.checkpoint as cp\n\n\ndef apply(model_utils=None):\n    """Patch models.model_utils.Encoder and .crossEncoder in place. Returns the list of patched class names."""\n    MU = model_utils or sys.modules[\'models.model_utils\']\n    patched = []\n    for cls in (MU.Encoder, MU.crossEncoder):\n        if getattr(cls.forward, \'_lincs_checkpointed\', False):\n            continue\n        orig = cls.forward\n\n        def make(orig):\n            def fwd(self, *a, **k):\n                if self.training and torch.is_grad_enabled():\n                    return cp.checkpoint(orig, self, *a, use_reentrant=False, **k)\n                return orig(self, *a, **k)\n            fwd._lincs_checkpointed = True\n            return fwd\n\n        cls.forward = make(orig)\n        patched.append(cls.__name__)\n    return patched\n'
+CKPT_PATCH_SRC = '# -*- coding: utf-8 -*-\n"""Activation checkpointing for XPert\'s encoder layers, applied at RUNTIME so their source files stay verbatim.\n[RESULTS 77, packet 011]\n\nTheir published recipe (batch 128, 978 gene tokens) needs ~0.117 GiB of stored activations per sample in training --\n~14.95 GiB at batch 128 -- against a T4\'s 14.56 GiB. Checkpointing stores only layer-boundary activations and recomputes\nthe rest in the backward pass: same batch, same loss, same gradients (model/v9/prove_checkpoint_exact.py: loss equal to\n8 decimals, gradient difference 4.353e-05 inside the 4.630e-05 run-to-run noise floor, measured by the run that\nimports THIS module; an earlier run with an inline copy gave 5.9e-05 within 8.7e-05), ~3.7 GiB at batch 128.\n\nActive only in training with grad enabled, so inference and evaluation are untouched. use_reentrant=False, which\npreserves the RNG state for dropout replay and the autocast state for recomputation.\n"""\nimport sys\n\nimport torch\nimport torch.utils.checkpoint as cp\n\n\ndef apply(model_utils=None):\n    """Patch models.model_utils.Encoder and .crossEncoder in place. Returns the list of patched class names."""\n    MU = model_utils or sys.modules[\'models.model_utils\']\n    patched = []\n    for cls in (MU.Encoder, MU.crossEncoder):\n        if getattr(cls.forward, \'_lincs_checkpointed\', False):\n            continue\n        orig = cls.forward\n\n        def make(orig):\n            def fwd(self, *a, **k):\n                if self.training and torch.is_grad_enabled():\n                    return cp.checkpoint(orig, self, *a, use_reentrant=False, **k)\n                return orig(self, *a, **k)\n            fwd._lincs_checkpointed = True\n            return fwd\n\n        cls.forward = make(orig)\n        patched.append(cls.__name__)\n    return patched\n'
 open(os.path.join(X, 'xpert_ckpt_patch.py'), 'w', encoding='utf-8').write(CKPT_PATCH_SRC)
 open(os.path.join(X, 'run_train_ckpt.py'), 'w', encoding='utf-8').write(
     'import sys\n'
@@ -357,16 +362,38 @@ probe = ('import sys, logging, yaml, torch, pandas\n'
          'dev = torch.device("cuda:0")\n'
          'model = XPertNet(args, config, dev, logger)\n'
          'model.init_weights(); model.to(dev)\n'
+         'import time, json\n'
          'import xpert_ckpt_patch\n'
          'xpert_ckpt_patch.apply()\n'
          'model.train()\n'
+         'opt = torch.optim.Adam(model.parameters(), lr=config["train"]["train_lr"],\n'
+         '                       weight_decay=config["train"]["weight_decay"])\n'
+         'scaler = torch.cuda.amp.GradScaler()\n'
+         'def train_step(b):\n'
+         '    opt.zero_grad(set_to_none=True)\n'
+         '    with torch.cuda.amp.autocast():\n'
+         '        o = model(b)\n'
+         '        l = sum(x.float().mean() for x in o[:3])\n'
+         '    scaler.scale(l).backward(); scaler.step(opt); scaler.update()\n'
+         '    return o\n'
          'torch.cuda.reset_peak_memory_stats()\n'
-         'with torch.cuda.amp.autocast():\n'
-         '    out = model(batch)\n'
-         '    loss = sum(o.float().mean() for o in out[:3])\n'
-         'loss.backward()\n'
-         'torch.cuda.synchronize()\n'
+         'out = train_step(batch)\n'
+         'it = iter(tr)\n'
+         'train_step(next(it))\n'
+         'torch.cuda.synchronize(); t0 = time.time()\n'
+         'for _ in range(5):\n'
+         '    train_step(next(it))\n'
+         'torch.cuda.synchronize(); s_train = (time.time() - t0) / 5\n'
          'peak = torch.cuda.max_memory_allocated() / 2 ** 30\n'
+         'model.eval(); vit = iter(val)\n'
+         'with torch.no_grad(), torch.cuda.amp.autocast():\n'
+         '    model(next(vit))\n'
+         '    torch.cuda.synchronize(); t1 = time.time()\n'
+         '    for _ in range(5):\n'
+         '        model(next(vit))\n'
+         '    torch.cuda.synchronize(); s_val = (time.time() - t1) / 5\n'
+         'print("TIMING " + json.dumps({"s_train_step": s_train, "s_val_step": s_val, "peak_gib": peak,\n'
+         '      "train_batches": len(tr), "val_batches": len(val)}), flush=True)\n'
          'print("GUARD F training step at batch", batch[0].shape[0], "peak GPU GiB", round(peak, 2))\n'
          'assert batch[0].shape[0] == 128, "not the recipe batch size"\n'
          'assert peak < 13.0, "training step peak %%.2f GiB leaves no headroom on a T4" %% peak\n'
@@ -391,6 +418,26 @@ if r.returncode != 0:
           'would too.' % (r.returncode, ', killed by signal -- out of memory' if r.returncode == -9 else ''))
 RECORD['guards']['one_batch_forward'] = r.stdout.strip().splitlines()[-1][:400]
 log('GUARD F one real batch + forward OK:', RECORD['guards']['one_batch_forward'])
+_t = [l for l in r.stdout.splitlines() if l.startswith('TIMING ')]
+if len(_t) != 1:
+    fatal('GUARD F did not report its steady-state timing.')
+TIMING = json.loads(_t[0][len('TIMING '):])
+setup_s = time.time() - T0
+epoch_s = TIMING['train_batches'] * TIMING['s_train_step'] + TIMING['val_batches'] * TIMING['s_val_step']
+TIMING.update({'setup_s': round(setup_s, 1), 'epoch_s_projected': round(epoch_s, 1),
+               'epochs_within_budget_projected': round((BUDGET_H * 3600 - setup_s - 900) / epoch_s, 1),
+               'budget_h': BUDGET_H, 'note': 'steady state, checkpointed, optimizer step included; 900 s reserved '
+                                            'for prediction and artefacts'})
+RECORD['timing'] = TIMING
+log('TIMING', TIMING)
+if MEASURE_ONLY:
+    RECORD['stopped_by'] = 'measure_only'
+    RECORD['host_memory'] = mem_summary()
+    json.dump(RECORD, open(os.path.join(W, 'run_record.json'), 'w'), indent=2)
+    log('MEASURE_ONLY: stopping before training. Projection recorded; the full run is decided from it.')
+    shutil.rmtree(X, ignore_errors=True)      # includes the 2.24 GB rebuilt array; keeps the output small
+    shutil.rmtree(V9, ignore_errors=True)
+    raise SystemExit(0)
 
 RECORD['train_cmd'] = ' '.join(cmd)
 RECORD['published_command_source'] =('scripts/train.sh:15 (mdmt) and README; fold list reduced to %s; '

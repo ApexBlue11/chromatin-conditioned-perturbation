@@ -1,5 +1,5 @@
 {
-  "iteration": 21,
+  "iteration": 22,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "011_activation_checkpointing"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -35,12 +33,13 @@
     "007_xpert_coldcell_feasibility",
     "008_masked_result_and_cc1_kernel",
     "009_mydataset_memory_patch",
-    "010_atom_only_result"
+    "010_atom_only_result",
+    "011_activation_checkpointing"
   ],
   "gpu_hours_spent_this_session": 6.74,
-  "pending_decision": "packet 011: go / no-go on activation checkpointing of their Encoder/crossEncoder, applied at runtime, proven within the gradient noise floor, because their recipe needs ~14.95 GiB of activations at batch 128 on a 14.56 GiB T4",
+  "pending_decision": "after v5 (MEASURE_ONLY) reports: is the projected number of epochs within the 8.3 h budget enough for XPert to plausibly converge? If not, a multi-session or longer-budget design goes to review before any full run.",
   "note_current": "No packets open. XPert cc1 v4 running on Kaggle (status only; no claim about progress). Atom line: direct atom-to-atom attention INCREASES the atom tokens' harm on unseen compounds (refutes the 58.7 rescue hypothesis in direction) but masking it HURTS unseen cells (paired +0.00298, p 6.3e-10) -- the objective's regime. Queued free: A9 residual carriers, A10 memorisation test; A8 trained arm now has a pre-registered disqualifier.",
-  "challenges_upheld": "72 of 75",
+  "challenges_upheld": "75 of 78",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1,
   "next_gpu_spend": "46.5 -- train XPert (and then TranSiGen) ourselves on split_cold_cell_1..5 for a paired head-to-head on identical rows. ~5.8 GPU-h. Chosen over the edge gate and over 50.5 because it converts the project OBJECTIVE from inadmissible (review 001 C8) to admissible, and because it is a direct paired comparison with no null-key problem -- the last two probes both died on their null keys.",

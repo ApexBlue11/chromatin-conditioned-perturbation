@@ -4861,6 +4861,28 @@ The kernel embeds the patch source **generated from the repo file** — verified
 fifth deviation. GUARD F now runs a batch-128 **training** step with the patch and refuses if peak GPU memory exceeds
 13.0 GiB. Sent to review as packet 011 before relaunch, because it changes how their model's forward executes.
 
+### 77.4 Review 011: GO on checkpointing — and it may make the run fit but not count
+`orchestration/bus/adjudicated/011_review.md`. **SOUND-WITH-CAVEATS**, three challenges, all upheld. **Tally 75 of 78.**
+
+The reviewer confirms checkpointing is exact and that the proof tested the hard case: all four dropout rates are 0.1 and
+the proof ran in training mode, so a within-noise gradient match means the dropout masks were replayed; peak memory
+falling 3.8× shows the wrapper actually executed. The proxy loss is sufficient (ask 2): exactness is a property of the
+recomputed layers, and exact recomputation gives exact vector–Jacobian products for any upstream gradient. It is the only
+exact option of the three (ask 4). Declared as the fifth deviation; it does not bear on "as published".
+
+- **C1 (MAJOR).** Checkpointing adds roughly one extra forward through the encoders per step, so fewer epochs fit inside
+  the 8.3 h guard — and §71.7 says a guard stop while test loss is still improving supports **no** v9-win claim. The fix
+  that makes the run **fit** may make it **inadmissible**, and XPert's convergence epoch is unknown. ⇒ **v5 runs in
+  MEASURE_ONLY mode**: everything through GUARD F, then five timed steady-state training steps and five validation
+  forwards on the real T4, an epochs-within-budget projection into `run_record.json`, and a clean stop. The full run is
+  decided from that number, before any 8-hour commitment, rather than discovered through `stopped_by == 'watchdog'`.
+- **C2.** GUARD F ran forward + backward with no `optimizer.step()`; Adam allocates its state lazily on the first step,
+  so the probe measured a lighter step than the one it guards — the §32 class. It now runs a real Adam step under a
+  GradScaler before measuring. Its CUDA context is released because it is a subprocess.
+- **C3.** The patch docstring cited the earlier inline-copy proof run (5.9e−05 within 8.7e−05); it now cites the run of
+  the committed module (4.353e−05 within 4.630e−05), and the kernel's embedded copy was regenerated and re-verified
+  byte-identical.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
