@@ -4708,6 +4708,53 @@ the opposite of what quality scaling would predict. The curve does not ride the 
   the signature of atom-level features **memorising training compounds**. It **predicts atoms help most on a fully
   warm split.** Not read from this run. A test needs its prediction committed first.
 
+## 76. PRE-COMMITTED: two tests of the memorisation hypothesis, written before either is computed (2026-09-23)
+
+Review 010 offered, after seeing the data, that **atom tokens memorise training compounds**: they help where the test
+compounds were seen in training (`unseen_cell`) and hurt where they were not (both compound splits). The split-level
+contrast that suggested it cannot also test it. These two tests use data **nobody has examined**, and their rules are
+fixed here first. Checked in code, not data: `build_splits` (`model/data.py:225`) makes `val` a random slice of rows
+whose cell **and** compound are both in training — a fully warm split — and `test_coldcell` contains only compounds
+seen in training.
+
+### 76.1 T2 (primary) — dose-response on training exposure, WITHIN `unseen_cell`
+Every compound in `test_coldcell` was seen in training, but some far more often than others. Memorisation predicts
+the atom tokens help **more** for compounds seen **more often**. Nothing about this within-split variation has been
+looked at.
+
+- **Rows:** the 1,500 `unseen_cell` rows already scored by `interaction_2x2.py` on `sa0` (`rows_sha 434418d7677d3f9c`).
+- **Per-row atom effect** `e_i = r11_i − r01_i`: per-row delta Pearson with atoms present minus atoms replaced by the
+  chunk mean, **full attention** (the trained model as it is). Positive = the atoms help.
+- **Exposure** `n_c` = the number of **training** rows whose compound is `c`, from `build_splits` on the same config.
+- **Unit = the compound, not the row** — the hypothesis is about compounds, and rows of one compound are not
+  independent. Per compound `c`: `E_c` = median of `e_i` over its rows. Statistic: **Spearman ρ(E_c, log n_c)**
+  across compounds, with a **one-sided permutation test** (20,000 permutations of `n_c` over compounds, seed 0).
+- **Null-key gate**, same construction with `x_cell`'s per-row effect from the `x_cell` 2x2 on the same rows. If a
+  generic effect makes *every* ablation scale with exposure — e.g. well-trained compounds are simply predicted better
+  — the null key will show it too.
+
+| result | reading |
+|---|---|
+| atoms ρ > 0, permutation p < 0.01, **and** the null key not significant (p ≥ 0.05) with \|ρ_null\| < 0.5 × ρ_atoms | **consistent with memorisation** |
+| null key fails its gate | the exposure correlation is **generic**, not attributed to atoms |
+| atoms ρ ≤ 0, or p ≥ 0.05 | **not supported** |
+| otherwise | inconclusive |
+
+Known limitation, stated now: exposure correlates with *which* compounds are well studied, so a positive result is
+consistent with memorisation, not proof of it.
+
+### 76.2 T1 (secondary) — the reviewer's own prediction, on the warm split
+Atom effect, median of the per-row contrast, full attention, on `val`, scored exactly as the other splits. The
+reviewer's prediction: atoms help **most** on a fully warm split.
+
+| result | reading |
+|---|---|
+| warm median-per-row > 0 **and** its CI lower bound above `unseen_cell`'s CI upper bound (**0.00378**) | **supported** |
+| warm median-per-row ≤ 0, or its CI entirely below 0 | **refuted** |
+| otherwise | inconclusive |
+
+T1 needs the harness to score `val`, which it does not yet; it runs after T2.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
