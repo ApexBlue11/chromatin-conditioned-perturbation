@@ -1,0 +1,135 @@
+commit e34eb5fd9c4e9cab3066681c1b87764d79441351
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Wed Sep 23 09:08:26 2026 +0530
+
+    Track the drugsa kernel: the script behind this session's only paid GPU run was not in history
+    
+    Checking why the cc1 kernel was skipped showed that NO kernel under external/kaggle_kernels/ is tracked,
+    because external/ is ignored -- including kern_drugsa_s0, which defined the 6.23 GPU-hour run that
+    RESULTS 59-61 rest on. Its guards and its exact argv (including the missing --batch that 59.2 records)
+    existed only on this disk. Force-added. Earlier kernels predate this session and are left as they are.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+ .../kern_drugsa_s0/kernel-metadata.json            |  24 +++++
+ .../kern_drugsa_s0/lincs-v9-drugsa-s0.py           | 113 +++++++++++++++++++++
+ 2 files changed, 137 insertions(+)
+
+commit e1e49373a9c4fedc761c8b3a8a582b6610be6119
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Wed Sep 23 09:08:15 2026 +0530
+
+    Add the XPert cc1 kernel itself -- the previous commit's message claimed it but external/ is gitignored
+    
+    The previous commit's message describes external/kaggle_kernels/kern_xpert_cc1/ in detail, and git add
+    silently skipped it because external/ is ignored; I read the commit's file list only after it went in.
+    That is a commit message asserting content the commit does not contain, which is the provenance failure
+    ORCHESTRATION 6d already warns about for git add. Force-added: the launch script and its metadata are
+    small text and must be in history, since they define what the GPU run was.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+ .../kern_xpert_cc1/kernel-metadata.json            |  21 ++
+ .../kern_xpert_cc1/lincs-xpert-cc1.py              | 269 +++++++++++++++++++++
+ 2 files changed, 290 insertions(+)
+
+commit 3d76cdaee5d66b8cff335e21dd38254a96af59e9
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Wed Sep 23 09:08:03 2026 +0530
+
+    The XPert cold-cell kernel, and its reading pre-committed per CELL LINE before the run exists
+    
+    RESULTS 71, written before launch. Measured first, because it decides the estimand: split_cold_cell_1
+    holds out 8 cell lines with zero train overlap, and MCF7 alone is 51.4% of the test rows (MCF7+HT29
+    78.8%). A row-pooled mean over this fold is mostly a statement about MCF7, and a row bootstrap would put a
+    tight interval around it -- the exact substitution that produced the retracted +0.0042 against a cluster
+    estimate of +0.00036. Review 006 C3 already said the unit for a cold-cell claim is the cell line.
+    
+    Estimand of record: per held-out cell, the median over its rows of r_v9 - r_XPert; all 8 reported; summary
+    is their unweighted mean with a cluster bootstrap over cells plus a sign count (8/8 p=0.0078, 7/8
+    p=0.070). The row-pooled number the field quotes is reported alongside, labelled MCF7-dominated. Reading
+    as inequalities with 69.1's asymmetry built in: v9 wins only if the cluster CI excludes zero AND 7+ of 8
+    cells agree, and that win is conservative; an XPert win is uninterpretable; anything else, no cell-level
+    claim. A cluster CI wider than 0.10 is uninformative whatever its sign, fixed now.
+    
+    Row coverage measured: v9's saved predictions cover 21,151 of 21,321 test rows. The 170 missing are
+    MCF7 154, BJAB 11, THP1 5, none extra, so pairing is on the 99.2% intersection -- but BJAB loses 13% of its
+    84 rows and is flagged as the noisiest cell. Reproduction check kept separate: our XPert's fold-1 score
+    outside [0.302, 0.464], three published SDs, is flagged as a possible broken run before anything is read.
+    
+    The kernel (external/kaggle_kernels/kern_xpert_cc1/), not yet pushed. Their code copied verbatim (sha1
+    checked); the only additions are our flash_attn shim and the dense unimol array rebuilt in-kernel.
+    Guards: torch must not move under pip; split levels must be exactly {train 47509, test 21321} with no valid
+    level, logging that their early stopping will monitor TEST loss; the unimol builder's dead-input refusals;
+    flash_attn must resolve to OUR shim with its mask OFF (option A, confirmed by RESULTS 70.1). An 8.3 h
+    wall-clock guard records whether early stopping or the guard ended training, and the stopper's on-disk
+    best checkpoint means a guard kill cannot lose the result. Prediction goes through our harness because
+    their predict_profile carries no row_index and head_to_head_mdmt.py refuses to pair without it.
+    
+    Three defects in my own draft caught before review: the harness writes its JSON beside itself, which on
+    Kaggle is read-only and would have fataled a GOOD run after the profile was written -- now runs from a
+    writable copy; model_XPert imports torch_geometric, which the image may lack -- now installed and checked;
+    and one fold only, with the second T4 deliberately idle because their hardcoded num_workers=10 already
+    oversubscribes the CPUs for a single process.
+    
+    The harness also gains XPERT_DIR / XPERT_CKPT env overrides, defaults unchanged. My first attempt at that
+    patch hit ORCHESTRATION 6d's backslash hazard on a Windows-path anchor and died at parse time with
+    nothing written; redone the way 6d says, prefix-matched from a file.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md      | 59 +++++++++++++++++++++++++++++++++++++++++++
+ model/v9/xpert_native_eval.py |  6 +++--
+ 2 files changed, 63 insertions(+), 2 deletions(-)
+
+commit dd5c067601171db2990cd2b1e7ad9d934f6bdced
+Author: Surya <Surya@DESKTOP-OIO208S>
+Date:   Wed Sep 23 09:01:26 2026 +0530
+
+    RESULTS 70: XPert's released checkpoint depends on its unmasked padding -- option A confirmed by measurement
+    
+    The pre-committed test from review 007, run on their released weights, identical 3000 rows across
+    every arm (verified by row_index and deg_true equality), zero GPU-hours.
+    
+    Gate first: the mask must be complete. |dY|max between masked+asis and masked+noise is EXACTLY
+    0.000e+00 against a 1e-4 threshold -- under the mask, padded content has no effect at all, so there
+    is no pooling or residual leak and the masked arm is valid. Applied in 188 attention calls, counted,
+    and the harness refuses outright if the count is zero.
+    
+    Reading: masked minus unmasked is -0.0144 [-0.0162, -0.0127], masking helps only 35.4% of rows, sign
+    p = 2.8e-57. Pre-committed row 2 applies: the released checkpoint DEPENDS on the unmasked path it was
+    trained on. Option A is XPert's published behaviour by measurement, not just by reading, and option B
+    must never be substituted. Review 007 C2 and C4 closed.
+    
+    Two corrections. First, to both of us: padded keys are NOT identical. unimol_Embeddings adds a
+    position embedding to every slot before LayerNorm, so each padded slot is distinct. My 68.4 said
+    "one identical constant key" and review 007 C4's counter-argument rested on "all padded keys are
+    identical". Both false; corrected in place; no verdict changes because 70.1 measured it directly.
+    It also makes C3 concrete: the sequence inside attention is 124 long (dose, time, 122 slots with
+    slot 0 overwritten by HG) while their mask is 122 -- the exact mismatch the dense branch mishandles.
+    
+    Second, RETRACTED: my 68.6 suggestion that padding dilution is a second mechanism for 50. The released
+    model scores BETTER with its padding attended, so padding is not demonstrably hurting it at inference.
+    What the padding carries is a hypothesis only -- padded-slot count is the one thing that varies by
+    molecule, so unmasked attention can encode molecule size. Untested and not being bought.
+    
+    Also: the first perturbation arms (noise, ones) drop 0.07-0.10 unmasked, but they were NOT the
+    pre-committed test -- perturbing padded features changes keys too, so they could not separate
+    "padding is attended" from "learned suppression that does not survive key changes". The masked arm
+    can, and it answered.
+    
+    The harness change: --mask_drug_keys via an optional key-padding mask in our own shim, default None
+    so the shim is unchanged unless asked, applied only where seqlen_k matches the drug sequence. Output
+    names carry _masked and _pad-* and the body records both, per yesterday's rule.
+    
+    Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+
+ model/results/RESULTS.md                           | 85 +++++++++++++++++++++-
+ .../xpert_native_split_2_test_masked_n3000.json    | 18 +++++
+ model/results/xpert_native_split_2_test_n3000.json | 17 +++++
+ ...native_split_2_test_pad-noise_masked_n3000.json | 18 +++++
+ .../xpert_native_split_2_test_pad-noise_n3000.json | 17 +++++
+ .../xpert_native_split_2_test_pad-ones_n3000.json  | 17 +++++
+ model/v9/_shims/flash_attn/flash_attn_interface.py | 22 +++++-
+ model/v9/xpert_native_eval.py                      | 54 +++++++++++++-
+ 8 files changed, 241 insertions(+), 7 deletions(-)

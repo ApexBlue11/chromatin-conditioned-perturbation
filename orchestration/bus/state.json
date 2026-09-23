@@ -1,5 +1,5 @@
 {
-  "iteration": 14,
+  "iteration": 15,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "008_masked_result_and_cc1_kernel"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -33,8 +35,8 @@
     "007_xpert_coldcell_feasibility"
   ],
   "gpu_hours_spent_this_session": 6.23,
-  "pending_decision": null,
-  "note_current": "Review 007 NOT-SUPPORTED, all 7 upheld. BLOCKING: their released recipe early-stops on the TEST fold -- no split column has a valid level, so utils.py:133 val=test fires on every fold and the best checkpoint is selected by test loss. Decision (a) taken and recorded. My 68.4 \"finding\" was a rediscovery of our own shim docstring (method rule 20 / ORCHESTRATION 6e). Free experiment running: perturb the PADDED atom slots on their released checkpoint to test whether it learned to ignore them.",
+  "pending_decision": "packet 008: go / no-go on the XPert cold-cell kernel before any GPU spend",
+  "note_current": "Masked-vs-unmasked on the released checkpoint: gate exact 0.000e+00, masked -0.0144 [-0.0162,-0.0127] -> option A confirmed by measurement, closing 007 C2/C4. Padded keys are NOT identical (position embeddings) -- corrects both 68.4 and 007 C4. 68.6 retracted. Kernel built and committed with reading pre-committed per CELL LINE (RESULTS 71). Dataset apexblue/xpert-train-src uploading. Awaiting go/no-go; NO hours committed.",
   "challenges_upheld": "58 of 61",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1,
