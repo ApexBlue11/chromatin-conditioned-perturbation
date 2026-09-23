@@ -35,8 +35,10 @@ import os, sys, json, time, types, argparse, logging
 
 import numpy as np
 
-XPERT = r'C:\Projects\LINCS\external\xpert\code\XPert'
-CKPT = r'C:\Projects\LINCS\external\xpert\saved_model_extracted\saved_model\l1000_mdmt_warm_split.pth'
+# XPERT_DIR / XPERT_CKPT let the same harness run on Kaggle, where their code is staged under
+# /kaggle/working. Unset, both default to the local paths every existing result was produced with.
+XPERT = os.environ.get('XPERT_DIR', r'C:\Projects\LINCS\external\xpert\code\XPert')
+CKPT = os.environ.get('XPERT_CKPT', r'C:\Projects\LINCS\external\xpert\saved_model_extracted\saved_model\l1000_mdmt_warm_split.pth')
 UNIMOL = os.path.join(XPERT, 'processed_data', 'unimol_mdmt_1970.npz')
 H5AD = os.path.join(XPERT, 'processed_data', 'l1000_mdmt_68830_subset.h5ad')
 

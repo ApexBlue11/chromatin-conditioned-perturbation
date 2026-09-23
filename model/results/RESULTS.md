@@ -4233,6 +4233,65 @@ guard that records whether early stopping or the guard fired, and their `pip` de
 Kaggle's disposable image rather than into `.venv-cuda` — whose dry-run would have pulled ~50 packages
 including a numpy change into the environment every v9 result depends on.
 
+## 71. PRE-COMMITTED: how the v9-versus-XPert cold-cell head-to-head will be read (2026-09-23)
+
+Written before the XPert training run is launched, so before any number from it exists. Method rules 13,
+16, 17, 19 apply, and review 006 C3 applies with full force: **for a claim about unseen cell lines the unit
+of generalisation is the CELL LINE, not the row.**
+
+### 71.1 What the fold looks like — measured, and why it forces a per-cell estimand
+`split_cold_cell_1` holds out **8 cell lines** (32 in train, **zero overlap**). Test rows per held-out line:
+
+| MCF7 | HT29 | MDAMB231 | HS578T | THP1 | CD34 | BJAB | H1975 |
+|---|---|---|---|---|---|---|---|
+| **10,969** | 5,837 | 2,188 | 1,074 | 820 | 295 | 84 | 54 |
+
+**MCF7 alone is 51.4 % of the test rows; MCF7 + HT29 are 78.8 %.** A row-pooled mean over this fold is
+therefore mostly a statement about MCF7, and a row bootstrap would report a tight interval around it. That is
+exactly the substitution that produced the retracted chromatin +0.0042 (row CI [+0.0036, +0.0049]) against a
+cluster estimate of +0.00036 [−0.0054, +0.0062]. It will not be made twice.
+
+**Row coverage.** v9's saved predictions (`external/v9_mdmt_preds/v9_cc1_epi_seed0.npz`) cover **21,151 of the
+21,321** test rows; the **170** missing are MCF7 154, BJAB 11, THP1 5; none extra. Pairing is on the
+intersection (99.2 %), via `head_to_head_mdmt.py`'s `row_index` guard. BJAB loses 13 % of its 84 rows, so its
+per-cell estimate is the noisiest and is flagged as such.
+
+### 71.2 Estimand of record
+For each held-out cell line `c`: **`d_c` = median over that cell's rows of `r_v9 − r_XPert`**, where `r` is
+per-row delta Pearson against `y − ctl` (their `metrics.py` convention for the row score). All 8 `d_c` are
+reported individually, with each cell's row count.
+
+Summary: the **unweighted mean of the 8 `d_c`**, with a **cluster bootstrap over cell lines** (resample the 8
+cells with replacement, 20,000 draws, seed 0), plus the **count of cells favouring v9** with a sign test. For
+reference, with 8 cells: 8/8 gives p = 0.0078, 7/8 gives p = 0.070, 6/8 gives p = 0.29.
+
+Reported alongside, **labelled as MCF7-dominated and not as a generalisation claim**: the row-pooled paired
+mean from `head_to_head_mdmt.py`, which is the convention the field quotes.
+
+### 71.3 The reading, as inequalities, with the asymmetry of §69.1 built in
+| result | reading |
+|---|---|
+| cluster mean **> 0**, cluster CI **excluding 0**, and **≥ 7 of 8** cells favour v9 | **v9 generalises to these unseen cell lines better than XPert as published.** Conservative, because XPert selected its checkpoint on these test rows. One training run each. |
+| cluster mean **< 0**, CI excluding 0, ≥ 7 of 8 favour XPert | **Uninterpretable as a model comparison** — the win may be the test-guided checkpoint selection. Reported plainly, not explained away. |
+| anything else | **No cell-level claim.** The per-cell table and the row-pooled number are reported, the latter explicitly as MCF7-dominated. |
+
+**Informative width, fixed in advance:** a cluster CI wider than **0.10** is uninformative whatever its
+sign. (For scale: v9's fold-1 number is 0.4734 against XPert's published cold-cell 0.383, a gap of about
+0.09, so an interval narrower than 0.10 is the smallest that could separate a gap of that size from zero.)
+
+### 71.4 Reproduction check on XPert, separate from the comparison
+Our XPert run's row-pooled fold-1 score is compared against their published cold-cell **0.383 ± 0.027**
+(a five-fold mean). **Outside [0.302, 0.464] — three published SDs — is flagged as a possible reproduction
+failure** before anything is concluded from the head-to-head. One fold against a five-fold mean is a weak
+check; it can catch a broken run, not validate a good one.
+
+### 71.5 What no outcome licenses
+- **Seed stability.** One seed of v9 (0) and one of XPert (their default, 2024). §58.3's lesson stands: a
+  tight interval within one run says nothing about variance across runs.
+- **Any statement about XPert's published numbers.** §69.1: C1 is solid about what *we* run, and neither of us
+  can tell from the code which mode produced their Table R8.
+- **Anything about the other four folds.** Fold 1 only, by decision [review 007 C5].
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
