@@ -1,7 +1,7 @@
 {
  "_README": "Capability + reliability registry. OBSERVED reliability outranks PUBLISHED benchmarks: published scores are priors, observations are evidence. Append to observations[] after every delegation; never rewrite history. Update published_benchmarks[] periodically and always record the as_of date.",
  "schema_version": 1,
- "last_updated": "2026-09-21",
+ "last_updated": "2026-09-23",
  "surfaces": [
   {
    "id": "agy",
@@ -284,6 +284,24 @@
    ],
    "lesson": "A brief that names a past failure class does not stop a worker reproducing it. If a property must be asserted, state the assertion in the brief AS CODE, and read the test body rather than its output -- a vacuous test prints PASS. And any script with more than one consumer of randomness needs the generator split spelled out in the contract; \"identical rows\" was read as within-split and was not enough.",
    "verification": "I ran all four test files, read the test bodies, ran the sweep end-to-end at n_eval 96 to confirm alpha reaches the model output (dYmax 1.2987/2.2259/4.1318), and checked git diff for edits to existing tests."
+  },
+  {
+   "date": "2026-09-23",
+   "surface": "agy",
+   "model": "gemini-3.1-pro-high",
+   "task": "W8 - atom-only attention operator (RESULTS 67.6), threading, sweep --operator, 12 tests",
+   "outcome": "PASS on the substance; two defects, one of them mine",
+   "what_held": [
+    "The operator matches the contract line for line: row 0 untouched, atom rows a convex mix of the full softmax and the softmax restricted to {global, self}, alpha=1 delegating to super().",
+    "Every test was a real assertion, as the brief required in code. T5 -- the retired operator gives exactly 0 where the new one must not -- is the check that justifies the operator, and it was written correctly.",
+    "Regression requirement met exactly: --operator full reproduces the pre-W8 sweep field for field, and all 18 per-row arrays byte-identical, verified by running both versions on identical inputs."
+   ],
+   "what_i_fixed": [
+    "Tests ran under SYSTEM python (torch cpu, with pytest), not .venv-cuda, and the file imported pytest without using it, so it could not run in the project env. The interpreter omission was MINE: the brief said \"python\" and never named the environment.",
+    "The worker extended a pre-existing dispatcher so that atom_alpha < 1 on a module lacking atom_alpha would silently run the RETIRED diagonal operator -- the exact substitution the task existed to prevent. Dead code for our class, but now raises."
+   ],
+   "lesson": "Name the interpreter in every brief (the project venv, by path). And read what a worker ADDS to dispatch logic, not just the new branch: fallbacks are where a wrong operator slips in silently.",
+   "verification": "All five suites rerun by me under .venv-cuda with real exit codes (my first check piped through tail and reported tail's exit code, not python's); test bodies read; regression diffed."
   }
  ],
  "routing_policy": {

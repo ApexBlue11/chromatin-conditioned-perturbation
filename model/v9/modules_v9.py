@@ -215,10 +215,13 @@ class _DrugAttention(QKNormAttention):
     flow is eliminated.
     """
 
-    def forward(self, x, key_mask=None, diagonal=False, alpha=1.0):
+    def forward(self, x, key_mask=None, diagonal=False, alpha=1.0, atom_alpha=1.0):
+        if atom_alpha < 1.0 and (alpha < 1.0 or diagonal):
+            raise ValueError("Cannot combine atom_alpha < 1.0 with alpha < 1.0 or diagonal=True")
+
         if diagonal:
             alpha = 0.0
-        if alpha == 1.0:
+        if alpha == 1.0 and atom_alpha == 1.0:
             return super().forward(x, key_mask=key_mask)
             
         B, L, _ = x.shape
@@ -228,11 +231,11 @@ class _DrugAttention(QKNormAttention):
         q = q * self.scale.exp().unsqueeze(0)
         
         # Post-softmax attention matrix blending
-        attn = q @ k.transpose(-2, -1)
+        S = q @ k.transpose(-2, -1)
         if key_mask is not None:
-            attn = attn.masked_fill(key_mask[:, None, None, :], float("-inf"))
+            S = S.masked_fill(key_mask[:, None, None, :], float("-inf"))
             
-        A = F.softmax(attn, dim=-1)
+        A = F.softmax(S, dim=-1)
         # Avoid NaN on fully masked rows (e.g. completely padded sequences)
         A = torch.nan_to_num(A, nan=0.0)
         
@@ -240,9 +243,27 @@ class _DrugAttention(QKNormAttention):
             # Explicitly zero padded columns to ensure they are strictly 0.0 before blending
             A = A.masked_fill(key_mask[:, None, None, :], 0.0)
             
-        I = torch.eye(L, device=x.device, dtype=A.dtype)[None, None, :, :]
-        
-        A_blend = alpha * A + (1.0 - alpha) * I
+        if atom_alpha < 1.0:
+            allow = torch.zeros(L, L, dtype=torch.bool, device=S.device)
+            allow[:, 0] = True                      # every row may attend to the global token
+            allow[torch.arange(L), torch.arange(L)] = True   # and to itself
+            S_b = S.masked_fill(~allow, float('-inf'))       # padded keys are already -inf in S
+            B_mat = torch.nan_to_num(torch.softmax(S_b, dim=-1), nan=0.0)
+            
+            A_new = A.clone()
+            A_new[..., 1:, :] = atom_alpha * A[..., 1:, :] + (1.0 - atom_alpha) * B_mat[..., 1:, :]
+            
+            # max over non-padded query rows of |A_new.sum(-1) - 1|
+            rowsum = A_new.sum(-1)
+            dev = (rowsum - 1.0).abs()
+            if key_mask is not None:
+                dev = dev.masked_fill(key_mask[:, None, :], 0.0)
+            self._last_rowsum_maxdev = dev.max().item()
+            
+            A_blend = A_new
+        else:
+            I = torch.eye(L, device=x.device, dtype=A.dtype)[None, None, :, :]
+            A_blend = alpha * A + (1.0 - alpha) * I
         
         out = self.drop(A_blend) @ v
         return self.o(out.transpose(1, 2).reshape(B, L, self.h * self.dh))
@@ -277,11 +298,20 @@ class _DrugBlock(nn.Module):
         self.ff = SwiGLU(cfg.d_model, cfg.d_ff, cfg.dropout)
         self.sd1, self.sd2 = StochasticDepth(p_drop), StochasticDepth(p_drop)
 
-    def forward(self, D, key_mask=None, diagonal=False, alpha=1.0):
-        if hasattr(self.attn, 'forward') and 'alpha' in self.attn.forward.__code__.co_varnames:
+    def forward(self, D, key_mask=None, diagonal=False, alpha=1.0, atom_alpha=1.0):
+        if hasattr(self.attn, 'forward') and 'atom_alpha' in self.attn.forward.__code__.co_varnames:
+            attn_out = self.attn(self.n1(D), key_mask=key_mask, diagonal=diagonal, alpha=alpha, atom_alpha=atom_alpha)
+        elif hasattr(self.attn, 'forward') and 'alpha' in self.attn.forward.__code__.co_varnames:
             attn_out = self.attn(self.n1(D), key_mask=key_mask, diagonal=diagonal, alpha=alpha)
         elif hasattr(self.attn, 'forward') and 'diagonal' in self.attn.forward.__code__.co_varnames:
             attn_out = self.attn(self.n1(D), key_mask=key_mask, diagonal=diagonal)
+        elif atom_alpha < 1.0:
+            # Never substitute. An attention module without atom_alpha support must not silently run the
+            # RETIRED full-matrix diagonal operator in its place: that operator also cuts the global token off
+            # from the atoms [RESULTS 66.2], which is exactly the confound atom_alpha exists to remove, and a
+            # silent swap would put the old operator's numbers under the new operator's name.
+            raise ValueError('atom_alpha < 1.0 requested but %s does not implement it; refusing to fall back '
+                             'to the diagonal operator.' % type(self.attn).__name__)
         elif diagonal or alpha == 0.0:
             attn_out = self._attn_diagonal(self.n1(D), key_mask=key_mask)
         else:

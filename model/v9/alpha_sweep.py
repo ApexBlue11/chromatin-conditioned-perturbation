@@ -45,7 +45,7 @@ def check_diagonal_available(model):
         )
     return True, ""
 
-def evaluate_chunks_alpha(model, chunks, alpha, key='atoms'):
+def evaluate_chunks_alpha(model, chunks, alpha, key='atoms', operator='full'):
     r_full_list, r_ablated_list = [], []
     dymax_atom = 0.0
 
@@ -58,9 +58,14 @@ def evaluate_chunks_alpha(model, chunks, alpha, key='atoms'):
             c_ablated = make_atom_ablated_batch(c, key=key)
             
             c_alpha = dict(c)
-            c_alpha['drug_alpha'] = alpha
             c_ablated_alpha = dict(c_ablated)
-            c_ablated_alpha['drug_alpha'] = alpha
+            
+            if operator == 'atom_only':
+                c_alpha['drug_atom_alpha'] = alpha
+                c_ablated_alpha['drug_atom_alpha'] = alpha
+            else:
+                c_alpha['drug_alpha'] = alpha
+                c_ablated_alpha['drug_alpha'] = alpha
 
             out_full = model(c_alpha)
             y_full = out_full['delta'] if isinstance(out_full, dict) else out_full
@@ -90,6 +95,7 @@ def main():
     ap.add_argument('--n_boot', type=int, default=20000)
     ap.add_argument('--seed', type=int, default=0)
     ap.add_argument('--key', default='atoms')
+    ap.add_argument('--operator', choices=['full', 'atom_only'], default='full')
     a = ap.parse_args()
 
     alphas = [float(x.strip()) for x in a.alphas.split(',')]
@@ -110,6 +116,8 @@ def main():
     # an overwrite. Full runs at the default n_eval keep the bare name so existing artefacts are not
     # orphaned; anything else is tagged.
     key_tag = '' if a.key == 'atoms' else f'_key-{a.key}'
+    if a.operator != 'full':
+        key_tag += f'_op-{a.operator}'
     if a.n_eval != 1500:
         key_tag += f'_n{a.n_eval}'
     dst_json = os.path.join(ROOT, 'model', 'results', f'v9_alpha_sweep_{ckpt_stem}{key_tag}.json')
@@ -167,6 +175,7 @@ def main():
         'seed': a.seed,
         'alphas': alphas,
         'key': a.key,
+        'operator': a.operator,
         'splits': {}
     }
 
@@ -222,7 +231,7 @@ def main():
         boot_idx_split = None
 
         for alpha in alphas:
-            r_full, r_ablated, dymax_atom = evaluate_chunks_alpha(model, chunks, alpha, key=a.key)
+            r_full, r_ablated, dymax_atom = evaluate_chunks_alpha(model, chunks, alpha, key=a.key, operator=a.operator)
             row_dumps[f'{name}__a{alpha}'] = (r_full, r_ablated)
             ok = np.isfinite(r_full) & np.isfinite(r_ablated)
             r_f, r_a = r_full[ok], r_ablated[ok]
