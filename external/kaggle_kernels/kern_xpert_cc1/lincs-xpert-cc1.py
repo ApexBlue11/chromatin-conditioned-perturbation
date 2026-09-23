@@ -130,7 +130,34 @@ for pkg in ('datasets', 'models'):
     init = os.path.join(X, pkg, '__init__.py')
     if not os.path.exists(init):
         open(init, 'w').close()
+# MEMORY PATCH [RESULTS 73, packet 009]. Launch v3's one-batch probe was killed by the OS at row ~18,500 of the
+# SECOND test-set build: their MyDataset.load_data copies each drug's (122, 514) float32 block (245 KB) into
+# EVERY row, and the val = test fallback builds the test rows twice -- measured 268 KB/row, 24.7 GB for
+# train + val + test, against ~29 GB on this image. The patch computes that same tensor once per drug and
+# reuses it. model/v9/prove_mydataset_patch.py builds their dataset both ways on identical rows: 6,000 tensors,
+# every one torch.equal with identical dtype and shape. Values unchanged; storage shared.
+MYDS = os.path.join(X, 'datasets', 'MyDataset.py')
+_ORIG = 'drug_feat = tensor(drug_feat, dtype=torch.float32) if self.args.drug_feat != \'smi\' else drug_feat'
+_PATCH = ('# [LINCS memory patch, RESULTS 73] one tensor per drug, reused: same values, shared storage.\n'
+          '            if self.args.drug_feat != \'smi\':\n'
+          '                _k = pert_id if self.args.dataset == \'transigen_sdst\' else pert_idx\n'
+          '                _c = self.__dict__.setdefault(\'_drug_tensor_cache\', {})\n'
+          '                if _k not in _c:\n'
+          '                    _c[_k] = tensor(drug_feat, dtype=torch.float32)\n'
+          '                drug_feat = _c[_k]')
+_src = open(MYDS, encoding='utf-8').read()
+if _src.count(_ORIG) != 1:
+    fatal('memory patch: the target line occurs %d times in their MyDataset.py, expected exactly 1.'
+          % _src.count(_ORIG))
+open(MYDS, 'w', encoding='utf-8').write(_src.replace(_ORIG, _PATCH, 1))
+import hashlib  # noqa: E402
+RECORD['memory_patch'] = {'file': 'datasets/MyDataset.py', 'line_replaced': _ORIG,
+                          'sha1_before': hashlib.sha1(_src.encode('utf-8')).hexdigest()[:12],
+                          'sha1_after': hashlib.sha1(open(MYDS, 'rb').read()).hexdigest()[:12],
+                          'proof': 'model/v9/prove_mydataset_patch.py: 6000 tensors torch.equal'}
 RECORD['deviations'] = ['flash_attn shim on PYTHONPATH (their model imports it at module scope)',
+                        'MyDataset: one tensor per drug instead of one per row -- values proven identical, '
+                        'storage shared; the unpatched recipe needs ~24.7 GB of dataset RAM on this fold',
                         'all_drugs_unimol_arr.npy rebuilt from the released npz (config names it, never released)',
                         'empty __init__.py in datasets/ and models/ so their packages are not shadowed by '
                         "the image's HuggingFace `datasets`"]
@@ -283,8 +310,16 @@ probe = ('import sys, logging, yaml, torch, pandas\n'
 r = subprocess.run([sys.executable, '-c', probe], capture_output=True, text=True, env=ENV, cwd=X)
 print(r.stdout[-1500:])
 if r.returncode != 0:
+    # v3's GUARD F recorded THAT it failed and not why: no return code, no stderr in the record, and the log came
+    # back through a client that could not encode tqdm's block characters. A negative return code is a signal --
+    # -9 is the OS killer, which is what v3's silent death was. Put both in the record itself.
+    tb = [l for l in r.stderr.splitlines() if l.strip() and '%|' not in l and 'it/s]' not in l]
+    RECORD['guard_f_failure'] = {'returncode': r.returncode,
+                                 'killed_by_signal': r.returncode < 0,
+                                 'stderr_tail_without_progress_bars': tb[-40:]}
     print(r.stderr[-4000:])
-    fatal('GUARD F: one batch through their loader and one forward pass failed; the trainer would too.')
+    fatal('GUARD F: one batch through their loader and one forward pass failed (returncode %d%s); the trainer '
+          'would too.' % (r.returncode, ', killed by signal -- out of memory' if r.returncode == -9 else ''))
 RECORD['guards']['one_batch_forward'] = r.stdout.strip().splitlines()[-1][:400]
 log('GUARD F one real batch + forward OK:', RECORD['guards']['one_batch_forward'])
 

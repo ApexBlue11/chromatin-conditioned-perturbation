@@ -4495,6 +4495,54 @@ because it is the opposite of what one would expect from removing a trained comp
 **The atom-effect curve is NOT read here.** §67.3 requires the null key's span to be below 25 % of the
 hypothesis key's first, and that run is executing.
 
+## 73. Launch 3: GUARD F caught an out-of-memory kill — their loader needs ~24.7 GB on this fold (2026-09-23)
+
+v3 passed GUARDs A–E (deps, split, unimol array, attention, module resolution) and **GUARD F refused** before a
+single epoch, as it was built to. ~0.2 GPU-h. Session total now **6.61 GPU-h**.
+
+### 73.1 What happened, and two defects in my own guard
+The probe's stderr ends in their `tqdm` over the 21,321-row test set: ~2,000 rows/s to 86 %, then 29 → 19 rows/s,
+a stall of over a minute at row 18,528, and death **with no Python traceback**. That is the signature of the OS
+killing a process for memory, not of an exception.
+
+Two defects in GUARD F made that harder to establish than it should have been: it recorded **that** the probe
+failed but **not its return code** (−9 would have said "killed" outright) and **not its stderr** in
+`run_record.json`; and the kernel log came back **empty** because the Kaggle CLI on Windows could not encode
+tqdm's block characters (`'charmap' codec can't encode`) — recovered with `PYTHONUTF8=1`. Both fixed: GUARD F now
+writes its return code, a `killed_by_signal` flag and the stderr tail stripped of progress bars into the record.
+
+### 73.2 The mechanism, measured rather than inferred
+`datasets/MyDataset.py`, `load_data`, once per row:
+```python
+drug_feat = tensor(drug_feat, dtype=torch.float32) if self.args.drug_feat != 'smi' else drug_feat
+```
+`torch.tensor` **copies**. Measured on 400 real test rows of `split_cold_cell_1`: **268 KB per row, 245 KB of it
+the drug block**, and **all 58** drugs present stored as separate per-row copies. Their loader builds train,
+val and test — and under the `val = test` fallback [§69.1] the test rows are built **twice** — so
+47,509 + 21,321 + 21,321 = 90,151 rows × 268 KB = **24.7 GB**, before the 2.24 GB dense array, the h5ad and the
+CUDA context, on an image with ~29 GB. Their published recipe does not fit Kaggle's memory as written.
+
+### 73.3 The proposed fix, and its proof — put to review before any GPU hour
+Replace that one line with: compute the **same** `tensor(drug_feat, dtype=torch.float32)` **once per drug** and
+reuse it for every row of that drug. `model/v9/prove_mydataset_patch.py` loads their `MyDataset.py` verbatim and
+a patched copy, builds both on the same 600 rows, and requires every field of every item to match:
+
+| | |
+|---|---|
+| tensors compared | **6,000** |
+| `torch.equal`, identical dtype and shape | **all** |
+| unique storage on the sample | 164.6 MB → 33.4 MB (4.9×) |
+| projected dataset RAM, train + val + test | **24.7 GB → at most 5.5 GB** (upper bound; double-counts shared drug storage) |
+
+Safety of sharing, checked in their code: `__getitem__` returns the stored tuple as-is, collation is the default
+stack (a copy into the batch), and **no in-place operation on `drug_feat` exists anywhere** in their source. So
+no row can observe another row's use of the shared tensor.
+
+The kernel applies exactly the proven patch — `_ORIG` and `_PATCH` compared as AST literals between the kernel
+and the proof, identical — refuses if the target line does not occur exactly once, and records sha1 before and
+after. **This is the first deviation that changes a line of their executed code**, so it goes to review
+(packet 009) rather than straight to launch.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
