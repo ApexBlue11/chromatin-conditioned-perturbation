@@ -4348,6 +4348,27 @@ did so by recomputing a number the repo already held. A small method-rule-20 mis
 defect. The reviewer's independent check agrees in full, and my converse check (0 of 21,151 kept rows
 unfeaturisable) is the half that shows the exclusion is *exactly* the compound rule.
 
+### 71.8 ✅ The analysis script, validated on a result we already have — before the run it will read
+`model/v9/coldcell_h2h.py` implements §71 / §71.7 mechanically, including the verdict. Written while the XPert
+run is executing, so it is fixed before its input exists. Validated on warm `split_2`, v9 against XPert's
+**released** checkpoint, where the answers are already known:
+
+| check | this script | the committed record |
+|---|---|---|
+| row-pooled paired mean | **+0.01182** [+0.01108, +0.01255] | **+0.0118** [+0.0113, +0.0127] (§43; its JSON rounds to 0.012) |
+| paired rows | 13,615 | 13,615 |
+| XPert on all its rows | **0.69320** | **0.6932** (`xpert_native_split_2_test.json`) |
+| targets agree on shared rows | passed (`y_true`, `ctl_true` within 1e−4) | — |
+
+The point estimates match exactly; the interval differs only in bootstrap draws. So the pairing, the row score
+and the target guard are right. Artefact `model/results/v9_vs_xpert_split_2_percell_VALIDATION.json`.
+
+**A byproduct, labelled as what it is.** The same run gives §43 a per-cell view it never had: v9 ahead of the
+released checkpoint in **37 of 40 cells**, cluster mean of per-cell medians **+0.0115 [+0.0073, +0.0157]**, sign
+p = 2e−8, with MCF7 only 15.9 % of warm-split rows. That says §43's win is not carried by one cell line. It is a
+**post-hoc robustness check of an existing result**, not a pre-committed claim, and warm `split_2` shares its
+cell lines with training, so it says nothing about unseen cells.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

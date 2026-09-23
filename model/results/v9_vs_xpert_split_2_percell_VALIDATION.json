@@ -1,0 +1,574 @@
+{
+  "split": "split_2",
+  "theirs_label": "XPert released ckpt (VALIDATION)",
+  "ours": "v9_mdmt_split_2_seed0.npz",
+  "theirs": "xpert_split_2_test_gpu.npy",
+  "row_overlap": 1.0,
+  "rows_theirs": 13766,
+  "rows_ours": 13615,
+  "row_score": "per-row Pearson of (pred - ctl) against (y - ctl)",
+  "estimand_of_record": "mean over cells of d_c = median_rows(r_ours - r_theirs), cluster bootstrap",
+  "cluster": {
+    "n_cells": 40,
+    "mean_of_d_c": 0.01154,
+    "cluster_ci95": [
+      0.00725,
+      0.01574
+    ],
+    "cluster_ci_width": 0.00849,
+    "cells_favouring_ours": 37,
+    "cells_favouring_theirs": 3,
+    "sign_test_p": 1.946500560734421e-08
+  },
+  "per_cell": [
+    {
+      "cell": "MCF7",
+      "n_scored": 2162,
+      "d_c_median": 0.01006,
+      "d_c_median_ci95": [
+        0.00861,
+        0.01155
+      ],
+      "mean": 0.01242,
+      "ours_mean": 0.69821,
+      "theirs_mean": 0.68579,
+      "favours": "ours"
+    },
+    {
+      "cell": "PC3",
+      "n_scored": 1563,
+      "d_c_median": 0.00928,
+      "d_c_median_ci95": [
+        0.00803,
+        0.01053
+      ],
+      "mean": 0.00983,
+      "ours_mean": 0.69595,
+      "theirs_mean": 0.68612,
+      "favours": "ours"
+    },
+    {
+      "cell": "A375",
+      "n_scored": 1392,
+      "d_c_median": 0.00941,
+      "d_c_median_ci95": [
+        0.0083,
+        0.01066
+      ],
+      "mean": 0.01036,
+      "ours_mean": 0.7036,
+      "theirs_mean": 0.69325,
+      "favours": "ours"
+    },
+    {
+      "cell": "A549",
+      "n_scored": 1388,
+      "d_c_median": 0.00992,
+      "d_c_median_ci95": [
+        0.0086,
+        0.01106
+      ],
+      "mean": 0.01201,
+      "ours_mean": 0.69908,
+      "theirs_mean": 0.68708,
+      "favours": "ours"
+    },
+    {
+      "cell": "HA1E",
+      "n_scored": 1196,
+      "d_c_median": 0.01092,
+      "d_c_median_ci95": [
+        0.00927,
+        0.01291
+      ],
+      "mean": 0.01376,
+      "ours_mean": 0.69753,
+      "theirs_mean": 0.68376,
+      "favours": "ours"
+    },
+    {
+      "cell": "HT29",
+      "n_scored": 1158,
+      "d_c_median": 0.00955,
+      "d_c_median_ci95": [
+        0.00783,
+        0.01179
+      ],
+      "mean": 0.01246,
+      "ours_mean": 0.70642,
+      "theirs_mean": 0.69396,
+      "favours": "ours"
+    },
+    {
+      "cell": "HELA",
+      "n_scored": 776,
+      "d_c_median": 0.00695,
+      "d_c_median_ci95": [
+        0.00482,
+        0.00837
+      ],
+      "mean": 0.00687,
+      "ours_mean": 0.72827,
+      "theirs_mean": 0.7214,
+      "favours": "ours"
+    },
+    {
+      "cell": "MCF10A",
+      "n_scored": 550,
+      "d_c_median": 0.01065,
+      "d_c_median_ci95": [
+        0.00772,
+        0.01226
+      ],
+      "mean": 0.01103,
+      "ours_mean": 0.72729,
+      "theirs_mean": 0.71626,
+      "favours": "ours"
+    },
+    {
+      "cell": "MDAMB231",
+      "n_scored": 405,
+      "d_c_median": 0.01107,
+      "d_c_median_ci95": [
+        0.00773,
+        0.01529
+      ],
+      "mean": 0.01365,
+      "ours_mean": 0.71631,
+      "theirs_mean": 0.70267,
+      "favours": "ours"
+    },
+    {
+      "cell": "HEPG2",
+      "n_scored": 400,
+      "d_c_median": 0.01025,
+      "d_c_median_ci95": [
+        0.00599,
+        0.01335
+      ],
+      "mean": 0.01192,
+      "ours_mean": 0.69936,
+      "theirs_mean": 0.68743,
+      "favours": "ours"
+    },
+    {
+      "cell": "HCC515",
+      "n_scored": 391,
+      "d_c_median": 0.01255,
+      "d_c_median_ci95": [
+        0.01017,
+        0.01616
+      ],
+      "mean": 0.01864,
+      "ours_mean": 0.69844,
+      "theirs_mean": 0.6798,
+      "favours": "ours"
+    },
+    {
+      "cell": "SKBR3",
+      "n_scored": 339,
+      "d_c_median": 0.01101,
+      "d_c_median_ci95": [
+        0.00913,
+        0.01379
+      ],
+      "mean": 0.01103,
+      "ours_mean": 0.72252,
+      "theirs_mean": 0.7115,
+      "favours": "ours"
+    },
+    {
+      "cell": "BT20",
+      "n_scored": 320,
+      "d_c_median": 0.01087,
+      "d_c_median_ci95": [
+        0.00695,
+        0.01328
+      ],
+      "mean": 0.0128,
+      "ours_mean": 0.72922,
+      "theirs_mean": 0.71642,
+      "favours": "ours"
+    },
+    {
+      "cell": "U2OS",
+      "n_scored": 297,
+      "d_c_median": 0.00589,
+      "d_c_median_ci95": [
+        0.00316,
+        0.00903
+      ],
+      "mean": 0.0084,
+      "ours_mean": 0.70154,
+      "theirs_mean": 0.69313,
+      "favours": "ours"
+    },
+    {
+      "cell": "HS578T",
+      "n_scored": 225,
+      "d_c_median": 0.01049,
+      "d_c_median_ci95": [
+        0.00601,
+        0.01434
+      ],
+      "mean": 0.01016,
+      "ours_mean": 0.71876,
+      "theirs_mean": 0.7086,
+      "favours": "ours"
+    },
+    {
+      "cell": "VCAP",
+      "n_scored": 189,
+      "d_c_median": 0.02024,
+      "d_c_median_ci95": [
+        0.01623,
+        0.02366
+      ],
+      "mean": 0.02324,
+      "ours_mean": 0.67062,
+      "theirs_mean": 0.64738,
+      "favours": "ours"
+    },
+    {
+      "cell": "THP1",
+      "n_scored": 157,
+      "d_c_median": 0.01474,
+      "d_c_median_ci95": [
+        0.01022,
+        0.01967
+      ],
+      "mean": 0.0166,
+      "ours_mean": 0.67657,
+      "theirs_mean": 0.65997,
+      "favours": "ours"
+    },
+    {
+      "cell": "HME1",
+      "n_scored": 119,
+      "d_c_median": 0.01075,
+      "d_c_median_ci95": [
+        0.00802,
+        0.01528
+      ],
+      "mean": 0.01033,
+      "ours_mean": 0.76867,
+      "theirs_mean": 0.75835,
+      "favours": "ours"
+    },
+    {
+      "cell": "LNCAP",
+      "n_scored": 113,
+      "d_c_median": 0.00626,
+      "d_c_median_ci95": [
+        0.00319,
+        0.01094
+      ],
+      "mean": 0.00605,
+      "ours_mean": 0.77826,
+      "theirs_mean": 0.77221,
+      "favours": "ours"
+    },
+    {
+      "cell": "U937",
+      "n_scored": 62,
+      "d_c_median": 0.01034,
+      "d_c_median_ci95": [
+        0.00094,
+        0.01403
+      ],
+      "mean": 0.01146,
+      "ours_mean": 0.65272,
+      "theirs_mean": 0.64127,
+      "favours": "ours"
+    },
+    {
+      "cell": "NPC",
+      "n_scored": 58,
+      "d_c_median": 0.01428,
+      "d_c_median_ci95": [
+        -0.01326,
+        0.02595
+      ],
+      "mean": 0.00113,
+      "ours_mean": 0.638,
+      "theirs_mean": 0.63686,
+      "favours": "ours"
+    },
+    {
+      "cell": "CD34",
+      "n_scored": 53,
+      "d_c_median": 0.01169,
+      "d_c_median_ci95": [
+        0.0026,
+        0.01973
+      ],
+      "mean": 0.01619,
+      "ours_mean": 0.70286,
+      "theirs_mean": 0.68667,
+      "favours": "ours"
+    },
+    {
+      "cell": "HL60",
+      "n_scored": 47,
+      "d_c_median": 0.01163,
+      "d_c_median_ci95": [
+        0.00405,
+        0.02425
+      ],
+      "mean": 0.03524,
+      "ours_mean": 0.72391,
+      "theirs_mean": 0.68867,
+      "favours": "ours"
+    },
+    {
+      "cell": "HEK293T",
+      "n_scored": 45,
+      "d_c_median": 0.00763,
+      "d_c_median_ci95": [
+        0.00449,
+        0.01029
+      ],
+      "mean": 0.00801,
+      "ours_mean": 0.85824,
+      "theirs_mean": 0.85023,
+      "favours": "ours"
+    },
+    {
+      "cell": "HEC108",
+      "n_scored": 38,
+      "d_c_median": 0.00394,
+      "d_c_median_ci95": [
+        -0.00632,
+        0.03258
+      ],
+      "mean": 0.01051,
+      "ours_mean": 0.61425,
+      "theirs_mean": 0.60374,
+      "favours": "ours"
+    },
+    {
+      "cell": "NOMO1",
+      "n_scored": 29,
+      "d_c_median": 0.01219,
+      "d_c_median_ci95": [
+        0.00219,
+        0.02066
+      ],
+      "mean": 0.00756,
+      "ours_mean": 0.79652,
+      "theirs_mean": 0.78896,
+      "favours": "ours"
+    },
+    {
+      "cell": "HUH7",
+      "n_scored": 27,
+      "d_c_median": 0.03045,
+      "d_c_median_ci95": [
+        -0.00758,
+        0.05719
+      ],
+      "mean": 0.02107,
+      "ours_mean": 0.63611,
+      "theirs_mean": 0.61504,
+      "favours": "ours"
+    },
+    {
+      "cell": "BJAB",
+      "n_scored": 16,
+      "d_c_median": 0.00247,
+      "d_c_median_ci95": [
+        -0.02279,
+        0.02267
+      ],
+      "mean": 0.00616,
+      "ours_mean": 0.64917,
+      "theirs_mean": 0.64301,
+      "favours": "ours"
+    },
+    {
+      "cell": "NCIH508",
+      "n_scored": 13,
+      "d_c_median": 0.00595,
+      "d_c_median_ci95": [
+        -0.00089,
+        0.01592
+      ],
+      "mean": 0.00795,
+      "ours_mean": 0.77617,
+      "theirs_mean": 0.76823,
+      "favours": "ours"
+    },
+    {
+      "cell": "NCIH1975",
+      "n_scored": 11,
+      "d_c_median": 0.01872,
+      "d_c_median_ci95": [
+        0.00158,
+        0.03075
+      ],
+      "mean": 0.01776,
+      "ours_mean": 0.75458,
+      "theirs_mean": 0.73682,
+      "favours": "ours"
+    },
+    {
+      "cell": "PHH",
+      "n_scored": 10,
+      "d_c_median": 0.06045,
+      "d_c_median_ci95": [
+        0.0484,
+        0.09127
+      ],
+      "mean": 0.09023,
+      "ours_mean": 0.57134,
+      "theirs_mean": 0.48111,
+      "favours": "ours"
+    },
+    {
+      "cell": "AGS",
+      "n_scored": 9,
+      "d_c_median": 0.00344,
+      "d_c_median_ci95": [
+        -0.02918,
+        0.01604
+      ],
+      "mean": -0.0111,
+      "ours_mean": 0.56732,
+      "theirs_mean": 0.57842,
+      "favours": "ours"
+    },
+    {
+      "cell": "H1975",
+      "n_scored": 9,
+      "d_c_median": 0.02868,
+      "d_c_median_ci95": [
+        0.00969,
+        0.03945
+      ],
+      "mean": 0.02516,
+      "ours_mean": 0.81808,
+      "theirs_mean": 0.79291,
+      "favours": "ours"
+    },
+    {
+      "cell": "NCIH596",
+      "n_scored": 9,
+      "d_c_median": 0.01532,
+      "d_c_median_ci95": [
+        0.01299,
+        0.02011
+      ],
+      "mean": 0.01601,
+      "ours_mean": 0.88774,
+      "theirs_mean": 0.87173,
+      "favours": "ours"
+    },
+    {
+      "cell": "SUDHL4",
+      "n_scored": 9,
+      "d_c_median": 0.02623,
+      "d_c_median_ci95": [
+        -0.0023,
+        0.05523
+      ],
+      "mean": 0.02406,
+      "ours_mean": 0.77123,
+      "theirs_mean": 0.74717,
+      "favours": "ours"
+    },
+    {
+      "cell": "HCT116",
+      "n_scored": 8,
+      "d_c_median": -0.03826,
+      "d_c_median_ci95": [
+        -0.14069,
+        0.01699
+      ],
+      "mean": -0.07741,
+      "ours_mean": 0.54401,
+      "theirs_mean": 0.62142,
+      "favours": "theirs"
+    },
+    {
+      "cell": "JURKAT",
+      "n_scored": 8,
+      "d_c_median": 0.01639,
+      "d_c_median_ci95": [
+        -0.02827,
+        0.05043
+      ],
+      "mean": 0.0137,
+      "ours_mean": 0.65985,
+      "theirs_mean": 0.64615,
+      "favours": "ours"
+    },
+    {
+      "cell": "HPTEC",
+      "n_scored": 7,
+      "d_c_median": 0.03143,
+      "d_c_median_ci95": [
+        -0.05354,
+        0.05969
+      ],
+      "mean": 0.01801,
+      "ours_mean": 0.52083,
+      "theirs_mean": 0.50282,
+      "favours": "ours"
+    },
+    {
+      "cell": "NCIH2073",
+      "n_scored": 6,
+      "d_c_median": -0.00106,
+      "d_c_median_ci95": [
+        -0.01191,
+        0.00882
+      ],
+      "mean": -0.00138,
+      "ours_mean": 0.79594,
+      "theirs_mean": 0.79732,
+      "favours": "theirs"
+    },
+    {
+      "cell": "HMELZ",
+      "n_scored": 1,
+      "d_c_median": -0.01111,
+      "d_c_median_ci95": [
+        -0.01111,
+        -0.01111
+      ],
+      "mean": -0.01111,
+      "ours_mean": 0.51007,
+      "theirs_mean": 0.52118,
+      "favours": "theirs"
+    }
+  ],
+  "row_pooled": {
+    "n_rows": 13615,
+    "ours_mean": 0.70508,
+    "theirs_mean": 0.69326,
+    "paired_mean": 0.01182,
+    "paired_mean_ci95_row_bootstrap": [
+      0.01108,
+      0.01255
+    ],
+    "paired_median": 0.00993,
+    "frac_rows_ours_better": 0.6661,
+    "largest_cell": "MCF7",
+    "largest_cell_share": 0.1588,
+    "LABEL": "row-pooled; dominated by MCF7 at 15.9% of rows; NOT a cell-level generalisation claim"
+  },
+  "reproduction": {
+    "theirs_all_rows_mean": 0.6932,
+    "n": 13766,
+    "band": [
+      0.302,
+      0.464
+    ],
+    "inside_band": false
+  },
+  "admissible_for_v9_win": true,
+  "run_record": null,
+  "verdict": "V9 WINS, conservative [71.3]",
+  "n_boot": 20000,
+  "seed": 0
+}
