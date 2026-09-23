@@ -1,5 +1,5 @@
 {
-  "iteration": 22,
+  "iteration": 23,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "012_xpert_budget"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -36,12 +34,13 @@
     "008_masked_result_and_cc1_kernel",
     "009_mydataset_memory_patch",
     "010_atom_only_result",
-    "011_activation_checkpointing"
+    "011_activation_checkpointing",
+    "012_xpert_budget"
   ],
   "gpu_hours_spent_this_session": 6.8,
-  "pending_decision": "packet 012: v5 measured 911 s/epoch (31.6 epochs in 8.3 h); a single session is inadmissible under 71.7 by construction; admissible run ~25 GPU-h (DataParallel, unmeasured) to ~53 GPU-h (one T4). Options O1-O4 under review. No GPU committed to 46.5 until the review returns.",
+  "pending_decision": "review 012 GO on the O2 measurement: v6 MEASURE_ONLY with a DataParallel runtime patch, a proof (dropout zeroed in train mode, one DP step vs one single-GPU step, within the noise floor) and timing with and without checkpointing. Then O2 (~25 GPU-h, multi-session, full-state checkpoint per 78.4 C1/C5, 78.5 scoping) vs O4 on the measured number.",
   "note_current": "Packet 012 open (XPert budget). A9 residual-carrier cuts being pre-committed (RESULTS 79) and delegated as W9. Atom line otherwise unchanged from 75.",
-  "challenges_upheld": "75 of 78",
+  "challenges_upheld": "80 of 83",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
@@ -49,7 +48,10 @@
     "XPert cold-cell comparison runs option (a) AS PUBLISHED, including their val=test early-stopping fallback, with the asymmetry disclosed: a v9 win is conservative, an XPert win is uninterpretable.",
     "Option A (unmasked flash semantics) needs no decision -- the shim already exists, is tested, and produced 0.6933 against their published 0.688 on warm split_2.",
     "Buy fold 1 only. v9 itself is fold 1 at one seed, so five XPert folds would reintroduce an asymmetry.",
-    "Never read XPert’s own reported metrics (train_xpert.py:573-574 overwrites test with val). Score predictions with head_to_head_mdmt.py."
+    "Never read XPert’s own reported metrics (train_xpert.py:573-574 overwrites test with val). Score predictions with head_to_head_mdmt.py.",
+    "No XPert session boundary goes through their --resume_from (review 012 C1): strict full-state load, key set asserted.",
+    "RESULTS 78.5: in a multi-session run 71.7 applies to the FINAL termination; per-session guard fires are resume events; threshold 45 unchanged.",
+    "A capped single-session XPert run (O3) is uninformative in both directions and is not bought."
   ],
   "result_packet_obligations": [
     "Quote RESULTS 71.7 VERBATIM with its commit (08b0a90), as packet 005 quoted 58.4: the reviewer is blinded from RESULTS.md and 71.7 decides admissibility.",

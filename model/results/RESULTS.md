@@ -4352,6 +4352,8 @@ converged"*: 90 % of patience without improvement. The review's own inequality, 
 any guard-stopped claim, since a guard stop always has counter < 50; I have taken its stated intent instead and
 say so here so the choice is visible. The kernel writes `admissible_for_v9_win` from exactly this rule.
 
+*Multi-session scope: see §78.5, committed before any multi-session launch. The ≥ 45 threshold is unchanged.*
+
 **How convergence is measured** (review 008 C2). `counter_at_end = last_epoch_index − best_epoch`, where
 `last_epoch_index` is parsed from their `Epoch {n}, Valid Total Loss` line and `best_epoch` is read from the
 checkpoint their stopper wrote. This is exact: every epoch after the best is by definition non-improving. The
@@ -4908,10 +4910,11 @@ Their recipe [§68.2]: `num_epochs 2500`, `patience 50`, `init_epoch 70` (the lo
 - **§71.7 needs `counter_at_end ≥ 45` for a guard stop to count.** In 31 epochs that requires the best epoch to be
   **epoch 0 or earlier** — i.e. it is **impossible**. A single-session run is inadmissible **by construction**, not
   by bad luck.
-- **And the likely outcome is exactly the inadmissible one.** v9's fold-1 score is 0.4734 against XPert's published
-  cold-cell 0.383 [§71.3]. The informative direction of a capped run — an under-trained XPert that still
-  *beats* v9 — is the one our prior says is unlikely. So a capped 8.3 h run would most probably buy a v9 win that
-  §71.7 forbids us to claim. **Not bought.**
+- **A capped run is uninformative in BOTH directions** — *corrected by review 012 C3; I first wrote that an
+  XPert win would be the informative outcome.* A v9 win is inadmissible under §71.7; an XPert win is
+  **uninterpretable** under §71.3, committed before any of this, because XPert's checkpoint is selected on test
+  loss — and that holds at epoch 31 exactly as at epoch 214, since `save_checkpoint` fires on every test-loss
+  improvement. **Not bought.**
 
 ### 78.2 What an admissible run costs, anchored on the only convergence number available
 Their **released** warm-split checkpoint stores `epoch: 164` (`l1000_mdmt_warm_split.pth`; the two pretraining
@@ -4944,6 +4947,48 @@ run" — was low by about 9×.** Every earlier cost statement for §46.5 is supe
 the full recipe on one T4 (~53 h); DataParallel measured first (~0.15 h) and then ~25 h if the measurement holds; or
 no XPert training at all, with the cold-cell comparison made against the published five-fold mean plus the warm
 split head-to-head we already have on their released weights — which loses §71's per-cell paired estimand.
+
+### 78.4 Review 012: measure DataParallel first; never resume through their path; §71.7 needs scoping, not rewriting
+`orchestration/bus/adjudicated/012_review.md`, at `b85f835`. **SOUND-WITH-CAVEATS**, five challenges, all upheld.
+**Tally 80 of 83.** The reviewer reaches point 1 independently (in 31 epochs `counter_at_end` is at most 30, and early
+stopping cannot fire either) and endorses the recommendation: **buy the ~0.15 GPU-h DataParallel measurement, then
+choose between O2 and O4 on the measured number; do not buy O3.**
+
+- **C1 (MAJOR) — their resume can restart from random initialisation while logging success.** `train_xpert.py:484-486`
+  keeps only checkpoint keys already present in the model. A DataParallel checkpoint prefixes every key with
+  `module.`, so **nothing matches**, `load_state_dict` succeeds on the fresh weights, and `:489` logs *"Load
+  previous-trained parameters sucessfully!"*. Verified in the code. ⇒ **No session boundary goes through
+  `--resume_from`.** Our full-state checkpoint loads **strictly** and asserts the loaded key set equals the model's;
+  tested before launch by a save-and-reload that must give bit-equal parameters.
+- **C2 (MAJOR) — §71.7 was written for one session.** §78.5 below, committed now, before any multi-session run.
+- **C3 — a capped run supports no claim in either direction.** §78.1 amended in place.
+- **C4 — the DataParallel proof zeroes all four dropout rates in `.train()`, not via `.eval()`**, because `eval()`
+  also switches off the checkpoint wrapper [§77.3] and any other train-only branch: the proof must exercise the
+  path training runs.
+- **C5 — the full-state checkpoint must carry the on-disk best checkpoint** (`/kaggle/working` does not persist; if
+  the best epoch fell in session 1, session 2's stopper would point at a file that no longer exists) **and resume
+  only at epoch boundaries**, because the shuffle order is drawn at the start of each epoch. Resume equivalence is
+  proved before launch: N epochs straight through against N/2, save, restore, N/2.
+
+**Answers that change the record.** Ask 2: a full-state checkpoint is *more* faithful than their resume, so it does
+not bear on "as published"; it is declared. Ask 3: equal one-step gradients with dropout off is the right proof;
+per-replica dropout masks are i.i.d. Bernoulli(0.9) draws, a different realisation of the same distribution, as a
+different seed is. Ask 4: **O4 is honest only if labelled as not a head-to-head** — unpaired, different rows, one
+fold against a five-fold mean with their checkpoint selection — and an admissible run is *probably informative*: a
+gap of ~0.09 against a cold-cell seed sd of 0.0052. Ask 5: **TranSiGen cannot substitute** — weaker (0.293 ± 0.017),
+and it trains through the same `train_xpert.py`, so it is test-selected too. A secondary at most, not first.
+
+### 78.5 §71.7 in a multi-session run — a scoping clarification committed BEFORE launch, threshold unchanged
+Drafted by the reviewer (012 C2) and adopted in substance:
+
+> **In a multi-session run, §71.7's `stopped_by` and `counter_at_end` refer to the FINAL termination of training.
+> Per-session wall-clock guard fires are checkpoint-and-resume events, logged separately in `run_record.json`
+> (session index, epoch reached, wall time) so the distinction is auditable. The ≥ 45 threshold is unchanged.**
+
+What this is not: lowering 45 to admit a capped run would be post-hoc and is refused. What it is: §71.7 was written
+when the guard *was* the end of training; in a chained design the guard is a resume point, and saying so before any
+data exist is a design statement. A **final** stop by the guard — e.g. the quota runs out — is still read by
+§71.7's table exactly as written.
 
 ## 79. PRE-COMMITTED: where the α = 0 residual lives — two inference-only cuts in a 2×2, written before the code exists (IDEAS A9)
 
