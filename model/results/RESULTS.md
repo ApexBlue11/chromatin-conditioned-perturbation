@@ -4598,6 +4598,41 @@ to neutral. That turns "delete the atom tokens" into a testable constructive alt
 the global↔atom pathway, drop atom-to-atom self-attention**, as a trained arm against the SA-on and SA-off
 references. Logged as IDEAS A8, to be priced through review; nothing bought here.
 
+### 73.4 Review 009: SOUND, GO — and why the patch is correct without needing the proof
+`orchestration/bus/adjudicated/009_review.md`. Five challenges, all minor, all upheld. **Tally 68 of 71.**
+
+**Correct by construction (C2).** In `load_data` the lookup is
+`drug_feat = self.drug_feat[pert_id] if transigen_sdst else self.drug_feat[pert_idx]`, and the cache key is
+`_k = pert_id if transigen_sdst else pert_idx` — **the same expression**. Nothing touches `drug_feat` between
+the lookup and the patched line; `pert_idx` is still the raw scalar there. So `drug_feat` is a pure function of
+the key and a per-key cache cannot return a wrong value for any row. The 6,000-tensor proof confirms the
+*implementation*; correctness needs no sample. Recorded so the proof is not read as the basis for correctness.
+
+**Declared, not result-bearing (C1).** It changes an executed line, which the `__init__.py` files did not, so it
+is the fourth entry in `RECORD['deviations']` with sha1 before and after — and the run is still reported as XPert
+as published.
+
+**The reviewer's own error, conceded.** Review 008 checked the training command for a **forbidden** flag and never
+for the **required** ones, and approved a kernel whose command would have built a different architecture; our
+harness said so in capitals at `xpert_native_eval.py:18-24`. Its fourth error on the bus.
+
+**Why that command would have run silently (C4).** `train_xpert.py:84-85` enters `autocast` only when a GradScaler
+exists, i.e. only under `--use_gradscaler True`. Without it the model runs in **fp32**. The real `flash_attn`
+accepts only fp16/bf16 and would have crashed on the first attention call; **our shim accepts fp32**, so it would
+have trained to completion at the wrong precision with the wrong architecture. The shim removed the failure that
+would have caught the error, which is why GUARD E is load-bearing. The shim's docstring now says so; asserting fp16
+there would break the CPU harness. *(The shim copy in the uploaded dataset predates that docstring; behaviour is
+identical, so it was not re-uploaded.)*
+
+**Framing (C3).** The seed is set once at `train_xpert.py:402`, before the fold loop, and `split_cold_cell_1` is the
+**second** fold of `train.sh:15`. So this run is **"XPert trained to its published recipe on `split_cold_cell_1`"** —
+an independent draw — and **never** "their cold-cell run reproduced". Written into the run record.
+
+**Memory (C5).** Post-patch dataset ≈ 3.5 GB; the larger new term is 20 DataLoader worker processes (train and
+val at `num_workers=10` each), estimated at 4–6 GB; total ≈ 14 GB of 29 — comfortable but estimated. v4 therefore
+samples system MemAvailable every 60 s for the whole run and writes the trace into the run record, and a trainer
+killed by a signal is now recorded as `killed_by_signal`, not as a generic crash.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

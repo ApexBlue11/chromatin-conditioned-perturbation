@@ -26,6 +26,15 @@ layout, its default scale of 1/sqrt(headdim), and its non-causal, unmasked defau
 
 `model/v9/test_xpert_compare.py` checks this against a hand-written reference on random tensors.
 
+DELIBERATELY MORE PERMISSIVE THAN THE REAL KERNEL [review 009 C4]. The real flash_attn_func accepts only
+fp16/bf16; this shim accepts fp32, because the CPU inference harness depends on that. The consequence is
+that the shim does NOT reproduce flash_attn's dtype rejection -- and that rejection is what would have
+caught a training command missing --use_gradscaler True (their train_xpert.py:84-85 enters autocast only
+when a GradScaler exists, so without the flag the model runs in fp32). Under the real kernel that command
+crashes on the first attention call; under this shim it trains to completion at the wrong precision.
+So any training run through this shim must check its executed arguments independently -- the XPert
+cold-cell kernel does, as GUARD E. Asserting fp16 here instead would break the CPU harness.
+
 This module is placed on sys.path ONLY when the real flash_attn is absent (see xpert_native_eval.py), so
 on a CUDA machine with flash_attn installed the genuine kernel is used and this file is inert.
 """

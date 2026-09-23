@@ -1,5 +1,5 @@
 {
-  "iteration": 18,
+  "iteration": 19,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -22,7 +22,6 @@
   },
   "loop_state": "RUNNING",
   "open_packets": [
-    "009_mydataset_memory_patch",
     "010_atom_only_result"
   ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
@@ -34,12 +33,13 @@
     "005_drugsa_result",
     "006_alpha_gate_and_edgegate_design",
     "007_xpert_coldcell_feasibility",
-    "008_masked_result_and_cc1_kernel"
+    "008_masked_result_and_cc1_kernel",
+    "009_mydataset_memory_patch"
   ],
   "gpu_hours_spent_this_session": 6.61,
   "pending_decision": "packet 009: go / no-go on replacing a per-row torch.tensor copy in their MyDataset with a per-drug shared tensor, values proven identical on 6,000 tensors, because the unpatched recipe needs ~24.7 GB of dataset RAM on this fold",
   "note_current": "Two packets open. 009 (blocking the XPert run): go/no-go on a proven value-identical memory patch to their MyDataset. 010: the atom-only operator passed its kill switch (-0.01448 vs +0.11679) and, for the first time in this line, its null-key gate (11.6% vs 25%); reading \"consistent with mechanism\" -- ~71% of the atom tokens' harm on unseen compounds runs through atom-to-atom attention. One seed, inference-time only. IDEAS A8 logged, unpriced.",
-  "challenges_upheld": "63 of 66",
+  "challenges_upheld": "68 of 71",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1,
   "next_gpu_spend": "46.5 -- train XPert (and then TranSiGen) ourselves on split_cold_cell_1..5 for a paired head-to-head on identical rows. ~5.8 GPU-h. Chosen over the edge gate and over 50.5 because it converts the project OBJECTIVE from inadmissible (review 001 C8) to admissible, and because it is a direct paired comparison with no null-key problem -- the last two probes both died on their null keys.",
@@ -51,6 +51,8 @@
   ],
   "result_packet_obligations": [
     "Quote RESULTS 71.7 VERBATIM with its commit (08b0a90), as packet 005 quoted 58.4: the reviewer is blinded from RESULTS.md and 71.7 decides admissibility.",
-    "Report the empty __init__.py files as provenance only, NOT as an as-published deviation (008b note)."
+    "Report the empty __init__.py files as provenance only, NOT as an as-published deviation (008b note).",
+    "Describe the XPert run as \"trained to its published recipe on split_cold_cell_1\" -- never \"their cold-cell run reproduced\" (review 009 C3).",
+    "List all four deviations with the MyDataset patch sha1s; report as XPert as published (review 009 C1)."
   ]
 }

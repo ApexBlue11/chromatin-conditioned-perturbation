@@ -13,10 +13,15 @@ WHAT THIS RUN IS, decided in advance and recorded in RESULTS 69.1 before any spe
     -0.0144, CI excluding zero]. The shim's optional mask stays OFF; GUARD C checks that.
   * Fold 1 only [review 007 C5]: v9 is fold 1 at one seed.
 
-WHAT IS NOT OURS TO CHANGE, AND IS NOT CHANGED
-  Their source files are copied verbatim. The two things added are the flash_attn shim on PYTHONPATH (their
-  model imports flash_attn at module scope and it is not on this image) and the dense unimol array their
-  config names but never released, rebuilt from the npz they did release [RESULTS 68].
+WHAT IS CHANGED, ALL DECLARED IN RECORD['deviations'] [reviews 008b, 009 C1]
+  The uploaded dataset keeps their files verbatim (sha1-checked). The staged copy in /kaggle/working gets:
+    1. the flash_attn shim on PYTHONPATH (their model imports it at module scope; not on this image);
+    2. the dense unimol array their config names but never released, rebuilt from the npz they did [RESULTS 68];
+    3. empty __init__.py in datasets/ and models/, so HuggingFace `datasets` cannot shadow theirs [RESULTS 71.9];
+    4. ONE executed line of MyDataset.py: the per-row drug tensor copy made once per drug instead [RESULTS 73].
+       Correct by construction (the cache key is the same expression as the lookup it replaces), and proven
+       on 6,000 tensors. Without it their loader needs ~24.7 GB of dataset RAM on this fold.
+  Items 1-3 change no executed line. Item 4 changes storage, not any value. None bears on "as published".
 
 WHY ONE GPU OF TWO
   train_xpert.py is single-device, and utils.py:155-157 hardcode num_workers=10, which already oversubscribes
@@ -45,8 +50,40 @@ def log(*a):
     print('[%6.1f min]' % ((time.time() - T0) / 60), *a, flush=True)
 
 
+# HOST MEMORY TRACE [review 009 C5]. v3 died with no traceback and, until GUARD F was fixed, no return code.
+# A training-time OOM at hour five must leave a number behind, so MemAvailable is sampled every 60 s for the
+# whole run -- system-wide, because the trainer and its 20 DataLoader workers are separate processes.
+import threading  # noqa: E402
+
+MEM = []
+
+
+def _mem_available_gb():
+    try:
+        for line in open('/proc/meminfo'):
+            if line.startswith('MemAvailable:'):
+                return int(line.split()[1]) / 1024 / 1024
+    except OSError:
+        return None
+
+
+def _mem_sampler():
+    while True:
+        MEM.append((round((time.time() - T0) / 60, 1), round(_mem_available_gb() or -1, 2)))
+        time.sleep(60)
+
+
+threading.Thread(target=_mem_sampler, daemon=True).start()
+
+
+def mem_summary():
+    ok = [m for _, m in MEM if m >= 0]
+    return {'min_available_gb': min(ok) if ok else None, 'samples': len(MEM), 'trace_min_gb': MEM[-400:]}
+
+
 def fatal(msg):
     RECORD['fatal'] = msg
+    RECORD['host_memory'] = mem_summary()
     json.dump(RECORD, open(os.path.join(W, 'run_record.json'), 'w'), indent=2)
     raise SystemExit('FATAL: ' + msg)
 
@@ -388,11 +425,12 @@ with open(TRAIN_LOG, 'w') as lf:
             break
     rc = p.wait()
 if fired is None:
-    fired = 'finished' if rc == 0 else 'crashed'
+    fired = 'finished' if rc == 0 else ('killed_by_signal' if rc < 0 else 'crashed')
+RECORD['host_memory'] = mem_summary()
 RECORD.update({'train_returncode': rc, 'stopped_by': fired, 'epochs_seen': epochs_seen,
                'last_epoch_line': last_epoch_line, 'train_hours': round((time.time() - T0) / 3600, 3)})
 log('training ended:', fired, '| rc', rc, '| epochs', epochs_seen)
-if fired == 'crashed':
+if fired in ('crashed', 'killed_by_signal'):
     os.system('tail -60 %s' % TRAIN_LOG)
     fatal('trainer crashed; see train_xpert.log.')
 
@@ -456,6 +494,12 @@ for junk in (ARR,):                       # 2.24 GB derived file; rebuildable, n
     except OSError:
         pass
 RECORD['total_hours'] = round((time.time() - T0) / 3600, 3)
+RECORD['host_memory'] = mem_summary()
+# Review 009 C3: the seed is set once at train_xpert.py:402, before the fold loop, and split_cold_cell_1 is
+# the SECOND fold of train.sh:15 -- so this run starts from a fresh seed-2024 state, not the RNG state
+# their run reached after split_cold_drug_1. Same recipe and seed value, different trajectory.
+RECORD['framing'] = ('XPert trained to its published recipe on %s. NOT a reproduction of their cold-cell '
+                     'run: an independent draw of the recipe.' % FOLD)
 json.dump(RECORD, open(os.path.join(W, 'run_record.json'), 'w'), indent=2)
 log('DONE', json.dumps({k: RECORD[k] for k in ('stopped_by', 'epochs_seen', 'total_hours')}))
 shutil.rmtree(X, ignore_errors=True)      # the staged copy; outputs are already in /kaggle/working
