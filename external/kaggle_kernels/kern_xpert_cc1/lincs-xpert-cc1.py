@@ -195,14 +195,25 @@ deadline = T0 + BUDGET_H * 3600
 TRAIN_LOG = os.path.join(W, 'train_xpert.log')
 fired = None
 epochs_seen, last_epoch_line = 0, ''
+last_epoch_index = None       # parsed from "Epoch {epoch}, Valid Total Loss", not inferred from a line count
+last_counter_logged = None    # the N in the most recent "EarlyStopping counter: N out of 50"
 with open(TRAIN_LOG, 'w') as lf:
     p = subprocess.Popen(cmd, cwd=X, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                          bufsize=1)
     for line in p.stdout:
         lf.write(line)
+        if 'EarlyStopping counter:' in line:
+            try:
+                last_counter_logged = int(line.split('EarlyStopping counter:')[1].split('out of')[0])
+            except (IndexError, ValueError):
+                pass
         if 'Valid Total Loss' in line:
             epochs_seen += 1
             last_epoch_line = line.strip()
+            try:
+                last_epoch_index = int(line.split('Epoch ')[1].split(',')[0])
+            except (IndexError, ValueError):
+                pass
             if epochs_seen <= 3 or epochs_seen % 10 == 0:
                 log('epoch', epochs_seen, '|', line.strip()[-160:])
         if 'train_time' in line or 'Traceback' in line or 'Error' in line:
@@ -226,13 +237,37 @@ if fired == 'crashed':
     os.system('tail -60 %s' % TRAIN_LOG)
     fatal('trainer crashed; see train_xpert.log.')
 
-# The per-fold record review 007 C6 asked for: whether early stopping or the guard ended the run.
+# The per-fold record review 007 C6 asked for: whether early stopping or the guard ended the run -- and,
+# per review 008 C2, HOW CLOSE TO CONVERGED it was when it ended.
+#
+# Review 008 C2: counting "EarlyStopping counter" lines measures the TOTAL number of non-improving epochs
+# over the whole run, because an improving epoch resets the counter to 0 SILENTLY (utils.py step(): the
+# improving branch sets self.counter = 0 with no log line). 150 scattered non-improving epochs followed by an
+# improvement 5 epochs before a guard kill would read as "long converged" when the true state was 5/50.
+# The exact end state needs no log parsing: every epoch after the best one was by definition non-improving,
+# so the counter at the end is last_epoch_index - best_epoch. The last logged counter is kept only as a
+# cross-check.
 es = open(TRAIN_LOG).read()
-RECORD['early_stop_counter_hits'] = es.count('EarlyStopping counter')
 CKPT = find_one(os.path.join(X, 'experiment', '**', '%s_fold_early_stop.pth' % FOLD))
 ck = torch.load(CKPT, map_location='cpu', weights_only=False)
-RECORD['best_checkpoint'] = {'path': CKPT, 'epoch': int(ck.get('epoch', -1))}
-log('best checkpoint', CKPT, 'from epoch', RECORD['best_checkpoint']['epoch'])
+best_epoch = int(ck.get('epoch', -1))
+RECORD['best_checkpoint'] = {'path': CKPT, 'epoch': best_epoch}
+if last_epoch_index is None or best_epoch < 0:
+    fatal('could not establish last_epoch_index (%s) or best_epoch (%s); convergence is unreadable.'
+          % (last_epoch_index, best_epoch))
+counter_at_end = last_epoch_index - best_epoch
+RECORD['last_epoch_index'] = last_epoch_index
+RECORD['counter_at_end'] = counter_at_end              # epochs since the best test-loss4 checkpoint
+RECORD['patience'] = 50
+RECORD['counter_cross_check'] = {'last_logged_counter': last_counter_logged,
+                                 'consistent': counter_at_end == 0 or last_counter_logged == counter_at_end}
+RECORD['nonimproving_epochs_total'] = es.count('EarlyStopping counter')   # descriptive ONLY, not convergence
+RECORD['best_selected_before_init_epoch_70'] = best_epoch < 70           # accelerated objective, disclosed
+# RESULTS 71.7, pre-committed before launch: a guard-stopped run cut off while test loss was still improving
+# leaves XPert UNDER-trained, so a v9 win would be inflated rather than conservative.
+RECORD['admissible_for_v9_win'] = not (fired == 'watchdog' and counter_at_end < 45)
+log('best checkpoint epoch', best_epoch, '| last epoch', last_epoch_index, '| counter at end',
+    counter_at_end, '/ 50 | admissible for a v9-win claim:', RECORD['admissible_for_v9_win'])
 
 # --------------------------------------------------------------------------------------------------------
 # 4. PREDICT the test rows with OUR harness, which carries row_index -- their predict_profile does not, and

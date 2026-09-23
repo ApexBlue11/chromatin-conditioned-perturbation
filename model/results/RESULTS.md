@@ -4174,7 +4174,10 @@ applied in 188 attention calls, counted.
 | rows where masking helps | **35.4 %**, sign p = 2.8e−57 |
 
 ⇒ **Pre-committed row 2 applies: masking lowers the released checkpoint by more than 0.005 with the CI
-excluding zero.** The released model *depends on* the unmasked path it was trained on. **Option A is
+excluding zero.** ⚠️ *Review 008 C3:* the **magnitude** is skew-inflated — mean −0.0144 against a median of
+**−0.0051**, which clears the 0.005 threshold by only 0.0001. The robust statement is the **direction**:
+masking hurts **64.6 %** of rows, sign p = 2.8e−57. "Masking costs 0.0144" is a mean pulled by a tail and is not
+quoted without the median beside it. The released model *depends on* the unmasked path it was trained on. **Option A is
 confirmed as XPert's published behaviour by measurement rather than by reading**, and option B is a
 different model that must never be substituted for it. §69.1's decision stands and now has a measurement
 under it.
@@ -4298,6 +4301,52 @@ missing from `drug/outputs/drug_feature_index.json` (21,220 compounds), and **0 
 distinct compounds. The exclusion is the documented, deterministic compound-featurisation drop in
 `xpert_arm.py:94-110`, so pairing on the intersection means "the rows both models can score". It is not a
 random subset of the fold: by cell it removes MCF7 154, BJAB 11, THP1 5.
+
+### 71.7 🔴 AMENDMENT, required by review 008 as the condition of GO — committed before launch, no data seen
+**What a guard-stopped run licenses.** Their early stopping monitors test `loss4` [§69.1], which normally
+*favours* XPert — the reason a v9 win is "conservative". But if the 8.3 h guard fires while test loss is still
+improving, the kernel loads XPert's best-*so-far* checkpoint. XPert is then **under-trained**, and a v9 win is
+**inflated**, not conservative. The asymmetry reverses exactly in that case, and §71 never said so.
+
+Pre-committed, as an inequality:
+
+| training ended by | `counter_at_end` | reading |
+|---|---|---|
+| their early stopping (`finished`) | 50 by construction | §71.3 applies unchanged |
+| **the wall-clock guard** | **≥ 45** of patience 50 | effectively converged; §71.3 applies |
+| **the wall-clock guard** | **< 45** | **supports NO v9-win claim**, whatever the numbers — XPert was still improving when cut off |
+| crash | — | void; the kernel fatals |
+
+The **45** is my resolution of the review's *"a watchdog stop with the counter near patience is effectively
+converged"*: 90 % of patience without improvement. The review's own inequality, taken literally, would forbid
+any guard-stopped claim, since a guard stop always has counter < 50; I have taken its stated intent instead and
+say so here so the choice is visible. The kernel writes `admissible_for_v9_win` from exactly this rule.
+
+**How convergence is measured** (review 008 C2). `counter_at_end = last_epoch_index − best_epoch`, where
+`last_epoch_index` is parsed from their `Epoch {n}, Valid Total Loss` line and `best_epoch` is read from the
+checkpoint their stopper wrote. This is exact: every epoch after the best is by definition non-improving. The
+kernel's first draft recorded `early_stop_counter_hits` = the count of `EarlyStopping counter` lines, which the
+reviewer showed is the **total** number of non-improving epochs over the run, because an improving epoch
+resets the counter **silently** (`utils.py` `step()`: `self.counter = 0`, no log line). Verified in the code.
+That field is renamed `nonimproving_epochs_total` and marked descriptive-only; the last logged counter is kept
+as a cross-check against `counter_at_end`.
+
+**Disclosed, not vetoed:** if `best_epoch < 70`, XPert's checkpoint was selected on the "accelerated"
+`batch_weighted_loss` objective before the switch at `init_epoch`, and never benefited from the full one. The
+kernel records `best_selected_before_init_epoch_70`.
+
+**Per-cell uncertainty** (review 008 C4). Each of the 8 `d_c` is reported with its own bootstrap CI over that
+cell's rows and its scored-row n, so that BJAB (73 scored of 84) and H1975 (54) are visibly noisy rather than
+eight equal-looking numbers. The reviewer's point about the conjunction is recorded as the reason the
+unweighted mean is kept: requiring **both** the cluster CI **and** ≥ 7/8 cells means a noisy small cell can
+only cause a false **no-claim**, never a false v9 win.
+
+**On 71.6.** The reviewer noted `n_dropped_test_unfeaturisable = 170` was already on disk in
+`model/results/v9_xpert_arm_split_cold_cell_1_seed0.json`. It then corrected its own tally — 008a went out
+before its review, so the ask was answered by us, not by it. Both are true: I answered it before review, and I
+did so by recomputing a number the repo already held. A small method-rule-20 miss on my side, not a packet
+defect. The reviewer's independent check agrees in full, and my converse check (0 of 21,151 kept rows
+unfeaturisable) is the half that shows the exclusion is *exactly* the compound rule.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
