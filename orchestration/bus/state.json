@@ -33,7 +33,7 @@
     "007_xpert_coldcell_feasibility",
     "008_masked_result_and_cc1_kernel"
   ],
-  "gpu_hours_spent_this_session": 6.28,
+  "gpu_hours_spent_this_session": 6.41,
   "pending_decision": null,
   "note_current": "XPert cc1 launch 1 failed on import: their datasets/ has no __init__.py and the image ships HuggingFace datasets, which shadowed it. All four guards had passed. Fixed with empty __init__.py in the staged copy plus GUARD D (their modules must resolve inside the staged copy). Relaunching as v2. Reading rule unchanged (RESULTS 71, 71.7).",
   "challenges_upheld": "63 of 66",

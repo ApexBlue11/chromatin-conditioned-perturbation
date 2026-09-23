@@ -1,0 +1,38 @@
+
+---------args-----------
+mode: train
+nfold: split_cold_cell_1
+drug_feat: unimol
+device: cuda:0
+model: XPert
+config: config
+seed: 2024
+dataset: l1000_mdmt
+pretrained_mode: global
+include_cell_idx: False
+wo_HG: False
+wo_atom: False
+wo_atom_HG: False
+wo_unimol: False
+wo_ppi: False
+use_gene_pos_emed: False
+use_gradscaler: False
+lr_scheduler: True
+resume_from: None
+saved_model_path: None
+saved_model: None
+pretrained_model: None
+output_profile: True
+output_attention: False
+output_cls_embed: False
+weighted_loss: False
+kl_loss: False
+
+
+Traceback (most recent call last):
+  File "/kaggle/working/XPert/train_xpert.py", line 735, in <module>
+    main()
+  File "/kaggle/working/XPert/train_xpert.py", line 405, in main
+    with open(f'configs/{args.config}.yaml', 'r') as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'configs/config.yaml'

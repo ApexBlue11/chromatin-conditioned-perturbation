@@ -223,9 +223,76 @@ log('GUARD D their modules resolve inside', X)
 #    NOTE: their boolean flags use argparse `type=bool`, so passing the string "False" ENABLES them. Only
 #    --output_profile is passed, and only as True.
 # --------------------------------------------------------------------------------------------------------
-cmd = [sys.executable, '-u', 'train_xpert.py', '--mode', 'train', '--nfold', FOLD, '--dataset',
-       'l1000_mdmt', '--drug_feat', 'unimol', '--device', 'cuda:0', '--output_profile', 'True']
+# THE PUBLISHED INVOCATION, not argparse defaults. Version 2 of this kernel used defaults and crashed on
+# `configs/config.yaml`, which their release does not contain. Their own scripts/train.sh:15 is, for mdmt:
+#   python train_xpert.py --model XPert --config config_l1000 --drug_feat unimol
+#          --nfold split_cold_drug_1,split_cold_cell_1,split_1 --dataset l1000_mdmt
+#          --use_gradscaler True --include_cell_idx True
+# and the README gives the same --config and --use_gradscaler. v2 differed in THREE flags, not one, and
+# --include_cell_idx adds cls_token + class_fc: trained without it, the checkpoint could not have been loaded
+# by our harness (strict=True) -- a failure that would have arrived AFTER eight hours of training. Our own
+# harness's docstring (xpert_native_eval.py:21) already said this flag is non-default; it was not read.
+# Only the fold list is reduced, to split_cold_cell_1: their loop builds a fresh model, init_weights() and
+# optimizer PER FOLD (train_xpert.py:425-455), so the folds are independent. Their seed is set once at
+# :402, before that loop, so our fold starts from a fresh seed-2024 state rather than the state their
+# split_cold_drug_1 run left -- a seed difference, not a recipe difference. Disclosed.
+PUBLISHED = {'model': 'XPert', 'config': 'config_l1000', 'drug_feat': 'unimol', 'dataset': 'l1000_mdmt',
+             'use_gradscaler': 'True', 'include_cell_idx': 'True'}
+cmd = [sys.executable, '-u', 'train_xpert.py', '--mode', 'train', '--nfold', FOLD, '--device', 'cuda:0',
+       '--output_profile', 'True']
+for k, v in PUBLISHED.items():
+    cmd += ['--' + k, v]
+# What the trainer must PRINT in its args block. Checked against the executed namespace, not our argv:
+# their booleans are argparse type=bool, so bool("False") is True and intent and effect can diverge.
+EXPECT_ARGS = {'mode': 'train', 'nfold': FOLD, 'model': 'XPert', 'config': 'config_l1000',
+               'drug_feat': 'unimol', 'dataset': 'l1000_mdmt', 'seed': '2024', 'use_gradscaler': 'True',
+               'include_cell_idx': 'True', 'output_attention': 'False', 'output_profile': 'True'}
+# --------------------------------------------------------------------------------------------------------
+# GUARD F -- one real batch through THEIR loader and ONE forward pass, in the trainer's environment.
+# Launches v1 and v2 each failed one stage later than the last (import shadowing, then the config path).
+# The next stage is data loading and the model, and it carries a known hazard: their MyDataset indexes
+# raw_data_items['col'][idx] with an integer idx, which pandas treats as positional only by a deprecated
+# fallback -- our own harness re-indexes obs to avoid it. This probe uses their arg_parse(), their config,
+# their load_dataloader() and XPertNet exactly as train_xpert.py does, so a failure here is the failure the
+# trainer would hit, found in two minutes instead of after the first epoch.
+# --------------------------------------------------------------------------------------------------------
+probe_argv = ['train_xpert.py', '--mode', 'train', '--nfold', FOLD, '--device', 'cuda:0']
+for k, v in PUBLISHED.items():
+    probe_argv += ['--' + k, v]
+probe = ('import sys, logging, yaml, torch, pandas\n'
+         'sys.argv = %r\n'
+         'import train_xpert as T\n'
+         'from utils import load_dataloader\n'
+         'from models.model_XPert import XPertNet\n'
+         'args = T.arg_parse()\n'
+         'config = yaml.safe_load(open("configs/%%s.yaml" %% args.config))\n'
+         'logger = logging.getLogger("probe")\n'
+         'tr, val, te, adata = load_dataloader(args, config, logger, nfold=%r, return_rawdata=True)\n'
+         'batch = next(iter(tr))\n'
+         'dev = torch.device("cuda:0")\n'
+         'model = XPertNet(args, config, dev, logger)\n'
+         'model.init_weights(); model.to(dev)\n'
+         'with torch.no_grad():\n'
+         '    out = model(batch)\n'
+         'ok = all(torch.isfinite(o).all().item() for o in out[:3])\n'
+         'print("pandas", pandas.__version__, "| train batches", len(tr), "| val rows", len(val.dataset),\n'
+         '      "| test rows", len(te.dataset), "| out", [tuple(o.shape) for o in out[:3]], "| finite", ok)\n'
+         'assert ok, "non-finite forward output"\n'
+         'assert len(val.dataset) == len(te.dataset), "val is not the test set: the disclosed fallback did not fire"\n'
+         % (probe_argv, FOLD))
+r = subprocess.run([sys.executable, '-c', probe], capture_output=True, text=True, env=ENV, cwd=X)
+print(r.stdout[-1500:])
+if r.returncode != 0:
+    print(r.stderr[-4000:])
+    fatal('GUARD F: one batch through their loader and one forward pass failed; the trainer would too.')
+RECORD['guards']['one_batch_forward'] = r.stdout.strip().splitlines()[-1][:400]
+log('GUARD F one real batch + forward OK:', RECORD['guards']['one_batch_forward'])
+
 RECORD['train_cmd'] = ' '.join(cmd)
+RECORD['published_command_source'] =('scripts/train.sh:15 (mdmt) and README; fold list reduced to %s; '
+                                      'folds independent per train_xpert.py:425-455' % FOLD)
+RECORD['seed_note'] = ('seed 2024 set once at train_xpert.py:402 before the fold loop, so this fold starts '
+                       'from a fresh seed-2024 state, not the state their 3-fold sequential run would reach')
 log('TRAIN:', RECORD['train_cmd'])
 deadline = T0 + BUDGET_H * 3600
 TRAIN_LOG = os.path.join(W, 'train_xpert.log')
@@ -236,8 +303,29 @@ last_counter_logged = None    # the N in the most recent "EarlyStopping counter:
 with open(TRAIN_LOG, 'w') as lf:
     p = subprocess.Popen(cmd, cwd=X, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
                          bufsize=1)
+    in_args, seen_args, args_checked = False, {}, False
     for line in p.stdout:
         lf.write(line)
+        # GUARD E -- the EXECUTED arguments must be the published ones. Their trainer prints its namespace
+        # between "---------args-----------" and a blank line. Read it, compare, and kill the trainer at once
+        # on any mismatch, before a single epoch is paid for.
+        if not args_checked:
+            if '---------args-----------' in line:
+                in_args = True
+                continue
+            if in_args:
+                if ':' in line:
+                    k, v = line.split(':', 1)
+                    seen_args[k.strip()] = v.strip()
+                elif not line.strip() and seen_args:
+                    in_args, args_checked = False, True
+                    bad = {k: (seen_args.get(k), v) for k, v in EXPECT_ARGS.items() if seen_args.get(k) != v}
+                    RECORD['guards']['executed_args'] = seen_args
+                    if bad:
+                        p.terminate()
+                        fatal('GUARD E: executed args differ from the published recipe {key: (got, want)}: %s'
+                              % bad)
+                    log('GUARD E executed args match the published recipe:', {k: seen_args[k] for k in EXPECT_ARGS})
         if 'EarlyStopping counter:' in line:
             try:
                 last_counter_logged = int(line.split('EarlyStopping counter:')[1].split('out of')[0])

@@ -4426,6 +4426,42 @@ strength of a `RUNNING` status one minute before the failure. A status is not ev
 let alone training — the log is. Method rule 21: **do not report a remote run's progress from its status;
 report it from its log, or say it is unknown.**
 
+### 71.10 🔴 Launch 2 failed on the config path — and exposed that my command was not their recipe
+v2 passed all five guards, printed its arguments, and died:
+`FileNotFoundError: configs/config.yaml`. Their `--config` defaults to `config`; the release has
+`config_l1000.yaml` and siblings and **no `config.yaml`**. Their published training script,
+`scripts/train.sh:15`, for `l1000_mdmt`:
+```
+python train_xpert.py --model XPert --config config_l1000 --drug_feat unimol
+       --nfold split_cold_drug_1,split_cold_cell_1,split_1 --dataset l1000_mdmt
+       --use_gradscaler True --include_cell_idx True
+```
+The README gives the same `--config` and `--use_gradscaler`. **My kernel differed in three flags, not one**,
+because I built the command from argparse defaults instead of from their scripts.
+
+The crash was the lucky outcome. `--include_cell_idx` adds `cls_token` and `class_fc`; trained without it, the
+checkpoint could not have been loaded by our harness under `strict=True`, so the run would have failed at
+**prediction, after eight hours of training**. And **our own harness already said so**:
+`xpert_native_eval.py:21` — *"`--include_cell_idx True` — a NON-DEFAULT flag. Running with argparse defaults
+would have built a…"* — learned in packet 001, sitting in the very file the kernel reuses, and not read.
+Method rule 20 again, and the most expensive near-miss of it so far.
+
+**Fix.** The command is now their `train.sh:15` with only the fold list reduced. That is a strict subset:
+`train_xpert.py:425-455` builds a fresh `XPertNet`, `init_weights()` and optimizer **per fold**. Their seed is set
+once at `:402`, before the fold loop, so our fold starts from a fresh seed-2024 state rather than where their
+`split_cold_drug_1` run would leave the RNG — a seed difference, disclosed, not a recipe difference.
+
+**GUARD E** reads the trainer's own printed argument block and kills it on any mismatch with the published
+recipe, before an epoch is paid for. It checks the **executed** namespace, not our argv, because their booleans
+are `type=bool` and `bool("False")` is `True`. Replayed on v2's real log it flags exactly `config`,
+`use_gradscaler` and `include_cell_idx`. **GUARD F** runs their `arg_parse()`, their `load_dataloader()` and
+`XPertNet` on one real batch with one forward pass in the trainer's environment, and asserts the validation set
+*is* the test set — so the disclosed fallback is verified in-kernel, not assumed. Each launch so far has failed
+one stage later than the last; F is aimed at the next stage.
+
+Cost of v2 ~0.13 GPU-h. **Method rule 22: "as published" is defined by the authors' scripts and README, never
+by argparse defaults, and the executed arguments are checked against them.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
