@@ -4755,7 +4755,7 @@ reviewer's prediction: atoms help **most** on a fully warm split.
 
 T1 needs the harness to score `val`, which it does not yet; it runs after T2.
 
-### 76.3 T2 RESULT: the memorisation hypothesis is NOT SUPPORTED — the sign is reversed, specifically for atoms
+### 76.3 T2 RESULT: **GRADED** memorisation is NOT SUPPORTED — the sign is reversed, specifically for atoms — ⚠️ *scope corrected by the reviewer, §76.4*
 `model/v9/memorisation_t2.py`, run after the rule was committed at `55a3098`; artefact
 `model/results/v9_memorisation_T2_unseen_cell.json`. 1,500 `unseen_cell` rows, **858 compounds** (3 rows whose compound
 has no training rows are excluded); training exposure per compound from 1 to 1,616 rows (median 29). 0 GPU-hours.
@@ -4778,9 +4778,26 @@ trained compounds the global drug token and the training signal already carry wh
 contribute noise; that would make atoms matter most where a compound is least known, which is the opposite of
 memorisation. It does not by itself explain why atoms hurt on compounds never seen at all, and it is not relied on.
 
-⇒ IDEAS A10's memorisation hypothesis is **not supported by the within-split test**. T1, the reviewer's split-level
-prediction on the warm split, remains queued; it can still be run, but it can no longer rescue memorisation as an
-explanation, since T2 contradicts the mechanism T1 would be evidence for.
+⇒ ~~IDEAS A10's memorisation hypothesis is not supported by the within-split test. T1 ... can no longer rescue
+memorisation as an explanation, since T2 contradicts the mechanism T1 would be evidence for.~~ **Overstated — see
+§76.4.**
+
+### 76.4 Review note 010b: T2 refutes the GRADED form only; the BINARY form is open and is what T1 tests
+The reviewer checked the ordering (`55a3098` committed 13:53:42, the result written 13:55:14) and the design, and made
+two corrections, both upheld:
+
+- **Scope.** T2 tests a *graded* prediction — more exposure, more help. The hypothesis actually offered in review 010
+  was *binary*: atoms help when the test compound was **seen** in training and hurt when it was **not**. "Seen once is
+  enough" predicts ρ ≈ 0 inside `unseen_cell`, and T2 cannot tell that from no memorisation at all. So the record
+  says **"graded memorisation not supported"**, and the binary form stays open until T1 reports. My §76.3 claim that T1
+  could no longer rescue it was wrong.
+- **A confound on the descriptive ρ = −0.1189**, so it is not read even descriptively as anti-memorisation. Exposure
+  runs from 1 to 1,616 rows and is not random: heavily profiled compounds are largely **reference compounds**, which
+  plausibly give stronger and more stereotyped signatures. If the global drug token already captures those, atom detail
+  adds nothing for them — a negative ρ with no memorisation story in either direction. Descriptive, with an obvious
+  uncontrolled covariate.
+
+
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
