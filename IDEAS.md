@@ -123,7 +123,23 @@ own score by +0.0145.
   beats both the SA-on and SA-off references. §74.3: inference-time masking cannot answer that.
 - **Cost:** one training run, ~6 GPU-h. Capacity-matched against SA-on by construction if the same `_DrugBlock`
   is used with the atom-only mask fixed at α=0 during training.
+- **Pre-registered DISQUALIFIER [§75.2]:** a significant `unseen_cell` degradation disqualifies it, whatever it does
+  on the compound splits — because at inference masking atom-to-atom attention **hurts** unseen cells (paired median
+  +0.00298, 58 % of rows, p 6.3e−10) while helping unseen compounds.
+- **Design per review 010 ask 4:** compare vs `sa0` (batch 48) per row, not r0-r2 (batch 96); pre-register vs the
+  measured fold-0 between-seed sd (under ~2√2×sd is inconclusive); pre-register the predicted directions.
+- **Cheaper question first:** for unseen-compound accuracy alone, the inference-time mask on `sa0` already delivers it.
 - **Status:** logged 2026-09-23; to be pre-registered and priced through review before any spend.
+
+### A9. Where the atom tokens' residual harm lives, with atom-to-atom attention removed — QUEUED, free
+**Source:** §75.6, review 010 ask 3. At α = 0 the atom effect is still −0.00322 (sign p 1.6e−10). Carriers: gene→drug
+cross-attention; atom→global then global→genes; the cross-block global leak. Two inference-only cuts separate them.
+Each needs a kill switch and the `x_cell` gate **committed before running**. Zero GPU-hours.
+
+### A10. 🔵 Do atom tokens memorise training compounds? — hypothesis-generating, NOT YET TESTED
+**Source:** review 010, offered by the reviewer after seeing the data. Atoms help where test compounds were seen in
+training (`unseen_cell`) and hurt where they were not (both compound splits). **Predicts atoms help most on a fully
+warm split.** A test must commit its prediction first; nothing in §74 is read under it.
 
 ### A7. 🔵 "New startup mechanisms" — raised by the principal, no recorded source
 The principal listed this alongside new loss functions on 2026-09-21. **There is no item in RESULTS it maps

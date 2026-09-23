@@ -4543,7 +4543,7 @@ and the proof, identical — refuses if the target line does not occur exactly o
 after. **This is the first deviation that changes a line of their executed code**, so it goes to review
 (packet 009) rather than straight to launch.
 
-## 74. ✅ THE GATE PASSES: the atom tokens' harm on unseen compounds runs through atom-to-atom attention (2026-09-23)
+## 74. ✅ THE GATE PASSES: the atom tokens' harm on unseen compounds runs through atom-to-atom attention — ⚠️ **read with §75: the sign refutes the §58.7 rescue hypothesis, and the effect REVERSES on unseen cells** (2026-09-23)
 
 `alpha_sweep.py --operator atom_only`, hypothesis key `atoms` and null key `x_cell`, SA-on checkpoint, n_eval 1500,
 seed 0, `rows_sha` identical across both keys and equal to the 2x2's on every split. Operator per §67.6, verified in
@@ -4572,7 +4572,7 @@ On `unseen_compound`: **strictly monotone** (steps −0.00131, −0.00138, −0.
 α=1 intervals **do not overlap** — [−0.00433, −0.00226] against [−0.01395, −0.00908]. Sign-test p between 1.6e−10
 and 1.0e−35 at every α. `unseen_both` agrees on every criterion (2.22×).
 
-⇒ **Pre-committed reading: consistent with mechanism.** In this trained model, **the harm the atom tokens do on
+⇒ **Pre-committed reading: consistent with mechanism** — *with its sign* [§75.1]: **direct atom-to-atom self-attention increases the atom tokens' harm on unseen compounds**, which refutes the §58.7 rescue hypothesis in direction. In this trained model, **the harm the atom tokens do on
 unseen compounds grows with atom-to-atom attention.** Cutting that one pathway — leaving the global token's
 pathway intact — takes the per-row median atom effect from **−0.01129 to −0.00322**: about **71 %** of the harm
 is carried by atom-to-atom mixing. The remaining −0.00322 persists without it and is still significant.
@@ -4632,6 +4632,81 @@ an independent draw — and **never** "their cold-cell run reproduced". Written 
 val at `num_workers=10` each), estimated at 4–6 GB; total ≈ 14 GB of 29 — comfortable but estimated. v4 therefore
 samples system MemAvailable every 60 s for the whole run and writes the trace into the run record, and a trainer
 killed by a signal is now recorded as `killed_by_signal`, not as a generic crash.
+
+## 75. Review 010: the §74 mechanism, stated with its sign — and it reverses in the regime the objective is about (2026-09-23)
+
+`orchestration/bus/adjudicated/010_review.md`, reviewed at `c0a39d2`. **SOUND-WITH-CAVEATS.** The reviewer reproduces
+every number from the artefacts and calls §74 the cleanest positive result on the bus. Four challenges, all upheld,
+the two major ones verified by me from the per-row dump before acceptance. **Tally 72 of 75.**
+
+### 75.1 🔴 C1 — "consistent with mechanism" must carry its direction, and the direction refutes §56/§58
+The atom effect is score(atoms) − score(atoms → chunk mean); negative means the atoms hurt. On `unseen_compound` it
+runs **−0.00322 at α = 0 to −0.01129 at α = 1**. So removing direct atom-to-atom attention makes the atoms **less**
+harmful, and restoring it makes them **more** harmful.
+
+Packets 003–005 were built on the hypothesis that in-loop contextualisation would **rescue** the atom tokens [§58.7].
+§61.7 showed it does not. §74 shows more: **the direct atom-to-atom part of that contextualisation is part of why
+they hurt.** ⇒ **The §58.7 rescue hypothesis is REFUTED IN DIRECTION, not merely unsupported.** A record entry that
+said only "consistent with mechanism" would have been read as support for rescue; it is not. §74.2 is amended in
+place to carry the sign.
+
+The statement of record, in the reviewer's words: ***direct atom-to-atom self-attention increases the atom tokens'
+harm on unseen compounds.***
+
+### 75.2 🔴 C2 — it REVERSES on `unseen_cell`, the regime `state.json` names as the objective
+Paired `S11 − S10` = `r_full(α=1) − r_full(α=0)` per row, identical rows, from the npz; **negative means masking
+atom-to-atom attention helps.** Reviewer's computation, reproduced by me to the digit:
+
+| split | median | mean [CI95] | rows where masking helps | sign p |
+|---|---|---|---|---|
+| **unseen_cell** | **+0.00298** | **+0.00529 [+0.00307, +0.00752]** | **42.0 %** | 6.3e−10 |
+| unseen_compound | −0.01498 | −0.02108 [−0.02474, −0.01749] | 65.3 % | 6.8e−33 |
+| unseen_both | −0.01418 | −0.01255 [−0.01546, −0.00969] | 66.3 % | 3.5e−37 |
+
+On unseen **compounds** masking helps; on unseen **cells** it **significantly hurts**. The project's stated objective
+is generalisation to unseen cell lines, so an architecture without direct atom-to-atom attention would **buy the
+compound regimes at the cost of the headline one.**
+
+⇒ **Rule, from now on:** the compound gain is **never** quoted without the cell loss beside it.
+⇒ **Pre-registered for IDEAS A8** before any trained arm: *a significant `unseen_cell` degradation disqualifies the
+architecture, whatever it does on the compound splits.*
+
+### 75.3 C3 — the paired version is the effect size
+§72 reported `S11 − S10` as a difference of medians (−0.01448 on `unseen_compound`). That was adequate for the kill
+switch — nowhere near +0.03 — but it loses the row pairing [§58.1, §60.3], and the paired statistic above is both
+**stronger** on the compound splits and the one that exposes C2's sign flip. Wherever S11 − S10 is quoted as an
+effect size, it is the paired version with its CI and sign test.
+
+### 75.4 C4 — the operator removes DIRECT atom-to-atom attention, not intramolecular contextualisation
+Within one block at α = 0, atom 3 → atom 1 is exactly 0.0. But across the full multi-block model, perturbing atom 3
+still moves the output by **0.515** (W8 T11): atom → global in block *k*, global → atom in block *k+1*.
+Global-mediated contextualisation survives. **Every claim in §74 and here is scoped to "direct atom-to-atom
+attention".** Removing the rest would require cutting atom → global too, which reintroduces the global-token
+entanglement review 006 C1 existed to avoid — so the scoped claim is the right one to make.
+
+### 75.5 Why the result is not generic degradation, answered by the reviewer
+The failure of §60–§65 was that the operator was a model-quality dial and every ablation effect rode it. Here model
+quality goes **up** as α → 0 on the compound splits (S11 − S10 < 0), yet the atom effect **shrinks** as α → 0 —
+the opposite of what quality scaling would predict. The curve does not ride the dial.
+
+### 75.6 Queued, not run — each to be pre-committed before execution
+- **A9, where the α = 0 residual lives** (−0.00322, sign p 1.6e−10). Three possible carriers: (a) gene → drug
+  cross-attention, untouched by this operator; (b) atom → global within a block, then global → genes; (c) the
+  cross-block leak of C4. Two inference-only cuts separate them — mask atom keys out of gene → drug
+  cross-attention; then additionally cut atom → global at α = 0 — each with a §67.2-style kill switch and the
+  `x_cell` gate, committed first. The reviewer expects the cross-attention cut to be a large perturbation, so the
+  kill switch matters more there.
+- **A8, the trained arm** — revised per ask 4: compare against **`sa0`** (fold 0, seed 0, batch **48**, 12 epochs)
+  per row on identical rows on all three splits, **not** against r0/r1/r2 (batch 96). It is between-run, so it is
+  pre-registered against the measured fold-0 between-seed sd, with a single-seed difference under ~2√2 × sd
+  declared inconclusive; its predicted directions (compound up, cell down) are pre-registered; and **the cheaper
+  question comes first** — if the aim is only unseen-compound accuracy, the inference-time mask on `sa0` already
+  delivers it without training.
+- **A10, the reviewer's memorisation hypothesis — hypothesis-generating only, built after the data.** *Atom tokens
+  help exactly when the test compounds were seen in training, and hurt when they were not*: in `unseen_cell` the
+  compounds are shared with training and atoms help; in both compound splits they are new and atoms hurt. That is
+  the signature of atom-level features **memorising training compounds**. It **predicts atoms help most on a fully
+  warm split.** Not read from this run. A test needs its prediction committed first.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
