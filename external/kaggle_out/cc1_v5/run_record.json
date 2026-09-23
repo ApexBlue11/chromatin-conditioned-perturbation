@@ -1,0 +1,83 @@
+{
+  "fold": "split_cold_cell_1",
+  "budget_h": 8.3,
+  "guards": {
+    "deps": "scanpy, torchmetrics, unimol_tools importable; torch unchanged",
+    "split": {
+      "test": 21321,
+      "train": 47509
+    },
+    "unimol_array": [
+      "dense array would be (8950, 122, 514) float32 = 2.24 GB",
+      "round-trip verified on 64 sampled drugs",
+      "wrote /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy (2.24 GB)"
+    ],
+    "attention": "our shim, unmasked (option A)",
+    "their_modules": "datasets.MyDataset, models.*, metrics, utils all resolve inside the staged copy",
+    "one_batch_forward": "pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True"
+  },
+  "decision": "option (a) as published, disclosed",
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "torch": "2.10.0+cu128",
+  "memory_patch": {
+    "file": "datasets/MyDataset.py",
+    "line_replaced": "drug_feat = tensor(drug_feat, dtype=torch.float32) if self.args.drug_feat != 'smi' else drug_feat",
+    "sha1_before": "8d8c50f24a9c",
+    "sha1_after": "31b5ef68355a",
+    "proof": "model/v9/prove_mydataset_patch.py: 6000 tensors torch.equal"
+  },
+  "activation_checkpointing": {
+    "patched": [
+      "Encoder",
+      "crossEncoder"
+    ],
+    "how": "runtime wrapper; their files verbatim",
+    "proof": "model/v9/prove_checkpoint_exact.py"
+  },
+  "deviations": [
+    "flash_attn shim on PYTHONPATH (their model imports it at module scope)",
+    "MyDataset: one tensor per drug instead of one per row -- values proven identical, storage shared; the unpatched recipe needs ~24.7 GB of dataset RAM on this fold",
+    "activation checkpointing of Encoder/crossEncoder, applied at runtime by a wrapper -- same batch 128, same loss, gradients within the noise floor; the unpatched recipe needs ~14.95 GiB of activations on a 14.56 GiB T4",
+    "all_drugs_unimol_arr.npy rebuilt from the released npz (config names it, never released)",
+    "empty __init__.py in datasets/ and models/ so their packages are not shadowed by the image's HuggingFace `datasets`"
+  ],
+  "disclosed_asymmetry": "no valid level -> utils.py:133 sets val_data = test_data -> early stopping and checkpoint selection monitor TEST loss4",
+  "timing": {
+    "s_train_step": 2.265434980392456,
+    "s_val_step": 0.41112551689147947,
+    "peak_gib": 3.7379846572875977,
+    "train_batches": 372,
+    "val_batches": 167,
+    "setup_s": 208.0,
+    "epoch_s_projected": 911.4,
+    "epochs_within_budget_projected": 31.6,
+    "budget_h": 8.3,
+    "note": "steady state, checkpointed, optimizer step included; 900 s reserved for prediction and artefacts"
+  },
+  "stopped_by": "measure_only",
+  "host_memory": {
+    "min_available_gb": 20.02,
+    "samples": 4,
+    "trace_min_gb": [
+      [
+        0.0,
+        30.31
+      ],
+      [
+        1.0,
+        29.83
+      ],
+      [
+        2.0,
+        29.18
+      ],
+      [
+        3.0,
+        20.02
+      ]
+    ]
+  }
+}

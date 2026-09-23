@@ -1,0 +1,28 @@
+[{"stream_name":"stdout","time":7.885962318,"data":"[   0.1 min] GPUs: ['Tesla T4', 'Tesla T4'] | torch 2.10.0+cu128\n"}
+,{"stream_name":"stdout","time":50.786483148,"data":"[   0.8 min] pip exit 0\n"}
+,{"stream_name":"stdout","time":104.708574185,"data":"[   1.7 min] staged /kaggle/input/datasets/apexblue/xpert-train-src/XPert -\u003e /kaggle/working/XPert\n"}
+,{"stream_name":"stdout","time":104.787518013,"data":"[   1.7 min] GUARD A {'test': 21321, 'train': 47509} -- no valid level: their early stopping will monitor TEST loss (disclosed)\n"}
+,{"stream_name":"stdout","time":111.294013994,"data":"npz: idx (1970,) in [1, 8949], feat (1970, 122, 514) float32\n"}
+,{"stream_name":"stdout","time":111.294052266,"data":"h5ad: 1970 unique pert_idx in [1, 8949]; 0 not covered by the npz\n"}
+,{"stream_name":"stdout","time":111.294058736,"data":"valid atoms/drug: min 5 max 122 mean 53.9 of 122 slots | padded slots 55.8% | padded features all zero: True\n"}
+,{"stream_name":"stdout","time":111.294064136,"data":"dense array would be (8950, 122, 514) float32 = 2.24 GB\n"}
+,{"stream_name":"stdout","time":111.294069242,"data":"round-trip verified on 64 sampled drugs\n"}
+,{"stream_name":"stdout","time":111.29407415,"data":"wrote /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy (2.24 GB)\n"}
+,{"stream_name":"stdout","time":111.294079907,"data":" \n"}
+,{"stream_name":"stdout","time":111.29408465,"data":"[   1.8 min] GUARD B unimol array built: /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy\n"}
+,{"stream_name":"stdout","time":113.498998917,"data":"[   1.9 min] GUARD C flash_attn -\u003e /kaggle/working/v9src/_shims/flash_attn/flash_attn_interface.py | unmasked\n"}
+,{"stream_name":"stdout","time":125.210531501,"data":"[   2.1 min] GUARD D their modules resolve inside /kaggle/working/XPert\n"}
+,{"stream_name":"stdout","time":208.932656234,"data":"TIMING {\"s_train_step\": 2.265434980392456, \"s_val_step\": 0.41112551689147947, \"peak_gib\": 3.7379846572875977, \"train_batches\": 372, \"val_batches\": 167}\n"}
+,{"stream_name":"stdout","time":208.932708126,"data":"GUARD F training step at batch 128 peak GPU GiB 3.74\n"}
+,{"stream_name":"stdout","time":208.932723457,"data":"pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True\n"}
+,{"stream_name":"stdout","time":208.932730301,"data":"\n"}
+,{"stream_name":"stdout","time":208.932735209,"data":"[   3.5 min] GUARD F one real batch + forward OK: pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True\n"}
+,{"stream_name":"stdout","time":208.932785066,"data":"[   3.5 min] TIMING {'s_train_step': 2.265434980392456, 's_val_step': 0.41112551689147947, 'peak_gib': 3.7379846572875977, 'train_batches': 372, 'val_batches': 167, 'setup_s': 208.0, 'epoch_s_projected': 911.4, 'epochs_within_budget_projected': 31.6, 'budget_h': 8.3, 'note': 'steady state, checkpointed, optimizer step included; 900 s reserved for prediction and artefacts'}\n"}
+,{"stream_name":"stdout","time":208.933342563,"data":"[   3.5 min] MEASURE_ONLY: stopping before training. Projection recorded; the full run is decided from it.\n"}
+,{"stream_name":"stderr","time":211.789189853,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":211.789244591,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":212.027072703,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":212.027093729,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":212.67881562,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":213.960524932,"data":"[NbConvertApp] Writing 406676 bytes to __results__.html\n"}
+]

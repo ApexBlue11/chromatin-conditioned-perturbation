@@ -4883,6 +4883,68 @@ exact option of the three (ask 4). Declared as the fifth deviation; it does not 
   the committed module (4.353e−05 within 4.630e−05), and the kernel's embedded copy was regenerated and re-verified
   byte-identical.
 
+## 78. v5 measured the real step time: one 8.3 h session is ~31 epochs, and an ADMISSIBLE XPert run needs ~210 (2026-09-23)
+
+v5 ran `MEASURE_ONLY` [§77.4]: every guard, then GUARD F's batch-128 training step **with a real Adam step under a
+GradScaler** (review 011 C2), five timed steady-state training steps, five validation forwards, and a clean stop.
+`external/kaggle_out/cc1_v5/run_record.json`, `stopped_by: measure_only`. **~0.06 GPU-h. Session total 6.80 GPU-h.**
+
+| quantity | value |
+|---|---|
+| training step, batch 128, checkpointed, optimizer included | **2.265 s** |
+| validation step | 0.411 s |
+| peak GPU memory in the training step | **3.74 GiB** (projected 3.73 in §77.3 — the proof's number held on the T4) |
+| batches per epoch, train / val | 372 / 167 |
+| **projected epoch** | **911 s = 15.2 min** (92.5 % training) |
+| setup before training | 208 s |
+| **epochs that fit in the 8.3 h guard** | **31.6** |
+| host MemAvailable minimum | 20.0 GB |
+
+### 78.1 What that number does to the run — it cannot be admissible in one session
+Their recipe [§68.2]: `num_epochs 2500`, `patience 50`, `init_epoch 70` (the loss switches from
+`batch_weighted_loss` to the full objective at epoch 70), and the LR halves at epoch 40.
+
+- **31.6 epochs never reaches epoch 70**, so the checkpoint would be selected on the "accelerated" objective only.
+- **§71.7 needs `counter_at_end ≥ 45` for a guard stop to count.** In 31 epochs that requires the best epoch to be
+  **epoch 0 or earlier** — i.e. it is **impossible**. A single-session run is inadmissible **by construction**, not
+  by bad luck.
+- **And the likely outcome is exactly the inadmissible one.** v9's fold-1 score is 0.4734 against XPert's published
+  cold-cell 0.383 [§71.3]. The informative direction of a capped run — an under-trained XPert that still
+  *beats* v9 — is the one our prior says is unlikely. So a capped 8.3 h run would most probably buy a v9 win that
+  §71.7 forbids us to claim. **Not bought.**
+
+### 78.2 What an admissible run costs, anchored on the only convergence number available
+Their **released** warm-split checkpoint stores `epoch: 164` (`l1000_mdmt_warm_split.pth`; the two pretraining
+checkpoints store 198 and 244). With patience 50, that run lasted **≥ 214 epochs**. The cold-cell fold may converge
+earlier or later; 164 is the only anchor there is, and it is stated as an anchor, not a prediction.
+
+| epochs | GPU-h, one T4, checkpointed | 7.95 h training sessions |
+|---|---|---|
+| 70 (reach the loss switch) | 17.7 | 2.2 |
+| 120 (earliest possible admissible stop: best at 70, +50) | 30.4 | 3.8 |
+| **~210 (best at 164, +45)** | **~53** | **~7** |
+
+Against a **30 h/week** quota. **The §66.8 estimate of 5.8 GPU-h — already withdrawn in §68.2 as "a v9-shaped
+run" — was low by about 9×.** Every earlier cost statement for §46.5 is superseded by this table.
+
+### 78.3 Two further facts any multi-session design has to face
+- **Their own resume path is lossy.** `train_xpert.py:480-490` (`--resume_from`) reloads model weights only: the
+  optimizer load is **commented out**, the LambdaLR schedule restarts from epoch 0 (so the LR would jump back to
+  0.004), and the `EarlyStopping` best score and counter are not restored. Chaining sessions through it is **not**
+  their recipe. A faithful continuation needs our own full-state checkpoint (model, Adam, GradScaler, scheduler,
+  stopper, RNG) — a sixth declared deviation, and one that is *closer* to the recipe than their resume.
+- **The second T4 is idle.** Kaggle charges T4×2 by session-hour. DataParallel keeps the batch at 128 and the loss
+  on the gathered batch (LayerNorm only, no BatchNorm, so per-replica statistics cannot change the maths), and at 64
+  per GPU (≈ 7.5 GiB of activations) checkpointing may not be needed at all. Estimated, **not measured**: ~7 min per
+  epoch, **~25 GPU-h** for ~210 epochs. It needs a runtime patch: `forward` moves inputs to `self.device`
+  (`model_XPert.py:188-198`), `drug_HG_embed` is a plain tensor fixed on `cuda:0` (`:135`), and a DataParallel
+  `state_dict()` gains a `module.` prefix that their strict test-time load would reject.
+
+⇒ **Packet 012 takes this to review before any further GPU-hour is committed to §46.5.** The options it puts are:
+the full recipe on one T4 (~53 h); DataParallel measured first (~0.15 h) and then ~25 h if the measurement holds; or
+no XPert training at all, with the cold-cell comparison made against the published five-fold mean plus the warm
+split head-to-head we already have on their released weights — which loses §71's per-cell paired estimand.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

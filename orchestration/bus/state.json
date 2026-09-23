@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "012_xpert_budget"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -36,13 +38,13 @@
     "010_atom_only_result",
     "011_activation_checkpointing"
   ],
-  "gpu_hours_spent_this_session": 6.74,
-  "pending_decision": "after v5 (MEASURE_ONLY) reports: is the projected number of epochs within the 8.3 h budget enough for XPert to plausibly converge? If not, a multi-session or longer-budget design goes to review before any full run.",
-  "note_current": "No packets open. XPert cc1 v4 running on Kaggle (status only; no claim about progress). Atom line: direct atom-to-atom attention INCREASES the atom tokens' harm on unseen compounds (refutes the 58.7 rescue hypothesis in direction) but masking it HURTS unseen cells (paired +0.00298, p 6.3e-10) -- the objective's regime. Queued free: A9 residual carriers, A10 memorisation test; A8 trained arm now has a pre-registered disqualifier.",
+  "gpu_hours_spent_this_session": 6.8,
+  "pending_decision": "packet 012: v5 measured 911 s/epoch (31.6 epochs in 8.3 h); a single session is inadmissible under 71.7 by construction; admissible run ~25 GPU-h (DataParallel, unmeasured) to ~53 GPU-h (one T4). Options O1-O4 under review. No GPU committed to 46.5 until the review returns.",
+  "note_current": "Packet 012 open (XPert budget). A9 residual-carrier cuts being pre-committed (RESULTS 79) and delegated as W9. Atom line otherwise unchanged from 75.",
   "challenges_upheld": "75 of 78",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1,
-  "next_gpu_spend": "46.5 -- train XPert (and then TranSiGen) ourselves on split_cold_cell_1..5 for a paired head-to-head on identical rows. ~5.8 GPU-h. Chosen over the edge gate and over 50.5 because it converts the project OBJECTIVE from inadmissible (review 001 C8) to admissible, and because it is a direct paired comparison with no null-key problem -- the last two probes both died on their null keys.",
+  "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
   "decisions_locked": [
     "XPert cold-cell comparison runs option (a) AS PUBLISHED, including their val=test early-stopping fallback, with the asymmetry disclosed: a v9 win is conservative, an XPert win is uninterpretable.",
     "Option A (unmasked flash semantics) needs no decision -- the shim already exists, is tested, and produced 0.6933 against their published 0.688 on warm split_2.",
