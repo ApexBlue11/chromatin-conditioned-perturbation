@@ -45,5 +45,9 @@
     "Option A (unmasked flash semantics) needs no decision -- the shim already exists, is tested, and produced 0.6933 against their published 0.688 on warm split_2.",
     "Buy fold 1 only. v9 itself is fold 1 at one seed, so five XPert folds would reintroduce an asymmetry.",
     "Never read XPert’s own reported metrics (train_xpert.py:573-574 overwrites test with val). Score predictions with head_to_head_mdmt.py."
+  ],
+  "result_packet_obligations": [
+    "Quote RESULTS 71.7 VERBATIM with its commit (08b0a90), as packet 005 quoted 58.4: the reviewer is blinded from RESULTS.md and 71.7 decides admissibility.",
+    "Report the empty __init__.py files as provenance only, NOT as an as-published deviation (008b note)."
   ]
 }
