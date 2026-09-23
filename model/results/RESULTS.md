@@ -4128,6 +4128,32 @@ in our own record. Before any "we should build X" or "I have found Y": `grep -ri
 `model/`, `research/` and `orchestration/`, and read `IDEAS.md`. The reviewer should not be the mechanism
 by which we learn what we have already done.
 
+## 70. PRE-COMMITTED: the masked-versus-unmasked test on XPert's released checkpoint (2026-09-23)
+
+Written while `xpert_native_eval.py --mask_drug_keys` is executing and **before its output has been read.**
+This is the experiment review 007 C2/C4 pre-committed in words; method rule 19 requires it as
+inequalities. Released checkpoint, warm `split_2` test, `--max_rows 3000`, seed 0, identical rows across
+every arm (verified by `row_index` equality, not assumed). The unmasked `asis` arm is already measured:
+**0.6989** mean per-row delta Pearson.
+
+**Masked arm definition.** Key-padding mask applied inside the shim to exactly the drug-keyed attention
+calls (seqlen_k = 124 = dose, time, HG, 121 atom slots), with dose, time and slot 0 always attendable. A
+counter refuses the run if the mask never applied.
+
+### 70.0.1 Gate first: is the mask complete?
+Masked+`noise` against masked+`asis` must give **`|dY|max` < 1e-4**. If padded content can still move the
+output under the mask, the mask leaks (pooling, residual paths, anything) and **the masked arm is void** —
+no comparison is read.
+
+### 70.0.2 Then the reading, on the paired per-row difference masked − unmasked
+| result | reading |
+|---|---|
+| **\|mean diff\| < 0.005 and CI spans 0** | **A ≈ B.** The released model is insensitive to whether its padding is masked; the distinction is moot for the benchmark |
+| masked **lower** by > 0.005, CI excluding 0 | the released checkpoint **depends on** the unmasked path it was trained on. A is confirmed as the published behaviour by measurement; B is a different model and must never be substituted |
+| masked **higher** by > 0.005, CI excluding 0 | padding **hurts the released checkpoint even at inference**, i.e. its predictions would improve if its own mask were applied |
+
+Whatever the outcome, the §69.1 decision stands: the head-to-head runs option A, as published.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
