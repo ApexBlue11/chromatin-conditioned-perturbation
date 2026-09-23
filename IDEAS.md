@@ -114,6 +114,17 @@ established novelty — §48.4 is explicit that the worker's stronger claim is n
 - ⚠️ State and PertAdapt claims are **REPORTED-NOT-VERIFIED** and must be checked before being cited.
 - **Cost:** two runs, or one run with a flag.
 
+### A8. 🔵 Keep the atoms, drop atom-to-atom self-attention — a trained arm, NOT YET PRICED
+**Source:** RESULTS §74, the first mechanism reading in the atom line to pass its pre-committed null-key gate
+(null span 11.6 % of hypothesis span, threshold 25 %). In the trained SA-on model, cutting atom→atom attention at
+inference — global↔atom kept — removes ~71 % of the atom tokens' harm on unseen compounds and raises the model's
+own score by +0.0145.
+- **What it would test:** whether a model TRAINED with atoms + global↔atom attention but no atom→atom attention
+  beats both the SA-on and SA-off references. §74.3: inference-time masking cannot answer that.
+- **Cost:** one training run, ~6 GPU-h. Capacity-matched against SA-on by construction if the same `_DrugBlock`
+  is used with the atom-only mask fixed at α=0 during training.
+- **Status:** logged 2026-09-23; to be pre-registered and priced through review before any spend.
+
 ### A7. 🔵 "New startup mechanisms" — raised by the principal, no recorded source
 The principal listed this alongside new loss functions on 2026-09-21. **There is no item in RESULTS it maps
 onto**, so it is recorded here unattributed rather than invented. v9 currently uses a **WSD schedule** with

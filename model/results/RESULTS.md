@@ -4543,6 +4543,61 @@ and the proof, identical — refuses if the target line does not occur exactly o
 after. **This is the first deviation that changes a line of their executed code**, so it goes to review
 (packet 009) rather than straight to launch.
 
+## 74. ✅ THE GATE PASSES: the atom tokens' harm on unseen compounds runs through atom-to-atom attention (2026-09-23)
+
+`alpha_sweep.py --operator atom_only`, hypothesis key `atoms` and null key `x_cell`, SA-on checkpoint, n_eval 1500,
+seed 0, `rows_sha` identical across both keys and equal to the 2x2's on every split. Operator per §67.6, verified in
+W8 (T5: the retired operator gives exactly 0 where this one must not; default path byte-identical under
+regression). Artefacts `..._op-atom_only.json`, `..._key-x_cell_op-atom_only.json`, both `_rows.npz`. **0 GPU-hours.**
+
+**This is the first mechanism reading in this line of work — §56 through §73 — to survive its pre-committed
+null-key gate.**
+
+### 74.1 The gate (§67.3), as committed: null-key span below 25 % of hypothesis-key span, primary split
+Estimand of record `atom_effect_median_per_row` [§61.2]:
+
+| split | hypothesis key `atoms` | null key `x_cell` | null / hypothesis |
+|---|---|---|---|
+| **unseen_compound** | −0.00322 −0.00453 −0.00591 −0.00775 −0.01129 (span 0.00807) | +0.01538 +0.01509 +0.01523 +0.01502 +0.01444 (span 0.00093) | **11.6 % → PASS** |
+| unseen_both | −0.00626 −0.00738 −0.00883 −0.01002 −0.01414 (span 0.00788) | +0.00489 +0.00454 +0.00462 +0.00440 +0.00378 (span 0.00111) | 14.1 % |
+| unseen_cell | +0.00100 +0.00160 +0.00186 +0.00255 +0.00290 (span 0.00190) | +0.00868 +0.00866 +0.00878 +0.00900 +0.00957 (span 0.00089) | 46.8 % |
+
+For comparison, under the **retired** full-matrix operator the null key moved **62 %** and **66 %** as much on the
+two compound splits [§65.1a]. Under the atom-only operator it is essentially flat, and non-monotone. That is the
+difference between an operator that measures generic damage and one that measures the pathway it names.
+
+### 74.2 The reading (§62.3 row 1, inherited by §67.4), every criterion checked
+On `unseen_compound`: **strictly monotone** (steps −0.00131, −0.00138, −0.00184, −0.00354); endpoint span
+**0.00807 against an α=1 estimand CI width of 0.00487, i.e. 1.66×** (the §63.3 tie was 1.01×); and the α=0 and
+α=1 intervals **do not overlap** — [−0.00433, −0.00226] against [−0.01395, −0.00908]. Sign-test p between 1.6e−10
+and 1.0e−35 at every α. `unseen_both` agrees on every criterion (2.22×).
+
+⇒ **Pre-committed reading: consistent with mechanism.** In this trained model, **the harm the atom tokens do on
+unseen compounds grows with atom-to-atom attention.** Cutting that one pathway — leaving the global token's
+pathway intact — takes the per-row median atom effect from **−0.01129 to −0.00322**: about **71 %** of the harm
+is carried by atom-to-atom mixing. The remaining −0.00322 persists without it and is still significant.
+
+It agrees with the kill switch from the same run [§72]: removing atom-to-atom attention **raises** the trained
+model's own score on both compound splits (+0.0145, +0.0147).
+
+### 74.3 What this reading does NOT license — stated before anyone else has to
+- **One seed.** One SA-on checkpoint. §58.3 stands: within-run contrasts are valid on one seed, magnitudes are
+  not established as seed-stable.
+- **Inference-time masking of a model trained WITH the pathway.** It says what the atom-to-atom pathway *does in
+  this trained model*. It does **not** say that a model *trained without* atom-to-atom attention would be better.
+  That is a trained arm — GPU hours — and it has to be priced and pre-registered on its own.
+- **`unseen_cell` does not agree and is not claimed.** There the atoms *help*, the gate fails (46.8 %) and the
+  span misses its CI (0.94×). It was removed as primary in §58.3 before any of this and is not promoted now.
+- **Not a claim about atoms in general** — about these Uni-Mol atom tokens, in this architecture, on these
+  splits.
+
+### 74.4 Why it matters for the principal's mechanism line
+§61.7 established that the atom tokens *don't earn their place*. §74 says *where the damage is*: mostly in
+atom-to-atom mixing, not in the atom features themselves — with atom-to-atom attention cut, the atoms are close
+to neutral. That turns "delete the atom tokens" into a testable constructive alternative: **keep the atoms, keep
+the global↔atom pathway, drop atom-to-atom self-attention**, as a trained arm against the SA-on and SA-off
+references. Logged as IDEAS A8, to be priced through review; nothing bought here.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
