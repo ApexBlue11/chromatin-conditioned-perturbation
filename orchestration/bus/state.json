@@ -43,8 +43,8 @@
   "pending_decision": "review 012 GO on the O2 measurement: v6 MEASURE_ONLY with a DataParallel runtime patch, a proof (dropout zeroed in train mode, one DP step vs one single-GPU step, within the noise floor) and timing with and without checkpointing. Then O2 (~25 GPU-h, multi-session, full-state checkpoint per 78.4 C1/C5, 78.5 scoping) vs O4 on the measured number.",
   "note_current": "Packet 013 open: A9 result (not answerable at inference, 79.9) and the 80.3 DataParallel criteria. v6 (MEASURE_ONLY, GUARD G) running on Kaggle; its numbers are not read until 013 part B is answered.",
   "challenges_upheld": "80 of 83",
-  "last_human_checkpoint": "2026-09-21 (iteration 10)",
-  "checkpoint_count": 1,
+  "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
+  "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
   "decisions_locked": [
     "XPert cold-cell comparison runs option (a) AS PUBLISHED, including their val=test early-stopping fallback, with the asymmetry disclosed: a v9 win is conservative, an XPert win is uninterpretable.",
