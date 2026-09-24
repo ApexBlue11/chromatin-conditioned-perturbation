@@ -1,5 +1,5 @@
 {
-  "iteration": 23,
+  "iteration": 24,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "013_a9_result_and_dp_criteria"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -39,7 +41,7 @@
   ],
   "gpu_hours_spent_this_session": 6.8,
   "pending_decision": "review 012 GO on the O2 measurement: v6 MEASURE_ONLY with a DataParallel runtime patch, a proof (dropout zeroed in train mode, one DP step vs one single-GPU step, within the noise floor) and timing with and without checkpointing. Then O2 (~25 GPU-h, multi-session, full-state checkpoint per 78.4 C1/C5, 78.5 scoping) vs O4 on the measured number.",
-  "note_current": "Packet 012 open (XPert budget). A9 residual-carrier cuts being pre-committed (RESULTS 79) and delegated as W9. Atom line otherwise unchanged from 75.",
+  "note_current": "Packet 013 open: A9 result (not answerable at inference, 79.9) and the 80.3 DataParallel criteria. v6 (MEASURE_ONLY, GUARD G) running on Kaggle; its numbers are not read until 013 part B is answered.",
   "challenges_upheld": "80 of 83",
   "last_human_checkpoint": "2026-09-21 (iteration 10)",
   "checkpoint_count": 1,
