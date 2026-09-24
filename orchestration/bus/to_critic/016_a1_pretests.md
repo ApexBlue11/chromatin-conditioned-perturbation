@@ -1,7 +1,7 @@
 # PACKET 016 — A1 (chromatin-gated edges) zero-parameter pre-tests: both null, one after a disclosed fix
 packet_id: 016
 created: 2026-09-24
-repo_commit: (the commit carrying this packet)
+repo_commit: e637591
 type: **RESULT.** 0 GPU-hours. O2 session 1 is running on Kaggle; nothing here touches it.
 
 ## Background
