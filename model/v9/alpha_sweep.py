@@ -104,6 +104,10 @@ def main():
     ap.add_argument('--key', default='atoms')
     ap.add_argument('--operator', choices=['full', 'atom_only'], default='full')
     ap.add_argument('--cut', choices=['none', 'xattn', 'global', 'both'], default='none')
+    # RESULTS 76.2 (T1): `warm` = the `val` rows (training cells AND training compounds). It may only be APPENDED
+    # after the three test splits: row_rng is advanced by row selection in split order, so appending leaves the three
+    # original splits' rows -- and every existing artefact -- unchanged.
+    ap.add_argument('--splits', default='unseen_cell,unseen_compound,unseen_both')
     a = ap.parse_args()
 
     # RESULTS 79: the two residual-route cuts are defined only on top of the atom-only operator.
@@ -111,6 +115,12 @@ def main():
         ap.error("--cut requires --operator atom_only")
 
     alphas = [float(x.strip()) for x in a.alphas.split(',')]
+    SPLIT_KEYS = {'unseen_cell': 'test_coldcell', 'unseen_compound': 'test_colddrug', 'unseen_both': 'test_coldboth',
+                  'warm': 'val'}
+    splits = [x.strip() for x in a.splits.split(',')]
+    base = ['unseen_cell', 'unseen_compound', 'unseen_both']
+    if splits[:3] != base or any(x not in SPLIT_KEYS for x in splits):
+        ap.error('--splits must start with %s (row_rng order) and may only append warm' % ','.join(base))
 
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
     ckpt_path = a.ckpt
@@ -136,6 +146,8 @@ def main():
     # overwritten the committed five-alpha RESULTS 74 file. Default alphas keep the bare name.
     if alphas != [0.0, 0.25, 0.5, 0.75, 1.0]:
         key_tag += '_a' + '-'.join('%g' % x for x in alphas)
+    if splits != ['unseen_cell', 'unseen_compound', 'unseen_both']:
+        key_tag += '_splits-' + '-'.join(x.replace('unseen_', 'u') for x in splits)
     if a.n_eval != 1500:
         key_tag += f'_n{a.n_eval}'
     dst_json = os.path.join(ROOT, 'model', 'results', f'v9_alpha_sweep_{ckpt_stem}{key_tag}.json')
@@ -213,9 +225,7 @@ def main():
     row_rng = np.random.default_rng(a.seed)
     row_dumps = {}
     
-    for name, key in [('unseen_cell', 'test_coldcell'),
-                      ('unseen_compound', 'test_colddrug'),
-                      ('unseen_both', 'test_coldboth')]:
+    for name, key in [(x, SPLIT_KEYS[x]) for x in splits]:
         idx = sp[key][ds.strength[sp[key]] >= dc.eval_min_strength]
         idx = idx[ds.has_l3[idx]]
         n_eligible = int(len(idx))
