@@ -1,0 +1,235 @@
+{
+  "source": "v6 gradient dumps",
+  "criteria": "RESULTS 80.3 as amended by 80.5",
+  "tags": {
+    "fp32_e0": {
+      "reference_finite": true,
+      "single_ckpt_repeat": {
+        "finite": true,
+        "rel_l2_vs_single": 2.75616903336799e-07
+      },
+      "dp": {
+        "finite": true,
+        "rel_l2_vs_single": 0.00035338814742618107
+      },
+      "dp_ckpt": {
+        "finite": true,
+        "rel_l2_vs_single": 0.0003533876423322589
+      }
+    },
+    "fp32_e70": {
+      "reference_finite": true,
+      "single_ckpt_repeat": {
+        "finite": true,
+        "rel_l2_vs_single": 2.1187340145446092e-07
+      },
+      "dp": {
+        "finite": true,
+        "rel_l2_vs_single": 0.0003766731626349503
+      },
+      "dp_ckpt": {
+        "finite": true,
+        "rel_l2_vs_single": 0.00037667659195141963
+      }
+    },
+    "fp16_e0": {
+      "reference_finite": false,
+      "single_ckpt_repeat": {
+        "finite": false,
+        "rel_l2_vs_single": null
+      },
+      "dp": {
+        "finite": true,
+        "rel_l2_vs_single": null
+      },
+      "dp_ckpt": {
+        "finite": true,
+        "rel_l2_vs_single": null
+      }
+    },
+    "fp16_e70": {
+      "reference_finite": false,
+      "single_ckpt_repeat": {
+        "finite": false,
+        "rel_l2_vs_single": null
+      },
+      "dp": {
+        "finite": false,
+        "rel_l2_vs_single": null
+      },
+      "dp_ckpt": {
+        "finite": false,
+        "rel_l2_vs_single": null
+      }
+    },
+    "fp16_e0_128": {
+      "reference_finite": false,
+      "single_ckpt_repeat": {
+        "finite": false,
+        "rel_l2_vs_single": null
+      },
+      "dp": {
+        "finite": true,
+        "rel_l2_vs_single": null
+      },
+      "dp_ckpt": {
+        "finite": true,
+        "rel_l2_vs_single": null
+      }
+    },
+    "fp16_e70_128": {
+      "reference_finite": false,
+      "single_ckpt_repeat": {
+        "finite": false,
+        "rel_l2_vs_single": null
+      },
+      "dp": {
+        "finite": false,
+        "rel_l2_vs_single": null
+      },
+      "dp_ckpt": {
+        "finite": false,
+        "rel_l2_vs_single": null
+      }
+    }
+  },
+  "structure": {
+    "fp32_e0/single_ckpt_repeat": {
+      "missing_from_variant": 0,
+      "extra": 0,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp32_e0/dp": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp32_e0/dp_ckpt": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp32_e70/single_ckpt_repeat": {
+      "missing_from_variant": 0,
+      "extra": 0,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp32_e70/dp": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp32_e70/dp_ckpt": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e0/single_ckpt_repeat": {
+      "missing_from_variant": 0,
+      "extra": 0,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e0/dp": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e0/dp_ckpt": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e70/single_ckpt_repeat": {
+      "missing_from_variant": 0,
+      "extra": 0,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e70/dp": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e70/dp_ckpt": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e0_128/single_ckpt_repeat": {
+      "missing_from_variant": 0,
+      "extra": 0,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e0_128/dp": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e0_128/dp_ckpt": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e70_128/single_ckpt_repeat": {
+      "missing_from_variant": 0,
+      "extra": 0,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e70_128/dp": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    },
+    "fp16_e70_128/dp_ckpt": {
+      "missing_from_variant": 0,
+      "extra": 10,
+      "extra_is_expected_unused_set": true,
+      "extra_all_exactly_zero": true
+    }
+  },
+  "structure_pass": true,
+  "amendment_C_fp32_floor": 2.75616903336799e-07,
+  "amendment_C_criterion1_discriminates": true,
+  "precision_noise_fp16_vs_fp32": {
+    "e0": null,
+    "e70": null
+  },
+  "verdict": {
+    "dp": {
+      "criterion1_fp32_gradients": false,
+      "criterion1_loss_clause": "NOT EVALUABLE on v6 (losses lost with the crash)",
+      "finiteness_equals_reference": false,
+      "criterion2_fp16": {
+        "fp16_e0": "VOID (reference non-finite, Amendment B)",
+        "fp16_e70": "VOID (reference non-finite, Amendment B)"
+      },
+      "structure": true
+    },
+    "dp_ckpt": {
+      "criterion1_fp32_gradients": false,
+      "criterion1_loss_clause": "NOT EVALUABLE on v6 (losses lost with the crash)",
+      "finiteness_equals_reference": false,
+      "criterion2_fp16": {
+        "fp16_e0": "VOID (reference non-finite, Amendment B)",
+        "fp16_e70": "VOID (reference non-finite, Amendment B)"
+      },
+      "structure": true
+    }
+  }
+}

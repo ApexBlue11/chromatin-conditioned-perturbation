@@ -5225,6 +5225,50 @@ reading**:
 **Criterion 1's loss clause cannot be evaluated on v6** — the losses were in the lost JSON. It is evaluated on the
 next run, which is needed anyway for the full-state checkpoint (review 012 C1, C5) and Amendments A and D.
 
+### 80.6 🔴 v6 VERDICT: criterion 1 FAILS — DataParallel is not shown to be the same computation; O2 is not priced
+`model/v9/dp_v6_offline.py`, committed at `0425dd8` before it ran; output `model/results/xpert_dp_v6_offline.json`.
+
+| check (80.3 as amended by 80.5) | result |
+|---|---|
+| structure: variant keys ⊇ reference keys; the extras are exactly the ten unused parameters, all exactly zero | **PASS** |
+| Amendment C floor: fp32 `rel_L2(single_repeat, single)` | **2.8e−7** (< 3e−6: criterion 1 discriminates) |
+| **criterion 1, fp32 gradients, `dp` vs single** | epoch 0 **3.53e−4**, epoch 70 **3.77e−4** against **< 1e−5** → **FAIL** |
+| criterion 1, `dp_ckpt` vs single | 3.53e−4, 3.77e−4 → **FAIL** |
+| criterion 1, loss clause | not evaluable (losses lost with the crash) |
+| criterion 2, fp16 | **all four fp16 tags VOID**: the single-GPU reference's own gradients are non-finite on every one, **including epoch 0** (review 013 estimated epoch 0 at 5× under the fp16 limit; it overflowed) |
+| memory | `dp` 7.39 / 7.36 GiB, `dp_ckpt` 2.00 / 1.96 GiB per GPU: PASS |
+
+⇒ **By the rule committed in 80.3: any failure and O2 is not priced.** It is not priced on this measurement.
+
+*A defect in my offline script, not affecting the verdict:* it applied Amendment B's finiteness-equality check to the
+void fp16 tags too, which Amendment B excludes, and so also printed `finiteness_equals_reference: false`. On the
+non-void (fp32) tags every variant is finite, as the reference is.
+
+**Timing — recorded, and explicitly NOT a price** (the proof it was conditional on failed):
+
+| variant | s / train step | epoch (372 × train + 167 × 0.400 s val) | ~210 epochs |
+|---|---|---|---|
+| single_ckpt (the v5 recipe) | 2.229 | 896 s | 52.3 GPU-h |
+| `dp` | **0.925** | **411 s** | **24.0 GPU-h, 3.0 sessions** |
+| `dp_ckpt` | 1.169 | 502 s | 29.3 GPU-h |
+
+**Where the difference sits — diagnosis after the verdict, which it does not change.** Per parameter, fp32 epoch 0:
+**84 of 174** parameters differ by more than 1e−4 relative (range ~2.7e−4 to 7.7e−4), against a repeat floor of
+~2–6e−7 on the same parameters. The largest shares are in the first cross block and the drug path
+(`crossEncoders.0` query/key of the gene self-attention, `drug_SA`, `attention_CA`; `drug_emb.linear`), but
+feed-forward weights differ by ~3e−4 too. Nothing in their forward couples samples: no reduction over the batch
+dimension, no per-batch trimming of the fixed-length drug sequence, and the attention shim is per-sample (checked
+against `model_utils.py:232-300, 351-420`, `model_XPert.py:10-19, 186-260`).
+
+**Hypothesis, not a finding:** a changed per-GPU batch shape changes GEMM tiling and so fp32 rounding by ~1e−7, and
+at initialisation the loss is ill-conditioned — predictions are nearly constant across genes, and `pcc_loss_sum`'s and
+the `sqrt(loss/N)` terms' gradients scale with the inverse of small spreads — amplifying that rounding ~10³×. A
+repeat uses identical shapes and cannot see it, which is why the 80.3 floor did not. **If true, the fp32 test as
+designed cannot separate semantics from numerics at initial weights,** and the design assumption both the reviewer
+and I made — reduction-order differences of 1e−7 to 1e−6 — was wrong for this loss at this point in weight space.
+It is tested next, locally and at zero GPU cost, as a post-hoc diagnostic; any redesigned proof goes to review as a
+**new** pre-registration, labelled as designed after this failure.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
