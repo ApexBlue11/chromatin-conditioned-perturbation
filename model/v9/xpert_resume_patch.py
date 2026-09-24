@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """Full-state checkpoint and resume for XPert's train_xpert.main(), applied at RUNTIME so their files stay verbatim.
-[RESULTS 81.2; review 012 C1, C5; 78.5]  DRAFT pending review 014.
+[RESULTS 81.2, 81.7, 84; reviews 012 C1/C5, 014 C1/C4, 015 C2-C4; 78.5]. Proven exact in v7 (81.3a/b).
 
 Their own --resume_from reloads model weights only: the Adam load is commented out (train_xpert.py:487), the LambdaLR is
 rebuilt so its epoch count restarts at 0 (:460), EarlyStopping is constructed fresh (:524), and its key filter

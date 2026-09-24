@@ -45,13 +45,8 @@ BUDGET_H = 8.3          # wall-clock guard for TRAINING; prediction needs ~10 mi
 # loss is still improving supports no v9-win claim [RESULTS 71.7]. Nobody knows XPert's convergence epoch, so
 # the real T4 step time is measured FIRST, in a run that stops after GUARD F, and the full run is decided
 # with that number in hand rather than discovered through stopped_by == 'watchdog'.
-MEASURE_ONLY = False
-# O2 PRODUCTION [RESULTS 84, review 015]. GUARD G / H (RESULTS 81) were proved in v7 [81.7] and are not rerun.
-SESSION = 1
-HORIZON_EPOCHS = 297          # 84.1: FINAL at 297 completed epochs; the only other final end is their early stop
-PREV = None
-# PREV = session k-1's handoff, pasted as a literal and committed to git before this push (015 C3).
-# Production session 1. The v7 proof and resume tests are in the v7 kernel (git da3c5ac).
+MEASURE_ONLY = True
+# v7: MEASURE_ONLY runs GUARD G (the RESULTS 81 DataParallel proof) and GUARD H (the 81.3 resume tests), then stops.
 FOLD = 'split_cold_cell_1'
 W = '/kaggle/working'
 RECORD = {'fold': FOLD, 'budget_h': BUDGET_H, 'guards': {}, 'decision': 'option (a) as published, disclosed'}
@@ -220,15 +215,15 @@ open(os.path.join(X, 'run_train_ckpt.py'), 'w', encoding='utf-8').write(
     'import train_xpert\n'
     'train_xpert.main()\n')
 # DATAPARALLEL MEASUREMENT [RESULTS 78.4, 80; review 012]. Sources generated from model/v9/xpert_dp_patch.py and
-# model/v9/xpert_dp_probe.py. The probe is kept for provenance; production does not run it (proved in v7, 81.7).
+# model/v9/xpert_dp_probe.py. Used ONLY by GUARD G in this version: the trainer command is unchanged.
 DP_PATCH_SRC = '# -*- coding: utf-8 -*-\n"""DataParallel for XPert over every visible GPU, applied at RUNTIME inside XPertNet.forward so their files stay\nverbatim. [RESULTS 78, review 012]\n\nWhy inside forward rather than wrapping the model in nn.DataParallel: the object their train_xpert.py holds stays an\nXPertNet. So state_dict() keys carry NO \'module.\' prefix -- review 012 C1 showed their --resume_from filter would match\nno key of a prefixed checkpoint and silently restart from random weights while logging success -- and every attribute\ntheir code touches keeps working.\n\nWhy it is exact for their recipe, where gradient accumulation was not [RESULTS 77.2]: torch.nn.parallel.data_parallel\nscatters the batch, runs one replica per GPU, and GATHERS the outputs to GPU 0 before their train() computes the loss,\nso batch_weighted_loss\'s sqrt(loss / num_samples) terms see all 128 samples exactly as on one GPU. Gradients from the\nreplicas are summed into the original parameters. XPert has LayerNorm only, no BatchNorm, so no statistic depends on\nthe per-replica batch. Dropout masks differ per replica: i.i.d. draws of the same Bernoulli, a different realisation,\nas a different seed is [review 012 ask 3].\n\nTwo things in their forward are pinned to one device and are localised on each replica:\n  * `self.device`, which forward uses to move every input (model_XPert.py:188-198);\n  * `self.drug_HG_embed`, a plain tensor attribute created on `device` (model_XPert.py:135). DataParallel replicates\n    parameters and buffers only; a plain tensor stays on GPU 0. It is constant (never trained), so a cached copy per\n    device is exact. The localiser is generic over every plain tensor attribute of every submodule, and\n    `plain_tensor_attributes()` lists them so a kernel guard can assert the list is exactly the one expected.\n\nActive only in training with grad enabled and at least one row per GPU, so validation, prediction and a ragged last\nbatch smaller than the GPU count run unchanged on one device.\n"""\nimport sys\n\nimport torch\nfrom torch.nn.parallel import data_parallel\n\n# (id(source), device) -> (source, copy). The source is kept and checked by IDENTITY, so a reused id() can never\n# serve a stale copy [RESULTS 80.5, Amendment F].\n_CACHE = {}\n# Only these plain tensor attributes are moved to a replica\'s device; any other tensor attribute found off-device\n# is an error, not something to copy. On a replica the parameter copies are plain attributes too (replicate()\n# sets them that way), already on the device -- they must never be moved.\nLOCALISE = frozenset([\'drug_HG_embed\'])\n# Set by the probe: True asserts autocast is ON inside every replica forward, False asserts it is OFF, None skips.\nEXPECT_AUTOCAST = None\nREPLICA_CALLS = {\'n\': 0, \'autocast_on\': 0}\n\n\ndef plain_tensor_attributes(model):\n    """Every tensor held as a plain attribute (not a parameter or buffer), as \'module.path.attr\'."""\n    out = []\n    for mname, m in model.named_modules():\n        for name, val in vars(m).items():\n            if torch.is_tensor(val):\n                out.append((mname + \'.\' if mname else \'\') + name)\n    return sorted(out)\n\n\ndef _localise(replica, dev):\n    for m in replica.modules():\n        for name, val in list(vars(m).items()):\n            if not torch.is_tensor(val) or val.device == dev:\n                continue\n            if name not in LOCALISE:\n                raise RuntimeError(\'xpert_dp_patch: tensor attribute %r is on %s, not the replica device %s, and is not \'\n                                   \'in the localise set %s\' % (name, val.device, dev, sorted(LOCALISE)))\n            key = (id(val), dev)\n            hit = _CACHE.get(key)\n            if hit is None or hit[0] is not val:\n                hit = (val, val.to(dev))\n                _CACHE[key] = hit\n            setattr(m, name, hit[1])      # replicas hold a shallow copy of __dict__: the original is untouched\n    replica.device = dev\n\n\ndef apply(model_XPert=None, device_ids=None):\n    """Patch models.model_XPert.XPertNet.forward in place. Returns the device ids it will use."""\n    MX = model_XPert or sys.modules[\'models.model_XPert\']\n    cls = MX.XPertNet\n    ids = list(device_ids) if device_ids is not None else list(range(torch.cuda.device_count()))\n    if getattr(cls.forward, \'_lincs_dp\', False):\n        return ids\n    orig = cls.forward\n\n    def fwd(self, data, *a, **k):\n        if getattr(self, \'_is_replica\', False):          # set by torch.nn.parallel.replicate\n            # NOT next(self.parameters()).device: replicate() turns a replica\'s parameters into plain non-leaf\n            # attributes, so parameters() is EMPTY on a replica (StopIteration -- caught by the local smoke test,\n            # 2026-09-24, before any GPU spend). parallel_apply runs each replica under\n            # torch.cuda.device(<its device>), so the current device is the replica\'s.\n            _localise(self, torch.device(\'cuda\', torch.cuda.current_device()))\n            on = torch.is_autocast_enabled()\n            REPLICA_CALLS[\'n\'] += 1\n            REPLICA_CALLS[\'autocast_on\'] += int(on)\n            if EXPECT_AUTOCAST is not None and on != EXPECT_AUTOCAST:\n                raise RuntimeError(\'xpert_dp_patch: autocast is %s inside a replica, expected %s [RESULTS 81.5]\'\n                                   % (on, EXPECT_AUTOCAST))\n            return orig(self, data, *a, **k)\n        if len(ids) > 1 and self.training and torch.is_grad_enabled() and data[0].shape[0] >= len(ids):\n            if a:\n                raise TypeError(\'xpert_dp_patch: positional arguments after data are not scattered; pass mode= by name\')\n            return data_parallel(self, (data,), device_ids=ids, output_device=ids[0], module_kwargs=k or None)\n        return orig(self, data, *a, **k)\n\n    fwd._lincs_dp = True\n    cls.forward = fwd\n    return ids\n'
 DP_PROBE_SRC = '# -*- coding: utf-8 -*-\n"""One configuration of the v7 DataParallel proof (RESULTS 81, final form 81.5 + 81.6), run as its own process inside\nthe staged XPert copy.\n\n    python xpert_dp_probe.py MODE SHARED_DIR FOLD \'THEIR_ARGV_AS_JSON\'\n    MODE in {single_ckpt, single_ckpt_repeat, dp, split}\n\nThe first process (`single_ckpt`) writes the initial weights and one recipe batch to SHARED_DIR, and finds the fp16\nGradScaler scale; every later one loads them strictly. The ten parameters their loss never uses are frozen in EVERY\nmode (RESULTS 80.5, Amendment A), and after every gradient capture the set with `grad is None` must equal them exactly.\n\nTags, all through THEIR train() with an lr-0 SGD step and dropout zeroed on every module:\n  f64_e0 / f64_e70    float64, 16 rows (8 per GPU)         81.1a  semantics      gradients KEPT in float64 (014 C2)\n  f32m_e0 / f32m_e70  fp32, math SDPA, 16 rows              81.1b  dp vs split    (and reported vs single)\n  f16_e0 / f16_e70    fp16 autocast, 128 rows, one scale    81.1c  reported only; autocast asserted inside replicas\n16 rows, not 32 (RESULTS 81.6): on the math backend each of the 8 gene self-attention layers stores a 979x979x8\nprobability tensor for backward, ~245 MB per sample in fp32 and twice that in float64, so the uncheckpointed 32-row\nsplit and the float64 DP at 16 per GPU would not fit a T4.\n\nModes: single_ckpt (reference; every tag), single_ckpt_repeat (floor; every tag), dp (no checkpointing -- the\nproduction variant -- every tag, plus a short timing), split (one GPU, the batch as two halves concatenated before their\nloss, no checkpointing; f32m tags only).\n"""\nimport contextlib\nimport itertools\nimport json\nimport logging\nimport os\nimport sys\nimport time\n\nMODE, SHARED, FOLD = sys.argv[1], sys.argv[2], sys.argv[3]\nsys.argv = json.loads(sys.argv[4])\n\nimport torch  # noqa: E402\nimport yaml  # noqa: E402\n\nimport train_xpert as T  # noqa: E402\nfrom utils import load_dataloader  # noqa: E402\nimport models.model_XPert as MX  # noqa: E402\nimport models.model_utils  # noqa: E402,F401\nimport xpert_ckpt_patch  # noqa: E402\nimport xpert_dp_patch  # noqa: E402\n\nFROZEN = sorted([\'attnEncoder_trt.crossEncoders.0.LayerNorm.beta\', \'attnEncoder_trt.crossEncoders.0.LayerNorm.gamma\',\n                 \'attnEncoder_trt.crossEncoders.1.LayerNorm.beta\', \'attnEncoder_trt.crossEncoders.1.LayerNorm.gamma\',\n                 \'cell_emb.linear.bias\', \'cell_emb.linear.weight\', \'ctl_fc.0.bias\', \'ctl_fc.0.weight\',\n                 \'ctl_fc.3.bias\', \'ctl_fc.3.weight\'])\nROWS_SMALL = 16\nreport = {\'mode\': MODE, \'torch\': torch.__version__, \'gpus_visible\': torch.cuda.device_count(), \'tags\': {}}\n\nargs = T.arg_parse()\nconfig = yaml.safe_load(open(\'configs/%s.yaml\' % args.config))\nlogger = logging.getLogger(\'dp_probe\')\ntr, val, te, adata = load_dataloader(args, config, logger, nfold=FOLD, return_rawdata=True)\n\nif MODE in (\'single_ckpt\', \'single_ckpt_repeat\'):\n    report[\'ckpt_patched\'] = xpert_ckpt_patch.apply()\nif MODE == \'dp\':\n    report[\'dp_device_ids\'] = xpert_dp_patch.apply()\n    assert len(report[\'dp_device_ids\']) == 2, \'DataParallel needs both T4s, saw %r\' % report[\'dp_device_ids\']\n\n# ---- split: the same-GPU reference of 81.1b -- DataParallel\'s computation minus the second device ----------------\nORIG_FWD = MX.XPertNet.forward\n\n\ndef _cat(outs):\n    a = outs[0]\n    if torch.is_tensor(a):\n        return torch.cat(outs, 0)\n    if a is None:\n        return None\n    if isinstance(a, dict):\n        return {k: _cat([o[k] for o in outs]) for k in a}\n    if isinstance(a, (tuple, list)):\n        return type(a)(_cat(list(z)) for z in zip(*outs))\n    raise TypeError(type(a))\n\n\nif MODE == \'split\':\n    def _split_fwd(self, data, *a, **k):\n        if self.training and torch.is_grad_enabled():\n            h = data[0].shape[0] // 2\n            return _cat([ORIG_FWD(self, [t[:h] for t in data], *a, **k), ORIG_FWD(self, [t[h:] for t in data], *a, **k)])\n        return ORIG_FWD(self, data, *a, **k)\n    MX.XPertNet.forward = _split_fwd\n\n# ---- float64: their get_unimol_drug_feat hard-casts atom features with .float() (model_XPert.py:14) ------------------\nORIG_GUDF = MX.get_unimol_drug_feat\n\n\ndef _gudf_keep_dtype(x):\n    m = x[:, :, 0].long()\n    return x[:, :, 2:], x[:, :, 1].long(), (1.0 - m.unsqueeze(1).unsqueeze(2)) * -10000.0\n\n\ndev = torch.device(\'cuda:0\')\n\n\ndef build(dtype=torch.float32):\n    torch.manual_seed(0)\n    m = MX.XPertNet(args, config, dev, logger)\n    m.init_weights()\n    m.to(dev)\n    if dtype == torch.float64:\n        m.double()\n    params = dict(m.named_parameters())\n    assert all(n in params for n in FROZEN), \'a frozen name is not a parameter\'\n    for n in FROZEN:\n        params[n].requires_grad_(False)\n    for mod in m.modules():                        # dropout off on EVERY module, in train mode [013 C4, 80.2]\n        if isinstance(mod, torch.nn.Dropout):\n            mod.p = 0.0\n        if hasattr(mod, \'dropout_p\'):\n            mod.dropout_p = 0.0\n    return m\n\n\ninit_path, batch_path, scale_path = (os.path.join(SHARED, f) for f in (\'init.pt\', \'batch.pt\', \'fp16_scale.json\'))\nif MODE == \'single_ckpt\':\n    m0 = build()\n    torch.save({k: v.detach().cpu() for k, v in m0.state_dict().items()}, init_path)\n    torch.save(next(iter(tr)), batch_path)\n    del m0\ninit_sd = torch.load(init_path)\nbatch = torch.load(batch_path)\nassert batch[0].shape[0] == 128, \'not the recipe batch size\'\n\n\ndef capture(model, rows, epoch, precision, scale=2.0 ** 6):\n    model.load_state_dict(init_sd, strict=True)\n    b = [t[:rows] for t in batch]\n    if precision == \'f64\':\n        b = [t.double() if t.is_floating_point() else t for t in b]\n    opt = torch.optim.SGD([p for p in model.parameters() if p.requires_grad], lr=0.0)\n    scaler = torch.cuda.amp.GradScaler(init_scale=scale)\n    saved_ac, saved_gudf = T.autocast, MX.get_unimol_drug_feat\n    if precision in (\'f64\', \'f32m\'):\n        T.autocast = contextlib.nullcontext\n    if precision == \'f64\':\n        MX.get_unimol_drug_feat = _gudf_keep_dtype\n    xpert_dp_patch.EXPECT_AUTOCAST = (precision == \'f16\') if MODE == \'dp\' else None\n    try:\n        losses = T.train(model, opt, [b], args, config, scaler=scaler, epoch=epoch)\n    finally:\n        T.autocast, MX.get_unimol_drug_feat = saved_ac, saved_gudf\n        xpert_dp_patch.EXPECT_AUTOCAST = None\n    keep = torch.float64 if precision == \'f64\' else torch.float32\n    g = {n: p.grad.detach().to(keep).cpu().clone() for n, p in model.named_parameters() if p.grad is not None}\n    none_set = sorted(n for n, p in model.named_parameters() if p.grad is None)\n    finite = all(bool(torch.isfinite(v).all()) for v in g.values())\n    for p in model.parameters():\n        p.grad = None\n    return [float(x) for x in losses], g, none_set, finite\n\n\nout = {}\nplan = []\nif MODE != \'split\':\n    plan += [(\'f64_e0\', ROWS_SMALL, 0, \'f64\'), (\'f64_e70\', ROWS_SMALL, 70, \'f64\')]\nplan += [(\'f32m_e0\', ROWS_SMALL, 0, \'f32m\'), (\'f32m_e70\', ROWS_SMALL, 70, \'f32m\')]\nif MODE != \'split\':\n    plan += [(\'f16_e0\', 128, 0, \'f16\'), (\'f16_e70\', 128, 70, \'f16\')]\n\nmodels = {}\nscales = json.load(open(scale_path)) if os.path.exists(scale_path) else {}\nfor tag, rows, epoch, prec in plan:\n    torch.backends.cuda.enable_mem_efficient_sdp(prec != \'f32m\')     # math backend for 81.1b; float64 forces it anyway\n    dtype = torch.float64 if prec == \'f64\' else torch.float32\n    if dtype not in models:\n        models = {dtype: build(dtype)}                                 # one model resident at a time\n        torch.cuda.empty_cache()\n    model = models[dtype]\n    before = dict(xpert_dp_patch.REPLICA_CALLS)\n    if prec == \'f16\' and MODE == \'single_ckpt\':\n        scale = 2.0 ** 6\n        while True:\n            losses, g, none_set, finite = capture(model, rows, epoch, prec, scale)\n            if finite or scale < 2.0 ** -12:\n                break\n            scale /= 2.0\n        scales[tag] = scale\n        json.dump(scales, open(scale_path, \'w\'))\n    else:\n        scale = scales.get(tag, 2.0 ** 6) if prec == \'f16\' else 2.0 ** 6\n        losses, g, none_set, finite = capture(model, rows, epoch, prec, scale)\n    report[\'tags\'][tag] = {\'losses\': losses, \'grads_finite\': finite, \'scale\': scale, \'rows\': rows,\n                           \'none_grad_set_equals_frozen\': none_set == FROZEN, \'none_grad_set\': none_set,\n                           \'replica_calls\': xpert_dp_patch.REPLICA_CALLS[\'n\'] - before[\'n\'],\n                           \'replica_calls_autocast_on\': xpert_dp_patch.REPLICA_CALLS[\'autocast_on\'] - before[\'autocast_on\']}\n    out[tag] = {\'grads\': g, \'losses\': losses}\n    torch.save(out, os.path.join(SHARED, MODE + \'_grads.pt\'))     # after every tag: a crash cannot lose what ran\n    json.dump(report, open(os.path.join(SHARED, MODE + \'_report.json\'), \'w\'), indent=1)\ntorch.backends.cuda.enable_mem_efficient_sdp(True)\nreport[\'plain_tensor_attributes\'] = xpert_dp_patch.plain_tensor_attributes(models[next(iter(models))])\n\n# Timing, dp only: the recipe itself -- published dropout, Adam, their GradScaler, loader included, frozen ten.\nif MODE == \'dp\':\n    del models\n    torch.cuda.empty_cache()\n    torch.manual_seed(0)\n    model = MX.XPertNet(args, config, dev, logger)\n    model.init_weights()\n    model.to(dev)\n    params = dict(model.named_parameters())\n    for n in FROZEN:\n        params[n].requires_grad_(False)\n    opt = torch.optim.Adam(model.parameters(), lr=config[\'train\'][\'train_lr\'], weight_decay=config[\'train\'][\'weight_decay\'])\n    scaler = torch.cuda.amp.GradScaler()\n    it = iter(tr)\n    T.train(model, opt, itertools.islice(it, 1), args, config, scaler=scaler, epoch=0)\n    for d in range(torch.cuda.device_count()):\n        torch.cuda.synchronize(d)\n        torch.cuda.reset_peak_memory_stats(d)\n    t0 = time.time()\n    T.train(model, opt, itertools.islice(it, 5), args, config, scaler=scaler, epoch=0)\n    for d in range(torch.cuda.device_count()):\n        torch.cuda.synchronize(d)\n    report[\'s_train_step\'] = (time.time() - t0) / 5\n    report[\'peak_gib_per_gpu\'] = [torch.cuda.max_memory_allocated(d) / 2 ** 30 for d in range(torch.cuda.device_count())]\n    report[\'train_batches\'], report[\'val_batches\'] = len(tr), len(val)\n\njson.dump(report, open(os.path.join(SHARED, MODE + \'_report.json\'), \'w\'), indent=1)\nprint(\'DPPROBE \' + json.dumps({k: report[k] for k in report if k != \'tags\'}), flush=True)\n'
 open(os.path.join(X, 'xpert_dp_patch.py'), 'w', encoding='utf-8').write(DP_PATCH_SRC)
 open(os.path.join(X, 'xpert_dp_probe.py'), 'w', encoding='utf-8').write(DP_PROBE_SRC)
 # FULL-STATE RESUME [RESULTS 81.2, 81.5; reviews 012 C1/C5, 014 C1/C4]. Generated from model/v9/xpert_resume_patch.py.
-RESUME_PATCH_SRC = '# -*- coding: utf-8 -*-\n"""Full-state checkpoint and resume for XPert\'s train_xpert.main(), applied at RUNTIME so their files stay verbatim.\n[RESULTS 81.2, 81.7, 84; reviews 012 C1/C5, 014 C1/C4, 015 C2-C4; 78.5]. Proven exact in v7 (81.3a/b).\n\nTheir own --resume_from reloads model weights only: the Adam load is commented out (train_xpert.py:487), the LambdaLR is\nrebuilt so its epoch count restarts at 0 (:460), EarlyStopping is constructed fresh (:524), and its key filter\n(:484-486) silently matches nothing on a prefixed checkpoint while logging success (review 012 C1). A multi-session run\nchained through it would not be their continuous training. This module makes it so:\n\n  * Registration. XPertNet, torch.optim.Adam, LambdaLR, GradScaler and EarlyStopping record their instance at\n    construction. Their main() builds exactly one of each per fold; a second one is refused.\n  * Freezing [RESULTS 80.5, Amendment A]. The parameters named in LINCS_FROZEN_PARAMS -- those that receive grad None in\n    the single-GPU recipe -- are set requires_grad=False at XPertNet construction, before the optimizer exists.\n  * Save, at every epoch boundary: after lr_scheduler.step() (train_xpert.py:545), which runs after stopper.step()\n    (:538), so every piece of state belongs to the same finished epoch. Written atomically (tmp + os.replace):\n      full_state.pt   model / Adam / GradScaler / LambdaLR state dicts; stopper counter, best_score, early_stop;\n                      torch CPU, CUDA (every device), numpy and python RNG states; the finished epoch index\n      best.pth        the bytes of the stopper\'s on-disk best checkpoint, if it exists\n      resume_from.pt  {\'epoch\', \'model_state_dict\'} -- what their --resume_from reads, and only to set start_epoch\n  * Restore, in the EarlyStopping.__init__ hook -- the last construction before their epoch loop, when every object\n    exists: a STRICT model load (the loaded key set must equal the model\'s), then Adam, GradScaler, LambdaLR, the\n    stopper\'s fields, the best checkpoint under THIS session\'s time-stamped folder, and the RNG states last, so the\n    next draw is the next epoch\'s shuffle. Their filtered load ran first and is overwritten. The first train() call\n    is asserted to be the epoch after the saved one.\n\nEnvironment: LINCS_STATE_DIR (write), LINCS_RESUME_DIR (read; absent on session 1), LINCS_FROZEN_PARAMS (JSON list).\nTest mode only [RESULTS 81.5, 81.3]: LINCS_STOP_AFTER_EPOCH (exit cleanly after saving that many finished epochs),\nLINCS_TRUNCATE_BATCHES (train and validate on the first N batches of each epoch), LINCS_DUMP_AFTER_RESTORE (write the\nlive state right after restore, for the exact round-trip test), LINCS_DETERMINISTIC=1\n(torch.use_deterministic_algorithms; the caller sets CUBLAS_WORKSPACE_CONFIG before CUDA initialises).\n\nProduction, RESULTS 84 [review 015]: LINCS_DEADLINE (unix time; after each save, stop cleanly if the slowest epoch\nso far would pass it -- so a session only ever ends at an epoch boundary, 015 C2), LINCS_HORIZON_EPOCHS (stop, FINAL,\nonce that many epochs have completed, 84.1), LINCS_EXPECT_TORCH / LINCS_EXPECT_CUDA (the stack must not move between\nsessions, 015 C3). Test only: LINCS_TEST_PATIENCE (the C4 chain test).\n\nReview 014 C4: if --resume_from is on the command line and the strict restore has not run by the first train() call,\nthe trainer fails hard -- a hook that silently failed to fire would reproduce exactly review 012 C1\'s failure.\n"""\nimport hashlib\nimport io\nimport itertools\nimport json\nimport os\nimport random\nimport shutil\nimport sys\nimport time\n\nimport numpy as np\nimport torch\n\nREG = {}\n_STATE = {\'first_train_checked\': False, \'expect_first_epoch\': None, \'restored\': False, \'resume_flag\': False,\n          \'epoch_t0\': None, \'epoch_durations\': []}\n\n\ndef _register(cls, key, after=None):\n    orig = cls.__init__\n    if getattr(orig, \'_lincs_resume\', False):\n        return\n\n    def init(self, *a, **k):\n        orig(self, *a, **k)\n        if key in REG and REG[key] is not self:\n            raise RuntimeError(\'xpert_resume_patch: a second %s was constructed; one per fold is expected\' % key)\n        REG[key] = self\n        if after is not None:\n            after(self)\n\n    init._lincs_resume = True\n    cls.__init__ = init\n\n\ndef _atomic_save(obj, path):\n    tmp = path + \'.tmp\'\n    torch.save(obj, tmp)\n    os.replace(tmp, path)\n\n\ndef _freeze(model):\n    names = json.loads(os.environ.get(\'LINCS_FROZEN_PARAMS\', \'[]\'))\n    params = dict(model.named_parameters())\n    missing = [n for n in names if n not in params]\n    if missing:\n        raise RuntimeError(\'xpert_resume_patch: frozen names not in the model: %r\' % missing)\n    for n in names:\n        params[n].requires_grad_(False)\n    print(\'LINCS froze %d unused parameters\' % len(names), flush=True)\n\n\ndef _sha1(path):\n    if not os.path.exists(path):\n        return None\n    h = hashlib.sha1()\n    with open(path, \'rb\') as f:\n        for chunk in iter(lambda: f.read(1 << 20), b\'\'):\n            h.update(chunk)\n    return h.hexdigest()\n\n\ndef collect_state():\n    """Everything restorable, in one structure -- used by the save AND by the post-restore dump, so the exact\n    round-trip test of RESULTS 81.3a compares like with like, field for field."""\n    m, opt, sch, sc, st = REG[\'model\'], REG[\'opt\'], REG[\'sched\'], REG.get(\'scaler\'), REG[\'stopper\']\n    return {\'epoch\': int(sch.last_epoch) - 1,       # LambdaLR counts the step just taken; the finished epoch is one less\n            \'model\': {k: v.detach().cpu() for k, v in m.state_dict().items()},\n            \'opt\': opt.state_dict(), \'sched\': sch.state_dict(),\n            \'scaler\': sc.state_dict() if sc is not None else None,\n            \'stopper\': {\'counter\': st.counter, \'best_score\': st.best_score, \'early_stop\': st.early_stop},\n            \'best_sha1\': _sha1(st.filepath),\n            \'rng\': {\'torch\': torch.get_rng_state(), \'cuda\': torch.cuda.get_rng_state_all(),\n                    \'numpy\': np.random.get_state(), \'python\': random.getstate()}}\n\n\ndef compare_states(saved, live, path=\'state\'):\n    """RESULTS 81.3a: every restorable field BITWISE equal. Returns the list of paths that differ (empty = pass).\n    Tensors must match in dtype, shape and every bit; numpy arrays likewise; containers element for element."""\n    bad = []\n    if torch.is_tensor(saved) or torch.is_tensor(live):\n        if not (torch.is_tensor(saved) and torch.is_tensor(live) and saved.dtype == live.dtype\n                and saved.shape == live.shape and torch.equal(saved.cpu(), live.cpu())):\n            bad.append(path)\n    elif isinstance(saved, np.ndarray) or isinstance(live, np.ndarray):\n        if not (isinstance(saved, np.ndarray) and isinstance(live, np.ndarray) and saved.dtype == live.dtype\n                and np.array_equal(saved, live)):\n            bad.append(path)\n    elif isinstance(saved, dict):\n        if not isinstance(live, dict) or set(saved) != set(live):\n            bad.append(path + \' (keys)\')\n        else:\n            for k in saved:\n                bad += compare_states(saved[k], live[k], \'%s.%s\' % (path, k))\n    elif isinstance(saved, (list, tuple)):\n        if not isinstance(live, (list, tuple)) or len(saved) != len(live):\n            bad.append(path + \' (length)\')\n        else:\n            for i, (x, y) in enumerate(zip(saved, live)):\n                bad += compare_states(x, y, \'%s[%d]\' % (path, i))\n    elif saved != live:\n        bad.append(path)\n    return bad\n\n\ndef save_state():\n    d = os.environ[\'LINCS_STATE_DIR\']\n    os.makedirs(d, exist_ok=True)\n    st = REG[\'stopper\']\n    state = collect_state()\n    epoch = state[\'epoch\']\n    _atomic_save(state, os.path.join(d, \'full_state.pt\'))\n    _atomic_save({\'epoch\': epoch, \'model_state_dict\': state[\'model\']}, os.path.join(d, \'resume_from.pt\'))\n    if os.path.exists(st.filepath):\n        tmp = os.path.join(d, \'best.pth.tmp\')\n        shutil.copyfile(st.filepath, tmp)\n        os.replace(tmp, os.path.join(d, \'best.pth\'))\n    now = time.time()\n    if _STATE[\'epoch_t0\'] is not None:\n        _STATE[\'epoch_durations\'].append(now - _STATE[\'epoch_t0\'])\n    _STATE[\'epoch_t0\'] = now\n    last_dur = _STATE[\'epoch_durations\'][-1] if _STATE[\'epoch_durations\'] else float(\'nan\')\n    print(\'LINCS STATE SAVED epoch %d | best_score %r | counter %d | epoch_s %.1f\'\n          % (epoch, st.best_score, st.counter, last_dur), flush=True)\n    horizon = os.environ.get(\'LINCS_HORIZON_EPOCHS\')\n    if horizon is not None and epoch + 1 >= int(horizon):\n        print(\'LINCS HORIZON REACHED %s\' % json.dumps({\'epoch\': epoch, \'best_score\': st.best_score,\n                                                       \'counter\': int(st.counter)}), flush=True)\n        raise SystemExit(0)\n    deadline = os.environ.get(\'LINCS_DEADLINE\')\n    if deadline is not None and _STATE[\'epoch_durations\'] and now + max(_STATE[\'epoch_durations\']) > float(deadline):\n        print(\'LINCS SESSION BOUNDARY %s\' % json.dumps({\'epoch\': epoch, \'best_score\': st.best_score,\n                                                         \'counter\': int(st.counter),\n                                                         \'max_epoch_s\': max(_STATE[\'epoch_durations\'])}), flush=True)\n        raise SystemExit(0)\n    stop_after = os.environ.get(\'LINCS_STOP_AFTER_EPOCH\')\n    if stop_after is not None and epoch + 1 >= int(stop_after):\n        print(\'LINCS_STOP_AFTER_EPOCH reached after epoch %d; exiting cleanly (test mode)\' % epoch, flush=True)\n        raise SystemExit(0)\n\n\ndef restore_state():\n    d = os.environ[\'LINCS_RESUME_DIR\']\n    # map_location=\'cpu\', independently of their load at train_xpert.py:483 [review 014 C4]; torch.set_rng_state needs a\n    # CPU ByteTensor.\n    st = torch.load(os.path.join(d, \'full_state.pt\'), map_location=\'cpu\', weights_only=False)\n    m = REG[\'model\']\n    want, have = set(st[\'model\']), set(m.state_dict())\n    if want != have:\n        raise RuntimeError(\'xpert_resume_patch: key sets differ (missing %d, unexpected %d) -- refusing [review 012 C1]\'\n                           % (len(have - want), len(want - have)))\n    m.load_state_dict(st[\'model\'], strict=True)\n    REG[\'opt\'].load_state_dict(st[\'opt\'])\n    REG[\'sched\'].load_state_dict(st[\'sched\'])\n    if st[\'scaler\'] is not None:\n        REG[\'scaler\'].load_state_dict(st[\'scaler\'])\n    stopper = REG[\'stopper\']\n    stopper.counter, stopper.best_score, stopper.early_stop = (st[\'stopper\'][\'counter\'], st[\'stopper\'][\'best_score\'],\n                                                               st[\'stopper\'][\'early_stop\'])\n    best = os.path.join(d, \'best.pth\')\n    # 015 C2: the three per-epoch files are each atomic but not atomic together; refuse an inconsistent set.\n    if _sha1(best) != st[\'best_sha1\']:\n        raise RuntimeError(\'xpert_resume_patch: best.pth sha1 %s != saved best_sha1 %s -- inconsistent state set\'\n                           % (_sha1(best), st[\'best_sha1\']))\n    rf = torch.load(os.path.join(d, \'resume_from.pt\'), map_location=\'cpu\', weights_only=False)\n    if int(rf[\'epoch\']) != int(st[\'epoch\']):\n        raise RuntimeError(\'xpert_resume_patch: resume_from epoch %s != full_state epoch %s\' % (rf[\'epoch\'], st[\'epoch\']))\n    if os.path.exists(best):\n        os.makedirs(os.path.dirname(stopper.filepath), exist_ok=True)\n        shutil.copyfile(best, stopper.filepath)\n    torch.set_rng_state(st[\'rng\'][\'torch\'])\n    torch.cuda.set_rng_state_all(st[\'rng\'][\'cuda\'])\n    np.random.set_state(st[\'rng\'][\'numpy\'])\n    random.setstate(st[\'rng\'][\'python\'])\n    _STATE[\'expect_first_epoch\'] = st[\'epoch\'] + 1\n    # 015 C3: the exact round-trip of RESULTS 81.3a, IN PROCESS, every session: any difference is fatal.\n    live = collect_state()\n    diff = compare_states(st, live)\n    if diff:\n        raise RuntimeError(\'xpert_resume_patch: restored state differs from the saved state in %r\' % diff[:10])\n    print(\'LINCS RESTORE ROUND-TRIP exact: every field bitwise equal\', flush=True)\n    _STATE[\'restored\'] = True\n    dump = os.environ.get(\'LINCS_DUMP_AFTER_RESTORE\')\n    if dump:\n        live = collect_state()\n        live[\'start_epoch_expected\'] = _STATE[\'expect_first_epoch\']\n        _atomic_save(live, dump)\n    print(\'LINCS RESUME restored epoch %d | best_score %r | counter %d | best checkpoint %s\'\n          % (st[\'epoch\'], stopper.best_score, stopper.counter, \'restored\' if os.path.exists(best) else \'none yet\'),\n          flush=True)\n\n\ndef apply():\n    """Install the hooks. Must run after their modules are importable and before train_xpert.main()."""\n    import models.model_XPert as MX\n    import utils as U\n    import train_xpert as T\n    from torch.optim.lr_scheduler import LambdaLR\n    from torch.cuda.amp import GradScaler\n\n    _STATE[\'resume_flag\'] = any(a == \'--resume_from\' or a.startswith(\'--resume_from=\') for a in sys.argv)\n    if _STATE[\'resume_flag\'] and not os.environ.get(\'LINCS_RESUME_DIR\'):\n        raise RuntimeError(\'xpert_resume_patch: --resume_from given without LINCS_RESUME_DIR; their filtered load \'\n                           \'must never be the only restore [review 012 C1, 014 C4]\')\n    for var, have in ((\'LINCS_EXPECT_TORCH\', torch.__version__), (\'LINCS_EXPECT_CUDA\', str(torch.version.cuda))):\n        want = os.environ.get(var)\n        if want is not None and want != have:\n            raise RuntimeError(\'xpert_resume_patch: %s is %s, this session has %s -- the stack moved [015 C3]\'\n                               % (var, want, have))\n    if os.environ.get(\'LINCS_DETERMINISTIC\') == \'1\':\n        torch.use_deterministic_algorithms(True)\n    _register(MX.XPertNet, \'model\', after=_freeze)\n    _register(torch.optim.Adam, \'opt\')\n    _register(GradScaler, \'scaler\')\n\n    # The save hook wraps LambdaLR.step on the CLASS and acts only for the registered instance. Wrapping it on the\n    # instance would put a local function into __dict__, which LambdaLR.state_dict() copies -- and torch.save cannot\n    # pickle it. The constructor\'s own initial step runs before registration, so it never saves.\n    _register(LambdaLR, \'sched\')\n    if not getattr(LambdaLR.step, \'_lincs_resume\', False):\n        orig_step = LambdaLR.step\n\n        def step(self, *a, **k):\n            r = orig_step(self, *a, **k)\n            if self is REG.get(\'sched\') and os.environ.get(\'LINCS_STATE_DIR\'):\n                save_state()\n            return r\n        step._lincs_resume = True\n        LambdaLR.step = step\n\n    def after_stopper(self):\n        tp = os.environ.get(\'LINCS_TEST_PATIENCE\')\n        if tp is not None:                       # TEST ONLY -- the kernel asserts it absent in production\n            self.patience = int(tp)\n        if os.environ.get(\'LINCS_RESUME_DIR\'):\n            restore_state()\n    _register(U.EarlyStopping, \'stopper\', after=after_stopper)   # T.EarlyStopping is this same class object\n\n    # EARLY-STOP MARKER [packet 015]. When THEIR stopper reports early stopping, the session is the FINAL one: print a\n    # marker line the kernel\'s watchdog acts on, and write it to the state dir, so a final session can never be\n    # mistaken for a resume point. Wrapped on the class, acting only for the registered instance.\n    if not getattr(U.EarlyStopping.step, \'_lincs_resume\', False):\n        orig_es_step = U.EarlyStopping.step\n\n        def es_step(self, score, model, current_epoch, optimizer, *a, **k):\n            stop = orig_es_step(self, score, model, current_epoch, optimizer, *a, **k)\n            if stop and self is REG.get(\'stopper\'):\n                info = {\'epoch\': int(current_epoch), \'best_score\': self.best_score, \'counter\': int(self.counter)}\n                d = os.environ.get(\'LINCS_STATE_DIR\')\n                if d:\n                    os.makedirs(d, exist_ok=True)\n                    with open(os.path.join(d, \'early_stop.json\'), \'w\') as f:\n                        json.dump(info, f)\n                print(\'LINCS EARLY STOP %s\' % json.dumps(info), flush=True)\n            return stop\n        es_step._lincs_resume = True\n        U.EarlyStopping.step = es_step\n\n    orig_train, orig_validate = T.train, getattr(T, \'validate\', None)\n    trunc = os.environ.get(\'LINCS_TRUNCATE_BATCHES\')\n\n    def train(*a, **k):\n        if not _STATE[\'first_train_checked\']:\n            _STATE[\'first_train_checked\'] = True\n            _STATE[\'epoch_t0\'] = time.time()\n            if _STATE[\'resume_flag\'] and not _STATE[\'restored\']:\n                raise RuntimeError(\'xpert_resume_patch: --resume_from is set but the strict restore did not run before \'\n                                   \'the first train() call -- refusing [review 014 C4]\')\n            exp = _STATE[\'expect_first_epoch\']\n            if exp is not None and k.get(\'epoch\') != exp:\n                raise RuntimeError(\'xpert_resume_patch: first epoch %r, expected %r\' % (k.get(\'epoch\'), exp))\n        if trunc:\n            a = list(a)\n            a[2] = itertools.islice(a[2], int(trunc))       # train(model, opt, dataloader, ...)\n        return orig_train(*a, **k)\n\n    def validate(*a, **k):\n        a = list(a)\n        a[1] = itertools.islice(a[1], int(trunc))           # validate(model, dataloader, ...)\n        return orig_validate(*a, **k)\n    T.train = train\n    if trunc and orig_validate is not None:\n        T.validate = validate\n    return sorted(REG.keys())\n'
+RESUME_PATCH_SRC = '# -*- coding: utf-8 -*-\n"""Full-state checkpoint and resume for XPert\'s train_xpert.main(), applied at RUNTIME so their files stay verbatim.\n[RESULTS 81.2; review 012 C1, C5; 78.5]  DRAFT pending review 014.\n\nTheir own --resume_from reloads model weights only: the Adam load is commented out (train_xpert.py:487), the LambdaLR is\nrebuilt so its epoch count restarts at 0 (:460), EarlyStopping is constructed fresh (:524), and its key filter\n(:484-486) silently matches nothing on a prefixed checkpoint while logging success (review 012 C1). A multi-session run\nchained through it would not be their continuous training. This module makes it so:\n\n  * Registration. XPertNet, torch.optim.Adam, LambdaLR, GradScaler and EarlyStopping record their instance at\n    construction. Their main() builds exactly one of each per fold; a second one is refused.\n  * Freezing [RESULTS 80.5, Amendment A]. The parameters named in LINCS_FROZEN_PARAMS -- those that receive grad None in\n    the single-GPU recipe -- are set requires_grad=False at XPertNet construction, before the optimizer exists.\n  * Save, at every epoch boundary: after lr_scheduler.step() (train_xpert.py:545), which runs after stopper.step()\n    (:538), so every piece of state belongs to the same finished epoch. Written atomically (tmp + os.replace):\n      full_state.pt   model / Adam / GradScaler / LambdaLR state dicts; stopper counter, best_score, early_stop;\n                      torch CPU, CUDA (every device), numpy and python RNG states; the finished epoch index\n      best.pth        the bytes of the stopper\'s on-disk best checkpoint, if it exists\n      resume_from.pt  {\'epoch\', \'model_state_dict\'} -- what their --resume_from reads, and only to set start_epoch\n  * Restore, in the EarlyStopping.__init__ hook -- the last construction before their epoch loop, when every object\n    exists: a STRICT model load (the loaded key set must equal the model\'s), then Adam, GradScaler, LambdaLR, the\n    stopper\'s fields, the best checkpoint under THIS session\'s time-stamped folder, and the RNG states last, so the\n    next draw is the next epoch\'s shuffle. Their filtered load ran first and is overwritten. The first train() call\n    is asserted to be the epoch after the saved one.\n\nEnvironment: LINCS_STATE_DIR (write), LINCS_RESUME_DIR (read; absent on session 1), LINCS_FROZEN_PARAMS (JSON list).\nTest mode only [RESULTS 81.5, 81.3]: LINCS_STOP_AFTER_EPOCH (exit cleanly after saving that many finished epochs),\nLINCS_TRUNCATE_BATCHES (train and validate on the first N batches of each epoch), LINCS_DUMP_AFTER_RESTORE (write the\nlive state right after restore, for the exact round-trip test), LINCS_DETERMINISTIC=1\n(torch.use_deterministic_algorithms; the caller sets CUBLAS_WORKSPACE_CONFIG before CUDA initialises).\n\nReview 014 C4: if --resume_from is on the command line and the strict restore has not run by the first train() call,\nthe trainer fails hard -- a hook that silently failed to fire would reproduce exactly review 012 C1\'s failure.\n"""\nimport hashlib\nimport io\nimport itertools\nimport json\nimport os\nimport random\nimport shutil\nimport sys\n\nimport numpy as np\nimport torch\n\nREG = {}\n_STATE = {\'first_train_checked\': False, \'expect_first_epoch\': None, \'restored\': False, \'resume_flag\': False}\n\n\ndef _register(cls, key, after=None):\n    orig = cls.__init__\n    if getattr(orig, \'_lincs_resume\', False):\n        return\n\n    def init(self, *a, **k):\n        orig(self, *a, **k)\n        if key in REG and REG[key] is not self:\n            raise RuntimeError(\'xpert_resume_patch: a second %s was constructed; one per fold is expected\' % key)\n        REG[key] = self\n        if after is not None:\n            after(self)\n\n    init._lincs_resume = True\n    cls.__init__ = init\n\n\ndef _atomic_save(obj, path):\n    tmp = path + \'.tmp\'\n    torch.save(obj, tmp)\n    os.replace(tmp, path)\n\n\ndef _freeze(model):\n    names = json.loads(os.environ.get(\'LINCS_FROZEN_PARAMS\', \'[]\'))\n    params = dict(model.named_parameters())\n    missing = [n for n in names if n not in params]\n    if missing:\n        raise RuntimeError(\'xpert_resume_patch: frozen names not in the model: %r\' % missing)\n    for n in names:\n        params[n].requires_grad_(False)\n    print(\'LINCS froze %d unused parameters\' % len(names), flush=True)\n\n\ndef _sha1(path):\n    if not os.path.exists(path):\n        return None\n    h = hashlib.sha1()\n    with open(path, \'rb\') as f:\n        for chunk in iter(lambda: f.read(1 << 20), b\'\'):\n            h.update(chunk)\n    return h.hexdigest()\n\n\ndef collect_state():\n    """Everything restorable, in one structure -- used by the save AND by the post-restore dump, so the exact\n    round-trip test of RESULTS 81.3a compares like with like, field for field."""\n    m, opt, sch, sc, st = REG[\'model\'], REG[\'opt\'], REG[\'sched\'], REG.get(\'scaler\'), REG[\'stopper\']\n    return {\'epoch\': int(sch.last_epoch) - 1,       # LambdaLR counts the step just taken; the finished epoch is one less\n            \'model\': {k: v.detach().cpu() for k, v in m.state_dict().items()},\n            \'opt\': opt.state_dict(), \'sched\': sch.state_dict(),\n            \'scaler\': sc.state_dict() if sc is not None else None,\n            \'stopper\': {\'counter\': st.counter, \'best_score\': st.best_score, \'early_stop\': st.early_stop},\n            \'best_sha1\': _sha1(st.filepath),\n            \'rng\': {\'torch\': torch.get_rng_state(), \'cuda\': torch.cuda.get_rng_state_all(),\n                    \'numpy\': np.random.get_state(), \'python\': random.getstate()}}\n\n\ndef compare_states(saved, live, path=\'state\'):\n    """RESULTS 81.3a: every restorable field BITWISE equal. Returns the list of paths that differ (empty = pass).\n    Tensors must match in dtype, shape and every bit; numpy arrays likewise; containers element for element."""\n    bad = []\n    if torch.is_tensor(saved) or torch.is_tensor(live):\n        if not (torch.is_tensor(saved) and torch.is_tensor(live) and saved.dtype == live.dtype\n                and saved.shape == live.shape and torch.equal(saved.cpu(), live.cpu())):\n            bad.append(path)\n    elif isinstance(saved, np.ndarray) or isinstance(live, np.ndarray):\n        if not (isinstance(saved, np.ndarray) and isinstance(live, np.ndarray) and saved.dtype == live.dtype\n                and np.array_equal(saved, live)):\n            bad.append(path)\n    elif isinstance(saved, dict):\n        if not isinstance(live, dict) or set(saved) != set(live):\n            bad.append(path + \' (keys)\')\n        else:\n            for k in saved:\n                bad += compare_states(saved[k], live[k], \'%s.%s\' % (path, k))\n    elif isinstance(saved, (list, tuple)):\n        if not isinstance(live, (list, tuple)) or len(saved) != len(live):\n            bad.append(path + \' (length)\')\n        else:\n            for i, (x, y) in enumerate(zip(saved, live)):\n                bad += compare_states(x, y, \'%s[%d]\' % (path, i))\n    elif saved != live:\n        bad.append(path)\n    return bad\n\n\ndef save_state():\n    d = os.environ[\'LINCS_STATE_DIR\']\n    os.makedirs(d, exist_ok=True)\n    st = REG[\'stopper\']\n    state = collect_state()\n    epoch = state[\'epoch\']\n    _atomic_save(state, os.path.join(d, \'full_state.pt\'))\n    _atomic_save({\'epoch\': epoch, \'model_state_dict\': state[\'model\']}, os.path.join(d, \'resume_from.pt\'))\n    if os.path.exists(st.filepath):\n        tmp = os.path.join(d, \'best.pth.tmp\')\n        shutil.copyfile(st.filepath, tmp)\n        os.replace(tmp, os.path.join(d, \'best.pth\'))\n    print(\'LINCS STATE SAVED epoch %d | best_score %r | counter %d\' % (epoch, st.best_score, st.counter), flush=True)\n    stop_after = os.environ.get(\'LINCS_STOP_AFTER_EPOCH\')\n    if stop_after is not None and epoch + 1 >= int(stop_after):\n        print(\'LINCS_STOP_AFTER_EPOCH reached after epoch %d; exiting cleanly (test mode)\' % epoch, flush=True)\n        raise SystemExit(0)\n\n\ndef restore_state():\n    d = os.environ[\'LINCS_RESUME_DIR\']\n    # map_location=\'cpu\', independently of their load at train_xpert.py:483 [review 014 C4]; torch.set_rng_state needs a\n    # CPU ByteTensor.\n    st = torch.load(os.path.join(d, \'full_state.pt\'), map_location=\'cpu\', weights_only=False)\n    m = REG[\'model\']\n    want, have = set(st[\'model\']), set(m.state_dict())\n    if want != have:\n        raise RuntimeError(\'xpert_resume_patch: key sets differ (missing %d, unexpected %d) -- refusing [review 012 C1]\'\n                           % (len(have - want), len(want - have)))\n    m.load_state_dict(st[\'model\'], strict=True)\n    REG[\'opt\'].load_state_dict(st[\'opt\'])\n    REG[\'sched\'].load_state_dict(st[\'sched\'])\n    if st[\'scaler\'] is not None:\n        REG[\'scaler\'].load_state_dict(st[\'scaler\'])\n    stopper = REG[\'stopper\']\n    stopper.counter, stopper.best_score, stopper.early_stop = (st[\'stopper\'][\'counter\'], st[\'stopper\'][\'best_score\'],\n                                                               st[\'stopper\'][\'early_stop\'])\n    best = os.path.join(d, \'best.pth\')\n    if os.path.exists(best):\n        os.makedirs(os.path.dirname(stopper.filepath), exist_ok=True)\n        shutil.copyfile(best, stopper.filepath)\n    torch.set_rng_state(st[\'rng\'][\'torch\'])\n    torch.cuda.set_rng_state_all(st[\'rng\'][\'cuda\'])\n    np.random.set_state(st[\'rng\'][\'numpy\'])\n    random.setstate(st[\'rng\'][\'python\'])\n    _STATE[\'expect_first_epoch\'] = st[\'epoch\'] + 1\n    _STATE[\'restored\'] = True\n    dump = os.environ.get(\'LINCS_DUMP_AFTER_RESTORE\')\n    if dump:\n        live = collect_state()\n        live[\'start_epoch_expected\'] = _STATE[\'expect_first_epoch\']\n        _atomic_save(live, dump)\n    print(\'LINCS RESUME restored epoch %d | best_score %r | counter %d | best checkpoint %s\'\n          % (st[\'epoch\'], stopper.best_score, stopper.counter, \'restored\' if os.path.exists(best) else \'none yet\'),\n          flush=True)\n\n\ndef apply():\n    """Install the hooks. Must run after their modules are importable and before train_xpert.main()."""\n    import models.model_XPert as MX\n    import utils as U\n    import train_xpert as T\n    from torch.optim.lr_scheduler import LambdaLR\n    from torch.cuda.amp import GradScaler\n\n    _STATE[\'resume_flag\'] = any(a == \'--resume_from\' or a.startswith(\'--resume_from=\') for a in sys.argv)\n    if _STATE[\'resume_flag\'] and not os.environ.get(\'LINCS_RESUME_DIR\'):\n        raise RuntimeError(\'xpert_resume_patch: --resume_from given without LINCS_RESUME_DIR; their filtered load \'\n                           \'must never be the only restore [review 012 C1, 014 C4]\')\n    if os.environ.get(\'LINCS_DETERMINISTIC\') == \'1\':\n        torch.use_deterministic_algorithms(True)\n    _register(MX.XPertNet, \'model\', after=_freeze)\n    _register(torch.optim.Adam, \'opt\')\n    _register(GradScaler, \'scaler\')\n\n    # The save hook wraps LambdaLR.step on the CLASS and acts only for the registered instance. Wrapping it on the\n    # instance would put a local function into __dict__, which LambdaLR.state_dict() copies -- and torch.save cannot\n    # pickle it. The constructor\'s own initial step runs before registration, so it never saves.\n    _register(LambdaLR, \'sched\')\n    if not getattr(LambdaLR.step, \'_lincs_resume\', False):\n        orig_step = LambdaLR.step\n\n        def step(self, *a, **k):\n            r = orig_step(self, *a, **k)\n            if self is REG.get(\'sched\') and os.environ.get(\'LINCS_STATE_DIR\'):\n                save_state()\n            return r\n        step._lincs_resume = True\n        LambdaLR.step = step\n\n    def after_stopper(self):\n        if os.environ.get(\'LINCS_RESUME_DIR\'):\n            restore_state()\n    _register(U.EarlyStopping, \'stopper\', after=after_stopper)   # T.EarlyStopping is this same class object\n\n    orig_train, orig_validate = T.train, getattr(T, \'validate\', None)\n    trunc = os.environ.get(\'LINCS_TRUNCATE_BATCHES\')\n\n    def train(*a, **k):\n        if not _STATE[\'first_train_checked\']:\n            _STATE[\'first_train_checked\'] = True\n            if _STATE[\'resume_flag\'] and not _STATE[\'restored\']:\n                raise RuntimeError(\'xpert_resume_patch: --resume_from is set but the strict restore did not run before \'\n                                   \'the first train() call -- refusing [review 014 C4]\')\n            exp = _STATE[\'expect_first_epoch\']\n            if exp is not None and k.get(\'epoch\') != exp:\n                raise RuntimeError(\'xpert_resume_patch: first epoch %r, expected %r\' % (k.get(\'epoch\'), exp))\n        if trunc:\n            a = list(a)\n            a[2] = itertools.islice(a[2], int(trunc))       # train(model, opt, dataloader, ...)\n        return orig_train(*a, **k)\n\n    def validate(*a, **k):\n        a = list(a)\n        a[1] = itertools.islice(a[1], int(trunc))           # validate(model, dataloader, ...)\n        return orig_validate(*a, **k)\n    T.train = train\n    if trunc and orig_validate is not None:\n        T.validate = validate\n    return sorted(REG.keys())\n'
 open(os.path.join(X, 'xpert_resume_patch.py'), 'w', encoding='utf-8').write(RESUME_PATCH_SRC)
-# The trainer wrapper for DataParallel + full-state resume: the PRODUCTION trainer [RESULTS 84].
+# The trainer wrapper for DataParallel + full-state resume. In v7 it is used ONLY by GUARD H's tests.
 open(os.path.join(X, 'run_train_dp.py'), 'w', encoding='utf-8').write(
     'import sys\n'
     'sys.argv = ["train_xpert.py"] + sys.argv[1:]\n'
@@ -248,12 +243,6 @@ RECORD['deviations'] = ['flash_attn shim on PYTHONPATH (their model imports it a
                         'same batch 128, same loss, gradients within the noise floor; the unpatched recipe '
                         'needs ~14.95 GiB of activations on a 14.56 GiB T4',
                         'all_drugs_unimol_arr.npy rebuilt from the released npz (config names it, never released)',
-                        'DataParallel over both T4s, a runtime patch inside XPertNet.forward: loss on the gathered '
-                        'batch of 128; float64 gradients equal to one GPU to 5e-16 [RESULTS 81.7]',
-                        'the ten parameters their loss never uses are frozen (requires_grad=False): a no-op on one '
-                        'GPU, and it stops DataParallel zero-gradients from letting weight decay move them [80.5]',
-                        'full-state checkpoint and resume hooks across Kaggle sessions (model, Adam, GradScaler, '
-                        'LambdaLR, stopper, RNG), exact bitwise [81.7]; their lossy --resume_from sets start_epoch only',
                         'empty __init__.py in datasets/ and models/ so their packages are not shadowed by '
                         "the image's HuggingFace `datasets`"]
 log('staged', SRC, '->', X)
@@ -462,11 +451,171 @@ TIMING.update({'setup_s': round(setup_s, 1), 'epoch_s_projected': round(epoch_s,
                                             'for prediction and artefacts'})
 RECORD['timing'] = TIMING
 log('TIMING', TIMING)
+# --------------------------------------------------------------------------------------------------------
+# GUARD G (v7) -- is DataParallel the recipe's computation? RESULTS 81, bars fixed in 81.5 and 81.6 before launch.
+# Four processes (single_ckpt, single_ckpt_repeat, dp, split); every artefact kept as output [81.5, 013 C5].
+# --------------------------------------------------------------------------------------------------------
 import torch
+import hashlib
 FROZEN = ['attnEncoder_trt.crossEncoders.0.LayerNorm.beta', 'attnEncoder_trt.crossEncoders.0.LayerNorm.gamma',
           'attnEncoder_trt.crossEncoders.1.LayerNorm.beta', 'attnEncoder_trt.crossEncoders.1.LayerNorm.gamma',
           'cell_emb.linear.bias', 'cell_emb.linear.weight', 'ctl_fc.0.bias', 'ctl_fc.0.weight',
-          'ctl_fc.3.bias', 'ctl_fc.3.weight']       # RESULTS 80.5 Amendment A; the grad-None set in every v7 mode
+          'ctl_fc.3.bias', 'ctl_fc.3.weight']
+DPS = os.path.join(W, 'dp_shared')
+os.makedirs(DPS, exist_ok=True)
+DP_MODES = ['single_ckpt', 'single_ckpt_repeat', 'dp', 'split']
+DPR = {}
+for mode in DP_MODES:
+    r = subprocess.run([sys.executable, 'xpert_dp_probe.py', mode, DPS, FOLD, json.dumps(probe_argv)],
+                       capture_output=True, text=True, env=ENV, cwd=X)
+    open(os.path.join(DPS, mode + '_stderr.txt'), 'w').write(r.stderr[-20000:])
+    rp = os.path.join(DPS, mode + '_report.json')
+    DPR[mode] = json.load(open(rp)) if os.path.exists(rp) else None
+    if r.returncode != 0:
+        tb = [l for l in r.stderr.splitlines() if l.strip() and '%|' not in l and 'it/s]' not in l]
+        RECORD['guard_g_failure'] = {'mode': mode, 'returncode': r.returncode, 'stderr_tail': tb[-40:]}
+        RECORD['dp_partial'] = DPR
+        fatal('GUARD G: probe %s failed (returncode %d).' % (mode, r.returncode))
+    log('GUARD G probe', mode, 'ok')
+G = {m: torch.load(os.path.join(DPS, m + '_grads.pt')) for m in DP_MODES}
+
+
+def _rel(ga, gb):
+    assert ga.keys() == gb.keys(), 'gradient key sets differ: %d vs %d' % (len(ga), len(gb))
+    num = sum(float(((ga[n].double() - gb[n].double()) ** 2).sum()) for n in gb)
+    den = sum(float((gb[n].double() ** 2).sum()) for n in gb)
+    return (num / den) ** 0.5
+
+
+def _lrel(a, b):
+    return max(abs(x - y) / max(abs(y), 1e-300) for x, y in zip(a, b))
+
+
+cmp = {}
+for tag in ('f64_e0', 'f64_e70', 'f32m_e0', 'f32m_e70', 'f16_e0', 'f16_e70'):
+    ref = G['single_ckpt'][tag]
+    row = {'repeat_vs_single': _rel(G['single_ckpt_repeat'][tag]['grads'], ref['grads']),
+           'dp_vs_single': _rel(G['dp'][tag]['grads'], ref['grads']),
+           'dp_loss_rel': _lrel(G['dp'][tag]['losses'], ref['losses'])}
+    if tag.startswith('f32m'):
+        row['dp_vs_split'] = _rel(G['dp'][tag]['grads'], G['split'][tag]['grads'])
+        row['split_vs_single'] = _rel(G['split'][tag]['grads'], ref['grads'])
+    cmp[tag] = row
+struct = {m: {t: (v['none_grad_set_equals_frozen'], v['grads_finite']) for t, v in DPR[m]['tags'].items()}
+          for m in DP_MODES}
+checks = {
+    '81.1a_f64_semantics': all(cmp[t]['dp_vs_single'] < 1e-10 and cmp[t]['dp_loss_rel'] < 1e-12 for t in ('f64_e0', 'f64_e70')),
+    '81.1b_f32_dp_vs_split': all(cmp[t]['dp_vs_split'] < 1e-5 for t in ('f32m_e0', 'f32m_e70')),
+    'structure_none_grad_set_is_frozen_everywhere': all(v[0] for m in struct.values() for v in m.values()),
+    'structure_plain_tensor_attributes': all(DPR[m]['plain_tensor_attributes'] == ['drug_HG_embed'] for m in DP_MODES),
+    'structure_fp32_fp64_grads_finite': all(v[1] for m in struct.values() for t, v in m.items() if not t.startswith('f16')),
+    'autocast_on_in_every_dp_replica_fp16': all(DPR['dp']['tags'][t]['replica_calls'] > 0 and
+                                                DPR['dp']['tags'][t]['replica_calls_autocast_on'] ==
+                                                DPR['dp']['tags'][t]['replica_calls'] for t in ('f16_e0', 'f16_e70')),
+    'memory_dp_below_13_gib': max(DPR['dp']['peak_gib_per_gpu']) < 13.0}
+checks['81.1_PASS'] = all(checks.values())
+findings = {t: cmp[t]['dp_vs_split'] for t in ('f32m_e0', 'f32m_e70') if cmp[t]['dp_vs_split'] > 1e-9}
+ep = DPR['dp']['train_batches'] * DPR['dp']['s_train_step'] + DPR['dp']['val_batches'] * TIMING['s_val_step']
+RECORD['dp_v7'] = {'comparisons': cmp, 'checks_81': checks, 'findings_above_1e-9_dp_vs_split': findings,
+                   'probe_reports': DPR, 'fp16_scales': json.load(open(os.path.join(DPS, 'fp16_scale.json'))),
+                   'timing_dp': {'s_train_step': DPR['dp']['s_train_step'], 'epoch_s': round(ep, 1),
+                                 'gpu_h_for_210_epochs': round(210 * ep / 3600, 1),
+                                 'peak_gib_per_gpu': DPR['dp']['peak_gib_per_gpu']}}
+log('GUARD G (81.1) checks:', checks)
+log('GUARD G comparisons:', cmp)
+
+# --------------------------------------------------------------------------------------------------------
+# GUARD H -- full-state resume on THEIR main(), DataParallel, the ten frozen [RESULTS 81.3 as replaced in 81.5].
+# Epochs truncated to 10 train + 10 validation batches (test mode). 81.3a: the live state right after restore equals
+# the saved state, every field bitwise. 81.3b: three straight runs and one resumed run under deterministic mode.
+# --------------------------------------------------------------------------------------------------------
+sys.path.insert(0, X)
+import xpert_resume_patch as RPM
+HR = os.path.join(W, 'resume_test')
+os.makedirs(HR, exist_ok=True)
+cmd_dp = [sys.executable, '-u', 'run_train_dp.py'] + cmd[3:]
+
+
+def _trainer(tag, stop_after, resume=None, dump=None, det=True):
+    env = dict(ENV, LINCS_FROZEN_PARAMS=json.dumps(FROZEN), LINCS_TRUNCATE_BATCHES='10',
+               LINCS_STATE_DIR=os.path.join(HR, tag), LINCS_STOP_AFTER_EPOCH=str(stop_after),
+               CUBLAS_WORKSPACE_CONFIG=':4096:8')
+    if det:
+        env['LINCS_DETERMINISTIC'] = '1'
+    argv = list(cmd_dp)
+    if resume:
+        env['LINCS_RESUME_DIR'] = resume
+        argv += ['--resume_from', os.path.join(resume, 'resume_from.pt')]
+    if dump:
+        env['LINCS_DUMP_AFTER_RESTORE'] = dump
+    r = subprocess.run(argv, capture_output=True, text=True, env=env, cwd=X, timeout=2400)
+    open(os.path.join(HR, tag + '_stdout.txt'), 'w').write(r.stdout[-20000:])
+    open(os.path.join(HR, tag + '_stderr.txt'), 'w').write(r.stderr[-20000:])
+    return r
+
+
+def _resume_suite(det):
+    runs = {}
+    for tag, stop, res, dump in (('S1', 2, None, None), ('S2', 2, None, None), ('S3', 2, None, None),
+                                 ('R1', 1, None, None),
+                                 ('R2', 2, os.path.join(HR, 'R1'), os.path.join(HR, 'R2_dump_after_restore.pt'))):
+        r = _trainer(tag + ('' if det else '_nodet'), stop, res if det else (res + '_nodet' if res else None), dump, det)
+        runs[tag] = {'returncode': r.returncode,
+                     'saved_lines': [l for l in r.stdout.splitlines() if l.startswith('LINCS')][-6:]}
+        if r.returncode != 0:
+            return runs, r.stderr
+    return runs, None
+
+
+H = {}
+runs, err = _resume_suite(det=True)
+H['deterministic_attempt'] = runs
+suffix = ''
+if err is not None:
+    H['deterministic_error_tail'] = err[-3000:]
+    det_raised = 'deterministic' in err.lower()
+    H['deterministic_mode_raised'] = det_raised
+    if not det_raised:
+        RECORD['resume_test'] = H
+        fatal('GUARD H: a resume-test trainer failed for a reason other than deterministic mode.')
+    log('GUARD H: deterministic mode raised; the 81.5 fallback applies (three straight runs, pairwise distances).')
+    runs, err = _resume_suite(det=False)
+    H['fallback_attempt'] = runs
+    suffix = '_nodet'
+    if err is not None:
+        H['fallback_error_tail'] = err[-3000:]
+        RECORD['resume_test'] = H
+        fatal('GUARD H: the non-deterministic fallback also failed.')
+ld = lambda t: torch.load(os.path.join(HR, t + suffix, 'full_state.pt'), map_location='cpu', weights_only=False)
+saved_r1 = ld('R1')
+live = torch.load(os.path.join(HR, 'R2_dump_after_restore.pt'), map_location='cpu', weights_only=False)
+start_ok = live.pop('start_epoch_expected') == saved_r1['epoch'] + 1
+H['81.3a_fields_differing'] = RPM.compare_states(saved_r1, live)
+H['81.3a_start_epoch_ok'] = start_ok
+H['81.3a_PASS'] = start_ok and H['81.3a_fields_differing'] == []
+final = {t: ld(t)['model'] for t in ('S1', 'S2', 'S3', 'R2')}
+
+
+def _dist(a, b):
+    return sum(float(((a[k].double() - b[k].double()) ** 2).sum()) for k in a) ** 0.5
+
+
+straights_identical = all(RPM.compare_states(final['S1'], final[t]) == [] for t in ('S2', 'S3'))
+H['81.3b_straights_bitwise_identical'] = straights_identical
+if straights_identical:
+    H['81.3b_rule'] = 'deterministic: resumed must equal straight bitwise'
+    H['81.3b_resumed_fields_differing'] = RPM.compare_states(final['S1'], final['R2'])
+    H['81.3b_PASS'] = H['81.3b_resumed_fields_differing'] == []
+else:
+    pair = [_dist(final[a], final[b]) for a, b in (('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3'))]
+    to_r = [_dist(final['R2'], final[t]) for t in ('S1', 'S2', 'S3')]
+    H['81.3b_rule'] = 'fallback: resumed distance to each straight <= max pairwise straight distance'
+    H['81.3b_pairwise_straight'] = pair
+    H['81.3b_resumed_to_straight'] = to_r
+    H['81.3b_PASS'] = max(to_r) <= max(pair)
+H['81.3_PASS'] = H['81.3a_PASS'] and H['81.3b_PASS']
+RECORD['resume_test'] = H
+log('GUARD H (81.3):', {k: v for k, v in H.items() if 'PASS' in k or 'rule' in k or 'differing' in k})
 
 if MEASURE_ONLY:
     RECORD['stopped_by'] = 'measure_only'
@@ -478,257 +627,147 @@ if MEASURE_ONLY:
     raise SystemExit(0)
 
 RECORD['train_cmd'] = ' '.join(cmd)
-RECORD['published_command_source'] = ('scripts/train.sh:15 (mdmt) and README; fold list reduced to %s; '
+RECORD['published_command_source'] =('scripts/train.sh:15 (mdmt) and README; fold list reduced to %s; '
                                       'folds independent per train_xpert.py:425-455' % FOLD)
 RECORD['seed_note'] = ('seed 2024 set once at train_xpert.py:402 before the fold loop, so this fold starts '
                        'from a fresh seed-2024 state, not the state their 3-fold sequential run would reach')
-# ========================================================================================================
-# O2 PRODUCTION SESSION [RESULTS 84; review 015]
-#   FINAL terminations are exactly two (84.1): their early stopping (the resume patch prints LINCS EARLY STOP), or
-#   the 297-epoch horizon (LINCS HORIZON REACHED). A session otherwise ends ONLY at an epoch boundary, cleanly
-#   (LINCS SESSION BOUNDARY), before the deadline. Anything else -- crash, watchdog backstop, quota kill -- is
-#   INCOMPLETE and is never read through 71.7. Between sessions only timing, state integrity and quota may inform a
-#   decision; never the logged loss.
-# ========================================================================================================
-import glob
-import hashlib
-import threading
-assert not MEASURE_ONLY
-STATE = os.path.join(W, 'state')
-os.makedirs(STATE, exist_ok=True)
-TEST_VARS = ('LINCS_STOP_AFTER_EPOCH', 'LINCS_TRUNCATE_BATCHES', 'LINCS_DUMP_AFTER_RESTORE', 'LINCS_DETERMINISTIC',
-             'LINCS_TEST_PATIENCE')
-STACK = {'torch': torch.__version__, 'cuda': str(torch.version.cuda)}
-RECORD['session'] = {'index': SESSION, 'horizon_epochs': HORIZON_EPOCHS, 'stack': STACK, 'prev': PREV}
-cmd_prod = [sys.executable, '-u', 'run_train_dp.py'] + cmd[3:]
-DEADLINE = T0 + BUDGET_H * 3600
-ENV_PROD = {k: v for k, v in ENV.items() if k not in TEST_VARS}
-ENV_PROD.update(LINCS_STATE_DIR=STATE, LINCS_FROZEN_PARAMS=json.dumps(FROZEN),
-                LINCS_HORIZON_EPOCHS=str(HORIZON_EPOCHS), LINCS_DEADLINE=str(DEADLINE),
-                LINCS_EXPECT_TORCH=(PREV or STACK)['torch'], LINCS_EXPECT_CUDA=(PREV or STACK)['cuda'])
-
-
-def _sha1(path):
-    h = hashlib.sha1()
-    with open(path, 'rb') as f:
-        for chunk in iter(lambda: f.read(1 << 20), b''):
-            h.update(chunk)
-    return h.hexdigest()
-
-
-STATE_FILES = ('full_state.pt', 'resume_from.pt', 'best.pth')
-if SESSION > 1:
-    # 015 C3: the attached state must be byte-for-byte the state session k-1 handed off, whose sha1s are literals here.
-    if STACK != {'torch': PREV['torch'], 'cuda': PREV['cuda']}:
-        fatal('the stack moved between sessions: %s -> %s. Stop and return [015 C3].' % (PREV, STACK))
-    fs = glob.glob('/kaggle/input/**/full_state.pt', recursive=True)
-    if len(fs) != 1:
-        fatal('expected exactly one attached full_state.pt, found %d' % len(fs))
-    RESUME_DIR = os.path.dirname(fs[0])
-    got = {f: _sha1(os.path.join(RESUME_DIR, f)) for f in STATE_FILES}
-    if got != PREV['sha1']:
-        fatal('attached state sha1s %s != session %d handoff literals %s' % (got, SESSION - 1, PREV['sha1']))
-    ENV_PROD['LINCS_RESUME_DIR'] = RESUME_DIR
-    cmd_prod = cmd_prod + ['--resume_from', os.path.join(RESUME_DIR, 'resume_from.pt')]
-    RECORD['session']['resume_dir'] = RESUME_DIR
-    RECORD['session']['attached_sha1_verified'] = True
-    log('SESSION %d resumes from epoch %d; attached state verified against the git-committed handoff'
-        % (SESSION, PREV['final_epoch']))
-
-
-def run_trainer(argv, env, tag, backstop):
-    """Run their main() through run_train_dp.py, parse the marker lines, and return what ended it. GUARD E (executed
-    args) applies to every run."""
-    rec = {'tag': tag, 'outcome': None, 'marker': None, 'saved': [], 'epoch_s': [], 'last_epoch_index': None,
-           'last_counter_logged': None}
-    logf = os.path.join(W, 'train_%s.log' % tag)
-    with open(logf, 'w') as lf:
-        p = subprocess.Popen(argv, cwd=X, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
-        # The line loop can only check the clock when the trainer prints; a SILENT hang would run into Kaggle's
-        # hard limit, whose kill discards /kaggle/working -- the state included. A timer kills it regardless.
-        killer = threading.Timer(max(1.0, backstop - time.time()), p.kill)
-        killer.daemon = True
-        killer.start()
-        in_args, seen_args, args_checked = False, {}, False
-        for line in p.stdout:
-            lf.write(line)
-            if not args_checked:
-                if '---------args-----------' in line:
-                    in_args = True
-                    continue
-                if in_args:
-                    if ':' in line:
-                        k, v = line.split(':', 1)
-                        seen_args[k.strip()] = v.strip()
-                    elif not line.strip() and seen_args:
-                        in_args, args_checked = False, True
-                        bad = {k: (seen_args.get(k), v) for k, v in EXPECT_ARGS.items() if seen_args.get(k) != v}
-                        rec['executed_args'] = seen_args
-                        if bad:
-                            p.terminate()
-                            fatal('GUARD E (%s): executed args differ from the published recipe: %s' % (tag, bad))
-            if line.startswith('LINCS STATE SAVED'):
-                rec['saved'].append(line.strip())
-                try:
-                    rec['epoch_s'].append(float(line.rsplit('epoch_s', 1)[1]))
-                except (IndexError, ValueError):
-                    pass
-            if 'Valid Total Loss' in line:
-                try:
-                    rec['last_epoch_index'] = int(line.split('Epoch ')[1].split(',')[0])
-                except (IndexError, ValueError):
-                    pass
-                n = len(rec['saved']) + 1
-                if n <= 3 or n % 10 == 0:
-                    log(tag, 'epoch', rec['last_epoch_index'], '|', line.strip()[-120:])
-            if 'EarlyStopping counter:' in line:
-                try:
-                    rec['last_counter_logged'] = int(line.split('EarlyStopping counter:')[1].split('out of')[0])
-                except (IndexError, ValueError):
-                    pass
-            for key, outcome in (('LINCS EARLY STOP ', 'early_stop'), ('LINCS HORIZON REACHED ', 'horizon'),
-                                 ('LINCS SESSION BOUNDARY ', 'boundary')):
-                if line.startswith(key):
-                    rec['outcome'], rec['marker'] = outcome, json.loads(line[len(key):])
-                    log(tag, line.strip())
-            if 'Traceback' in line or 'Error' in line:
-                log(tag, line.strip()[-300:])
-            if rec['outcome'] == 'early_stop':
-                # 015 ask 2: terminate at the marker; their post-loop test pass is never read (decisions_locked).
-                p.terminate()
-                break
-            if time.time() > backstop:
-                rec['outcome'] = 'watchdog_backstop'
-                log(tag, 'WATCHDOG BACKSTOP fired: the epoch-boundary stop did not act in time.')
-                p.terminate()
-                break
-        try:
-            rc = p.wait(timeout=180)
-        except subprocess.TimeoutExpired:
-            p.kill()
-            rc = p.wait()
-    killer.cancel()
-    if rc is not None and rc < 0 and time.time() >= backstop and rec['outcome'] is None:
-        rec['outcome'] = 'watchdog_backstop'
-    rec['returncode'] = rc
-    if rec['outcome'] is None:
-        # C4: rc 0 without a marker means their main() ran to its end unseen -- never a silent "finished".
-        rec['outcome'] = 'exited_without_marker' if rc == 0 else ('killed_by_signal' if rc < 0 else 'crashed')
-    return rec
-
-
-def best_checkpoint():
-    cks = glob.glob(os.path.join(X, 'experiment', '**', '%s_fold_early_stop.pth' % FOLD), recursive=True)
-    if not cks:
-        fatal('no best checkpoint written by their stopper')
-    return max(cks, key=os.path.getmtime)
-
-
-def finalize(rec, patience, tag):
-    """The two FINAL terminations only (84.1). Convergence record, 71.7, and our row-indexed prediction."""
-    assert rec['outcome'] in ('early_stop', 'horizon'), rec['outcome']
-    ck_path = best_checkpoint()
-    best_epoch = int(torch.load(ck_path, map_location='cpu', weights_only=False).get('epoch', -1))
-    last_epoch_index = int(rec['marker']['epoch'])          # from the MARKER (015 ask 2), not from the state dir
-    counter_at_end = last_epoch_index - best_epoch
-    out = {'stopped_by': 'finished' if rec['outcome'] == 'early_stop' else 'horizon',
-           'best_checkpoint': ck_path, 'best_epoch': best_epoch, 'last_epoch_index': last_epoch_index,
-           'counter_at_end': counter_at_end, 'marker': rec['marker'], 'patience': patience,
-           'best_selected_before_init_epoch_70': best_epoch < 70}
-    if rec['outcome'] == 'early_stop':
-        # 84.1(4): by construction, and verified against utils.py's counter >= patience
-        if not (counter_at_end == patience == int(rec['marker']['counter'])):
-            fatal('%s: counter_at_end %d, patience %d, marker counter %s disagree' % (tag, counter_at_end, patience,
-                                                                                    rec['marker']['counter']))
-        out['admissible_for_v9_win'] = True
-    else:
-        out['admissible_for_v9_win'] = counter_at_end >= 45           # 71.7 applied to the final horizon stop
-    prof_path = os.path.join(W, 'xpert_trained_%s_%s_test_profile.npy' % (FOLD, tag))
-    env2 = dict(ENV, XPERT_DIR=X, XPERT_CKPT=ck_path)
-    pr = subprocess.run([sys.executable, '-u', os.path.join(V9, 'xpert_native_eval.py'), '--nfold', FOLD,
-                         '--rows', 'test', '--device', 'cuda', '--batch', '128', '--out', prof_path],
-                        capture_output=True, text=True, env=env2)
-    if pr.returncode != 0 or not os.path.exists(prof_path):
-        print(pr.stdout[-3000:], pr.stderr[-3000:])
-        fatal('%s: prediction with the best checkpoint failed' % tag)
-    prof = np.load(prof_path, allow_pickle=True).item()
-    if 'row_index' not in prof or len(prof['row_index']) != 21321:
-        fatal('%s: profile has %s rows / row_index present=%s' % (tag, len(prof.get('y_pred', [])), 'row_index' in prof))
-    out['profile'] = {'path': prof_path, 'n': int(len(prof['row_index']))}
-    return out
-
-
-# ---- C4 (015): the one new path, end to end, in test mode, BEFORE real training -- session 1 only ------------------
-if SESSION == 1:
-    chain_state = os.path.join(W, 'chain_state')
-    env_c = dict(ENV_PROD, LINCS_STATE_DIR=chain_state, LINCS_TRUNCATE_BATCHES='5', LINCS_TEST_PATIENCE='1',
-                 LINCS_STOP_AFTER_EPOCH='25')
-    for k in ('LINCS_DEADLINE', 'LINCS_HORIZON_EPOCHS'):
-        env_c.pop(k)
-    before = set(glob.glob(os.path.join(X, 'experiment', '*', '*')))
-    rc_chain = run_trainer(cmd_prod, env_c, 'chaintest', backstop=time.time() + 1800)
-    if rc_chain['outcome'] != 'early_stop':
-        RECORD['chain_test'] = rc_chain
-        fatal('C4 chain test: expected an early stop with patience 1 in <= 25 truncated epochs, got %s'
-              % rc_chain['outcome'])
-    ft = finalize(rc_chain, patience=1, tag='chaintest')
-    RECORD['chain_test'] = {'trainer': {k: rc_chain[k] for k in ('outcome', 'marker', 'returncode', 'last_epoch_index')},
-                            'finalize': ft, 'PASS': True}
-    log('C4 chain test PASSED: marker -> termination -> counter_at_end == patience -> 21321-row prediction')
-    # remove every chain-test artefact so the real run's checkpoint can never be confused with it
-    for d in set(glob.glob(os.path.join(X, 'experiment', '*', '*'))) - before:
-        shutil.rmtree(d, ignore_errors=True)
-    shutil.rmtree(chain_state, ignore_errors=True)
-    os.remove(ft['profile']['path'])
-
-# ---- the real training session ----------------------------------------------------------------------------------
-for k in TEST_VARS:
-    assert k not in ENV_PROD, 'test-mode variable %s in the production environment' % k
-log('TRAIN (session %d):' % SESSION, ' '.join(cmd_prod))
-res = run_trainer(cmd_prod, ENV_PROD, 'session%d' % SESSION, backstop=DEADLINE + 1800)
+log('TRAIN:', RECORD['train_cmd'])
+deadline = T0 + BUDGET_H * 3600
+TRAIN_LOG = os.path.join(W, 'train_xpert.log')
+fired = None
+epochs_seen, last_epoch_line = 0, ''
+last_epoch_index = None       # parsed from "Epoch {epoch}, Valid Total Loss", not inferred from a line count
+last_counter_logged = None    # the N in the most recent "EarlyStopping counter: N out of 50"
+with open(TRAIN_LOG, 'w') as lf:
+    p = subprocess.Popen(cmd, cwd=X, env=ENV, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+                         bufsize=1)
+    in_args, seen_args, args_checked = False, {}, False
+    for line in p.stdout:
+        lf.write(line)
+        # GUARD E -- the EXECUTED arguments must be the published ones. Their trainer prints its namespace
+        # between "---------args-----------" and a blank line. Read it, compare, and kill the trainer at once
+        # on any mismatch, before a single epoch is paid for.
+        if not args_checked:
+            if '---------args-----------' in line:
+                in_args = True
+                continue
+            if in_args:
+                if ':' in line:
+                    k, v = line.split(':', 1)
+                    seen_args[k.strip()] = v.strip()
+                elif not line.strip() and seen_args:
+                    in_args, args_checked = False, True
+                    bad = {k: (seen_args.get(k), v) for k, v in EXPECT_ARGS.items() if seen_args.get(k) != v}
+                    RECORD['guards']['executed_args'] = seen_args
+                    if bad:
+                        p.terminate()
+                        fatal('GUARD E: executed args differ from the published recipe {key: (got, want)}: %s'
+                              % bad)
+                    log('GUARD E executed args match the published recipe:', {k: seen_args[k] for k in EXPECT_ARGS})
+        if 'EarlyStopping counter:' in line:
+            try:
+                last_counter_logged = int(line.split('EarlyStopping counter:')[1].split('out of')[0])
+            except (IndexError, ValueError):
+                pass
+        if 'Valid Total Loss' in line:
+            epochs_seen += 1
+            last_epoch_line = line.strip()
+            try:
+                last_epoch_index = int(line.split('Epoch ')[1].split(',')[0])
+            except (IndexError, ValueError):
+                pass
+            if epochs_seen <= 3 or epochs_seen % 10 == 0:
+                log('epoch', epochs_seen, '|', line.strip()[-160:])
+        if 'train_time' in line or 'Traceback' in line or 'Error' in line:
+            log(line.strip()[-300:])
+        if time.time() > deadline:
+            fired = 'watchdog'
+            log('WALL-CLOCK GUARD FIRED after %d epochs; terminating trainer.' % epochs_seen)
+            p.terminate()
+            try:
+                p.wait(timeout=120)
+            except subprocess.TimeoutExpired:
+                p.kill()
+            break
+    rc = p.wait()
+if fired is None:
+    fired = 'finished' if rc == 0 else ('killed_by_signal' if rc < 0 else 'crashed')
 RECORD['host_memory'] = mem_summary()
-sess = {'index': SESSION, 'outcome': res['outcome'], 'returncode': res['returncode'], 'marker': res['marker'],
-        'epochs_this_session': len(res['saved']), 'first_saved': res['saved'][:1], 'last_saved': res['saved'][-1:],
-        'epoch_s': res['epoch_s'], 'wall_h': round((time.time() - T0) / 3600, 3),
-        'executed_args': res.get('executed_args')}
-if SESSION == 1 and len(res['epoch_s']) >= 2:
-    first2 = sum(res['epoch_s'][:2]) / 2
-    sess['amendment_E'] = {'first_two_mean_s': round(first2, 1), 'projection_s': 482.2,
-                           'reprice_before_session_2': first2 > 1.25 * 482.2}
-RECORD['session_log'] = sess
-log('session %d ended:' % SESSION, res['outcome'], '| epochs this session', len(res['saved']))
+RECORD.update({'train_returncode': rc, 'stopped_by': fired, 'epochs_seen': epochs_seen,
+               'last_epoch_line': last_epoch_line, 'train_hours': round((time.time() - T0) / 3600, 3)})
+log('training ended:', fired, '| rc', rc, '| epochs', epochs_seen)
+if fired in ('crashed', 'killed_by_signal'):
+    os.system('tail -60 %s' % TRAIN_LOG)
+    fatal('trainer crashed; see train_xpert.log.')
 
-if res['outcome'] in ('early_stop', 'horizon'):
-    fin = finalize(res, patience=50, tag='final')
-    RECORD.update(fin)
-    shutil.copy(fin['best_checkpoint'], os.path.join(W, 'xpert_trained_%s.pth' % FOLD))
-    RECORD['framing'] = ('XPert trained to its published recipe on %s. NOT a reproduction of their cold-cell '
-                         'run: an independent draw of the recipe.' % FOLD)
-    log('FINAL (%s): best epoch %d, last %d, counter %d, admissible %s' % (fin['stopped_by'], fin['best_epoch'],
-        fin['last_epoch_index'], fin['counter_at_end'], fin['admissible_for_v9_win']))
-elif res['outcome'] == 'boundary':
-    RECORD['stopped_by'] = 'session_boundary'
-    RECORD['handoff'] = {'sha1': {f: _sha1(os.path.join(STATE, f)) for f in STATE_FILES},
-                         'final_epoch': int(res['marker']['epoch']), 'torch': STACK['torch'], 'cuda': STACK['cuda']}
-    log('HANDOFF for session %d:' % (SESSION + 1), RECORD['handoff'])
-else:
-    # crash, backstop, exit without a marker: INCOMPLETE (84.1). The state dir holds the last completed boundary.
-    RECORD['stopped_by'] = 'incomplete_' + res['outcome']
-    if os.path.exists(os.path.join(STATE, 'full_state.pt')):
-        RECORD['handoff_candidate'] = {'sha1': {f: _sha1(os.path.join(STATE, f)) for f in STATE_FILES
-                                                if os.path.exists(os.path.join(STATE, f))}}
-    os.system('tail -60 %s' % os.path.join(W, 'train_session%d.log' % SESSION))
+# The per-fold record review 007 C6 asked for: whether early stopping or the guard ended the run -- and,
+# per review 008 C2, HOW CLOSE TO CONVERGED it was when it ended.
+#
+# Review 008 C2: counting "EarlyStopping counter" lines measures the TOTAL number of non-improving epochs
+# over the whole run, because an improving epoch resets the counter to 0 SILENTLY (utils.py step(): the
+# improving branch sets self.counter = 0 with no log line). 150 scattered non-improving epochs followed by an
+# improvement 5 epochs before a guard kill would read as "long converged" when the true state was 5/50.
+# The exact end state needs no log parsing: every epoch after the best one was by definition non-improving,
+# so the counter at the end is last_epoch_index - best_epoch. The last logged counter is kept only as a
+# cross-check.
+es = open(TRAIN_LOG).read()
+CKPT = find_one(os.path.join(X, 'experiment', '**', '%s_fold_early_stop.pth' % FOLD))
+ck = torch.load(CKPT, map_location='cpu', weights_only=False)
+best_epoch = int(ck.get('epoch', -1))
+RECORD['best_checkpoint'] = {'path': CKPT, 'epoch': best_epoch}
+if last_epoch_index is None or best_epoch < 0:
+    fatal('could not establish last_epoch_index (%s) or best_epoch (%s); convergence is unreadable.'
+          % (last_epoch_index, best_epoch))
+counter_at_end = last_epoch_index - best_epoch
+RECORD['last_epoch_index'] = last_epoch_index
+RECORD['counter_at_end'] = counter_at_end              # epochs since the best test-loss4 checkpoint
+RECORD['patience'] = 50
+RECORD['counter_cross_check'] = {'last_logged_counter': last_counter_logged,
+                                 'consistent': counter_at_end == 0 or last_counter_logged == counter_at_end}
+RECORD['nonimproving_epochs_total'] = es.count('EarlyStopping counter')   # descriptive ONLY, not convergence
+RECORD['best_selected_before_init_epoch_70'] = best_epoch < 70           # accelerated objective, disclosed
+# RESULTS 71.7, pre-committed before launch: a guard-stopped run cut off while test loss was still improving
+# leaves XPert UNDER-trained, so a v9 win would be inflated rather than conservative.
+RECORD['admissible_for_v9_win'] = not (fired == 'watchdog' and counter_at_end < 45)
+log('best checkpoint epoch', best_epoch, '| last epoch', last_epoch_index, '| counter at end',
+    counter_at_end, '/ 50 | admissible for a v9-win claim:', RECORD['admissible_for_v9_win'])
 
-# The staged copy is several GB and rebuildable; everything needed is in the state dir, the logs and (final
-# session) the copied best checkpoint and the profile.
-shutil.rmtree(X, ignore_errors=True)
+# --------------------------------------------------------------------------------------------------------
+# 4. PREDICT the test rows with OUR harness, which carries row_index -- their predict_profile does not, and
+#    head_to_head_mdmt.py refuses to pair without it. Same shim, same unmasked path.
+# --------------------------------------------------------------------------------------------------------
+PROFILE = os.path.join(W, 'xpert_trained_%s_test_profile.npy' % FOLD)
+env2 = dict(ENV, XPERT_DIR=X, XPERT_CKPT=CKPT)
+pr = subprocess.run([sys.executable, '-u', os.path.join(V9, 'xpert_native_eval.py'), '--nfold', FOLD,
+                     '--rows', 'test', '--device', 'cuda', '--batch', '128', '--out', PROFILE],
+                    capture_output=True, text=True, env=env2)
+print(pr.stdout[-3000:], pr.stderr[-3000:])
+if pr.returncode != 0 or not os.path.exists(PROFILE):
+    fatal('prediction with the trained checkpoint failed.')
+prof = np.load(PROFILE, allow_pickle=True).item()
+if 'row_index' not in prof or len(prof['row_index']) != 21321:
+    fatal('profile has %s rows / row_index present=%s; expected 21321 with row_index.'
+          % (len(prof.get('y_pred', [])), 'row_index' in prof))
+RECORD['profile'] = {'path': PROFILE, 'n': int(len(prof['row_index']))}
+
+# --------------------------------------------------------------------------------------------------------
+# 5. Artefacts
+# --------------------------------------------------------------------------------------------------------
+shutil.copy(CKPT, os.path.join(W, 'xpert_trained_%s.pth' % FOLD))
 for junk in (ARR,):                       # 2.24 GB derived file; rebuildable, not an output
     try:
         os.remove(junk)
     except OSError:
         pass
 RECORD['total_hours'] = round((time.time() - T0) / 3600, 3)
-json.dump(RECORD, open(os.path.join(W, 'run_record.json'), 'w'), indent=2, default=str)
-log('DONE', json.dumps({k: RECORD.get(k) for k in ('stopped_by', 'total_hours')}))
-if RECORD['stopped_by'].startswith('incomplete'):
-    raise SystemExit(1)
+RECORD['host_memory'] = mem_summary()
+# Review 009 C3: the seed is set once at train_xpert.py:402, before the fold loop, and split_cold_cell_1 is
+# the SECOND fold of train.sh:15 -- so this run starts from a fresh seed-2024 state, not the RNG state
+# their run reached after split_cold_drug_1. Same recipe and seed value, different trajectory.
+RECORD['framing'] = ('XPert trained to its published recipe on %s. NOT a reproduction of their cold-cell '
+                     'run: an independent draw of the recipe.' % FOLD)
+json.dump(RECORD, open(os.path.join(W, 'run_record.json'), 'w'), indent=2)
+log('DONE', json.dumps({k: RECORD[k] for k in ('stopped_by', 'epochs_seen', 'total_hours')}))
+shutil.rmtree(X, ignore_errors=True)      # the staged copy; outputs are already in /kaggle/working
+for f in sorted(glob.glob(os.path.join(W, '*'))):
+    print('%9.2f MB  %s' % (os.path.getsize(f) / 1e6, f), flush=True)
