@@ -16,7 +16,7 @@ load-bearing dissection (B-group) and the cold-cell head-to-head (C-group) alive
 
 ## A. Make chromatin and the drug atoms earn their place — the mechanism line
 
-### A1. 🔵 Chromatin-modulated edges on a unioned biological graph — NOT TRIED, and the strongest novelty claim available
+### A1. 🔵 Chromatin-modulated edges on a unioned biological graph — zero-parameter pre-test UNINFORMATIVE [§82.7]; trained arm NOT TRIED
 **Status: NOT TRIED. Nothing like it has been built.** This is the principal's idea, raised 2026-09-21,
 and it is a step beyond what §48.3 queued.
 
@@ -45,6 +45,11 @@ pathways it opens and closes.
 - **Pre-test pre-registered 2026-09-24 [RESULTS §82]:** zero-parameter random-walk-with-restart of each
   compound's DTI targets over the binary union graph, edges gated by the cell's own ATAC, against
   another cell's ATAC (null key), mean ATAC, and no gating; unit = cell line. Delegated as W10.
+- **Result [§82.7]: UNINFORMATIVE on ATAC and H3K27ac** — ungated diffusion from landmark targets has no
+  signal (median Spearman −0.0006 with |z|), so gating cannot be tested this way. Not refuted.
+- **Next form, if pursued:** start from ALL annotated targets (not only landmark ones) on the full STRING
+  graph (`string_graph_v9.npz`, 19,496 nodes), read out at the landmarks. Needs a non-landmark DTI table
+  (ChEMBL targets per compound). Free, CPU. The trained arm stays unpriced until something shows signal.
 - **Null it must beat:** the same model with chromatin mean-ablated in the edge gate only, plus the
   existing gene-level EpiGate left untouched — so the arm isolates edge gating from gene gating.
 - **Pre-register before spending:** method rules 13, 16, 17 all apply. Null key and estimand fixed first.

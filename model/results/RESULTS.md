@@ -5446,6 +5446,39 @@ H3K27ac is reported as a secondary with the same estimand and not read unless AT
 is a model of propagation, not of mechanism; a positive result says the gated graph *predicts better*, not that
 edges physically conduct. Delegated as W10; verified by me before any number is read.
 
+### 82.7 RESULT: UNINFORMATIVE on both tracks — zero-parameter diffusion of landmark targets carries no drug-specific signal, so it cannot test gating (2026-09-24)
+`model/v9/a1_diffusion_pretest.py` as committed at `5e509c5` (W10, verified: code read in full, 9/9 tests), run
+locally on CPU. Artefacts `model/results/a1_diffusion_pretest_ch{0,1}.json` and `_rows.npz`. **0 GPU-hours.**
+
+| | ATAC (primary) | H3K27ac (secondary) |
+|---|---|---|
+| eligible cells / rows | 32 / 52,496 | 35 / 60,406 |
+| median Spearman(s, \|z\|): OWN, MISMATCH, MEAN, **NONE**, DEGREE | +0.0002, −0.0003, −0.0001, **−0.0006**, −0.0018 | −0.0002, −0.0005, −0.0006, **−0.0007**, −0.0021 |
+| NONE − DEGREE, cell-level mean [CI95] | +0.0010 [−0.0001, +0.0023] | +0.0010 [+0.0000, +0.0021] |
+| **OWN − MISMATCH** (primary) | +0.0002 [−0.0004, +0.0009], 16 / 32 cells | +0.0001 [−0.0004, +0.0006], 12 / 35 cells |
+| OWN − MEAN | +0.0002 [−0.0004, +0.0010], 12 / 32 | +0.0002 [−0.0003, +0.0007], 13 / 35 |
+| OWN − NONE | +0.0005 [−0.0007, +0.0018], 16 / 32 | +0.0006 [−0.0005, +0.0019], 15 / 35 |
+| NaN rows | 0 | — |
+
+⇒ **Pre-committed reading, 82.5 row 1: UNINFORMATIVE**, on both tracks — NONE's median (−0.0006) is below the 0.01
+floor. A random walk from a compound's landmark targets over the union graph does not predict which landmarks
+respond at all, so there is no signal for chromatin gating to improve or degrade. **A1 is neither supported nor
+refuted by this test.** The contrasts are reported and not read; none is distinguishable from zero.
+
+**What it does establish, at the strength it supports:** in this dataset, **proximity to a compound's annotated
+landmark targets on the STRING + Reactome + GO union graph carries no information about response magnitude** — not
+better than gene degree, whose own median is −0.002. That is a statement about a fixed propagation model on these
+inputs, not about the graph's usefulness inside a trained model.
+
+**A limitation of the design, recorded, not used to explain the result away:** `dti_reference.tsv` lists only targets
+that are **themselves landmark genes** (`gene_idx` indexes the 978), so propagation starts from a small and biased
+subset of each compound's real targets. A version that starts from **all** annotated targets on the full STRING graph
+(`network/outputs/v9/string_graph_v9.npz`, 19,496 nodes) and reads out at the landmarks would test the same question
+without that restriction. Logged in IDEAS A1; it needs a non-landmark target table first.
+
+**For the GPU decision:** A1's trained arm (~5.8 GPU-h) is **not motivated** by this pre-test, and O2 keeps priority
+for the quota.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
