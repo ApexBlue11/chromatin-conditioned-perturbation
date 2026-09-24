@@ -1,5 +1,5 @@
 {
-  "iteration": 27,
+  "iteration": 28,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "015_o2_launch_design"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -41,7 +43,7 @@
   ],
   "gpu_hours_spent_this_session": 7.22,
   "pending_decision": "v7 PASSED all of 81 (float64 dp vs single 5e-16; fp32 dp vs split 2.4e-9; resume exact and bitwise). O2 priced ~28.1 GPU-h / ~3.5 sessions. Packet 015: the multi-session launch design, for GO before any training GPU-hour.",
-  "note_current": "Packet 014 open. O2 not priced (80.6). No GPU committed until 014 returns.",
+  "note_current": "Packet 015 open: v7 passed all of 81; O2 multi-session launch design (~28 GPU-h, <= 5 sessions) for GO. A1: 82.7 uninformative; 83 (full-graph prerequisite) delegated as W11.",
   "challenges_upheld": "89 of 92",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
