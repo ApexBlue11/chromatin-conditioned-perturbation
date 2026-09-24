@@ -1,5 +1,5 @@
 {
-  "iteration": 24,
+  "iteration": 25,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "013_a9_result_and_dp_criteria"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -37,12 +35,13 @@
     "009_mydataset_memory_patch",
     "010_atom_only_result",
     "011_activation_checkpointing",
-    "012_xpert_budget"
+    "012_xpert_budget",
+    "013_a9_result_and_dp_criteria"
   ],
-  "gpu_hours_spent_this_session": 6.8,
+  "gpu_hours_spent_this_session": 6.95,
   "pending_decision": "review 012 GO on the O2 measurement: v6 MEASURE_ONLY with a DataParallel runtime patch, a proof (dropout zeroed in train mode, one DP step vs one single-GPU step, within the noise floor) and timing with and without checkpointing. Then O2 (~25 GPU-h, multi-session, full-state checkpoint per 78.4 C1/C5, 78.5 scoping) vs O4 on the measured number.",
-  "note_current": "Packet 013 open: A9 result (not answerable at inference, 79.9) and the 80.3 DataParallel criteria. v6 (MEASURE_ONLY, GUARD G) running on Kaggle; its numbers are not read until 013 part B is answered.",
-  "challenges_upheld": "80 of 83",
+  "note_current": "v6 crashed in its own comparison (DP gives exactly-zero grads to 10 unused params; single GPU gives None). Amendments A-F committed before any v6 gradient comparison (RESULTS 80.5). Next: offline criteria on v6 grads (80.6), then v7 = full-state checkpoint + resume-equivalence + DP proof with the loss clause and in-replica autocast assertion.",
+  "challenges_upheld": "85 of 88",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",

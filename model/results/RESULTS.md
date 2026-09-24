@@ -5093,8 +5093,10 @@ Seven local passes, `alpha_sweep.py --operator atom_only --alphas 0 --cut {none,
 
 Both also exceed the +0.03 that §67.2 used, so the stricter choice made in 79.4 did not decide the outcome.
 
-⇒ **Pre-committed reading, 79.6 last row: A9 is not answerable by inference-time cuts.** The question — which route
-carries the −0.00322 residual — passes to a trained arm, which is not priced here and is folded into A8's pricing.
+⇒ **Pre-committed reading, 79.6 last row: A9 is not answerable by inference-time cuts.** *Wording corrected by review
+013 C4:* A9 as posed — where the harm flows **in this trained model** — is **closed** at inference. A trained arm would
+answer a **different** question (what a model trained without a route does, §79.8), and is priced as that question
+under A8, not as A9 deferred.
 
 **Reported, NOT read** (the kill switch forbids attribution; the numbers are recorded so nobody has to rerun them):
 
@@ -5105,17 +5107,21 @@ carries the −0.00322 residual — passes to a trained arm, which is not priced
 | X cut — atoms reach genes through the global token only | +0.00023 [+0.00007, +0.00038] | +0.00085 |
 | remainder `i` = e0 − ea − eb | — | **+0.01013** [+0.00779, +0.01253] |
 
-The remainder is **larger than E0 itself and of opposite sign**: the single-cut cells do not add up to the uncut
-model. That is what a counterfactual 4–5 points of Pearson away from the trained model looks like, and it is the
-reason the kill switch exists. The route signs above are **not** evidence about the trained model's residual.
+The remainder is reported and **not read**. *(Review 013 C3: the first version of this paragraph, and commit
+`9a667c6`'s message, interpreted it as "what a counterfactual 4–5 points from the trained model looks like" — an
+interpretation of a quantity 79.6 says is not read, with no reference distribution behind it. Withdrawn. The kill
+switch decides the outcome alone.)* The route signs above are **not** evidence about the trained model's residual.
 `unseen_both` and `unseen_cell` are in the artefact [§75.2]; on `unseen_both` cut X costs +0.00930, just under the bar,
 but `unseen_both` is not primary and its gate fails (0.34), so nothing is read there either.
 
 **What IS established, at the strength it supports.** (1) A **structural** fact, proved by `dY_max = 0.0`: at
 `atom_alpha = 0`, atom information reaches the output only through the gene → drug cross-attention, by the atom keys
-or by the global key. (2) The kill-switch quantity itself, as §72.2 treated its own: **the trained model leans hard on
-both routes** — cutting either costs it 0.042–0.046 of median per-row Pearson on unseen compounds. That is a statement
-about the model's reliance on the routes for its *predictions*, not about the atom tokens' *harm*.
+or by the global key. (2) The kill-switch quantity itself, as §72.2 treated its own, *worded per review 013 C2 and verified by me from
+the per-row arrays:* **cutting either route costs 0.042–0.046 whether the atom tokens carry their own molecule or
+the batch mean (0.041–0.046: X +0.0455, G +0.0409, both +0.0602 with batch-mean atoms): the trained model depends on
+the attention pathways, not on molecule-specific atom content through them.** At α = 0 that content is net
+harmful (E0 < 0). On `unseen_both` the one near-pass (X, +0.0093, CI [0.0064, 0.0123] straddling the bar) costs
++0.0187 in the ablated arm — even that depends on which arm is measured.
 
 ## 80. PRE-COMMITTED: what the DataParallel measurement (v6) must show before O2 can be priced (2026-09-23)
 
@@ -5162,6 +5168,62 @@ Each passing variant's steady-state step (Adam, their GradScaler, loader include
 gives `epoch_s = 372 × s_train + 167 × s_val`, with `s_val` from GUARD F. The faster variant that passes 80.3 is
 the O2 price: `~210 × epoch_s` GPU-seconds for an admissible run at the §78.2 anchor, and the session count at
 7.95 h of training per session. That number, and nothing else from v6, goes to the O2-versus-O4 decision.
+
+### 80.5 v6 crashed in its own comparison; review 013; amendments committed BEFORE any v6 gradient is compared
+**v6** (`external/kaggle_out/cc1_v6/`, ~0.15 GPU-h, session total **~6.95 GPU-h**): every guard passed, all four GUARD G
+probe processes ran, and the kernel's comparison then stopped on its own assertion — `different parameters received
+gradients`. Timing and memory were logged before it (reported in §80.6). The per-probe JSON (losses, scale) was lost
+with the crash; the four gradient dumps survived as output and were downloaded.
+
+**What the key sets show — structural, inspected before any value comparison.** On every tag, the single-GPU
+reference has gradients for **174** parameters and DP for **184**. The ten extra are exactly the parameters their
+forward and loss **never use**: `cell_emb.linear` (weight, bias), `ctl_fc.0` and `ctl_fc.3` (weight, bias), and the
+`LayerNorm` gamma/beta of `attnEncoder_trt.crossEncoders.0` and `.1`. On one GPU they get `grad = None`; under DP they
+get **exactly zero** — `Broadcast.backward` materialises zeros for replica copies that received no gradient.
+
+**Why that matters beyond the assertion — found by me, missed by both of us before launch.** `torch.optim.Adam` applies
+`weight_decay` to every parameter **whose grad is not None**. On one GPU these ten are skipped for the whole run and
+stay at their initial values. Under DP each would receive `0 + 1e-5 · p`, which Adam's normalisation turns into a
+step of order `lr` = 0.004 **per step**: they would drift, in DP only. They do not affect training outputs (they are
+unused), but it is not the recipe, and `ctl_fc` produces `ctl_output`, which their code returns.
+
+> **Amendment A (exact).** The parameters with `grad = None` in the single-GPU reference, on **both** loss branches, are
+> set `requires_grad = False` in **every** variant before the optimizer is built. On one GPU this changes nothing
+> (Adam already skips them). Under DP, `Broadcast` marks outputs of inputs that need no grad as non-differentiable,
+> so they get no gradient at all. The set is asserted at runtime to equal the ten names above; if it ever differs,
+> the kernel refuses. Declared as a deviation. For the v6 comparison, gradients are compared on the reference key
+> set, and the extras are required to be exactly zero (they are).
+
+**Review 013** (`orchestration/bus/adjudicated/013_review.md`, at `9a667c6`), **SOUND-WITH-CAVEATS**, five challenges,
+all upheld. **Tally 85 of 88.** Part A's reading is confirmed and every number reproduced; C2–C4 amended 79.9 in place
+above. Part B: the patch is correct and the criteria test the right thing, with these amendments, adopted **before
+reading**:
+
+> **Amendment B (C1).** A tag on which the **single-GPU reference's own** gradients are non-finite is **void** for
+> criteria 2 and 3 in every variant, not failed — at the default scale of 65,536 the reviewer estimates the epoch-70
+> `trt_fc` bias gradient at ~7×10⁶ against fp16's 65,504, because `loss1` is a **sum** over rows of un-centred
+> targets (mean 8.3). The finiteness gate becomes: **each variant's finiteness equals the reference's, per tag**; DP
+> non-finite where the reference is finite stays a failure. (`scale` was lost with the crash; a scaler backs off
+> exactly when gradients are non-finite, so the reference's finiteness is the same test.) fp32 at epochs 0 and 70
+> still proves the semantics in both loss regimes.
+>
+> **Amendment C (ask 3, the floor).** If fp32 `rel_L2(single_repeat, single)` ≥ **3e−6**, a third of the bar,
+> criterion 1 does not discriminate as written, and the fp32 tags are re-run for all four variants with the
+> deterministic math SDPA backend before criterion 1 is read.
+>
+> **Amendment D (C5).** Criterion 2 cannot detect autocast failing to reach the replica threads (DP would then compute
+> in fp32 and land near the bar itself). The next run asserts `torch.is_autocast_enabled()` inside the replica
+> forward, records `torch.__version__`, and keeps the gradient dumps as output.
+>
+> **Amendment E (ask 5).** The projection is from five batches inside the loader's prefetch buffer. **If the first real
+> epoch's wall time exceeds the projection by more than 25 %, O2 is re-priced before session 2.**
+>
+> **Amendment F (ask 5).** `_localise` moves only `drug_HG_embed`, asserts every other tensor attribute is already on
+> the replica's device, and checks its cache entry's source by identity (`is`), so a reused `id()` can never serve a
+> stale copy.
+
+**Criterion 1's loss clause cannot be evaluated on v6** — the losses were in the lost JSON. It is evaluated on the
+next run, which is needed anyway for the full-state checkpoint (review 012 C1, C5) and Amendments A and D.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
