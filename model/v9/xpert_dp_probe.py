@@ -1,29 +1,25 @@
 # -*- coding: utf-8 -*-
-"""One configuration of the DataParallel proof and timing, run as its own process inside the staged XPert copy.
-[RESULTS 80, review 012 C4]
+"""One configuration of the v7 DataParallel proof (RESULTS 81, final form 81.5 + 81.6), run as its own process inside
+the staged XPert copy.
 
     python xpert_dp_probe.py MODE SHARED_DIR FOLD 'THEIR_ARGV_AS_JSON'
-    MODE in {single_ckpt, single_ckpt_repeat, dp, dp_ckpt}
+    MODE in {single_ckpt, single_ckpt_repeat, dp, split}
 
-Each configuration is its own process because both patches act on classes and cannot be undone in place. The first
-(`single_ckpt`) writes the initial weights and one recipe batch to SHARED_DIR; every later one loads them, strictly,
-so all four see identical weights and identical rows.
+The first process (`single_ckpt`) writes the initial weights and one recipe batch to SHARED_DIR, and finds the fp16
+GradScaler scale; every later one loads them strictly. The ten parameters their loss never uses are frozen in EVERY
+mode (RESULTS 80.5, Amendment A), and after every gradient capture the set with `grad is None` must equal them exactly.
 
-Every gradient is taken through THEIR `train()` (train_xpert.py:62), so the loss that is differentiated is their
-batch_weighted_loss (epoch 0) or weighted_loss (epoch 70), under their GradScaler, in `.train()` mode. The optimizer is
-SGD with lr 0, so the step leaves the weights untouched and the gradients -- unscaled in place by `scaler.step` --
-are read afterwards.
+Tags, all through THEIR train() with an lr-0 SGD step and dropout zeroed on every module:
+  f64_e0 / f64_e70    float64, 16 rows (8 per GPU)         81.1a  semantics      gradients KEPT in float64 (014 C2)
+  f32m_e0 / f32m_e70  fp32, math SDPA, 16 rows              81.1b  dp vs split    (and reported vs single)
+  f16_e0 / f16_e70    fp16 autocast, 128 rows, one scale    81.1c  reported only; autocast asserted inside replicas
+16 rows, not 32 (RESULTS 81.6): on the math backend each of the 8 gene self-attention layers stores a 979x979x8
+probability tensor for backward, ~245 MB per sample in fp32 and twice that in float64, so the uncheckpointed 32-row
+split and the float64 DP at 16 per GPU would not fit a T4.
 
-Dropout is switched off on EVERY module, not only through the four config rates: `model_XPert.py:144, 158, 164, 170`
-hard-code `nn.Dropout(p=0.1)` in the output heads, which the config does not reach, and the attention layers carry their
-own `dropout_p` (`model_utils.py:183`). The probe asserts none is left.
-
-Two precisions, for two different questions:
-  * fp32 (their autocast replaced by a null context), first 32 rows: is DataParallel the SAME FUNCTION? Reduction order
-    is the only difference, so the tolerance is fp32 rounding. 32 rows because unpatched fp32 at 64 per GPU would not fit.
-  * fp16 autocast, all 128 rows, their precision: is the difference smaller than the precision noise the recipe already
-    accepts, measured as the same model's fp16-versus-fp32 gradient difference on one GPU?
-Then timing: their train() with Adam and their GradScaler, one warm-up and five timed batches drawn from their loader.
+Modes: single_ckpt (reference; every tag), single_ckpt_repeat (floor; every tag), dp (no checkpointing -- the
+production variant -- every tag, plus a short timing), split (one GPU, the batch as two halves concatenated before their
+loss, no checkpointing; f32m tags only).
 """
 import contextlib
 import itertools
@@ -41,123 +37,188 @@ import yaml  # noqa: E402
 
 import train_xpert as T  # noqa: E402
 from utils import load_dataloader  # noqa: E402
-from models.model_XPert import XPertNet  # noqa: E402
+import models.model_XPert as MX  # noqa: E402
 import models.model_utils  # noqa: E402,F401
 import xpert_ckpt_patch  # noqa: E402
 import xpert_dp_patch  # noqa: E402
 
-CKPT = MODE in ('single_ckpt', 'single_ckpt_repeat', 'dp_ckpt')
-DP = MODE in ('dp', 'dp_ckpt')
-dev = torch.device('cuda:0')
-report = {'mode': MODE, 'gpus_visible': torch.cuda.device_count()}
+FROZEN = sorted(['attnEncoder_trt.crossEncoders.0.LayerNorm.beta', 'attnEncoder_trt.crossEncoders.0.LayerNorm.gamma',
+                 'attnEncoder_trt.crossEncoders.1.LayerNorm.beta', 'attnEncoder_trt.crossEncoders.1.LayerNorm.gamma',
+                 'cell_emb.linear.bias', 'cell_emb.linear.weight', 'ctl_fc.0.bias', 'ctl_fc.0.weight',
+                 'ctl_fc.3.bias', 'ctl_fc.3.weight'])
+ROWS_SMALL = 16
+report = {'mode': MODE, 'torch': torch.__version__, 'gpus_visible': torch.cuda.device_count(), 'tags': {}}
 
 args = T.arg_parse()
 config = yaml.safe_load(open('configs/%s.yaml' % args.config))
 logger = logging.getLogger('dp_probe')
 tr, val, te, adata = load_dataloader(args, config, logger, nfold=FOLD, return_rawdata=True)
 
-if CKPT:
+if MODE in ('single_ckpt', 'single_ckpt_repeat'):
     report['ckpt_patched'] = xpert_ckpt_patch.apply()
-if DP:
+if MODE == 'dp':
     report['dp_device_ids'] = xpert_dp_patch.apply()
     assert len(report['dp_device_ids']) == 2, 'DataParallel needs both T4s, saw %r' % report['dp_device_ids']
 
+# ---- split: the same-GPU reference of 81.1b -- DataParallel's computation minus the second device ----------------
+ORIG_FWD = MX.XPertNet.forward
 
-def build():
+
+def _cat(outs):
+    a = outs[0]
+    if torch.is_tensor(a):
+        return torch.cat(outs, 0)
+    if a is None:
+        return None
+    if isinstance(a, dict):
+        return {k: _cat([o[k] for o in outs]) for k in a}
+    if isinstance(a, (tuple, list)):
+        return type(a)(_cat(list(z)) for z in zip(*outs))
+    raise TypeError(type(a))
+
+
+if MODE == 'split':
+    def _split_fwd(self, data, *a, **k):
+        if self.training and torch.is_grad_enabled():
+            h = data[0].shape[0] // 2
+            return _cat([ORIG_FWD(self, [t[:h] for t in data], *a, **k), ORIG_FWD(self, [t[h:] for t in data], *a, **k)])
+        return ORIG_FWD(self, data, *a, **k)
+    MX.XPertNet.forward = _split_fwd
+
+# ---- float64: their get_unimol_drug_feat hard-casts atom features with .float() (model_XPert.py:14) ------------------
+ORIG_GUDF = MX.get_unimol_drug_feat
+
+
+def _gudf_keep_dtype(x):
+    m = x[:, :, 0].long()
+    return x[:, :, 2:], x[:, :, 1].long(), (1.0 - m.unsqueeze(1).unsqueeze(2)) * -10000.0
+
+
+dev = torch.device('cuda:0')
+
+
+def build(dtype=torch.float32):
     torch.manual_seed(0)
-    m = XPertNet(args, config, dev, logger)
+    m = MX.XPertNet(args, config, dev, logger)
     m.init_weights()
     m.to(dev)
+    if dtype == torch.float64:
+        m.double()
+    params = dict(m.named_parameters())
+    assert all(n in params for n in FROZEN), 'a frozen name is not a parameter'
+    for n in FROZEN:
+        params[n].requires_grad_(False)
+    for mod in m.modules():                        # dropout off on EVERY module, in train mode [013 C4, 80.2]
+        if isinstance(mod, torch.nn.Dropout):
+            mod.p = 0.0
+        if hasattr(mod, 'dropout_p'):
+            mod.dropout_p = 0.0
     return m
 
 
-init_path, batch_path = os.path.join(SHARED, 'init.pt'), os.path.join(SHARED, 'batch.pt')
-model = build()
+init_path, batch_path, scale_path = (os.path.join(SHARED, f) for f in ('init.pt', 'batch.pt', 'fp16_scale.json'))
 if MODE == 'single_ckpt':
-    torch.save({k: v.detach().cpu() for k, v in model.state_dict().items()}, init_path)
+    m0 = build()
+    torch.save({k: v.detach().cpu() for k, v in m0.state_dict().items()}, init_path)
     torch.save(next(iter(tr)), batch_path)
+    del m0
 init_sd = torch.load(init_path)
-model.load_state_dict(init_sd, strict=True)
 batch = torch.load(batch_path)
 assert batch[0].shape[0] == 128, 'not the recipe batch size'
 
-# The object their code holds must still be an XPertNet with unprefixed keys [review 012 C1].
-report['state_dict_keys_equal_unpatched'] = sorted(model.state_dict().keys()) == sorted(init_sd.keys())
-report['any_module_prefix'] = any(k.startswith('module.') for k in model.state_dict().keys())
-report['plain_tensor_attributes'] = xpert_dp_patch.plain_tensor_attributes(model)
 
-# Dropout off everywhere, staying in train mode [review 012 C4 -- and the four config rates are not enough].
-DROP_KEYS = ('attention_probs_dropout_prob', 'hidden_dropout_prob', 'cell_input_hidden_dropout_prob',
-             'drug_input_hidden_dropout_prob')
-published_dropout = {k: config['model']['ATTN'][k] for k in DROP_KEYS}
-report['published_dropout'] = published_dropout
-for k in DROP_KEYS:
-    config['model']['ATTN'][k] = 0.0
-n_drop = 0
-for m in model.modules():
-    if isinstance(m, torch.nn.Dropout):
-        n_drop += int(m.p > 0)
-        m.p = 0.0
-    if hasattr(m, 'dropout_p'):
-        n_drop += int(m.dropout_p > 0)
-        m.dropout_p = 0.0
-report['dropout_sites_zeroed'] = n_drop
-assert all(m.p == 0.0 for m in model.modules() if isinstance(m, torch.nn.Dropout))
-assert all(m.dropout_p == 0.0 for m in model.modules() if hasattr(m, 'dropout_p'))
-
-
-def grads_through_their_train(rows, epoch, fp32):
+def capture(model, rows, epoch, precision, scale=2.0 ** 6):
     model.load_state_dict(init_sd, strict=True)
-    b = [t[:rows] for t in batch] if rows < 128 else batch
-    opt = torch.optim.SGD(model.parameters(), lr=0.0)
-    scaler = torch.cuda.amp.GradScaler()
-    saved = T.autocast
-    if fp32:
-        T.autocast = contextlib.nullcontext          # their `with autocast():` becomes a no-op: fp32 forward
+    b = [t[:rows] for t in batch]
+    if precision == 'f64':
+        b = [t.double() if t.is_floating_point() else t for t in b]
+    opt = torch.optim.SGD([p for p in model.parameters() if p.requires_grad], lr=0.0)
+    scaler = torch.cuda.amp.GradScaler(init_scale=scale)
+    saved_ac, saved_gudf = T.autocast, MX.get_unimol_drug_feat
+    if precision in ('f64', 'f32m'):
+        T.autocast = contextlib.nullcontext
+    if precision == 'f64':
+        MX.get_unimol_drug_feat = _gudf_keep_dtype
+    xpert_dp_patch.EXPECT_AUTOCAST = (precision == 'f16') if MODE == 'dp' else None
     try:
         losses = T.train(model, opt, [b], args, config, scaler=scaler, epoch=epoch)
     finally:
-        T.autocast = saved
-    g = {n: p.grad.detach().float().cpu().clone() for n, p in model.named_parameters() if p.grad is not None}
-    finite = all(torch.isfinite(v).all().item() for v in g.values())
+        T.autocast, MX.get_unimol_drug_feat = saved_ac, saved_gudf
+        xpert_dp_patch.EXPECT_AUTOCAST = None
+    keep = torch.float64 if precision == 'f64' else torch.float32
+    g = {n: p.grad.detach().to(keep).cpu().clone() for n, p in model.named_parameters() if p.grad is not None}
+    none_set = sorted(n for n, p in model.named_parameters() if p.grad is None)
+    finite = all(bool(torch.isfinite(v).all()) for v in g.values())
     for p in model.parameters():
         p.grad = None
-    return [float(x) for x in losses], g, finite, float(scaler.get_scale())
+    return [float(x) for x in losses], g, none_set, finite
 
 
-out_grads = {}
-# fp16 at 32 rows as well, so the precision-noise scale (fp16 vs fp32, one GPU) is measured on the SAME rows.
-for tag, rows, epoch, fp32 in (('fp32_e0', 32, 0, True), ('fp32_e70', 32, 70, True),
-                               ('fp16_e0', 32, 0, False), ('fp16_e70', 32, 70, False),
-                               ('fp16_e0_128', 128, 0, False), ('fp16_e70_128', 128, 70, False)):
-    losses, g, finite, scale = grads_through_their_train(rows, epoch, fp32)
-    report[tag] = {'losses': losses, 'grads_finite': finite, 'scale': scale, 'n_grad_tensors': len(g)}
-    out_grads[tag] = g
-torch.save(out_grads, os.path.join(SHARED, MODE + '_grads.pt'))
+out = {}
+plan = []
+if MODE != 'split':
+    plan += [('f64_e0', ROWS_SMALL, 0, 'f64'), ('f64_e70', ROWS_SMALL, 70, 'f64')]
+plan += [('f32m_e0', ROWS_SMALL, 0, 'f32m'), ('f32m_e70', ROWS_SMALL, 70, 'f32m')]
+if MODE != 'split':
+    plan += [('f16_e0', 128, 0, 'f16'), ('f16_e70', 128, 70, 'f16')]
 
-# Timing, the recipe itself: dropout back to its published values, Adam, their GradScaler, loader included.
-if MODE != 'single_ckpt_repeat':
-    for k in DROP_KEYS:
-        config['model']['ATTN'][k] = published_dropout[k]
-    del model
+models = {}
+scales = json.load(open(scale_path)) if os.path.exists(scale_path) else {}
+for tag, rows, epoch, prec in plan:
+    torch.backends.cuda.enable_mem_efficient_sdp(prec != 'f32m')     # math backend for 81.1b; float64 forces it anyway
+    dtype = torch.float64 if prec == 'f64' else torch.float32
+    if dtype not in models:
+        models = {dtype: build(dtype)}                                 # one model resident at a time
+        torch.cuda.empty_cache()
+    model = models[dtype]
+    before = dict(xpert_dp_patch.REPLICA_CALLS)
+    if prec == 'f16' and MODE == 'single_ckpt':
+        scale = 2.0 ** 6
+        while True:
+            losses, g, none_set, finite = capture(model, rows, epoch, prec, scale)
+            if finite or scale < 2.0 ** -12:
+                break
+            scale /= 2.0
+        scales[tag] = scale
+        json.dump(scales, open(scale_path, 'w'))
+    else:
+        scale = scales.get(tag, 2.0 ** 6) if prec == 'f16' else 2.0 ** 6
+        losses, g, none_set, finite = capture(model, rows, epoch, prec, scale)
+    report['tags'][tag] = {'losses': losses, 'grads_finite': finite, 'scale': scale, 'rows': rows,
+                           'none_grad_set_equals_frozen': none_set == FROZEN, 'none_grad_set': none_set,
+                           'replica_calls': xpert_dp_patch.REPLICA_CALLS['n'] - before['n'],
+                           'replica_calls_autocast_on': xpert_dp_patch.REPLICA_CALLS['autocast_on'] - before['autocast_on']}
+    out[tag] = {'grads': g, 'losses': losses}
+    torch.save(out, os.path.join(SHARED, MODE + '_grads.pt'))     # after every tag: a crash cannot lose what ran
+    json.dump(report, open(os.path.join(SHARED, MODE + '_report.json'), 'w'), indent=1)
+torch.backends.cuda.enable_mem_efficient_sdp(True)
+report['plain_tensor_attributes'] = xpert_dp_patch.plain_tensor_attributes(models[next(iter(models))])
+
+# Timing, dp only: the recipe itself -- published dropout, Adam, their GradScaler, loader included, frozen ten.
+if MODE == 'dp':
+    del models
     torch.cuda.empty_cache()
-    model = build()
-    model.load_state_dict(init_sd, strict=True)
+    torch.manual_seed(0)
+    model = MX.XPertNet(args, config, dev, logger)
+    model.init_weights()
+    model.to(dev)
+    params = dict(model.named_parameters())
+    for n in FROZEN:
+        params[n].requires_grad_(False)
     opt = torch.optim.Adam(model.parameters(), lr=config['train']['train_lr'], weight_decay=config['train']['weight_decay'])
     scaler = torch.cuda.amp.GradScaler()
     it = iter(tr)
     T.train(model, opt, itertools.islice(it, 1), args, config, scaler=scaler, epoch=0)
     for d in range(torch.cuda.device_count()):
-        torch.cuda.reset_peak_memory_stats(d)
-    for d in range(torch.cuda.device_count()):
         torch.cuda.synchronize(d)
+        torch.cuda.reset_peak_memory_stats(d)
     t0 = time.time()
     T.train(model, opt, itertools.islice(it, 5), args, config, scaler=scaler, epoch=0)
     for d in range(torch.cuda.device_count()):
         torch.cuda.synchronize(d)
     report['s_train_step'] = (time.time() - t0) / 5
     report['peak_gib_per_gpu'] = [torch.cuda.max_memory_allocated(d) / 2 ** 30 for d in range(torch.cuda.device_count())]
-    report['train_batches'] = len(tr)
-    report['val_batches'] = len(val)
+    report['train_batches'], report['val_batches'] = len(tr), len(val)
 
-print('DPPROBE ' + json.dumps(report), flush=True)
+json.dump(report, open(os.path.join(SHARED, MODE + '_report.json'), 'w'), indent=1)
+print('DPPROBE ' + json.dumps({k: report[k] for k in report if k != 'tags'}), flush=True)

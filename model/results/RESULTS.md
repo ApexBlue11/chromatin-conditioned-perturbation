@@ -5388,6 +5388,15 @@ trainer **fails hard**. The full-state file is loaded with `map_location='cpu'`,
 dropout replay across replica threads (013) off the critical path. State is written atomically at every boundary,
 and each session leaves time after its guard to write output before Kaggle's hard limit.
 
+### 81.6 Pre-launch amendment: 16 rows, not 32, for 81.1a and 81.1b — memory, fixed before any v7 data
+On the math SDPA backend each of the 8 gene self-attention layers (trt 2 cross + 2 self, ctl 4) stores its
+979×979×8-head probability tensor for backward: ~30.7 MB per sample per layer in fp32, ~245 MB per sample in all,
+on top of ~0.23 GB of other activations — ~0.48 GB per sample, twice that in float64. So the uncheckpointed 32-row
+same-GPU split of 81.1b (~15.4 GB) and the float64 `dp` at 16 per GPU of 81.1a (~15 GB per GPU) would not fit a
+14.56 GiB T4. **Both run at 16 rows (8 per GPU).** Review 014 ask 3 already established that every way DP could change
+the function shows at any per-GPU batch of 2 or more, so the semantic coverage is unchanged. **No bar changes.**
+The fp16 tags (reported only) stay at 128. The same-GPU split runs without checkpointing, paired with `dp`.
+
 ## 82. PRE-REGISTERED: a zero-parameter pre-test of A1 — does the cell's OWN chromatin make the union graph conduct a drug's effect better? (2026-09-24)
 
 IDEAS A1 is the principal's idea: chromatin decides **which edges conduct in this cell**, a different job from the
