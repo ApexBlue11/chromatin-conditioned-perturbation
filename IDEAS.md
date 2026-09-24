@@ -53,6 +53,9 @@ pathways it opens and closes.
   `stitch_dti_edges.tsv`. Constraint: chromatin covers only the 978 landmarks, so gating acts on
   landmark-landmark edges only -- test ungated NONE vs DEGREE first. Free, CPU. The trained arm stays
   unpriced until something shows signal.
+- **Result [§83.5]: NO_SIGNAL.** From all ChEMBL mechanism targets over full STRING, own targets beat random
+  ones by only +0.002 Spearman (57/78 cells, under the 75 % bar) with a median of ~0. **The diffusion route
+  is closed;** A1 now needs a trained model (~5.8 GPU-h), queued behind O2.
 - **Null it must beat:** the same model with chromatin mean-ablated in the edge gate only, plus the
   existing gene-level EpiGate left untouched — so the arm isolates edge gating from gene gating.
 - **Pre-register before spending:** method rules 13, 16, 17 all apply. Null key and estimand fixed first.

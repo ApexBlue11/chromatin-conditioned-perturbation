@@ -5566,6 +5566,36 @@ count of cells with `d_c > 0`, sign test. Also the median of `score(NONE)` over 
 
 Delegated as W11; verified by me before any number is read.
 
+### 83.5 RESULT: NO_SIGNAL, as pre-committed — the diffusion route to A1 is closed (2026-09-24)
+`model/v9/a1_fullgraph_pretest.py` (W11; verified: my brief's landmark assertion corrected to the l1000 → HGNC chain,
+the omitted secondary contrast added, runtime checks on the real graph added because the worker's tests exercise a
+re-implementation). **First full run disclosed:** its primary contrast came out NaN — a random draw on isolated nodes
+gives a constant vector and an undefined Spearman, which poisoned row means and then cell medians. Fixed at `0506102`
+(mean over defined draws; per-contrast paired-complete rows), estimand unchanged; the first run's medians had been seen
+(NONE −0.00016, below the floor), so the fix could not move the reading to SIGNAL. The NaN-bug output is kept out of
+`results/`. Output `model/results/a1_fullgraph_pretest.json`. **0 GPU-hours.**
+
+| | value |
+|---|---|
+| graph / compounds / rows / cells | 19,496 nodes, 929,472 edges (each listed once, symmetrised, verified) / 1,149 / 73,983 / 78 |
+| unmapped ChEMBL symbols / fixed-point iterations | 125 / 36 (residual < 1e−8 asserted on every column) |
+| median Spearman(s, \|z\|): **NONE**, RANDOM, DEGREE | **−0.00016**, −0.0029, −0.0025 |
+| **NONE − RANDOM** (primary), cell-level | mean **+0.0019** [+0.0001, +0.0032]; **57 / 78 cells (73 %)**; sign p 5.6e−5 |
+| NONE − DEGREE (secondary) | +0.0021 [+0.0006, +0.0033]; 56 / 78; p 1.5e−4 |
+| random-draw scores undefined (isolated nodes) | 78 of 369,915 draw-rows |
+
+⇒ **Pre-committed reading, 83.4: NO_SIGNAL.** The primary contrast is positive with a CI excluding 0, but **73 % of
+cells is under the committed 75 %** — missed by 2 points, and it is not re-read. Even had it passed, NONE's median is
+below the 0.01 floor, so the reading would have been "specific but negligible" and the gating test would not be built
+either way: **the conclusion does not depend on the 2-point miss.**
+
+**At the strength it supports:** propagation from a compound's own mechanism targets over STRING carries a drug-specific
+signal that is **real but tiny** — about +0.002 of Spearman over random targets, consistently across most cell lines —
+and essentially zero in absolute terms. Fixed diffusion from annotated targets does not predict which landmarks respond.
+
+⇒ **The diffusion route to A1 is closed.** A1 — chromatin deciding which edges conduct — remains a question only a
+trained model can put, and its ~5.8 GPU-h arm stays unpriced behind O2.
+
 ## 84. 🔒 COMMITTED BEFORE SESSION 1: how the O2 run can end, and what may inform decisions between sessions (2026-09-24)
 
 Review 015 (`orchestration/bus/adjudicated/015_review.md`, at `4f6ccfc`): **SOUND-WITH-CAVEATS, GO on O2 once C1 is
