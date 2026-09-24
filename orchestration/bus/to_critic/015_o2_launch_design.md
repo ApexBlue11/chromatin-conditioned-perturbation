@@ -1,7 +1,7 @@
 # PACKET 015 — v7 passed everything; the O2 multi-session launch design, for GO before ~28 GPU-h
 packet_id: 015
 created: 2026-09-24
-repo_commit: (the commit carrying this packet)
+repo_commit: 4f6ccfc
 type: **RESULT + PRE-SPEND DESIGN.** GPU hours this session ~7.2. Weekly quota 30 h. This packet commits none.
 
 ## 1. v7, against the bars you fixed in 014 (committed at ccfcaee, 81.6 at da3c5ac before launch)
