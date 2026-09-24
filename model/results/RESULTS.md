@@ -5292,9 +5292,14 @@ Readings, at the strength they support:
    80.6 sub-hypothesis is wrong: 2.2e−4 at the released weights, 32 rows) and not specific to the memory-efficient
    kernel (the math backend is no better). Its exact source is not identified.
 3. ⇒ **80.3's fp32 bar of 1e−5 assumed batch-shape rounding of 1e−7 to 1e−6** — an assumption review 013 and I both
-   made, and this model's fp32 numerics break. The test compared DP with the wrong reference.
+   made, and this model's fp32 numerics break. *Scoped by review 014 C3:* **v6's test could not discriminate — no exact
+   reorganisation of this model meets a 1e−5 bar against the full batch in fp32. DP equivalence remains UNSHOWN until
+   81.1 runs.** The split tests batch reshaping, not the second device, `Broadcast`, `ReduceAddCoalesced` or the
+   localised `drug_HG_embed`. *And review 014 C2:* the diagnostic cast gradients with `.float()` before comparing, so
+   its "1.1e−16 in float64" is **agreement to fp32 resolution of a float64 computation** — still enough to settle the
+   absence of batch coupling, not a float64-precision measurement.
 
-## 81. DRAFT PRE-REGISTRATION (pending review 014): the redesigned DataParallel proof, and full-state resume — designed AFTER 80.6's failure
+## 81. PRE-REGISTRATION (final form in 81.5, after review 014): the redesigned DataParallel proof, and full-state resume — designed AFTER 80.6's failure
 **Labelled as designed after a failure.** 80.6 stands as a failure of the proof as committed. What follows is a new
 test, and review 014 decides whether it is admissible before anything is run.
 
@@ -5337,6 +5342,51 @@ and final parameters no further from a straight run than the two straight runs a
 If 81.1a–b and 81.3 pass: O2 is priced from the `dp` timing (0.925 s/step in v6: ~24 GPU-h, ~3 sessions at the
 anchor), subject to Amendment E's 25 % epoch-1 re-price. If 81.1a fails, DataParallel is not the recipe's computation
 and the choice is O1 or O4.
+
+### 81.5 Review 014, and the FINAL form of this pre-registration — committed before any v7 code enters the kernel
+`orchestration/bus/adjudicated/014_review.md`, at `5b45f9e`. **SOUND-WITH-CAVEATS**, four challenges, all upheld.
+**Tally 89 of 92.** The redesign is **admissible as a new measurement for a new run**, on the reviewer's conditions,
+adopted verbatim: v6's dumps are never re-read under 81 and called a pass; 81.1a is not dropped or loosened after
+v7; no bar is set after v7; and **`rel_L2(split_same_gpu, single)` and fp32 `rel_L2(dp, single)` stay REPORTED ONLY**
+— never promoted to "within the recipe's batch-shape sensitivity, therefore a pass". The reviewer records its own
+fifth error on the bus: it endorsed 013's 1e−5 bar by asserting a numerical property of the network without
+measuring it; and its epoch-0 fp16 estimate was wrong.
+
+**81.1, as run:**
+- **81.1a float64 semantics:** 32 rows, epochs 0 and 70, `dp` against `single_ckpt`, the ten frozen. **Gradients kept
+  in float64 for these tags** (C2: casting to fp32 would put the floor at ~√(6e−8·δ) and could fail 1e−10 on
+  quantisation alone). Bars unchanged: `rel_L2 < 1e−10`, loss relative difference `< 1e−12`.
+- **81.1b fp32 against a same-GPU split, on the MATH SDPA backend** (the reviewer's strengthening, free): `dp`
+  paired with `split_same_gpu` at the same checkpointing setting (none), 32 rows, epochs 0 and 70. Bar unchanged at
+  `< 1e−5`; the expected value is ~0 (the diagnostic's math-backend repeat was exactly 0), so anything above 1e−9
+  is recorded as a finding, though only 1e−5 decides.
+- **81.1c fp16, reported only:** the single-GPU reference halves the GradScaler scale from 2⁶ until its gradients are
+  finite; that scale is then used for every variant. In-replica `torch.is_autocast_enabled()` is asserted.
+- **Structure:** with the ten frozen, the set of parameters with `grad is None` must equal exactly the frozen set in
+  every variant — no other unused parameter exists.
+
+**81.3, replaced (C1):** the straight-vs-straight floor would fail a perfect resume about half the time, because a
+correct resume and the straight runs are exchangeable draws. Two tests, neither needing a floor, on their real
+`main()` in the `dp` configuration, with each epoch truncated to 10 training and 10 validation batches (test mode
+only: state completeness does not depend on epoch length):
+- **81.3a state round-trip, exact:** the process that stops after epoch 0 saves the full state; the resuming process
+  dumps its live state immediately after restore. **Required bitwise equal:** every model tensor; Adam `m`, `v`,
+  `step`; GradScaler scale and growth tracker; LambdaLR `last_epoch` and `_last_lr`; stopper `best_score`, `counter`,
+  `early_stop`; torch CPU and both CUDA RNG states, numpy and python RNG; the best file's sha1; and `start_epoch`.
+- **81.3b continuation:** three straight runs of 2 truncated epochs and one resumed run (1, stop, fresh process,
+  restore, 1), all with `torch.use_deterministic_algorithms(True)` and `CUBLAS_WORKSPACE_CONFIG=:4096:8`. **If the
+  three straight runs are bitwise identical, the resumed run must be bitwise identical to them.** If they are not —
+  determinism was not achieved — the resumed run's parameter distance to each straight run must not exceed the
+  largest of the three pairwise straight distances (the reviewer's fallback). If deterministic mode raises for an op,
+  that op is recorded and the fallback applies.
+
+**C4, in the code:** if `--resume_from` is set and the strict restore has not run by the first `train()` call, the
+trainer **fails hard**. The full-state file is loaded with `map_location='cpu'`, independently of their load at
+`:483`. `--resume_from` sets `start_epoch` only (ask 3: acceptable with this assert).
+
+**Carried forward:** the `dp` variant (7.39 GiB, 0.925 s/step) is the production choice, which keeps `dp_ckpt`'s
+dropout replay across replica threads (013) off the critical path. State is written atomically at every boundary,
+and each session leaves time after its guard to write output before Kaggle's hard limit.
 
 ## 82. PRE-REGISTERED: a zero-parameter pre-test of A1 — does the cell's OWN chromatin make the union graph conduct a drug's effect better? (2026-09-24)
 
