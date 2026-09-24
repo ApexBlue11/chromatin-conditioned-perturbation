@@ -170,6 +170,7 @@ def run():
         return res
 
     print("Computing scores...")
+    n_nan_draws = [0]
     for i, comp in enumerate(eligible_comps):
         comp_mask = (sigs_used['pert_id'] == comp).values
         if not comp_mask.any(): continue
@@ -188,10 +189,12 @@ def run():
         
         r_none = corr(s_none, y_comp)
         
-        r_rands = np.zeros(y_comp.shape[0])
-        for s_r in s_rand:
-            r_rands += corr(s_r, y_comp)
-        r_rand = r_rands / 5.0
+        # A random draw on isolated nodes leaves s constant at the landmarks, so its Spearman is undefined (NaN) and
+        # carries no information: average over the draws that are defined (first full run, 2026-09-24).
+        draws = np.stack([corr(s_r, y_comp) for s_r in s_rand], axis=0)
+        n_nan_draws[0] += int(np.isnan(draws).sum())
+        with np.errstate(invalid='ignore'):
+            r_rand = np.nanmean(draws, axis=0)
         
         r_deg = corr(s_deg, y_comp)
         
@@ -211,8 +214,10 @@ def run():
     for cell, group in sigs_used.groupby('cell_id'):
         valid = ~group['score_NONE'].isna()
         if valid.sum() >= 50:
-            d_c_primary[cell] = np.median(group.loc[valid, 'score_NONE'] - group.loc[valid, 'score_RANDOM'])
-            d_c_secondary[cell] = np.median(group.loc[valid, 'score_NONE'] - group.loc[valid, 'score_DEGREE'])
+            dp = (group['score_NONE'] - group['score_RANDOM']).dropna()
+            ds = (group['score_NONE'] - group['score_DEGREE']).dropna()
+            d_c_primary[cell] = np.median(dp) if len(dp) else np.nan
+            d_c_secondary[cell] = np.median(ds) if len(ds) else np.nan
             
     cells_used = list(d_c_primary.keys())
     
@@ -275,6 +280,8 @@ def run():
         'median_score_DEGREE': float(med_degree) if not np.isnan(med_degree) else None,
         'secondary_NONE_minus_DEGREE': secondary,
         'nan_rows_NONE': int(np.isnan(score_NONE).sum()),
+        'nan_rows_RANDOM_all_draws': int(np.isnan(score_RANDOM).sum()),
+        'nan_random_draw_scores': int(n_nan_draws[0]),
         'per_cell_d_primary': {c: float(v) for c, v in d_c_primary.items()},
     }
     with open(out_json, 'w') as f:
