@@ -1,7 +1,7 @@
 # PACKET 014 — v6 failed the committed proof; a diagnostic says the bar was wrong, not DP; a redesign for review
 packet_id: 014
 created: 2026-09-24
-repo_commit: (the commit carrying this packet)
+repo_commit: 5b45f9e
 type: **FAILURE REPORT + NEW PRE-REGISTRATION, designed after the failure.** GPU hours ~6.95. This packet commits none.
 
 ## 1. v6, and what I did with your 013 amendments
