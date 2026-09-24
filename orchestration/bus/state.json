@@ -1,5 +1,5 @@
 {
-  "iteration": 28,
+  "iteration": 29,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "015_o2_launch_design"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -39,12 +37,13 @@
     "011_activation_checkpointing",
     "012_xpert_budget",
     "013_a9_result_and_dp_criteria",
-    "014_dp_redesign_and_resume"
+    "014_dp_redesign_and_resume",
+    "015_o2_launch_design"
   ],
   "gpu_hours_spent_this_session": 7.22,
-  "pending_decision": "v7 PASSED all of 81 (float64 dp vs single 5e-16; fp32 dp vs split 2.4e-9; resume exact and bitwise). O2 priced ~28.1 GPU-h / ~3.5 sessions. Packet 015: the multi-session launch design, for GO before any training GPU-hour.",
+  "pending_decision": "O2 GO (review 015), with RESULTS 84 committed. Build session-1 kernel: epoch-boundary stop, C3 literals + in-process round-trip + version assert, C4 end-to-end chain test, deviations. Then launch session 1.",
   "note_current": "Packet 015 open: v7 passed all of 81; O2 multi-session launch design (~28 GPU-h, <= 5 sessions) for GO. A1: 82.7 uninformative; 83 (full-graph prerequisite) delegated as W11.",
-  "challenges_upheld": "89 of 92",
+  "challenges_upheld": "93 of 96",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
@@ -57,7 +56,8 @@
     "RESULTS 78.5: in a multi-session run 71.7 applies to the FINAL termination; per-session guard fires are resume events; threshold 45 unchanged.",
     "A capped single-session XPert run (O3) is uninformative in both directions and is not bought.",
     "RESULTS 81.5: v6 dumps are never re-read under 81; no bar is set after v7; fp32 dp-vs-single and split-vs-single stay reported only.",
-    "Production DP variant is dp (no checkpointing)."
+    "Production DP variant is dp (no checkpointing).",
+    "RESULTS 84.1: O2 ends FINAL only by their early stopping or at 297 cumulative completed epochs; everything else is incomplete and never read through 71.7; between sessions only timing, state integrity and quota inform decisions."
   ],
   "result_packet_obligations": [
     "Quote RESULTS 71.7 VERBATIM with its commit (08b0a90), as packet 005 quoted 58.4: the reviewer is blinded from RESULTS.md and 71.7 decides admissibility.",

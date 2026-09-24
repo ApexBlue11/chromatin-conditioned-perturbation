@@ -4987,8 +4987,9 @@ Drafted by the reviewer (012 C2) and adopted in substance:
 
 What this is not: lowering 45 to admit a capped run would be post-hoc and is refused. What it is: §71.7 was written
 when the guard *was* the end of training; in a chained design the guard is a resume point, and saying so before any
-data exist is a design statement. A **final** stop by the guard — e.g. the quota runs out — is still read by
-§71.7's table exactly as written.
+data exist is a design statement. A **final** stop by the guard is still read by §71.7's table exactly as written.
+*Amended by review 015 C1 before session 1 [§84]: "e.g. the quota runs out" is withdrawn — a quota kill is
+**incomplete**, not final. The only final guard stop is reaching the committed epoch horizon.*
 
 ## 79. PRE-COMMITTED: where the α = 0 residual lives — two inference-only cuts in a 2×2, written before the code exists (IDEAS A9)
 
@@ -5564,6 +5565,45 @@ count of cells with `d_c > 0`, sign test. Also the median of `score(NONE)` over 
 | anything else | **No drug-specific signal from fixed propagation over the STRING graph.** The diffusion route to A1 is closed; A1 remains a question only a trained model can put. |
 
 Delegated as W11; verified by me before any number is read.
+
+## 84. 🔒 COMMITTED BEFORE SESSION 1: how the O2 run can end, and what may inform decisions between sessions (2026-09-24)
+
+Review 015 (`orchestration/bus/adjudicated/015_review.md`, at `4f6ccfc`): **SOUND-WITH-CAVEATS, GO on O2 once C1 is
+committed**; four challenges, all upheld. **Tally 93 of 96.** The reviewer reproduces every v7 number and corrects its
+own 014: the 1e−9 "finding" line assumed a two-term commutative sum, but `cell_emb` feeds both encoders, so the split
+accumulates several contributions per leaf in engine order while DP sums within, then across, replicas — one-ulp
+differences on a small fraction of elements, rel_L2 ~1e−9. *The finding is a mis-set line, not a property of DP.*
+
+### 84.1 Terminations (C1) — their stopper monitors TEST loss, logged every epoch, and I push each session after seeing it
+If a mid-run stop could be declared final, I would be choosing where the comparison is read. So:
+1. **The only two FINAL terminations:** (a) their early stopping fires; (b) the **cumulative horizon of 297 completed
+   epochs** is reached (5 × 59.4 epochs per session at the v7 rate) — a horizon in *epochs*, so a crashed or re-run
+   session cannot consume it and slower epochs cost quota, not horizon.
+2. **Everything else is INCOMPLETE** — a quota kill, a crash, a platform failure, abandonment: resumed if possible,
+   otherwise **reported as no result and never read through §71.7.**
+3. **Between sessions, the only inputs to any decision are timing (Amendment E), state integrity, and quota.** Never
+   the logged loss.
+4. **At early stopping:** `counter_at_end == 50 == marker.counter` is asserted, with `last_epoch_index` taken from the
+   marker (the state dir holds one epoch fewer: no LambdaLR step follows an early stop). *Verified in their code:*
+   `utils.py` sets `early_stop` when `counter >= patience`, so 50 is exact.
+5. At the horizon, §71.7 decides admissibility with the 45 unchanged: a v9-win claim is admissible if XPert's best
+   epoch is at or before 252 (the warm-split anchor's best was 164).
+
+### 84.2 Hardening, all before session 1 (C2–C4)
+- **C2:** a guard kill between the three per-epoch writes could leave `best.pth` from an earlier best beside a later
+  `best_score`. The session now **stops only at epoch boundaries**: after each save, if elapsed + the slowest epoch so
+  far would pass the deadline, it exits cleanly (the kernel's watchdog stays as a backstop). And `restore_state()`
+  asserts `sha1(best.pth) == best_sha1` and `resume_from.epoch == full_state.epoch`.
+- **C3 (chain of custody through git):** session k−1's three sha1s and final epoch are pasted as **literals into
+  session k's kernel and committed before the push**. At restore, 81.3a is re-run **in process** (`collect_state()` vs
+  the loaded state, every field) and any difference is fatal. `torch.__version__` and the CUDA version must equal
+  session 1's; a changed stack is a stop-and-return.
+- **C4:** before the real training in session 1, the kernel exercises the one new path end to end in test mode
+  (truncated epochs, a test-only patience of 1): marker → termination → `counter_at_end == patience` → prediction
+  of the 21,321 test rows. In production, **a trainer that exits without a marker and without a boundary stop is fatal.**
+- **Ask 1:** `RECORD['deviations']` gains DataParallel (runtime patch inside `forward`), the ten frozen parameters, and
+  the full-state resume hooks.
+- **Ask 2:** terminating at the marker, before their post-loop test pass (never read), is accepted.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
