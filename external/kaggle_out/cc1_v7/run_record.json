@@ -1,0 +1,863 @@
+{
+  "fold": "split_cold_cell_1",
+  "budget_h": 8.3,
+  "guards": {
+    "deps": "scanpy, torchmetrics, unimol_tools importable; torch unchanged",
+    "split": {
+      "test": 21321,
+      "train": 47509
+    },
+    "unimol_array": [
+      "dense array would be (8950, 122, 514) float32 = 2.24 GB",
+      "round-trip verified on 64 sampled drugs",
+      "wrote /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy (2.24 GB)"
+    ],
+    "attention": "our shim, unmasked (option A)",
+    "their_modules": "datasets.MyDataset, models.*, metrics, utils all resolve inside the staged copy",
+    "one_batch_forward": "pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True"
+  },
+  "decision": "option (a) as published, disclosed",
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "torch": "2.10.0+cu128",
+  "memory_patch": {
+    "file": "datasets/MyDataset.py",
+    "line_replaced": "drug_feat = tensor(drug_feat, dtype=torch.float32) if self.args.drug_feat != 'smi' else drug_feat",
+    "sha1_before": "8d8c50f24a9c",
+    "sha1_after": "31b5ef68355a",
+    "proof": "model/v9/prove_mydataset_patch.py: 6000 tensors torch.equal"
+  },
+  "activation_checkpointing": {
+    "patched": [
+      "Encoder",
+      "crossEncoder"
+    ],
+    "how": "runtime wrapper; their files verbatim",
+    "proof": "model/v9/prove_checkpoint_exact.py"
+  },
+  "deviations": [
+    "flash_attn shim on PYTHONPATH (their model imports it at module scope)",
+    "MyDataset: one tensor per drug instead of one per row -- values proven identical, storage shared; the unpatched recipe needs ~24.7 GB of dataset RAM on this fold",
+    "activation checkpointing of Encoder/crossEncoder, applied at runtime by a wrapper -- same batch 128, same loss, gradients within the noise floor; the unpatched recipe needs ~14.95 GiB of activations on a 14.56 GiB T4",
+    "all_drugs_unimol_arr.npy rebuilt from the released npz (config names it, never released)",
+    "empty __init__.py in datasets/ and models/ so their packages are not shadowed by the image's HuggingFace `datasets`"
+  ],
+  "disclosed_asymmetry": "no valid level -> utils.py:133 sets val_data = test_data -> early stopping and checkpoint selection monitor TEST loss4",
+  "timing": {
+    "s_train_step": 2.2469629764556887,
+    "s_val_step": 0.40775537490844727,
+    "peak_gib": 3.7379846572875977,
+    "train_batches": 372,
+    "val_batches": 167,
+    "setup_s": 194.9,
+    "epoch_s_projected": 904.0,
+    "epochs_within_budget_projected": 31.8,
+    "budget_h": 8.3,
+    "note": "steady state, checkpointed, optimizer step included; 900 s reserved for prediction and artefacts"
+  },
+  "dp_v7": {
+    "comparisons": {
+      "f64_e0": {
+        "repeat_vs_single": 0.0,
+        "dp_vs_single": 5.438573434500837e-16,
+        "dp_loss_rel": 0.0
+      },
+      "f64_e70": {
+        "repeat_vs_single": 0.0,
+        "dp_vs_single": 4.790811322139776e-16,
+        "dp_loss_rel": 0.0
+      },
+      "f32m_e0": {
+        "repeat_vs_single": 0.0,
+        "dp_vs_single": 0.0005435753531683923,
+        "dp_loss_rel": 2.771155869897003e-07,
+        "dp_vs_split": 2.4250996014999916e-09,
+        "split_vs_single": 0.0005435753486138895
+      },
+      "f32m_e70": {
+        "repeat_vs_single": 0.0,
+        "dp_vs_single": 0.0004890299001802614,
+        "dp_loss_rel": 2.771155869897003e-07,
+        "dp_vs_split": 2.6889959667921243e-09,
+        "split_vs_single": 0.0004890299012242885
+      },
+      "f16_e0": {
+        "repeat_vs_single": 1.0178097040963095e-05,
+        "dp_vs_single": 0.000297781093517993,
+        "dp_loss_rel": 1.797044329309811e-07
+      },
+      "f16_e70": {
+        "repeat_vs_single": 0.00010103275726915905,
+        "dp_vs_single": 0.0002852396392398675,
+        "dp_loss_rel": 1.797044329309811e-07
+      }
+    },
+    "checks_81": {
+      "81.1a_f64_semantics": true,
+      "81.1b_f32_dp_vs_split": true,
+      "structure_none_grad_set_is_frozen_everywhere": true,
+      "structure_plain_tensor_attributes": true,
+      "structure_fp32_fp64_grads_finite": true,
+      "autocast_on_in_every_dp_replica_fp16": true,
+      "memory_dp_below_13_gib": true,
+      "81.1_PASS": true
+    },
+    "findings_above_1e-9_dp_vs_split": {
+      "f32m_e0": 2.4250996014999916e-09,
+      "f32m_e70": 2.6889959667921243e-09
+    },
+    "probe_reports": {
+      "single_ckpt": {
+        "mode": "single_ckpt",
+        "torch": "2.10.0+cu128",
+        "gpus_visible": 2,
+        "tags": {
+          "f64_e0": {
+            "losses": [
+              25.679167878321643,
+              10.392709996722795,
+              27.531452343601764,
+              3.8772735558288245,
+              0.9882392607485496
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f64_e70": {
+            "losses": [
+              25.679167878321643,
+              10.392709996722795,
+              27.531452343601764,
+              3.8772735558288245,
+              0.9882392607485496
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f32m_e0": {
+            "losses": [
+              25.679166793823242,
+              10.392709348036894,
+              27.531452178955078,
+              3.877273999827555,
+              0.9882392883300781
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f32m_e70": {
+            "losses": [
+              25.679166793823242,
+              10.392709348036894,
+              27.531452178955078,
+              3.877273999827555,
+              0.9882392883300781
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f16_e0": {
+            "losses": [
+              25.05286407470703,
+              10.222270394179501,
+              28.177875518798828,
+              3.9206661473843454,
+              0.9950446486473083
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 128,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f16_e70": {
+            "losses": [
+              25.05286407470703,
+              10.222270394179501,
+              28.177875518798828,
+              3.9206661473843454,
+              0.9950446486473083
+            ],
+            "grads_finite": true,
+            "scale": 16.0,
+            "rows": 128,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          }
+        },
+        "ckpt_patched": [
+          "Encoder",
+          "crossEncoder"
+        ],
+        "plain_tensor_attributes": [
+          "drug_HG_embed"
+        ]
+      },
+      "single_ckpt_repeat": {
+        "mode": "single_ckpt_repeat",
+        "torch": "2.10.0+cu128",
+        "gpus_visible": 2,
+        "tags": {
+          "f64_e0": {
+            "losses": [
+              25.679167878321643,
+              10.392709996722795,
+              27.531452343601764,
+              3.8772735558288245,
+              0.9882392607485496
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f64_e70": {
+            "losses": [
+              25.679167878321643,
+              10.392709996722795,
+              27.531452343601764,
+              3.8772735558288245,
+              0.9882392607485496
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f32m_e0": {
+            "losses": [
+              25.679166793823242,
+              10.392709348036894,
+              27.531452178955078,
+              3.877273999827555,
+              0.9882392883300781
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f32m_e70": {
+            "losses": [
+              25.679166793823242,
+              10.392709348036894,
+              27.531452178955078,
+              3.877273999827555,
+              0.9882392883300781
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f16_e0": {
+            "losses": [
+              25.05286407470703,
+              10.222270394179501,
+              28.177875518798828,
+              3.9206661473843454,
+              0.9950446486473083
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 128,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f16_e70": {
+            "losses": [
+              25.05286407470703,
+              10.222270394179501,
+              28.177875518798828,
+              3.9206661473843454,
+              0.9950446486473083
+            ],
+            "grads_finite": true,
+            "scale": 16.0,
+            "rows": 128,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          }
+        },
+        "ckpt_patched": [
+          "Encoder",
+          "crossEncoder"
+        ],
+        "plain_tensor_attributes": [
+          "drug_HG_embed"
+        ]
+      },
+      "dp": {
+        "mode": "dp",
+        "torch": "2.10.0+cu128",
+        "gpus_visible": 2,
+        "tags": {
+          "f64_e0": {
+            "losses": [
+              25.679167878321643,
+              10.392709996722795,
+              27.531452343601764,
+              3.8772735558288245,
+              0.9882392607485496
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 2,
+            "replica_calls_autocast_on": 0
+          },
+          "f64_e70": {
+            "losses": [
+              25.679167878321643,
+              10.392709996722795,
+              27.531452343601764,
+              3.8772735558288245,
+              0.9882392607485496
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 2,
+            "replica_calls_autocast_on": 0
+          },
+          "f32m_e0": {
+            "losses": [
+              25.679166793823242,
+              10.392709348036894,
+              27.53145980834961,
+              3.8772736308797993,
+              0.9882392883300781
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 2,
+            "replica_calls_autocast_on": 0
+          },
+          "f32m_e70": {
+            "losses": [
+              25.679166793823242,
+              10.392709348036894,
+              27.53145980834961,
+              3.8772736308797993,
+              0.9882392883300781
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 2,
+            "replica_calls_autocast_on": 0
+          },
+          "f16_e0": {
+            "losses": [
+              25.052865982055664,
+              10.222270394179501,
+              28.177875518798828,
+              3.920666269005808,
+              0.995044469833374
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 128,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 2,
+            "replica_calls_autocast_on": 2
+          },
+          "f16_e70": {
+            "losses": [
+              25.052865982055664,
+              10.222270394179501,
+              28.177875518798828,
+              3.920666269005808,
+              0.995044469833374
+            ],
+            "grads_finite": true,
+            "scale": 16.0,
+            "rows": 128,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 2,
+            "replica_calls_autocast_on": 2
+          }
+        },
+        "dp_device_ids": [
+          0,
+          1
+        ],
+        "plain_tensor_attributes": [
+          "drug_HG_embed"
+        ],
+        "s_train_step": 1.113269567489624,
+        "peak_gib_per_gpu": [
+          7.372603893280029,
+          7.33156156539917
+        ],
+        "train_batches": 372,
+        "val_batches": 167
+      },
+      "split": {
+        "mode": "split",
+        "torch": "2.10.0+cu128",
+        "gpus_visible": 2,
+        "tags": {
+          "f32m_e0": {
+            "losses": [
+              25.679166793823242,
+              10.392709348036894,
+              27.53145980834961,
+              3.8772736308797993,
+              0.9882392883300781
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          },
+          "f32m_e70": {
+            "losses": [
+              25.679166793823242,
+              10.392709348036894,
+              27.53145980834961,
+              3.8772736308797993,
+              0.9882392883300781
+            ],
+            "grads_finite": true,
+            "scale": 64.0,
+            "rows": 16,
+            "none_grad_set_equals_frozen": true,
+            "none_grad_set": [
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.0.LayerNorm.gamma",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.beta",
+              "attnEncoder_trt.crossEncoders.1.LayerNorm.gamma",
+              "cell_emb.linear.bias",
+              "cell_emb.linear.weight",
+              "ctl_fc.0.bias",
+              "ctl_fc.0.weight",
+              "ctl_fc.3.bias",
+              "ctl_fc.3.weight"
+            ],
+            "replica_calls": 0,
+            "replica_calls_autocast_on": 0
+          }
+        },
+        "plain_tensor_attributes": [
+          "drug_HG_embed"
+        ]
+      }
+    },
+    "fp16_scales": {
+      "f16_e0": 64.0,
+      "f16_e70": 16.0
+    },
+    "timing_dp": {
+      "s_train_step": 1.113269567489624,
+      "epoch_s": 482.2,
+      "gpu_h_for_210_epochs": 28.1,
+      "peak_gib_per_gpu": [
+        7.372603893280029,
+        7.33156156539917
+      ]
+    }
+  },
+  "resume_test": {
+    "deterministic_attempt": {
+      "S1": {
+        "returncode": 0,
+        "saved_lines": [
+          "LINCS DataParallel devices: [0, 1]",
+          "LINCS resume hooks: []",
+          "LINCS froze 10 unused parameters",
+          "LINCS STATE SAVED epoch 0 | best_score 0.9359167993068696 | counter 0",
+          "LINCS STATE SAVED epoch 1 | best_score 0.9170212924480439 | counter 0",
+          "LINCS_STOP_AFTER_EPOCH reached after epoch 1; exiting cleanly (test mode)"
+        ]
+      },
+      "S2": {
+        "returncode": 0,
+        "saved_lines": [
+          "LINCS DataParallel devices: [0, 1]",
+          "LINCS resume hooks: []",
+          "LINCS froze 10 unused parameters",
+          "LINCS STATE SAVED epoch 0 | best_score 0.9359167993068696 | counter 0",
+          "LINCS STATE SAVED epoch 1 | best_score 0.9170212924480439 | counter 0",
+          "LINCS_STOP_AFTER_EPOCH reached after epoch 1; exiting cleanly (test mode)"
+        ]
+      },
+      "S3": {
+        "returncode": 0,
+        "saved_lines": [
+          "LINCS DataParallel devices: [0, 1]",
+          "LINCS resume hooks: []",
+          "LINCS froze 10 unused parameters",
+          "LINCS STATE SAVED epoch 0 | best_score 0.9359167993068696 | counter 0",
+          "LINCS STATE SAVED epoch 1 | best_score 0.9170212924480439 | counter 0",
+          "LINCS_STOP_AFTER_EPOCH reached after epoch 1; exiting cleanly (test mode)"
+        ]
+      },
+      "R1": {
+        "returncode": 0,
+        "saved_lines": [
+          "LINCS DataParallel devices: [0, 1]",
+          "LINCS resume hooks: []",
+          "LINCS froze 10 unused parameters",
+          "LINCS STATE SAVED epoch 0 | best_score 0.9359167993068696 | counter 0",
+          "LINCS_STOP_AFTER_EPOCH reached after epoch 0; exiting cleanly (test mode)"
+        ]
+      },
+      "R2": {
+        "returncode": 0,
+        "saved_lines": [
+          "LINCS DataParallel devices: [0, 1]",
+          "LINCS resume hooks: []",
+          "LINCS froze 10 unused parameters",
+          "LINCS RESUME restored epoch 0 | best_score 0.9359167993068696 | counter 0 | best checkpoint restored",
+          "LINCS STATE SAVED epoch 1 | best_score 0.9170212924480439 | counter 0",
+          "LINCS_STOP_AFTER_EPOCH reached after epoch 1; exiting cleanly (test mode)"
+        ]
+      }
+    },
+    "81.3a_fields_differing": [],
+    "81.3a_start_epoch_ok": true,
+    "81.3a_PASS": true,
+    "81.3b_straights_bitwise_identical": true,
+    "81.3b_rule": "deterministic: resumed must equal straight bitwise",
+    "81.3b_resumed_fields_differing": [],
+    "81.3b_PASS": true,
+    "81.3_PASS": true
+  },
+  "stopped_by": "measure_only",
+  "host_memory": {
+    "min_available_gb": 17.04,
+    "samples": 16,
+    "trace_min_gb": [
+      [
+        0.0,
+        30.37
+      ],
+      [
+        1.0,
+        29.65
+      ],
+      [
+        2.0,
+        29.3
+      ],
+      [
+        3.0,
+        18.13
+      ],
+      [
+        4.0,
+        21.44
+      ],
+      [
+        5.0,
+        25.4
+      ],
+      [
+        6.0,
+        29.79
+      ],
+      [
+        7.0,
+        18.99
+      ],
+      [
+        8.0,
+        21.81
+      ],
+      [
+        9.0,
+        20.54
+      ],
+      [
+        10.0,
+        28.5
+      ],
+      [
+        11.0,
+        17.09
+      ],
+      [
+        12.0,
+        20.63
+      ],
+      [
+        13.0,
+        28.86
+      ],
+      [
+        14.0,
+        22.79
+      ],
+      [
+        15.0,
+        17.04
+      ]
+    ]
+  }
+}

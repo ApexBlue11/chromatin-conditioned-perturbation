@@ -1,0 +1,35 @@
+[{"stream_name":"stdout","time":5.986733429,"data":"[   0.1 min] GPUs: ['Tesla T4', 'Tesla T4'] | torch 2.10.0+cu128\n"}
+,{"stream_name":"stdout","time":40.538318142,"data":"[   0.7 min] pip exit 0\n"}
+,{"stream_name":"stdout","time":90.215117483,"data":"[   1.5 min] staged /kaggle/input/datasets/apexblue/xpert-train-src/XPert -\u003e /kaggle/working/XPert\n"}
+,{"stream_name":"stdout","time":90.316009893,"data":"[   1.5 min] GUARD A {'test': 21321, 'train': 47509} -- no valid level: their early stopping will monitor TEST loss (disclosed)\n"}
+,{"stream_name":"stdout","time":97.812596451,"data":"npz: idx (1970,) in [1, 8949], feat (1970, 122, 514) float32\n"}
+,{"stream_name":"stdout","time":97.812653565,"data":"h5ad: 1970 unique pert_idx in [1, 8949]; 0 not covered by the npz\n"}
+,{"stream_name":"stdout","time":97.812661459,"data":"valid atoms/drug: min 5 max 122 mean 53.9 of 122 slots | padded slots 55.8% | padded features all zero: True\n"}
+,{"stream_name":"stdout","time":97.812666985,"data":"dense array would be (8950, 122, 514) float32 = 2.24 GB\n"}
+,{"stream_name":"stdout","time":97.81267172,"data":"round-trip verified on 64 sampled drugs\n"}
+,{"stream_name":"stdout","time":97.81267642,"data":"wrote /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy (2.24 GB)\n"}
+,{"stream_name":"stdout","time":97.812692598,"data":" \n"}
+,{"stream_name":"stdout","time":97.812702809,"data":"[   1.6 min] GUARD B unimol array built: /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy\n"}
+,{"stream_name":"stdout","time":99.899948617,"data":"[   1.7 min] GUARD C flash_attn -\u003e /kaggle/working/v9src/_shims/flash_attn/flash_attn_interface.py | unmasked\n"}
+,{"stream_name":"stdout","time":111.154132126,"data":"[   1.8 min] GUARD D their modules resolve inside /kaggle/working/XPert\n"}
+,{"stream_name":"stdout","time":195.693385331,"data":"TIMING {\"s_train_step\": 2.2469629764556887, \"s_val_step\": 0.40775537490844727, \"peak_gib\": 3.7379846572875977, \"train_batches\": 372, \"val_batches\": 167}\n"}
+,{"stream_name":"stdout","time":195.69342737,"data":"GUARD F training step at batch 128 peak GPU GiB 3.74\n"}
+,{"stream_name":"stdout","time":195.693433686,"data":"pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True\n"}
+,{"stream_name":"stdout","time":195.693438821,"data":"\n"}
+,{"stream_name":"stdout","time":195.693443289,"data":"[   3.2 min] GUARD F one real batch + forward OK: pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True\n"}
+,{"stream_name":"stdout","time":195.693528937,"data":"[   3.2 min] TIMING {'s_train_step': 2.2469629764556887, 's_val_step': 0.40775537490844727, 'peak_gib': 3.7379846572875977, 'train_batches': 372, 'val_batches': 167, 'setup_s': 194.9, 'epoch_s_projected': 904.0, 'epochs_within_budget_projected': 31.8, 'budget_h': 8.3, 'note': 'steady state, checkpointed, optimizer step included; 900 s reserved for prediction and artefacts'}\n"}
+,{"stream_name":"stdout","time":280.842596032,"data":"[   4.7 min] GUARD G probe single_ckpt ok\n"}
+,{"stream_name":"stdout","time":359.978987287,"data":"[   6.0 min] GUARD G probe single_ckpt_repeat ok\n"}
+,{"stream_name":"stdout","time":437.485933984,"data":"[   7.3 min] GUARD G probe dp ok\n"}
+,{"stream_name":"stdout","time":497.012537488,"data":"[   8.3 min] GUARD G probe split ok\n"}
+,{"stream_name":"stdout","time":498.171404339,"data":"[   8.3 min] GUARD G (81.1) checks: {'81.1a_f64_semantics': True, '81.1b_f32_dp_vs_split': True, 'structure_none_grad_set_is_frozen_everywhere': True, 'structure_plain_tensor_attributes': True, 'structure_fp32_fp64_grads_finite': True, 'autocast_on_in_every_dp_replica_fp16': True, 'memory_dp_below_13_gib': True, '81.1_PASS': True}\n"}
+,{"stream_name":"stdout","time":498.171477403,"data":"[   8.3 min] GUARD G comparisons: {'f64_e0': {'repeat_vs_single': 0.0, 'dp_vs_single': 5.438573434500837e-16, 'dp_loss_rel': 0.0}, 'f64_e70': {'repeat_vs_single': 0.0, 'dp_vs_single': 4.790811322139776e-16, 'dp_loss_rel': 0.0}, 'f32m_e0': {'repeat_vs_single': 0.0, 'dp_vs_single': 0.0005435753531683923, 'dp_loss_rel': 2.771155869897003e-07, 'dp_vs_split': 2.4250996014999916e-09, 'split_vs_single': 0.0005435753486138895}, 'f32m_e70': {'repeat_vs_single': 0.0, 'dp_vs_single': 0.0004890299001802614, 'dp_loss_rel': 2.771155869897003e-07, 'dp_vs_split': 2.6889959667921243e-09, 'split_vs_single': 0.0004890299012242885}, 'f16_e0': {'repeat_vs_single': 1.0178097040963095e-05, 'dp_vs_single': 0.000297781093517993, 'dp_loss_rel': 1.797044329309811e-07}, 'f16_e70': {'repeat_vs_single': 0.00010103275726915905, 'dp_vs_single': 0.0002852396392398675, 'dp_loss_rel': 1.797044329309811e-07}}\n"}
+,{"stream_name":"stdout","time":915.818704633,"data":"[  15.3 min] GUARD H (81.3): {'81.3a_fields_differing': [], '81.3a_PASS': True, '81.3b_rule': 'deterministic: resumed must equal straight bitwise', '81.3b_resumed_fields_differing': [], '81.3b_PASS': True, '81.3_PASS': True}\n"}
+,{"stream_name":"stdout","time":915.819887076,"data":"[  15.3 min] MEASURE_ONLY: stopping before training. Projection recorded; the full run is decided from it.\n"}
+,{"stream_name":"stderr","time":918.520260143,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":918.520319383,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":918.707915802,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":918.707948729,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":919.312057982,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":920.523981324,"data":"[NbConvertApp] Writing 545669 bytes to __results__.html\n"}
+]

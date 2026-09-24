@@ -5397,6 +5397,49 @@ same-GPU split of 81.1b (~15.4 GB) and the float64 `dp` at 16 per GPU of 81.1a (
 the function shows at any per-GPU batch of 2 or more, so the semantic coverage is unchanged. **No bar changes.**
 The fp16 tags (reported only) stay at 128. The same-GPU split runs without checkpointing, paired with `dp`.
 
+### 81.7 ✅ v7 RESULT: every pre-registered check passes — DataParallel is the recipe's computation, and full-state resume is exact (2026-09-24)
+`external/kaggle_out/cc1_v7/run_record.json`, kernel v7 at `da3c5ac`, `stopped_by: measure_only`, 15.3 min wall,
+**~0.27 GPU-h; session total ~7.2 GPU-h.** Bars as fixed in 81.5 and 81.6, before launch.
+
+**81.1 — the proof.**
+
+| tag | repeat vs single | **dp vs single** | dp vs split | split vs single | dp loss rel. diff. |
+|---|---|---|---|---|---|
+| float64, epoch 0 | 0 | **5.4e−16** (bar 1e−10) | — | — | 0 (bar 1e−12) |
+| float64, epoch 70 | 0 | **4.8e−16** | — | — | 0 |
+| fp32 math, epoch 0 | 0 | 5.4e−4 *(reported only)* | **2.4e−9** (bar 1e−5) | 5.4e−4 *(reported only)* | 2.8e−7 |
+| fp32 math, epoch 70 | 0 | 4.9e−4 *(reported only)* | **2.7e−9** | 4.9e−4 *(reported only)* | 2.8e−7 |
+| fp16, epoch 0 (scale 64) | 1.0e−5 | 3.0e−4 *(reported)* | — | — | 1.8e−7 |
+| fp16, epoch 70 (scale 16) | 1.0e−4 | 2.9e−4 *(reported)* | — | — | 1.8e−7 |
+
+Structure: in every mode and tag the set of parameters with `grad is None` is **exactly the ten frozen**; the only plain
+tensor attribute is `drug_HG_embed`; every fp32/float64 gradient is finite; **autocast was on in every DP replica call**
+on both fp16 tags; `dp` peaks at **7.37 / 7.33 GiB** per GPU.
+
+⇒ **81.1 PASSES.** In float64, DataParallel reproduces the single-GPU gradient to **machine precision** (5e−16) and
+the loss exactly: it computes the recipe's function. In fp32 it matches a same-GPU split to 2.4e−9; the ~5e−4
+against the unsplit batch is the recipe's own batch-shape sensitivity [80.7], and stays **reported only** [81.5].
+
+**Finding, as 81.5 required for anything above 1e−9:** fp32 `dp` vs `split` is 2.4e−9 and 2.7e−9, not the 0 of a
+same-GPU repeat. *Hypothesis, not tested:* the two replica gradients are summed by `ReduceAddCoalesced` after the
+backward, while the same-GPU split accumulates the two halves' contributions inside one autograd pass — a different
+order of the same two-term sums, i.e. a few fp32 ulps. It is five orders under the bar and the float64 test excludes a
+semantic cause.
+
+**81.3 — full-state resume, on their real `main()`, DataParallel, the ten frozen.**
+- **81.3a exact round-trip: PASS.** The live state right after restore equals the saved state in **every** field
+  (model, Adam `m`/`v`/`step`, GradScaler, LambdaLR, stopper, both CUDA RNGs and the CPU/numpy/python RNGs, the best
+  file's sha1); `start_epoch` is the saved epoch + 1.
+- **81.3b continuation: PASS, under the stricter branch.** Deterministic mode ran without raising; the three straight
+  runs are **bitwise identical**, and the resumed run is **bitwise identical** to them.
+
+**Timing (O2's price, 81.4):** `dp` 1.113 s / step in v7 (0.925 in v6 — 20 % slower, unexplained; Amendment E's
+first-epoch check will show which holds) → epoch 482 s → **~28.1 GPU-h for ~210 epochs, ~3.5 sessions** at the
+anchor [78.2]. Against a 30 h/week quota with ~7.2 used, an admissible run spans two quota weeks.
+
+⇒ **O2 is priced and every precondition in 78.4, 80.5 and 81 is met.** The launch design goes to review as packet
+015 before any training GPU-hour.
+
 ## 82. PRE-REGISTERED: a zero-parameter pre-test of A1 — does the cell's OWN chromatin make the union graph conduct a drug's effect better? (2026-09-24)
 
 IDEAS A1 is the principal's idea: chromatin decides **which edges conduct in this cell**, a different job from the

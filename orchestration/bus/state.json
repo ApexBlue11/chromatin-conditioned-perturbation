@@ -39,8 +39,8 @@
     "013_a9_result_and_dp_criteria",
     "014_dp_redesign_and_resume"
   ],
-  "gpu_hours_spent_this_session": 6.95,
-  "pending_decision": "build v7 (MEASURE_ONLY): 81.1a float64 semantics, 81.1b fp32 dp vs same-GPU split on math SDPA, 81.1c fp16 reported, 81.3a exact state round-trip, 81.3b deterministic continuation. All bars fixed in 81.5 before code. Then O2 or O4.",
+  "gpu_hours_spent_this_session": 7.22,
+  "pending_decision": "v7 PASSED all of 81 (float64 dp vs single 5e-16; fp32 dp vs split 2.4e-9; resume exact and bitwise). O2 priced ~28.1 GPU-h / ~3.5 sessions. Packet 015: the multi-session launch design, for GO before any training GPU-hour.",
   "note_current": "Packet 014 open. O2 not priced (80.6). No GPU committed until 014 returns.",
   "challenges_upheld": "89 of 92",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
