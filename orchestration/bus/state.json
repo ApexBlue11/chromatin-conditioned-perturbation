@@ -1,5 +1,5 @@
 {
-  "iteration": 25,
+  "iteration": 26,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "014_dp_redesign_and_resume"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -39,8 +41,8 @@
     "013_a9_result_and_dp_criteria"
   ],
   "gpu_hours_spent_this_session": 6.95,
-  "pending_decision": "review 012 GO on the O2 measurement: v6 MEASURE_ONLY with a DataParallel runtime patch, a proof (dropout zeroed in train mode, one DP step vs one single-GPU step, within the noise floor) and timing with and without checkpointing. Then O2 (~25 GPU-h, multi-session, full-state checkpoint per 78.4 C1/C5, 78.5 scoping) vs O4 on the measured number.",
-  "note_current": "v6 crashed in its own comparison (DP gives exactly-zero grads to 10 unused params; single GPU gives None). Amendments A-F committed before any v6 gradient comparison (RESULTS 80.5). Next: offline criteria on v6 grads (80.6), then v7 = full-state checkpoint + resume-equivalence + DP proof with the loss clause and in-replica autocast assertion.",
+  "pending_decision": "packet 014: v6 failed 80.3 criterion 1 (fp32 DP vs single 3.5e-4 vs bar 1e-5); a post-hoc diagnostic shows a same-GPU split reproduces the full batch to 1e-16 in float64 but moves fp32 gradients 1e-6..6e-4. Redesign (RESULTS 81, draft): float64 semantics test + fp32 DP vs same-GPU split + full-state resume + resume-equivalence. Under review.",
+  "note_current": "Packet 014 open. O2 not priced (80.6). No GPU committed until 014 returns.",
   "challenges_upheld": "85 of 88",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,

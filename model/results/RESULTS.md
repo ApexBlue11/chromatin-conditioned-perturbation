@@ -5269,6 +5269,75 @@ and I made — reduction-order differences of 1e−7 to 1e−6 — was wrong for
 It is tested next, locally and at zero GPU cost, as a post-hoc diagnostic; any redesigned proof goes to review as a
 **new** pre-registration, labelled as designed after this failure.
 
+### 80.7 Post-hoc diagnostic (local, 0 GPU-h): the DP computation is the recipe's in exact arithmetic; the fp32 bar was set on a false premise
+`model/v9/diag_split_local.py`, one laptop GPU. **Not pre-registered; it decides only what the redesigned proof is.**
+No DataParallel involved: on ONE GPU, their `train()` gradient on a batch is compared with the same rows run as two
+half-batch forwards concatenated before their loss — the computation DataParallel performs, minus the second device.
+Their `scanpy` / `unimol_tools` imports are stubbed as empty modules (unused by `train()`; installing them would
+downgrade numpy and pandas in the CUDA venv).
+
+| precision | rows | SDPA backend | weights | repeat vs full | **split vs full** |
+|---|---|---|---|---|---|
+| fp32 | 32 | mem-efficient | init / released | 1.3e−7 / 1.3e−8 | **2.4e−4 / 2.2e−4** (epoch 0) |
+| fp32 | 16 | mem-efficient | init / released | 7.6e−8 / 6.5e−9 | 3.5e−4 / 9.6e−7 |
+| fp32 | 16 | math | init / released | 0 / 0 | 5.8e−4 / 1.3e−4 |
+| **float64** | 16 | math (only) | released | 0 | **1.1e−16 (epoch 0), 1.1e−17 (epoch 70)** |
+
+Readings, at the strength they support:
+1. **In float64 a split batch reproduces the full batch to machine precision.** Nothing in the forward or the loss
+   couples samples; the computation DataParallel performs is the recipe's function. (For float64 only, their
+   `get_unimol_drug_feat`'s hard `.float()` cast on atom features, `model_XPert.py:14`, is bypassed.)
+2. **In fp32, an exactly equivalent reorganisation on one GPU moves gradients by 1e−6 to 6e−4** depending on rows,
+   weights and attention backend — the range DP's 3.5e−4 on the T4 falls in. It is not specific to initial weights (my
+   80.6 sub-hypothesis is wrong: 2.2e−4 at the released weights, 32 rows) and not specific to the memory-efficient
+   kernel (the math backend is no better). Its exact source is not identified.
+3. ⇒ **80.3's fp32 bar of 1e−5 assumed batch-shape rounding of 1e−7 to 1e−6** — an assumption review 013 and I both
+   made, and this model's fp32 numerics break. The test compared DP with the wrong reference.
+
+## 81. DRAFT PRE-REGISTRATION (pending review 014): the redesigned DataParallel proof, and full-state resume — designed AFTER 80.6's failure
+**Labelled as designed after a failure.** 80.6 stands as a failure of the proof as committed. What follows is a new
+test, and review 014 decides whether it is admissible before anything is run.
+
+### 81.1 The proof, v7, measure-only
+Four processes as before, plus `split_same_gpu` (the 80.7 construction inside their `train()`), weights both fresh
+(seed 0) and the released checkpoint, with Amendment A (the ten unused parameters frozen in every variant):
+- **81.1a Semantics, float64**, 32 rows (16 per GPU), epochs 0 and 70: `rel_L2(dp, single) < 1e−10` and
+  `rel_L2(dp_ckpt, single) < 1e−10`; loss relative difference `< 1e−12`. float64 epsilon is 1.1e−16 and the
+  same-GPU split measured 1e−16; a semantic defect (a mis-scattered or stale tensor, a loss on a shard) would show at
+  1e−6 or worse.
+- **81.1b fp32, DP against the RIGHT reference**, 32 rows: `rel_L2(dp, split_same_gpu) < 1e−5`. A replica runs the same
+  kernels on the same shapes as a same-GPU half, so DP should add only the cross-device gradient sum;
+  `rel_L2(split_same_gpu, single)` is reported as the recipe's own batch-shape sensitivity.
+- **81.1c fp16**, reported only: one fixed `GradScaler(init_scale=2**6)` shared by every variant (review 013 C1).
+- Structure: equal key sets once Amendment A freezes the ten; in-replica `torch.is_autocast_enabled()` asserted in
+  fp16 (Amendment D); `torch.__version__` recorded; gradient dumps kept as output.
+
+### 81.2 Full-state checkpoint and resume (review 012 C1, C5; 78.5)
+Captured by runtime hooks, with their files verbatim: `XPertNet`, `Adam`, `LambdaLR`, `GradScaler`, `EarlyStopping`
+instances are registered at construction. **Save** happens after `lr_scheduler.step()` at the end of each epoch
+(`train_xpert.py:545`, after `stopper.step` at `:538`), atomically: model, Adam, GradScaler and LambdaLR state dicts;
+the stopper's `best_score`, `counter`, `early_stop`; the bytes of the on-disk best checkpoint (`folder` is time-stamped
+per session, so it is restored under the new session's path); torch CPU, CUDA (both devices), numpy and python RNG
+states; the finished epoch index. Resume only at epoch boundaries. Carried between sessions as a Kaggle dataset
+version (~150 MB), attached to the next session.
+
+**Restore**, the one design choice put to review (ask 3): their `--resume_from` is used **only** to set `start_epoch`
+(`:489`). The full restore happens in the `EarlyStopping.__init__` hook (`:524`, the last construction before the
+loop, when every object exists): a **strict** model load with the loaded key set asserted equal to the model's
+(review 012 C1), then optimizer, scaler, scheduler, stopper and RNG states. Their filtered load at `:484-486` runs
+first and is overwritten.
+
+### 81.3 Resume equivalence, before any multi-session run (review 012 C5)
+`dp` recipe, published dropout: 2 epochs straight, twice (the floor), against 1 epoch + save + fresh process + restore
++ 1 epoch. Pass: every per-epoch train and validation loss of the resumed run within the straight-vs-straight spread,
+and final parameters no further from a straight run than the two straight runs are from each other. ~6 epochs at
+~7 min, ~0.7 GPU-h.
+
+### 81.4 What it buys
+If 81.1a–b and 81.3 pass: O2 is priced from the `dp` timing (0.925 s/step in v6: ~24 GPU-h, ~3 sessions at the
+anchor), subject to Amendment E's 25 % epoch-1 re-price. If 81.1a fails, DataParallel is not the recipe's computation
+and the choice is O1 or O4.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
