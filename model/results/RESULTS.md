@@ -5505,7 +5505,9 @@ locally on CPU. Artefacts `model/results/a1_diffusion_pretest_ch{0,1}.json` and 
 | NaN rows | 0 | — |
 
 ⇒ **Pre-committed reading, 82.5 row 1: UNINFORMATIVE**, on both tracks — NONE's median (−0.0006) is below the 0.01
-floor. A random walk from a compound's landmark targets over the union graph does not predict which landmarks
+floor. *Precision, from review 016:* on H3K27ac the NONE − DEGREE CI is [+1.5e−5, +0.0021], which excludes 0 (the table's
+"+0.0000" is rounding); the reading holds through the median disjunct. On ATAC, 31 of the 32 eligible cells contribute
+(MCH58 has 0 rows); §82 had no minimum-rows rule, so HS27A's 6 rows carry equal weight. Neither affects the reading. A random walk from a compound's landmark targets over the union graph does not predict which landmarks
 respond at all, so there is no signal for chromatin gating to improve or degrade. **A1 is neither supported nor
 refuted by this test.** The contrasts are reported and not read; none is distinguishable from zero.
 
@@ -5572,8 +5574,8 @@ the omitted secondary contrast added, runtime checks on the real graph added bec
 re-implementation). **First full run disclosed:** its primary contrast came out NaN — a random draw on isolated nodes
 gives a constant vector and an undefined Spearman, which poisoned row means and then cell medians. Fixed at `0506102`
 (mean over defined draws; per-contrast paired-complete rows), estimand unchanged; the first run's medians had been seen
-(NONE −0.00016, below the floor), so the fix could not move the reading to SIGNAL. The NaN-bug output is kept out of
-`results/`. Output `model/results/a1_fullgraph_pretest.json`. **0 GPU-hours.**
+(NONE −0.00016, below the floor), so the fix could not move the reading to SIGNAL. The NaN-bug output is archived, not
+dropped (review 016 C2), at `model/results/superseded/a1_fullgraph_pretest_nanbug*`; nothing reads it. Output `model/results/a1_fullgraph_pretest.json`. **0 GPU-hours.**
 
 | | value |
 |---|---|
@@ -5589,9 +5591,12 @@ cells is under the committed 75 %** — missed by 2 points, and it is not re-rea
 below the 0.01 floor, so the reading would have been "specific but negligible" and the gating test would not be built
 either way: **the conclusion does not depend on the 2-point miss.**
 
-**At the strength it supports:** propagation from a compound's own mechanism targets over STRING carries a drug-specific
-signal that is **real but tiny** — about +0.002 of Spearman over random targets, consistently across most cell lines —
-and essentially zero in absolute terms. Fixed diffusion from annotated targets does not predict which landmarks respond.
+**The reading, in §83.4's own words:** *"No drug-specific signal from fixed propagation over the STRING graph."* NONE −
+RANDOM is reported as a number (+0.0019), **not interpreted.** *Corrected by review 016 C1:* I first wrote "real but tiny
+drug specificity", which reads a failed criterion as a positive — and the RANDOM null draws targets uniformly from all
+19,496 nodes while real mechanism targets are enriched for well-studied hub proteins, so the contrast mixes specificity
+with target degree; even its sign is not evidence of specificity. A compound-shuffled or degree-matched target null would
+be the specificity test; no decision needs it, since every non-SIGNAL reading leads to the same action.
 
 ⇒ **The diffusion route to A1 is closed.** A1 — chromatin deciding which edges conduct — remains a question only a
 trained model can put, and its ~5.8 GPU-h arm stays unpriced behind O2.

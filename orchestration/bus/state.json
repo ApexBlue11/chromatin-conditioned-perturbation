@@ -1,5 +1,5 @@
 {
-  "iteration": 30,
+  "iteration": 31,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "016_a1_pretests"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -40,12 +38,13 @@
     "012_xpert_budget",
     "013_a9_result_and_dp_criteria",
     "014_dp_redesign_and_resume",
-    "015_o2_launch_design"
+    "015_o2_launch_design",
+    "016_a1_pretests"
   ],
   "gpu_hours_spent_this_session": 7.22,
   "pending_decision": "O2 session 1 running (includes the C4 chain test). On its end: read run_record; if session_boundary, verify handoff sha1s, upload state as a dataset version, generate session 2 with the sha1s as git-committed literals; Amendment E check before session 2.",
   "note_current": "O2 session 1 running. 83 (full-graph A1 prerequisite) rerunning after a NaN fix.",
-  "challenges_upheld": "93 of 96",
+  "challenges_upheld": "95 of 98",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
