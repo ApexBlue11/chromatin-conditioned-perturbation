@@ -103,6 +103,9 @@ def run(tmp, tag, state_dir, resume_dir=None, stop_after=None, resume_from=None)
             env.pop(k, None)
     r = subprocess.run([sys.executable, '-c', code], env=env, capture_output=True, text=True)
     print(r.stdout.strip())
+    for marker in ('LINCS SESSION BOUNDARY', 'LINCS HORIZON REACHED'):
+        if marker in r.stdout:
+            print('   [%s seen]' % marker)
     if r.returncode != 0:
         print(r.stderr[-3000:])
         raise SystemExit('child %s failed' % tag)
@@ -178,6 +181,48 @@ def main():
     r = subprocess.run([sys.executable, '-c', code2], env=env2, capture_output=True, text=True)
     assert r.returncode != 0 and 'did not run before the first train' in r.stderr, r.stderr[-600:]
     print('C4: restore hook never fired before the first train() -> fails hard: True')
+    # packet 015: THEIR stopper reporting early stopping must print the marker and write early_stop.json
+    code3 = ("import sys, types, os, json\nfor n in ('scanpy','unimol_tools'):\n m=types.ModuleType(n); m.UniMolRepr=None; "
+             "sys.modules[n]=m\nsys.path.insert(0, %r); sys.path.insert(0, %r)\nimport torch, utils\n"
+             "MX=types.ModuleType('models.model_XPert'); MX.XPertNet=type('XPertNet',(object,),{})\n"
+             "sys.modules['models']=types.ModuleType('models'); sys.modules['models.model_XPert']=MX\n"
+             "T=types.ModuleType('train_xpert'); T.train=lambda *a, **k: None; sys.modules['train_xpert']=T\n"
+             "import xpert_resume_patch as RP\nRP.apply()\nd=os.environ['FOLDER']; os.makedirs(d, exist_ok=True)\n"
+             "st=utils.EarlyStopping(mode='lower', metric='mse', patience=1, n_fold=0, folder=d, logger=__import__('logging').getLogger('t'))\n"
+             "m=torch.nn.Linear(2,2); o=torch.optim.Adam(m.parameters())\n"
+             "r=[]\nfor e, v in enumerate([1.0, 2.0, 3.0]):\n    r.append(st.step(v, m, e, o))\n    if r[-1]: break\nprint('STEPS', r)\n"
+             % (XPERT, HERE))
+    env3 = dict(os.environ, FOLDER=os.path.join(tmp, 'es_folder'), LINCS_STATE_DIR=os.path.join(tmp, 'es_state'))
+    r = subprocess.run([sys.executable, '-c', code3], env=env3, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr[-800:]
+    assert 'LINCS EARLY STOP' in r.stdout, r.stdout[-800:]
+    mk = json.load(open(os.path.join(tmp, 'es_state', 'early_stop.json')))
+    assert mk['epoch'] == 1 and mk['counter'] == 1, mk
+    print('early-stop marker printed and written:', mk)
+    # RESULTS 84.2 (015 C2): a deadline already passed ends the session at the FIRST epoch boundary, cleanly
+    import time as _time
+    os.environ['LINCS_DEADLINE'] = str(_time.time())
+    try:
+        bd = run(tmp, 'boundary', os.path.join(tmp, 'st_boundary'))
+    finally:
+        del os.environ['LINCS_DEADLINE']
+    assert bd['status'] == 'stopped', bd['status']
+    stb = torch.load(os.path.join(tmp, 'st_boundary', 'full_state.pt'), weights_only=False)
+    assert stb['epoch'] == 0, stb['epoch']
+    # and a session resumed from that boundary reaches the straight run's end state, bit for bit
+    cont = run(tmp, 'cont', os.path.join(tmp, 'st_cont'), resume_dir=os.path.join(tmp, 'st_boundary'),
+               resume_from=os.path.join(tmp, 'st_boundary', 'resume_from.pt'))
+    assert all(torch.equal(straight['params'][k], cont['params'][k]) for k in straight['params'])
+    print('deadline stops at an epoch boundary, and the resumed session equals the straight run: True')
+    # RESULTS 84.1: the horizon ends the run, FINAL, after that many completed epochs
+    os.environ['LINCS_HORIZON_EPOCHS'] = '3'
+    try:
+        hz = run(tmp, 'horizon', os.path.join(tmp, 'st_horizon'))
+    finally:
+        del os.environ['LINCS_HORIZON_EPOCHS']
+    sth = torch.load(os.path.join(tmp, 'st_horizon', 'full_state.pt'), weights_only=False)
+    assert hz['status'] == 'stopped' and sth['epoch'] == 2, (hz['status'], sth['epoch'])
+    print('horizon of 3 epochs stops after epoch 2: True')
     print('RESUME MECHANICS TEST PASSED')
 
 

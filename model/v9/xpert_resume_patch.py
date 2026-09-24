@@ -29,6 +29,11 @@ LINCS_TRUNCATE_BATCHES (train and validate on the first N batches of each epoch)
 live state right after restore, for the exact round-trip test), LINCS_DETERMINISTIC=1
 (torch.use_deterministic_algorithms; the caller sets CUBLAS_WORKSPACE_CONFIG before CUDA initialises).
 
+Production, RESULTS 84 [review 015]: LINCS_DEADLINE (unix time; after each save, stop cleanly if the slowest epoch
+so far would pass it -- so a session only ever ends at an epoch boundary, 015 C2), LINCS_HORIZON_EPOCHS (stop, FINAL,
+once that many epochs have completed, 84.1), LINCS_EXPECT_TORCH / LINCS_EXPECT_CUDA (the stack must not move between
+sessions, 015 C3). Test only: LINCS_TEST_PATIENCE (the C4 chain test).
+
 Review 014 C4: if --resume_from is on the command line and the strict restore has not run by the first train() call,
 the trainer fails hard -- a hook that silently failed to fire would reproduce exactly review 012 C1's failure.
 """
@@ -40,12 +45,14 @@ import os
 import random
 import shutil
 import sys
+import time
 
 import numpy as np
 import torch
 
 REG = {}
-_STATE = {'first_train_checked': False, 'expect_first_epoch': None, 'restored': False, 'resume_flag': False}
+_STATE = {'first_train_checked': False, 'expect_first_epoch': None, 'restored': False, 'resume_flag': False,
+          'epoch_t0': None, 'epoch_durations': []}
 
 
 def _register(cls, key, after=None):
@@ -147,7 +154,24 @@ def save_state():
         tmp = os.path.join(d, 'best.pth.tmp')
         shutil.copyfile(st.filepath, tmp)
         os.replace(tmp, os.path.join(d, 'best.pth'))
-    print('LINCS STATE SAVED epoch %d | best_score %r | counter %d' % (epoch, st.best_score, st.counter), flush=True)
+    now = time.time()
+    if _STATE['epoch_t0'] is not None:
+        _STATE['epoch_durations'].append(now - _STATE['epoch_t0'])
+    _STATE['epoch_t0'] = now
+    last_dur = _STATE['epoch_durations'][-1] if _STATE['epoch_durations'] else float('nan')
+    print('LINCS STATE SAVED epoch %d | best_score %r | counter %d | epoch_s %.1f'
+          % (epoch, st.best_score, st.counter, last_dur), flush=True)
+    horizon = os.environ.get('LINCS_HORIZON_EPOCHS')
+    if horizon is not None and epoch + 1 >= int(horizon):
+        print('LINCS HORIZON REACHED %s' % json.dumps({'epoch': epoch, 'best_score': st.best_score,
+                                                       'counter': int(st.counter)}), flush=True)
+        raise SystemExit(0)
+    deadline = os.environ.get('LINCS_DEADLINE')
+    if deadline is not None and _STATE['epoch_durations'] and now + max(_STATE['epoch_durations']) > float(deadline):
+        print('LINCS SESSION BOUNDARY %s' % json.dumps({'epoch': epoch, 'best_score': st.best_score,
+                                                         'counter': int(st.counter),
+                                                         'max_epoch_s': max(_STATE['epoch_durations'])}), flush=True)
+        raise SystemExit(0)
     stop_after = os.environ.get('LINCS_STOP_AFTER_EPOCH')
     if stop_after is not None and epoch + 1 >= int(stop_after):
         print('LINCS_STOP_AFTER_EPOCH reached after epoch %d; exiting cleanly (test mode)' % epoch, flush=True)
@@ -173,6 +197,13 @@ def restore_state():
     stopper.counter, stopper.best_score, stopper.early_stop = (st['stopper']['counter'], st['stopper']['best_score'],
                                                                st['stopper']['early_stop'])
     best = os.path.join(d, 'best.pth')
+    # 015 C2: the three per-epoch files are each atomic but not atomic together; refuse an inconsistent set.
+    if _sha1(best) != st['best_sha1']:
+        raise RuntimeError('xpert_resume_patch: best.pth sha1 %s != saved best_sha1 %s -- inconsistent state set'
+                           % (_sha1(best), st['best_sha1']))
+    rf = torch.load(os.path.join(d, 'resume_from.pt'), map_location='cpu', weights_only=False)
+    if int(rf['epoch']) != int(st['epoch']):
+        raise RuntimeError('xpert_resume_patch: resume_from epoch %s != full_state epoch %s' % (rf['epoch'], st['epoch']))
     if os.path.exists(best):
         os.makedirs(os.path.dirname(stopper.filepath), exist_ok=True)
         shutil.copyfile(best, stopper.filepath)
@@ -181,6 +212,12 @@ def restore_state():
     np.random.set_state(st['rng']['numpy'])
     random.setstate(st['rng']['python'])
     _STATE['expect_first_epoch'] = st['epoch'] + 1
+    # 015 C3: the exact round-trip of RESULTS 81.3a, IN PROCESS, every session: any difference is fatal.
+    live = collect_state()
+    diff = compare_states(st, live)
+    if diff:
+        raise RuntimeError('xpert_resume_patch: restored state differs from the saved state in %r' % diff[:10])
+    print('LINCS RESTORE ROUND-TRIP exact: every field bitwise equal', flush=True)
     _STATE['restored'] = True
     dump = os.environ.get('LINCS_DUMP_AFTER_RESTORE')
     if dump:
@@ -204,6 +241,11 @@ def apply():
     if _STATE['resume_flag'] and not os.environ.get('LINCS_RESUME_DIR'):
         raise RuntimeError('xpert_resume_patch: --resume_from given without LINCS_RESUME_DIR; their filtered load '
                            'must never be the only restore [review 012 C1, 014 C4]')
+    for var, have in (('LINCS_EXPECT_TORCH', torch.__version__), ('LINCS_EXPECT_CUDA', str(torch.version.cuda))):
+        want = os.environ.get(var)
+        if want is not None and want != have:
+            raise RuntimeError('xpert_resume_patch: %s is %s, this session has %s -- the stack moved [015 C3]'
+                               % (var, want, have))
     if os.environ.get('LINCS_DETERMINISTIC') == '1':
         torch.use_deterministic_algorithms(True)
     _register(MX.XPertNet, 'model', after=_freeze)
@@ -226,9 +268,32 @@ def apply():
         LambdaLR.step = step
 
     def after_stopper(self):
+        tp = os.environ.get('LINCS_TEST_PATIENCE')
+        if tp is not None:                       # TEST ONLY -- the kernel asserts it absent in production
+            self.patience = int(tp)
         if os.environ.get('LINCS_RESUME_DIR'):
             restore_state()
     _register(U.EarlyStopping, 'stopper', after=after_stopper)   # T.EarlyStopping is this same class object
+
+    # EARLY-STOP MARKER [packet 015]. When THEIR stopper reports early stopping, the session is the FINAL one: print a
+    # marker line the kernel's watchdog acts on, and write it to the state dir, so a final session can never be
+    # mistaken for a resume point. Wrapped on the class, acting only for the registered instance.
+    if not getattr(U.EarlyStopping.step, '_lincs_resume', False):
+        orig_es_step = U.EarlyStopping.step
+
+        def es_step(self, score, model, current_epoch, optimizer, *a, **k):
+            stop = orig_es_step(self, score, model, current_epoch, optimizer, *a, **k)
+            if stop and self is REG.get('stopper'):
+                info = {'epoch': int(current_epoch), 'best_score': self.best_score, 'counter': int(self.counter)}
+                d = os.environ.get('LINCS_STATE_DIR')
+                if d:
+                    os.makedirs(d, exist_ok=True)
+                    with open(os.path.join(d, 'early_stop.json'), 'w') as f:
+                        json.dump(info, f)
+                print('LINCS EARLY STOP %s' % json.dumps(info), flush=True)
+            return stop
+        es_step._lincs_resume = True
+        U.EarlyStopping.step = es_step
 
     orig_train, orig_validate = T.train, getattr(T, 'validate', None)
     trunc = os.environ.get('LINCS_TRUNCATE_BATCHES')
@@ -236,6 +301,7 @@ def apply():
     def train(*a, **k):
         if not _STATE['first_train_checked']:
             _STATE['first_train_checked'] = True
+            _STATE['epoch_t0'] = time.time()
             if _STATE['resume_flag'] and not _STATE['restored']:
                 raise RuntimeError('xpert_resume_patch: --resume_from is set but the strict restore did not run before '
                                    'the first train() call -- refusing [review 014 C4]')
