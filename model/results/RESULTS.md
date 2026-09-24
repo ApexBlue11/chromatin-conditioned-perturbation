@@ -5485,6 +5485,43 @@ gating is worth testing.)*
 **For the GPU decision:** A1's trained arm (~5.8 GPU-h) is **not motivated** by this pre-test, and O2 keeps priority
 for the quota.
 
+## 83. PRE-REGISTERED: does propagation from ALL of a compound's mechanism targets, over the full STRING graph, carry drug-specific signal at the landmarks? (A1's prerequisite, 2026-09-24)
+
+§82 was uninformative because ungated diffusion from **landmark** targets had no signal. Before any gating on the full
+graph is worth building, the prerequisite is whether propagation **from all annotated targets** carries signal at all.
+Written before any code exists. **0 GPU-hours; local CPU.**
+
+### 83.1 Predictor
+Graph: `network/outputs/v9/string_graph_v9.npz` — 19,496 nodes, `edge_index` (2, 929,472), `weight` (STRING
+confidence), `landmark_idx` (978, landmark order → node). Weighted and symmetric (`W[i,j] = W[j,i] = weight`); the
+worker verifies whether edges are listed once or twice and symmetrises without double counting. Targets:
+`drug/outputs/dti/chembl_dti_edges.tsv` (mechanism-level, `direct_interaction = 1`), `gene_symbol` mapped to nodes;
+unmapped symbols counted and dropped. `t_d` = 1/|T| on the compound's mapped targets. Random walk with restart,
+**α = 0.5 fixed**, `s = (I − αP)^{-1} t`, `P = D^{-1/2} W D^{-1/2}`, computed by the sparse fixed-point iteration
+`s ← α P s + t` to an L1 change below 1e−10. Nothing is fitted.
+
+### 83.2 Rows, score, conditions
+Rows: every usable signature whose compound has ≥ 1 mapped target, all cells. Score: Spearman(s at the landmarks,
+|z|) over the landmarks that are **not** targets of the compound (Level 5 `Y_target_level5_978.npy`).
+- **NONE** — the compound's own targets.
+- **RANDOM** (primary null) — the same number of targets drawn uniformly from all graph nodes, 5 draws per compound
+  (`default_rng(seed + compound_index)`), score averaged. Tests *drug specificity*: hub structure alone cannot pass it.
+- **DEGREE** — `s` = the landmarks' weighted degree in the full graph.
+
+### 83.3 Estimand — unit is the cell line
+Per cell *c* with ≥ 50 rows: `d_c` = median over *c*'s rows of `score(NONE) − score(RANDOM)` (primary) and of
+`score(NONE) − score(DEGREE)` (secondary). Mean of `d_c` over cells, cluster bootstrap over cells (20,000, seed 0),
+count of cells with `d_c > 0`, sign test. Also the median of `score(NONE)` over rows.
+
+### 83.4 Readings
+| result | reading |
+|---|---|
+| median(NONE) > 0.01 **and** NONE − RANDOM: mean > 0, CI excl. 0, ≥ 75 % of cells | **Propagation from mechanism targets carries drug-specific signal.** A full-graph gating test for A1 (landmark–landmark edges gated by chromatin) is then worth pre-registering. |
+| NONE − RANDOM passes but median(NONE) ≤ 0.01 | Specific but negligible; recorded; the gating test is not built. |
+| anything else | **No drug-specific signal from fixed propagation over the STRING graph.** The diffusion route to A1 is closed; A1 remains a question only a trained model can put. |
+
+Delegated as W11; verified by me before any number is read.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
