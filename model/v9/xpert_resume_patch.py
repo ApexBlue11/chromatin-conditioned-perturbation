@@ -23,10 +23,18 @@ chained through it would not be their continuous training. This module makes it 
     next draw is the next epoch's shuffle. Their filtered load ran first and is overwritten. The first train() call
     is asserted to be the epoch after the saved one.
 
-Environment: LINCS_STATE_DIR (write), LINCS_RESUME_DIR (read; absent on session 1), LINCS_FROZEN_PARAMS (JSON list),
-LINCS_STOP_AFTER_EPOCH (tests only: exit cleanly after saving that many finished epochs).
+Environment: LINCS_STATE_DIR (write), LINCS_RESUME_DIR (read; absent on session 1), LINCS_FROZEN_PARAMS (JSON list).
+Test mode only [RESULTS 81.5, 81.3]: LINCS_STOP_AFTER_EPOCH (exit cleanly after saving that many finished epochs),
+LINCS_TRUNCATE_BATCHES (train and validate on the first N batches of each epoch), LINCS_DUMP_AFTER_RESTORE (write the
+live state right after restore, for the exact round-trip test), LINCS_DETERMINISTIC=1
+(torch.use_deterministic_algorithms; the caller sets CUBLAS_WORKSPACE_CONFIG before CUDA initialises).
+
+Review 014 C4: if --resume_from is on the command line and the strict restore has not run by the first train() call,
+the trainer fails hard -- a hook that silently failed to fire would reproduce exactly review 012 C1's failure.
 """
+import hashlib
 import io
+import itertools
 import json
 import os
 import random
@@ -37,7 +45,7 @@ import numpy as np
 import torch
 
 REG = {}
-_STATE = {'first_train_checked': False, 'expect_first_epoch': None}
+_STATE = {'first_train_checked': False, 'expect_first_epoch': None, 'restored': False, 'resume_flag': False}
 
 
 def _register(cls, key, after=None):
@@ -74,18 +82,65 @@ def _freeze(model):
     print('LINCS froze %d unused parameters' % len(names), flush=True)
 
 
+def _sha1(path):
+    if not os.path.exists(path):
+        return None
+    h = hashlib.sha1()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def collect_state():
+    """Everything restorable, in one structure -- used by the save AND by the post-restore dump, so the exact
+    round-trip test of RESULTS 81.3a compares like with like, field for field."""
+    m, opt, sch, sc, st = REG['model'], REG['opt'], REG['sched'], REG.get('scaler'), REG['stopper']
+    return {'epoch': int(sch.last_epoch) - 1,       # LambdaLR counts the step just taken; the finished epoch is one less
+            'model': {k: v.detach().cpu() for k, v in m.state_dict().items()},
+            'opt': opt.state_dict(), 'sched': sch.state_dict(),
+            'scaler': sc.state_dict() if sc is not None else None,
+            'stopper': {'counter': st.counter, 'best_score': st.best_score, 'early_stop': st.early_stop},
+            'best_sha1': _sha1(st.filepath),
+            'rng': {'torch': torch.get_rng_state(), 'cuda': torch.cuda.get_rng_state_all(),
+                    'numpy': np.random.get_state(), 'python': random.getstate()}}
+
+
+def compare_states(saved, live, path='state'):
+    """RESULTS 81.3a: every restorable field BITWISE equal. Returns the list of paths that differ (empty = pass).
+    Tensors must match in dtype, shape and every bit; numpy arrays likewise; containers element for element."""
+    bad = []
+    if torch.is_tensor(saved) or torch.is_tensor(live):
+        if not (torch.is_tensor(saved) and torch.is_tensor(live) and saved.dtype == live.dtype
+                and saved.shape == live.shape and torch.equal(saved.cpu(), live.cpu())):
+            bad.append(path)
+    elif isinstance(saved, np.ndarray) or isinstance(live, np.ndarray):
+        if not (isinstance(saved, np.ndarray) and isinstance(live, np.ndarray) and saved.dtype == live.dtype
+                and np.array_equal(saved, live)):
+            bad.append(path)
+    elif isinstance(saved, dict):
+        if not isinstance(live, dict) or set(saved) != set(live):
+            bad.append(path + ' (keys)')
+        else:
+            for k in saved:
+                bad += compare_states(saved[k], live[k], '%s.%s' % (path, k))
+    elif isinstance(saved, (list, tuple)):
+        if not isinstance(live, (list, tuple)) or len(saved) != len(live):
+            bad.append(path + ' (length)')
+        else:
+            for i, (x, y) in enumerate(zip(saved, live)):
+                bad += compare_states(x, y, '%s[%d]' % (path, i))
+    elif saved != live:
+        bad.append(path)
+    return bad
+
+
 def save_state():
     d = os.environ['LINCS_STATE_DIR']
     os.makedirs(d, exist_ok=True)
-    m, opt, sch, sc, st = REG['model'], REG['opt'], REG['sched'], REG.get('scaler'), REG['stopper']
-    epoch = int(sch.last_epoch) - 1                 # LambdaLR counts the step just taken; the finished epoch is one less
-    state = {'epoch': epoch,
-             'model': {k: v.detach().cpu() for k, v in m.state_dict().items()},
-             'opt': opt.state_dict(), 'sched': sch.state_dict(),
-             'scaler': sc.state_dict() if sc is not None else None,
-             'stopper': {'counter': st.counter, 'best_score': st.best_score, 'early_stop': st.early_stop},
-             'rng': {'torch': torch.get_rng_state(), 'cuda': torch.cuda.get_rng_state_all(),
-                     'numpy': np.random.get_state(), 'python': random.getstate()}}
+    st = REG['stopper']
+    state = collect_state()
+    epoch = state['epoch']
     _atomic_save(state, os.path.join(d, 'full_state.pt'))
     _atomic_save({'epoch': epoch, 'model_state_dict': state['model']}, os.path.join(d, 'resume_from.pt'))
     if os.path.exists(st.filepath):
@@ -101,6 +156,8 @@ def save_state():
 
 def restore_state():
     d = os.environ['LINCS_RESUME_DIR']
+    # map_location='cpu', independently of their load at train_xpert.py:483 [review 014 C4]; torch.set_rng_state needs a
+    # CPU ByteTensor.
     st = torch.load(os.path.join(d, 'full_state.pt'), map_location='cpu', weights_only=False)
     m = REG['model']
     want, have = set(st['model']), set(m.state_dict())
@@ -124,6 +181,12 @@ def restore_state():
     np.random.set_state(st['rng']['numpy'])
     random.setstate(st['rng']['python'])
     _STATE['expect_first_epoch'] = st['epoch'] + 1
+    _STATE['restored'] = True
+    dump = os.environ.get('LINCS_DUMP_AFTER_RESTORE')
+    if dump:
+        live = collect_state()
+        live['start_epoch_expected'] = _STATE['expect_first_epoch']
+        _atomic_save(live, dump)
     print('LINCS RESUME restored epoch %d | best_score %r | counter %d | best checkpoint %s'
           % (st['epoch'], stopper.best_score, stopper.counter, 'restored' if os.path.exists(best) else 'none yet'),
           flush=True)
@@ -137,6 +200,12 @@ def apply():
     from torch.optim.lr_scheduler import LambdaLR
     from torch.cuda.amp import GradScaler
 
+    _STATE['resume_flag'] = any(a == '--resume_from' or a.startswith('--resume_from=') for a in sys.argv)
+    if _STATE['resume_flag'] and not os.environ.get('LINCS_RESUME_DIR'):
+        raise RuntimeError('xpert_resume_patch: --resume_from given without LINCS_RESUME_DIR; their filtered load '
+                           'must never be the only restore [review 012 C1, 014 C4]')
+    if os.environ.get('LINCS_DETERMINISTIC') == '1':
+        torch.use_deterministic_algorithms(True)
     _register(MX.XPertNet, 'model', after=_freeze)
     _register(torch.optim.Adam, 'opt')
     _register(GradScaler, 'scaler')
@@ -161,14 +230,28 @@ def apply():
             restore_state()
     _register(U.EarlyStopping, 'stopper', after=after_stopper)   # T.EarlyStopping is this same class object
 
-    orig_train = T.train
+    orig_train, orig_validate = T.train, getattr(T, 'validate', None)
+    trunc = os.environ.get('LINCS_TRUNCATE_BATCHES')
 
     def train(*a, **k):
         if not _STATE['first_train_checked']:
             _STATE['first_train_checked'] = True
+            if _STATE['resume_flag'] and not _STATE['restored']:
+                raise RuntimeError('xpert_resume_patch: --resume_from is set but the strict restore did not run before '
+                                   'the first train() call -- refusing [review 014 C4]')
             exp = _STATE['expect_first_epoch']
             if exp is not None and k.get('epoch') != exp:
                 raise RuntimeError('xpert_resume_patch: first epoch %r, expected %r' % (k.get('epoch'), exp))
+        if trunc:
+            a = list(a)
+            a[2] = itertools.islice(a[2], int(trunc))       # train(model, opt, dataloader, ...)
         return orig_train(*a, **k)
+
+    def validate(*a, **k):
+        a = list(a)
+        a[1] = itertools.islice(a[1], int(trunc))           # validate(model, dataloader, ...)
+        return orig_validate(*a, **k)
     T.train = train
+    if trunc and orig_validate is not None:
+        T.validate = validate
     return sorted(REG.keys())

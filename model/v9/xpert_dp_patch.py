@@ -29,7 +29,16 @@ import sys
 import torch
 from torch.nn.parallel import data_parallel
 
-_CACHE = {}   # (id(original tensor), device) -> copy on that device
+# (id(source), device) -> (source, copy). The source is kept and checked by IDENTITY, so a reused id() can never
+# serve a stale copy [RESULTS 80.5, Amendment F].
+_CACHE = {}
+# Only these plain tensor attributes are moved to a replica's device; any other tensor attribute found off-device
+# is an error, not something to copy. On a replica the parameter copies are plain attributes too (replicate()
+# sets them that way), already on the device -- they must never be moved.
+LOCALISE = frozenset(['drug_HG_embed'])
+# Set by the probe: True asserts autocast is ON inside every replica forward, False asserts it is OFF, None skips.
+EXPECT_AUTOCAST = None
+REPLICA_CALLS = {'n': 0, 'autocast_on': 0}
 
 
 def plain_tensor_attributes(model):
@@ -45,11 +54,17 @@ def plain_tensor_attributes(model):
 def _localise(replica, dev):
     for m in replica.modules():
         for name, val in list(vars(m).items()):
-            if torch.is_tensor(val) and val.device != dev:
-                key = (id(val), dev)
-                if key not in _CACHE:
-                    _CACHE[key] = val.to(dev)
-                setattr(m, name, _CACHE[key])     # replicas hold a shallow copy of __dict__: the original is untouched
+            if not torch.is_tensor(val) or val.device == dev:
+                continue
+            if name not in LOCALISE:
+                raise RuntimeError('xpert_dp_patch: tensor attribute %r is on %s, not the replica device %s, and is not '
+                                   'in the localise set %s' % (name, val.device, dev, sorted(LOCALISE)))
+            key = (id(val), dev)
+            hit = _CACHE.get(key)
+            if hit is None or hit[0] is not val:
+                hit = (val, val.to(dev))
+                _CACHE[key] = hit
+            setattr(m, name, hit[1])      # replicas hold a shallow copy of __dict__: the original is untouched
     replica.device = dev
 
 
@@ -69,6 +84,12 @@ def apply(model_XPert=None, device_ids=None):
             # 2026-09-24, before any GPU spend). parallel_apply runs each replica under
             # torch.cuda.device(<its device>), so the current device is the replica's.
             _localise(self, torch.device('cuda', torch.cuda.current_device()))
+            on = torch.is_autocast_enabled()
+            REPLICA_CALLS['n'] += 1
+            REPLICA_CALLS['autocast_on'] += int(on)
+            if EXPECT_AUTOCAST is not None and on != EXPECT_AUTOCAST:
+                raise RuntimeError('xpert_dp_patch: autocast is %s inside a replica, expected %s [RESULTS 81.5]'
+                                   % (on, EXPECT_AUTOCAST))
             return orig(self, data, *a, **k)
         if len(ids) > 1 and self.training and torch.is_grad_enabled() and data[0].shape[0] >= len(ids):
             if a:

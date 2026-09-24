@@ -138,6 +138,46 @@ def main():
         raise AssertionError('a prefixed key set was NOT refused')
     except SystemExit as e:
         print('prefixed key set refused, as required:', e)
+    # RESULTS 81.3a: the live state right after restore equals the saved state, bit for bit, every field
+    dump = os.path.join(tmp, 'dump_after_restore.pt')
+    os.environ['LINCS_DUMP_AFTER_RESTORE'] = dump
+    try:
+        run(tmp, 'rt', os.path.join(tmp, 'st_rt'), resume_dir=os.path.join(tmp, 'st_resumed'),
+            resume_from=os.path.join(tmp, 'st_resumed', 'resume_from.pt'))
+    finally:
+        del os.environ['LINCS_DUMP_AFTER_RESTORE']
+    sys.path.insert(0, HERE)
+    import xpert_resume_patch as RP
+    saved = torch.load(os.path.join(tmp, 'st_resumed', 'full_state.pt'), weights_only=False)
+    live = torch.load(dump, weights_only=False)
+    assert live.pop('start_epoch_expected') == saved['epoch'] + 1
+    diff = RP.compare_states(saved, live)
+    print('81.3a round-trip, fields differing:', diff)
+    assert diff == [], diff
+    # and the comparator is not vacuous: one flipped Adam moment must be caught
+    k0 = next(iter(live['opt']['state']))
+    live['opt']['state'][k0]['exp_avg'] = live['opt']['state'][k0]['exp_avg'].clone()
+    live['opt']['state'][k0]['exp_avg'].view(-1)[0] += 1e-7
+    assert RP.compare_states(saved, live) == ['state.opt.state.%s.exp_avg' % k0], RP.compare_states(saved, live)
+    print('comparator catches a 1e-7 change in one Adam moment: True')
+
+    # review 014 C4: --resume_from on the command line without the strict restore must fail hard
+    code = ("import sys, types\nfor n in ('scanpy','unimol_tools'):\n m=types.ModuleType(n); m.UniMolRepr=None; "
+            "sys.modules[n]=m\nsys.path.insert(0, %r); sys.path.insert(0, %r)\n"
+            "import utils\nMX=types.ModuleType('models.model_XPert'); MX.XPertNet=type('XPertNet',(object,),{})\n"
+            "sys.modules['models']=types.ModuleType('models'); sys.modules['models.model_XPert']=MX\n"
+            "T=types.ModuleType('train_xpert'); T.train=lambda *a, **k: None; sys.modules['train_xpert']=T\n"
+            "sys.argv=['train_xpert.py','--resume_from','x.pt']\nimport xpert_resume_patch as RP\nRP.apply()\n"
+            % (XPERT, HERE))
+    env = dict(os.environ); env.pop('LINCS_RESUME_DIR', None)
+    r = subprocess.run([sys.executable, '-c', code], env=env, capture_output=True, text=True)
+    assert r.returncode != 0 and 'must never be the only restore' in r.stderr, r.stderr[-600:]
+    print('C4: --resume_from without the strict restore fails hard: True')
+    code2 = code + "T.train(None, None, [], epoch=1)\n"      # the restore hook never fired before the first train()
+    env2 = dict(os.environ, LINCS_RESUME_DIR=tmp)
+    r = subprocess.run([sys.executable, '-c', code2], env=env2, capture_output=True, text=True)
+    assert r.returncode != 0 and 'did not run before the first train' in r.stderr, r.stderr[-600:]
+    print('C4: restore hook never fired before the first train() -> fails hard: True')
     print('RESUME MECHANICS TEST PASSED')
 
 
