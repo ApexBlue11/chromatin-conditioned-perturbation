@@ -1,0 +1,110 @@
+{
+  "ckpt": "sa0_ckpt_v9_fold0_seed0.pt",
+  "batch": 48,
+  "n_eval": 1500,
+  "n_boot": 20000,
+  "seed": 0,
+  "alphas": [
+    0.0
+  ],
+  "key": "x_cell",
+  "operator": "atom_only",
+  "splits": {
+    "unseen_cell": {
+      "n_eligible": 7276,
+      "n_eval_requested": 1500,
+      "n_eval_bound": true,
+      "rows_sha": "434418d7677d3f9c",
+      "rows_first5": [
+        1826,
+        1931,
+        1971,
+        1986,
+        2055
+      ],
+      "rows_n": 1500,
+      "results_by_alpha": {
+        "0.0": {
+          "score_full": 0.5133097171783447,
+          "score_ablated": 0.49336278438568115,
+          "atom_effect": 0.019946932792663574,
+          "atom_effect_median_per_row": 0.008679181337356567,
+          "atom_effect_median_per_row_ci95": [
+            0.007693678140640259,
+            0.00968247652053833
+          ],
+          "sign_test_p": 1.5179168558331264e-83,
+          "atom_effect_ci95": [
+            0.01139948982745409,
+            0.024577993899583817
+          ],
+          "dY_max": 4.583394527435303
+        }
+      }
+    },
+    "unseen_compound": {
+      "n_eligible": 10384,
+      "n_eval_requested": 1500,
+      "n_eval_bound": true,
+      "rows_sha": "160865d7b95cbc06",
+      "rows_first5": [
+        50,
+        192,
+        225,
+        420,
+        431
+      ],
+      "rows_n": 1500,
+      "results_by_alpha": {
+        "0.0": {
+          "score_full": 0.5832489728927612,
+          "score_ablated": 0.555856466293335,
+          "atom_effect": 0.02739250659942627,
+          "atom_effect_median_per_row": 0.015378788113594055,
+          "atom_effect_median_per_row_ci95": [
+            0.013113677501678467,
+            0.017390310764312744
+          ],
+          "sign_test_p": 1.5737562493101818e-88,
+          "atom_effect_ci95": [
+            0.018528342247009277,
+            0.03894472122192383
+          ],
+          "dY_max": 5.930368900299072
+        }
+      }
+    },
+    "unseen_both": {
+      "n_eligible": 2988,
+      "n_eval_requested": 1500,
+      "n_eval_bound": true,
+      "rows_sha": "02fb5b09d78a8d7e",
+      "rows_first5": [
+        1818,
+        1837,
+        1845,
+        1892,
+        1935
+      ],
+      "rows_n": 1500,
+      "results_by_alpha": {
+        "0.0": {
+          "score_full": 0.4921994209289551,
+          "score_ablated": 0.477591335773468,
+          "atom_effect": 0.01460808515548706,
+          "atom_effect_median_per_row": 0.004892140626907349,
+          "atom_effect_median_per_row_ci95": [
+            0.0037260353565216064,
+            0.006243258714675903
+          ],
+          "sign_test_p": 8.58430885666805e-31,
+          "atom_effect_ci95": [
+            0.004979513585567474,
+            0.022036205977201462
+          ],
+          "dY_max": 4.589643478393555
+        }
+      }
+    }
+  }
+}

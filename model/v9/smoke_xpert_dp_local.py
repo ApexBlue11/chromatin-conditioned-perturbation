@@ -14,7 +14,14 @@ import xpert_native_eval as X  # noqa: E402
 
 E = X.load_everything('cuda')
 from torch.utils.data import DataLoader  # noqa: E402
-import train_xpert as T  # noqa: E402  -- their script; main() is guarded by __name__
+# Their train_xpert imports scanpy and unimol_tools at module scope (via utils.py). Installing those into the CUDA
+# venv would downgrade numpy and pandas under every v9 regression that runs there (pip --dry-run, 2026-09-24),
+# so the train() half of this test runs only where they are importable; on Kaggle GUARD G exercises it.
+try:
+    import train_xpert as T  # noqa: E402  -- their script; main() is guarded by __name__
+except ImportError as e:
+    T = None
+    print('train_xpert not importable here (%s): the train() half is SKIPPED, not passed' % e)
 import xpert_ckpt_patch  # noqa: E402
 import xpert_dp_patch  # noqa: E402
 
@@ -55,6 +62,9 @@ print('replica path vs top-level path, max |d| over the three outputs: %.3e' % d
 assert d == 0.0 or d < 1e-6, d
 assert rep.device == torch.device('cuda:0')
 
+if T is None:
+    print('SMOKE PASSED (replica path, localisation, inventory, dropout) -- train() half SKIPPED')
+    raise SystemExit(0)
 xpert_ckpt_patch.apply()
 sd = {k: v.detach().clone() for k, v in model.state_dict().items()}
 cfg = E['cfg']

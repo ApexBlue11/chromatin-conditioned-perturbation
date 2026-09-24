@@ -1,0 +1,111 @@
+{
+  "ckpt": "sa0_ckpt_v9_fold0_seed0.pt",
+  "batch": 48,
+  "n_eval": 1500,
+  "n_boot": 20000,
+  "seed": 0,
+  "alphas": [
+    0.0
+  ],
+  "key": "atoms",
+  "operator": "atom_only",
+  "splits": {
+    "unseen_cell": {
+      "n_eligible": 7276,
+      "n_eval_requested": 1500,
+      "n_eval_bound": true,
+      "rows_sha": "434418d7677d3f9c",
+      "rows_first5": [
+        1826,
+        1931,
+        1971,
+        1986,
+        2055
+      ],
+      "rows_n": 1500,
+      "results_by_alpha": {
+        "0.0": {
+          "score_full": 0.4680008888244629,
+          "score_ablated": 0.4782424867153168,
+          "atom_effect": -0.010241597890853882,
+          "atom_effect_median_per_row": -0.0009758174419403076,
+          "atom_effect_median_per_row_ci95": [
+            -0.0020131468772888184,
+            4.84660267829895e-05
+          ],
+          "sign_test_p": 0.07478387367625823,
+          "atom_effect_ci95": [
+            -0.015603156760334969,
+            0.0013183988630771637
+          ],
+          "dY_max": 5.008415699005127
+        }
+      }
+    },
+    "unseen_compound": {
+      "n_eligible": 10384,
+      "n_eval_requested": 1500,
+      "n_eval_bound": true,
+      "rows_sha": "160865d7b95cbc06",
+      "rows_first5": [
+        50,
+        192,
+        225,
+        420,
+        431
+      ],
+      "rows_n": 1500,
+      "results_by_alpha": {
+        "0.0": {
+          "score_full": 0.46968787908554077,
+          "score_ablated": 0.4884266257286072,
+          "atom_effect": -0.018738746643066406,
+          "atom_effect_median_per_row": -0.01200762391090393,
+          "atom_effect_median_per_row_ci95": [
+            -0.01328691840171814,
+            -0.010455936193466187
+          ],
+          "sign_test_p": 1.3141948746882052e-53,
+          "atom_effect_ci95": [
+            -0.02677946351468563,
+            -0.01061697956174612
+          ],
+          "dY_max": 2.5428550243377686
+        }
+      }
+    },
+    "unseen_both": {
+      "n_eligible": 2988,
+      "n_eval_requested": 1500,
+      "n_eval_bound": true,
+      "rows_sha": "02fb5b09d78a8d7e",
+      "rows_first5": [
+        1818,
+        1837,
+        1845,
+        1892,
+        1935
+      ],
+      "rows_n": 1500,
+      "results_by_alpha": {
+        "0.0": {
+          "score_full": 0.39380979537963867,
+          "score_ablated": 0.4223330318927765,
+          "atom_effect": -0.028523236513137817,
+          "atom_effect_median_per_row": -0.015373289585113525,
+          "atom_effect_median_per_row_ci95": [
+            -0.017363160848617554,
+            -0.013677239418029785
+          ],
+          "sign_test_p": 2.7169289365810067e-78,
+          "atom_effect_ci95": [
+            -0.039270222187042236,
+            -0.02065235935151577
+          ],
+          "dY_max": 2.2252814769744873
+        }
+      }
+    }
+  },
+  "cut": "global"
+}

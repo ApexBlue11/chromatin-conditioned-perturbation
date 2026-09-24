@@ -5073,6 +5073,50 @@ One seed, one checkpoint. Inference-time cuts of a model trained with every rout
 **Cost: 0 GPU-hours.** Seven local inference passes at α = 0 only (four cells with key `atoms`, three with
 `x_cell`). Operator and harness flag delegated as W9, verified by me before any run.
 
+### 79.9 RESULT: A9 is NOT answerable by inference-time cuts — both kill switches fail, as pre-committed (2026-09-24)
+Seven local passes, `alpha_sweep.py --operator atom_only --alphas 0 --cut {none,xattn,global,both}`, analysed by
+`model/v9/a9_decompose.py` **as committed at `e20147d`, before it was run** (verified unchanged against HEAD). Output
+`model/results/v9_a9_residual_routes_sa0.json`. **0 GPU-hours.**
+
+**79.3 structural checks — both pass.**
+- The uncut cell reproduces §74's α = 0 per-row arrays **byte for byte**, both keys, all three splits; `rows_sha`
+  as required.
+- With both cuts, **`dY_max = 0.0` exactly on every split.** The route inventory of 79.1 is complete: at
+  `atom_alpha = 0` there is no path from the atoms to the output other than the two cut.
+
+**79.4 kill switch, `unseen_compound` — both single cuts FAIL.** Bar `|cost| < 0.00966`:
+
+| cut | cost (median per row, paired) | CI95 | verdict |
+|---|---|---|---|
+| X — genes read the global key only | **+0.04209** | [+0.03696, +0.04682] | **FAIL**, 4.4× the bar |
+| G — the global token reads only itself | **+0.04609** | [+0.03997, +0.05184] | **FAIL**, 4.8× the bar |
+
+Both also exceed the +0.03 that §67.2 used, so the stricter choice made in 79.4 did not decide the outcome.
+
+⇒ **Pre-committed reading, 79.6 last row: A9 is not answerable by inference-time cuts.** The question — which route
+carries the −0.00322 residual — passes to a trained arm, which is not priced here and is folded into A8's pricing.
+
+**Reported, NOT read** (the kill switch forbids attribution; the numbers are recorded so nobody has to rerun them):
+
+| `unseen_compound` | effect, median per row [CI95] | paired mean |
+|---|---|---|
+| E0, nothing cut | −0.00322 [−0.00433, −0.00226] | −0.00682 |
+| G cut — atoms reach genes by their own keys only | −0.01201 [−0.01329, −0.01046] | −0.01780 |
+| X cut — atoms reach genes through the global token only | +0.00023 [+0.00007, +0.00038] | +0.00085 |
+| remainder `i` = e0 − ea − eb | — | **+0.01013** [+0.00779, +0.01253] |
+
+The remainder is **larger than E0 itself and of opposite sign**: the single-cut cells do not add up to the uncut
+model. That is what a counterfactual 4–5 points of Pearson away from the trained model looks like, and it is the
+reason the kill switch exists. The route signs above are **not** evidence about the trained model's residual.
+`unseen_both` and `unseen_cell` are in the artefact [§75.2]; on `unseen_both` cut X costs +0.00930, just under the bar,
+but `unseen_both` is not primary and its gate fails (0.34), so nothing is read there either.
+
+**What IS established, at the strength it supports.** (1) A **structural** fact, proved by `dY_max = 0.0`: at
+`atom_alpha = 0`, atom information reaches the output only through the gene → drug cross-attention, by the atom keys
+or by the global key. (2) The kill-switch quantity itself, as §72.2 treated its own: **the trained model leans hard on
+both routes** — cutting either costs it 0.042–0.046 of median per-row Pearson on unseen compounds. That is a statement
+about the model's reliance on the routes for its *predictions*, not about the atom tokens' *harm*.
+
 ## 80. PRE-COMMITTED: what the DataParallel measurement (v6) must show before O2 can be priced (2026-09-23)
 
 Review 012 approved the ~0.15 GPU-h measurement. This fixes, before launch, what counts as DataParallel being the

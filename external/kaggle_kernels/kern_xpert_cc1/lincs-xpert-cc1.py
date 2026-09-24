@@ -46,6 +46,7 @@ BUDGET_H = 8.3          # wall-clock guard for TRAINING; prediction needs ~10 mi
 # the real T4 step time is measured FIRST, in a run that stops after GUARD F, and the full run is decided
 # with that number in hand rather than discovered through stopped_by == 'watchdog'.
 MEASURE_ONLY = True
+# v6: MEASURE_ONLY also runs GUARD G, the DataParallel proof and timing of RESULTS 80, before stopping.
 FOLD = 'split_cold_cell_1'
 W = '/kaggle/working'
 RECORD = {'fold': FOLD, 'budget_h': BUDGET_H, 'guards': {}, 'decision': 'option (a) as published, disclosed'}
@@ -213,6 +214,12 @@ open(os.path.join(X, 'run_train_ckpt.py'), 'w', encoding='utf-8').write(
     'print("LINCS activation checkpointing applied to:", xpert_ckpt_patch.apply(), flush=True)\n'
     'import train_xpert\n'
     'train_xpert.main()\n')
+# DATAPARALLEL MEASUREMENT [RESULTS 78.4, 80; review 012]. Sources generated from model/v9/xpert_dp_patch.py and
+# model/v9/xpert_dp_probe.py. Used ONLY by GUARD G in this version: the trainer command is unchanged.
+DP_PATCH_SRC = '# -*- coding: utf-8 -*-\n"""DataParallel for XPert over every visible GPU, applied at RUNTIME inside XPertNet.forward so their files stay\nverbatim. [RESULTS 78, review 012]\n\nWhy inside forward rather than wrapping the model in nn.DataParallel: the object their train_xpert.py holds stays an\nXPertNet. So state_dict() keys carry NO \'module.\' prefix -- review 012 C1 showed their --resume_from filter would match\nno key of a prefixed checkpoint and silently restart from random weights while logging success -- and every attribute\ntheir code touches keeps working.\n\nWhy it is exact for their recipe, where gradient accumulation was not [RESULTS 77.2]: torch.nn.parallel.data_parallel\nscatters the batch, runs one replica per GPU, and GATHERS the outputs to GPU 0 before their train() computes the loss,\nso batch_weighted_loss\'s sqrt(loss / num_samples) terms see all 128 samples exactly as on one GPU. Gradients from the\nreplicas are summed into the original parameters. XPert has LayerNorm only, no BatchNorm, so no statistic depends on\nthe per-replica batch. Dropout masks differ per replica: i.i.d. draws of the same Bernoulli, a different realisation,\nas a different seed is [review 012 ask 3].\n\nTwo things in their forward are pinned to one device and are localised on each replica:\n  * `self.device`, which forward uses to move every input (model_XPert.py:188-198);\n  * `self.drug_HG_embed`, a plain tensor attribute created on `device` (model_XPert.py:135). DataParallel replicates\n    parameters and buffers only; a plain tensor stays on GPU 0. It is constant (never trained), so a cached copy per\n    device is exact. The localiser is generic over every plain tensor attribute of every submodule, and\n    `plain_tensor_attributes()` lists them so a kernel guard can assert the list is exactly the one expected.\n\nActive only in training with grad enabled and at least one row per GPU, so validation, prediction and a ragged last\nbatch smaller than the GPU count run unchanged on one device.\n"""\nimport sys\n\nimport torch\nfrom torch.nn.parallel import data_parallel\n\n_CACHE = {}   # (id(original tensor), device) -> copy on that device\n\n\ndef plain_tensor_attributes(model):\n    """Every tensor held as a plain attribute (not a parameter or buffer), as \'module.path.attr\'."""\n    out = []\n    for mname, m in model.named_modules():\n        for name, val in vars(m).items():\n            if torch.is_tensor(val):\n                out.append((mname + \'.\' if mname else \'\') + name)\n    return sorted(out)\n\n\ndef _localise(replica, dev):\n    for m in replica.modules():\n        for name, val in list(vars(m).items()):\n            if torch.is_tensor(val) and val.device != dev:\n                key = (id(val), dev)\n                if key not in _CACHE:\n                    _CACHE[key] = val.to(dev)\n                setattr(m, name, _CACHE[key])     # replicas hold a shallow copy of __dict__: the original is untouched\n    replica.device = dev\n\n\ndef apply(model_XPert=None, device_ids=None):\n    """Patch models.model_XPert.XPertNet.forward in place. Returns the device ids it will use."""\n    MX = model_XPert or sys.modules[\'models.model_XPert\']\n    cls = MX.XPertNet\n    ids = list(device_ids) if device_ids is not None else list(range(torch.cuda.device_count()))\n    if getattr(cls.forward, \'_lincs_dp\', False):\n        return ids\n    orig = cls.forward\n\n    def fwd(self, data, *a, **k):\n        if getattr(self, \'_is_replica\', False):          # set by torch.nn.parallel.replicate\n            # NOT next(self.parameters()).device: replicate() turns a replica\'s parameters into plain non-leaf\n            # attributes, so parameters() is EMPTY on a replica (StopIteration -- caught by the local smoke test,\n            # 2026-09-24, before any GPU spend). parallel_apply runs each replica under\n            # torch.cuda.device(<its device>), so the current device is the replica\'s.\n            _localise(self, torch.device(\'cuda\', torch.cuda.current_device()))\n            return orig(self, data, *a, **k)\n        if len(ids) > 1 and self.training and torch.is_grad_enabled() and data[0].shape[0] >= len(ids):\n            if a:\n                raise TypeError(\'xpert_dp_patch: positional arguments after data are not scattered; pass mode= by name\')\n            return data_parallel(self, (data,), device_ids=ids, output_device=ids[0], module_kwargs=k or None)\n        return orig(self, data, *a, **k)\n\n    fwd._lincs_dp = True\n    cls.forward = fwd\n    return ids\n'
+DP_PROBE_SRC = '# -*- coding: utf-8 -*-\n"""One configuration of the DataParallel proof and timing, run as its own process inside the staged XPert copy.\n[RESULTS 80, review 012 C4]\n\n    python xpert_dp_probe.py MODE SHARED_DIR FOLD \'THEIR_ARGV_AS_JSON\'\n    MODE in {single_ckpt, single_ckpt_repeat, dp, dp_ckpt}\n\nEach configuration is its own process because both patches act on classes and cannot be undone in place. The first\n(`single_ckpt`) writes the initial weights and one recipe batch to SHARED_DIR; every later one loads them, strictly,\nso all four see identical weights and identical rows.\n\nEvery gradient is taken through THEIR `train()` (train_xpert.py:62), so the loss that is differentiated is their\nbatch_weighted_loss (epoch 0) or weighted_loss (epoch 70), under their GradScaler, in `.train()` mode. The optimizer is\nSGD with lr 0, so the step leaves the weights untouched and the gradients -- unscaled in place by `scaler.step` --\nare read afterwards.\n\nDropout is switched off on EVERY module, not only through the four config rates: `model_XPert.py:144, 158, 164, 170`\nhard-code `nn.Dropout(p=0.1)` in the output heads, which the config does not reach, and the attention layers carry their\nown `dropout_p` (`model_utils.py:183`). The probe asserts none is left.\n\nTwo precisions, for two different questions:\n  * fp32 (their autocast replaced by a null context), first 32 rows: is DataParallel the SAME FUNCTION? Reduction order\n    is the only difference, so the tolerance is fp32 rounding. 32 rows because unpatched fp32 at 64 per GPU would not fit.\n  * fp16 autocast, all 128 rows, their precision: is the difference smaller than the precision noise the recipe already\n    accepts, measured as the same model\'s fp16-versus-fp32 gradient difference on one GPU?\nThen timing: their train() with Adam and their GradScaler, one warm-up and five timed batches drawn from their loader.\n"""\nimport contextlib\nimport itertools\nimport json\nimport logging\nimport os\nimport sys\nimport time\n\nMODE, SHARED, FOLD = sys.argv[1], sys.argv[2], sys.argv[3]\nsys.argv = json.loads(sys.argv[4])\n\nimport torch  # noqa: E402\nimport yaml  # noqa: E402\n\nimport train_xpert as T  # noqa: E402\nfrom utils import load_dataloader  # noqa: E402\nfrom models.model_XPert import XPertNet  # noqa: E402\nimport models.model_utils  # noqa: E402,F401\nimport xpert_ckpt_patch  # noqa: E402\nimport xpert_dp_patch  # noqa: E402\n\nCKPT = MODE in (\'single_ckpt\', \'single_ckpt_repeat\', \'dp_ckpt\')\nDP = MODE in (\'dp\', \'dp_ckpt\')\ndev = torch.device(\'cuda:0\')\nreport = {\'mode\': MODE, \'gpus_visible\': torch.cuda.device_count()}\n\nargs = T.arg_parse()\nconfig = yaml.safe_load(open(\'configs/%s.yaml\' % args.config))\nlogger = logging.getLogger(\'dp_probe\')\ntr, val, te, adata = load_dataloader(args, config, logger, nfold=FOLD, return_rawdata=True)\n\nif CKPT:\n    report[\'ckpt_patched\'] = xpert_ckpt_patch.apply()\nif DP:\n    report[\'dp_device_ids\'] = xpert_dp_patch.apply()\n    assert len(report[\'dp_device_ids\']) == 2, \'DataParallel needs both T4s, saw %r\' % report[\'dp_device_ids\']\n\n\ndef build():\n    torch.manual_seed(0)\n    m = XPertNet(args, config, dev, logger)\n    m.init_weights()\n    m.to(dev)\n    return m\n\n\ninit_path, batch_path = os.path.join(SHARED, \'init.pt\'), os.path.join(SHARED, \'batch.pt\')\nmodel = build()\nif MODE == \'single_ckpt\':\n    torch.save({k: v.detach().cpu() for k, v in model.state_dict().items()}, init_path)\n    torch.save(next(iter(tr)), batch_path)\ninit_sd = torch.load(init_path)\nmodel.load_state_dict(init_sd, strict=True)\nbatch = torch.load(batch_path)\nassert batch[0].shape[0] == 128, \'not the recipe batch size\'\n\n# The object their code holds must still be an XPertNet with unprefixed keys [review 012 C1].\nreport[\'state_dict_keys_equal_unpatched\'] = sorted(model.state_dict().keys()) == sorted(init_sd.keys())\nreport[\'any_module_prefix\'] = any(k.startswith(\'module.\') for k in model.state_dict().keys())\nreport[\'plain_tensor_attributes\'] = xpert_dp_patch.plain_tensor_attributes(model)\n\n# Dropout off everywhere, staying in train mode [review 012 C4 -- and the four config rates are not enough].\nDROP_KEYS = (\'attention_probs_dropout_prob\', \'hidden_dropout_prob\', \'cell_input_hidden_dropout_prob\',\n             \'drug_input_hidden_dropout_prob\')\npublished_dropout = {k: config[\'model\'][\'ATTN\'][k] for k in DROP_KEYS}\nreport[\'published_dropout\'] = published_dropout\nfor k in DROP_KEYS:\n    config[\'model\'][\'ATTN\'][k] = 0.0\nn_drop = 0\nfor m in model.modules():\n    if isinstance(m, torch.nn.Dropout):\n        n_drop += int(m.p > 0)\n        m.p = 0.0\n    if hasattr(m, \'dropout_p\'):\n        n_drop += int(m.dropout_p > 0)\n        m.dropout_p = 0.0\nreport[\'dropout_sites_zeroed\'] = n_drop\nassert all(m.p == 0.0 for m in model.modules() if isinstance(m, torch.nn.Dropout))\nassert all(m.dropout_p == 0.0 for m in model.modules() if hasattr(m, \'dropout_p\'))\n\n\ndef grads_through_their_train(rows, epoch, fp32):\n    model.load_state_dict(init_sd, strict=True)\n    b = [t[:rows] for t in batch] if rows < 128 else batch\n    opt = torch.optim.SGD(model.parameters(), lr=0.0)\n    scaler = torch.cuda.amp.GradScaler()\n    saved = T.autocast\n    if fp32:\n        T.autocast = contextlib.nullcontext          # their `with autocast():` becomes a no-op: fp32 forward\n    try:\n        losses = T.train(model, opt, [b], args, config, scaler=scaler, epoch=epoch)\n    finally:\n        T.autocast = saved\n    g = {n: p.grad.detach().float().cpu().clone() for n, p in model.named_parameters() if p.grad is not None}\n    finite = all(torch.isfinite(v).all().item() for v in g.values())\n    for p in model.parameters():\n        p.grad = None\n    return [float(x) for x in losses], g, finite, float(scaler.get_scale())\n\n\nout_grads = {}\n# fp16 at 32 rows as well, so the precision-noise scale (fp16 vs fp32, one GPU) is measured on the SAME rows.\nfor tag, rows, epoch, fp32 in ((\'fp32_e0\', 32, 0, True), (\'fp32_e70\', 32, 70, True),\n                               (\'fp16_e0\', 32, 0, False), (\'fp16_e70\', 32, 70, False),\n                               (\'fp16_e0_128\', 128, 0, False), (\'fp16_e70_128\', 128, 70, False)):\n    losses, g, finite, scale = grads_through_their_train(rows, epoch, fp32)\n    report[tag] = {\'losses\': losses, \'grads_finite\': finite, \'scale\': scale, \'n_grad_tensors\': len(g)}\n    out_grads[tag] = g\ntorch.save(out_grads, os.path.join(SHARED, MODE + \'_grads.pt\'))\n\n# Timing, the recipe itself: dropout back to its published values, Adam, their GradScaler, loader included.\nif MODE != \'single_ckpt_repeat\':\n    for k in DROP_KEYS:\n        config[\'model\'][\'ATTN\'][k] = published_dropout[k]\n    del model\n    torch.cuda.empty_cache()\n    model = build()\n    model.load_state_dict(init_sd, strict=True)\n    opt = torch.optim.Adam(model.parameters(), lr=config[\'train\'][\'train_lr\'], weight_decay=config[\'train\'][\'weight_decay\'])\n    scaler = torch.cuda.amp.GradScaler()\n    it = iter(tr)\n    T.train(model, opt, itertools.islice(it, 1), args, config, scaler=scaler, epoch=0)\n    for d in range(torch.cuda.device_count()):\n        torch.cuda.reset_peak_memory_stats(d)\n    for d in range(torch.cuda.device_count()):\n        torch.cuda.synchronize(d)\n    t0 = time.time()\n    T.train(model, opt, itertools.islice(it, 5), args, config, scaler=scaler, epoch=0)\n    for d in range(torch.cuda.device_count()):\n        torch.cuda.synchronize(d)\n    report[\'s_train_step\'] = (time.time() - t0) / 5\n    report[\'peak_gib_per_gpu\'] = [torch.cuda.max_memory_allocated(d) / 2 ** 30 for d in range(torch.cuda.device_count())]\n    report[\'train_batches\'] = len(tr)\n    report[\'val_batches\'] = len(val)\n\nprint(\'DPPROBE \' + json.dumps(report), flush=True)\n'
+open(os.path.join(X, 'xpert_dp_patch.py'), 'w', encoding='utf-8').write(DP_PATCH_SRC)
+open(os.path.join(X, 'xpert_dp_probe.py'), 'w', encoding='utf-8').write(DP_PROBE_SRC)
 RECORD['activation_checkpointing'] = {'patched': ['Encoder', 'crossEncoder'], 'how': 'runtime wrapper; '
                                      'their files verbatim', 'proof': 'model/v9/prove_checkpoint_exact.py'}
 RECORD['deviations'] = ['flash_attn shim on PYTHONPATH (their model imports it at module scope)',
@@ -430,6 +437,78 @@ TIMING.update({'setup_s': round(setup_s, 1), 'epoch_s_projected': round(epoch_s,
                                             'for prediction and artefacts'})
 RECORD['timing'] = TIMING
 log('TIMING', TIMING)
+# --------------------------------------------------------------------------------------------------------
+# GUARD G -- is DataParallel over both T4s the same computation, and how fast is it? [RESULTS 80]
+# Four processes, one per configuration, because both patches act on classes and cannot be undone in place.
+# Every gradient is taken through THEIR train(); criteria are RESULTS 80.3, committed before this launch.
+# --------------------------------------------------------------------------------------------------------
+import torch
+DPS = os.path.join(W, 'dp_shared')
+os.makedirs(DPS, exist_ok=True)
+DP_MODES = ['single_ckpt', 'single_ckpt_repeat', 'dp', 'dp_ckpt']
+DPR = {}
+for mode in DP_MODES:
+    r = subprocess.run([sys.executable, 'xpert_dp_probe.py', mode, DPS, FOLD, json.dumps(probe_argv)],
+                       capture_output=True, text=True, env=ENV, cwd=X)
+    lines = [l for l in r.stdout.splitlines() if l.startswith('DPPROBE ')]
+    if r.returncode != 0 or len(lines) != 1:
+        tb = [l for l in r.stderr.splitlines() if l.strip() and '%|' not in l and 'it/s]' not in l]
+        RECORD['guard_g_failure'] = {'mode': mode, 'returncode': r.returncode, 'stderr_tail': tb[-40:]}
+        print(r.stderr[-4000:])
+        fatal('GUARD G: DataParallel probe %s failed (returncode %d).' % (mode, r.returncode))
+    DPR[mode] = json.loads(lines[0][len('DPPROBE '):])
+    log('GUARD G probe', mode, 'ok:', {k: DPR[mode].get(k) for k in ('s_train_step', 'peak_gib_per_gpu',
+                                                                     'dropout_sites_zeroed')})
+
+G = {m: torch.load(os.path.join(DPS, m + '_grads.pt')) for m in DP_MODES}
+
+
+def _cmp(ga, gb):
+    assert ga.keys() == gb.keys(), 'different parameters received gradients'
+    num = sum(float(((ga[n] - gb[n]) ** 2).sum()) for n in ga)
+    den = sum(float((gb[n] ** 2).sum()) for n in gb)
+    return {'max_abs': max(float((ga[n] - gb[n]).abs().max()) for n in ga), 'rel_l2': (num / den) ** 0.5}
+
+
+def _lrel(a, b):
+    return max(abs(x - y) / max(abs(y), 1e-30) for x, y in zip(a, b))
+
+
+cmpr = {}
+for tag in ('fp32_e0', 'fp32_e70', 'fp16_e0', 'fp16_e70', 'fp16_e0_128', 'fp16_e70_128'):
+    ref = G['single_ckpt'][tag]
+    cmpr[tag] = {m: _cmp(G[m][tag], ref) for m in ('single_ckpt_repeat', 'dp', 'dp_ckpt')}
+    cmpr[tag]['loss_rel'] = {m: _lrel(DPR[m][tag]['losses'], DPR['single_ckpt'][tag]['losses'])
+                             for m in ('single_ckpt_repeat', 'dp', 'dp_ckpt')}
+prec = {e: _cmp(G['single_ckpt']['fp16_' + e], G['single_ckpt']['fp32_' + e]) for e in ('e0', 'e70')}
+chk = {}
+for v in ('dp', 'dp_ckpt'):
+    chk[v] = {
+        'fp32_same_function': all(cmpr['fp32_' + e][v]['rel_l2'] < 1e-5 and cmpr['fp32_' + e]['loss_rel'][v] < 1e-6
+                                  for e in ('e0', 'e70')),
+        'fp16_within_precision_noise': all(cmpr['fp16_' + e][v]['rel_l2'] <= prec[e]['rel_l2'] for e in ('e0', 'e70')),
+        'structure': (DPR[v]['state_dict_keys_equal_unpatched'] and not DPR[v]['any_module_prefix']
+                      and DPR[v]['plain_tensor_attributes'] == ['drug_HG_embed']
+                      and all(DPR[v][t]['grads_finite'] for t in cmpr)),
+        'memory_below_13': max(DPR[v]['peak_gib_per_gpu']) < 13.0}
+    chk[v]['pass'] = all(chk[v].values())
+s_val = TIMING['s_val_step']
+proj = {}
+for v in ('single_ckpt', 'dp', 'dp_ckpt'):
+    ep = DPR[v]['train_batches'] * DPR[v]['s_train_step'] + DPR[v]['val_batches'] * s_val
+    proj[v] = {'s_train_step': round(DPR[v]['s_train_step'], 3), 'epoch_s': round(ep, 1),
+               'gpu_h_for_210_epochs': round(210 * ep / 3600, 1),
+               'sessions_at_7.95h': round(210 * ep / 3600 / 7.95, 1),
+               'peak_gib_per_gpu': [round(x, 2) for x in DPR[v]['peak_gib_per_gpu']]}
+passing = [v for v in ('dp', 'dp_ckpt') if chk[v]['pass']]
+chosen = min(passing, key=lambda v: proj[v]['epoch_s']) if passing else None
+RECORD['dp'] = {'probe': DPR, 'comparisons': cmpr, 'precision_noise_fp16_vs_fp32': prec, 'checks_80_3': chk,
+                'projection_80_4': proj, 'o2_variant': chosen,
+                'o2_price_gpu_h': proj[chosen]['gpu_h_for_210_epochs'] if chosen else None}
+log('GUARD G checks (RESULTS 80.3):', chk)
+log('GUARD G projection (RESULTS 80.4):', proj, '| O2 variant:', chosen)
+shutil.rmtree(DPS, ignore_errors=True)
+
 if MEASURE_ONLY:
     RECORD['stopped_by'] = 'measure_only'
     RECORD['host_memory'] = mem_summary()

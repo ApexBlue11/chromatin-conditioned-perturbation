@@ -1,0 +1,111 @@
+{
+  "ckpt": "sa0_ckpt_v9_fold0_seed0.pt",
+  "batch": 48,
+  "n_eval": 1500,
+  "n_boot": 20000,
+  "seed": 0,
+  "alphas": [
+    0.0
+  ],
+  "key": "atoms",
+  "operator": "atom_only",
+  "splits": {
+    "unseen_cell": {
+      "n_eligible": 7276,
+      "n_eval_requested": 1500,
+      "n_eval_bound": true,
+      "rows_sha": "434418d7677d3f9c",
+      "rows_first5": [
+        1826,
+        1931,
+        1971,
+        1986,
+        2055
+      ],
+      "rows_n": 1500,
+      "results_by_alpha": {
+        "0.0": {
+          "score_full": 0.4001471996307373,
+          "score_ablated": 0.4001471996307373,
+          "atom_effect": 0.0,
+          "atom_effect_median_per_row": 0.0,
+          "atom_effect_median_per_row_ci95": [
+            0.0,
+            0.0
+          ],
+          "sign_test_p": 1.0,
+          "atom_effect_ci95": [
+            0.0,
+            0.0
+          ],
+          "dY_max": 0.0
+        }
+      }
+    },
+    "unseen_compound": {
+      "n_eligible": 10384,
+      "n_eval_requested": 1500,
+      "n_eval_bound": true,
+      "rows_sha": "160865d7b95cbc06",
+      "rows_first5": [
+        50,
+        192,
+        225,
+        420,
+        431
+      ],
+      "rows_n": 1500,
+      "results_by_alpha": {
+        "0.0": {
+          "score_full": 0.47376030683517456,
+          "score_ablated": 0.47376030683517456,
+          "atom_effect": 0.0,
+          "atom_effect_median_per_row": 0.0,
+          "atom_effect_median_per_row_ci95": [
+            0.0,
+            0.0
+          ],
+          "sign_test_p": 1.0,
+          "atom_effect_ci95": [
+            0.0,
+            0.0
+          ],
+          "dY_max": 0.0
+        }
+      }
+    },
+    "unseen_both": {
+      "n_eligible": 2988,
+      "n_eval_requested": 1500,
+      "n_eval_bound": true,
+      "rows_sha": "02fb5b09d78a8d7e",
+      "rows_first5": [
+        1818,
+        1837,
+        1845,
+        1892,
+        1935
+      ],
+      "rows_n": 1500,
+      "results_by_alpha": {
+        "0.0": {
+          "score_full": 0.4234517812728882,
+          "score_ablated": 0.4234517812728882,
+          "atom_effect": 0.0,
+          "atom_effect_median_per_row": 0.0,
+          "atom_effect_median_per_row_ci95": [
+            0.0,
+            0.0
+          ],
+          "sign_test_p": 1.0,
+          "atom_effect_ci95": [
+            0.0,
+            0.0
+          ],
+          "dY_max": 0.0
+        }
+      }
+    }
+  },
+  "cut": "both"
+}

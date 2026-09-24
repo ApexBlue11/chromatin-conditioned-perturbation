@@ -64,7 +64,11 @@ def apply(model_XPert=None, device_ids=None):
 
     def fwd(self, data, *a, **k):
         if getattr(self, '_is_replica', False):          # set by torch.nn.parallel.replicate
-            _localise(self, next(self.parameters()).device)
+            # NOT next(self.parameters()).device: replicate() turns a replica's parameters into plain non-leaf
+            # attributes, so parameters() is EMPTY on a replica (StopIteration -- caught by the local smoke test,
+            # 2026-09-24, before any GPU spend). parallel_apply runs each replica under
+            # torch.cuda.device(<its device>), so the current device is the replica's.
+            _localise(self, torch.device('cuda', torch.cuda.current_device()))
             return orig(self, data, *a, **k)
         if len(ids) > 1 and self.training and torch.is_grad_enabled() and data[0].shape[0] >= len(ids):
             if a:

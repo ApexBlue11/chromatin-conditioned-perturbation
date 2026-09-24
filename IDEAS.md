@@ -131,12 +131,15 @@ own score by +0.0145.
 - **Cheaper question first:** for unseen-compound accuracy alone, the inference-time mask on `sa0` already delivers it.
 - **Status:** logged 2026-09-23; to be pre-registered and priced through review before any spend.
 
-### A9. Where the atom tokens' residual harm lives, with atom-to-atom attention removed — QUEUED, free
+### A9. Where the atom tokens' residual harm lives, with atom-to-atom attention removed — ⚫ RUN 2026-09-24: NOT ANSWERABLE at inference [§79.9]
 **Source:** §75.6, review 010 ask 3. At α = 0 the atom effect is still −0.00322 (sign p 1.6e−10). Carriers: gene→drug
 cross-attention; atom→global then global→genes; the cross-block global leak. Two inference-only cuts separate them.
 Each needs a kill switch and the `x_cell` gate **committed before running**. Zero GPU-hours.
 - **Pre-committed 2026-09-23 in RESULTS §79** as a 2×2 of cuts X (genes read the global key only) and G (the
   global row reads only itself), with a two-sided kill switch at 3×|E0| and the §67.3 gate. Delegated as W9.
+- **Result [§79.9]:** the route inventory is complete (both cuts: `dY_max` exactly 0.0), but **both single
+  cuts fail the kill switch** (+0.042, +0.046 against 0.00966). Not answerable by inference-time cuts;
+  the question passes to a trained arm and is folded into A8's pricing.
 
 ### A10. 🔵 Do atom tokens memorise training compounds? — hypothesis-generating, NOT YET TESTED
 **Source:** review 010, offered by the reviewer after seeing the data. Atoms help where test compounds were seen in
