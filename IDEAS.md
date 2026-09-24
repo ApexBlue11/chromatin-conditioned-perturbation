@@ -41,7 +41,10 @@ MoA objective: a cell-specific conductive subgraph is an *interpretable object* 
 pathways it opens and closes.
 
 - **Cost:** one training run (~5.8 GPU-h) once the graph is built; graph construction is CPU-only and free.
-- **Blocked on:** A2 (the union graph must exist first).
+- **Blocked on:** A2 (the union graph must exist first). ✅ A2 built (W7).
+- **Pre-test pre-registered 2026-09-24 [RESULTS §82]:** zero-parameter random-walk-with-restart of each
+  compound's DTI targets over the binary union graph, edges gated by the cell's own ATAC, against
+  another cell's ATAC (null key), mean ATAC, and no gating; unit = cell line. Delegated as W10.
 - **Null it must beat:** the same model with chromatin mean-ablated in the edge gate only, plus the
   existing gene-level EpiGate left untouched — so the arm isolates edge gating from gene gating.
 - **Pre-register before spending:** method rules 13, 16, 17 all apply. Null key and estimand fixed first.

@@ -5338,6 +5338,55 @@ If 81.1a–b and 81.3 pass: O2 is priced from the `dp` timing (0.925 s/step in v
 anchor), subject to Amendment E's 25 % epoch-1 re-price. If 81.1a fails, DataParallel is not the recipe's computation
 and the choice is O1 or O4.
 
+## 82. PRE-REGISTERED: a zero-parameter pre-test of A1 — does the cell's OWN chromatin make the union graph conduct a drug's effect better? (2026-09-24)
+
+IDEAS A1 is the principal's idea: chromatin decides **which edges conduct in this cell**, a different job from the
+per-gene gating that measured null [§55]. Its trained arm costs a v9-shaped run (~5.8 GPU-h) and competes with O2 for
+the week's quota. The registry rule is that GPU spend is gated on a free CPU result first. This is that result,
+fixed before any code exists. **0 GPU-hours; local CPU, minutes.**
+
+### 82.1 The predictor — no fitted parameters at all
+For signature (compound *d*, cell *c*): `t_d` = indicator of *d*'s DTI targets among the 978 landmarks
+(`drug/outputs/dti/dti_reference.tsv`, already landmark-indexed), normalised to sum 1. Graph `A` = the **binary union**
+of the three sources in `network/outputs/v9/union_graph_v9.npz` (an edge present in any), symmetric. Gated weights
+`W_c[i,j] = A[i,j] · sqrt(a_ci · a_cj)`, with `a_c` = the ATAC track of `E_final` (channel 0, in [0, 1]) for cell *c*.
+Propagation, random walk with restart: `s = (I − α P)^{-1} t_d`, `P = D^{-1/2} W D^{-1/2}`, **α = 0.5 fixed**. Nothing is
+fitted, so no split is needed and nothing can be tuned toward the answer.
+
+### 82.2 Rows, target, score
+Rows: every usable signature (`signatures_usable.tsv`) whose cell has the ATAC track observed for ≥ 90 % of landmarks
+and whose compound has ≥ 1 DTI target. Target: `|z|` from `Y_target_level5_978.npy` (Level 5). Score per signature:
+**Spearman(s, |z|) over the non-target landmarks** — the drug's own targets are excluded, so only propagation can
+score. Gene order is asserted identical, by symbol, across Y, the graph, `E_final` and the DTI table.
+
+### 82.3 Conditions, all on identical rows
+| condition | edge weights | what it isolates |
+|---|---|---|
+| **OWN** | the cell's own ATAC | the hypothesis |
+| **MISMATCH** (null key) | the ATAC of another ATAC cell, 5 deterministic draws (seed 0), score averaged | chromatin, but not *this cell's* |
+| **MEAN** | mean ATAC over the ATAC cells | a gene-level accessibility prior, not cell-specific |
+| **NONE** | `A` ungated | the graph alone |
+| DEGREE (sanity) | `s` = gene degree in `A` | hubs respond more; no drug information |
+
+### 82.4 Estimand — the unit is the cell line [review 006 C3]
+Primary: per cell *c*, `d_c` = median over *c*'s signatures of `score(OWN) − score(MISMATCH)`. Summary: the
+unweighted mean of `d_c` over cells, a cluster bootstrap over cells (20,000 draws, seed 0), and the count of cells with
+`d_c > 0` with a sign test. Secondary, same form: `OWN − MEAN`, `OWN − NONE`, `NONE − DEGREE`.
+
+### 82.5 Readings, as inequalities
+| result | reading |
+|---|---|
+| NONE's median score over rows **≤ 0.01**, or NONE − DEGREE's cluster CI includes 0 | **Uninformative.** Zero-parameter diffusion carries no drug-specific signal here, so it cannot test gating. A1 is neither supported nor refuted. |
+| OWN − MISMATCH: mean > 0, cluster CI excluding 0, **and ≥ 75 % of cells** favour OWN | **Supports A1's mechanism**: this cell's chromatin makes the graph conduct the drug's effect better than another cell's. A1's trained arm is then priced and pre-registered. |
+| OWN − NONE > 0 (CI excl. 0) but OWN − MEAN's CI includes 0 | A **gene-level accessibility prior**, not cell-specific conduction. Not A1's mechanism; recorded as such. |
+| anything else | **No support from a zero-parameter model.** Not a refutation: a trained model can express gating that fixed diffusion cannot. A1's trained arm is not motivated by this test. |
+
+### 82.6 What no outcome licenses
+Unsigned targets and `|z|` only: nothing about the *direction* of response. One chromatin track (ATAC) as primary;
+H3K27ac is reported as a secondary with the same estimand and not read unless ATAC's reading is "supports". Diffusion
+is a model of propagation, not of mechanism; a positive result says the gated graph *predicts better*, not that
+edges physically conduct. Delegated as W10; verified by me before any number is read.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
