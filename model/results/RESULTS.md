@@ -5474,7 +5474,13 @@ inputs, not about the graph's usefulness inside a trained model.
 that are **themselves landmark genes** (`gene_idx` indexes the 978), so propagation starts from a small and biased
 subset of each compound's real targets. A version that starts from **all** annotated targets on the full STRING graph
 (`network/outputs/v9/string_graph_v9.npz`, 19,496 nodes) and reads out at the landmarks would test the same question
-without that restriction. Logged in IDEAS A1; it needs a non-landmark target table first.
+without that restriction. Logged in IDEAS A1. *(Corrected the same day, method rule 20: I first wrote that it
+"needs a non-landmark target table first". One exists — `drug/outputs/dti/chembl_dti_edges.tsv`, 6,020
+mechanism-level edges for 1,363 compounds over 546 targets, with an `is_landmark` flag, and
+`stitch_dti_edges.tsv`, 28,387 edges. The real constraint is different: chromatin covers only the 978 landmarks,
+so on the full graph gating could act on landmark–landmark edges only. The first question for that form is
+therefore whether ungated propagation from ALL targets carries any signal — NONE against DEGREE — before any
+gating is worth testing.)*
 
 **For the GPU decision:** A1's trained arm (~5.8 GPU-h) is **not motivated** by this pre-test, and O2 keeps priority
 for the quota.

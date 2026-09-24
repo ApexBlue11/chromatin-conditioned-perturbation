@@ -48,8 +48,11 @@ pathways it opens and closes.
 - **Result [§82.7]: UNINFORMATIVE on ATAC and H3K27ac** — ungated diffusion from landmark targets has no
   signal (median Spearman −0.0006 with |z|), so gating cannot be tested this way. Not refuted.
 - **Next form, if pursued:** start from ALL annotated targets (not only landmark ones) on the full STRING
-  graph (`string_graph_v9.npz`, 19,496 nodes), read out at the landmarks. Needs a non-landmark DTI table
-  (ChEMBL targets per compound). Free, CPU. The trained arm stays unpriced until something shows signal.
+  graph (`string_graph_v9.npz`, 19,496 nodes), read out at the landmarks. The target table EXISTS:
+  `drug/outputs/dti/chembl_dti_edges.tsv` (6,020 mechanism edges, 1,363 compounds, 546 targets) and
+  `stitch_dti_edges.tsv`. Constraint: chromatin covers only the 978 landmarks, so gating acts on
+  landmark-landmark edges only -- test ungated NONE vs DEGREE first. Free, CPU. The trained arm stays
+  unpriced until something shows signal.
 - **Null it must beat:** the same model with chromatin mean-ablated in the edge gate only, plus the
   existing gene-level EpiGate left untouched — so the arm isolates edge gating from gene gating.
 - **Pre-register before spending:** method rules 13, 16, 17 all apply. Null key and estimand fixed first.
