@@ -1,5 +1,5 @@
 {
-  "iteration": 33,
+  "iteration": 34,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "019_v9_dev_protocol"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -45,7 +47,7 @@
   ],
   "gpu_hours_spent_this_session": 15.47,
   "pending_decision": "84.4 GO. Blocked on: the principal's `lightning login` (credit balance B, machine access); W13 (resume-patch CUDA-RNG device mapping) and W14 (Lightning driver) to build and verify. If not ready when session 2 ends, session 3 runs on Kaggle.",
-  "note_current": "O2 session 2 running. W12 (literature: losses/mechanisms/tricks) running on agy.",
+  "note_current": "O2 session 2 running (Kaggle). 84.4 Lightning migration built (W13, W14 verified); blocked on the principal's `lightning login`. Packet 019 (v9 dev protocol) with the critic.",
   "challenges_upheld": "101 of 104",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
