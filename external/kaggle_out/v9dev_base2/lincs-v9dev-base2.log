@@ -1,0 +1,249 @@
+[{"stream_name":"stdout","time":7.8430232,"data":"/kaggle/input contains: ['datasets']\n"}
+,{"stream_name":"stdout","time":7.944915433,"data":"source dir: /kaggle/input/datasets/apexblue/lincs-v9-src\n"}
+,{"stream_name":"stdout","time":8.252276207,"data":"GPUs: ['Tesla T4', 'Tesla T4']\n"}
+,{"stream_name":"stdout","time":8.614406549,"data":"mounted code verified: quantiser fix + their-metric reporting present\n"}
+,{"stream_name":"stdout","time":14.266623066,"data":"dropped 578 train and 170 test rows whose compound we cannot featurise (0.80% of test); the comparison runs on the rows BOTH models can score\n"}
+,{"stream_name":"stdout","time":14.291333883,"data":"DEV CELLS {\"eligible_pool\": {\"BT20\": 1593, \"HCC515\": 1859, \"HEK293T\": 224, \"HEPG2\": 1986, \"HL60\": 309, \"HME1\": 580, \"LNCAP\": 567, \"NPC\": 243, \"SKBR3\": 1666, \"U2OS\": 1648, \"U937\": 308, \"VCAP\": 969}, \"dev_cells\": [\"HEK293T\", \"HL60\", \"LNCAP\", \"SKBR3\", \"U937\", \"VCAP\"], \"rows_per_dev_cell\": {\"HEK293T\": 224, \"HL60\": 309, \"LNCAP\": 567, \"SKBR3\": 1666, \"U937\": 308, \"VCAP\": 969}, \"total_dev_rows\": 4043, \"total_remaining_training_rows\": 42888, \"dev_row_index_sha1\": \"51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980\"}\n"}
+,{"stream_name":"stdout","time":17.127543451,"data":"LIMITED to 960 train / 400 test rows -- plumbing check, not a result\n"}
+,{"stream_name":"stdout","time":17.127575784,"data":"split_cold_cell_1: train 960 test 400 | rows with a cell line we know: 96.2% | device cuda\n"}
+,{"stream_name":"stdout","time":17.205779917,"data":"nulls on THEIR test rows: {'copy_ctl_abs': 0.965, 'copy_ctl_abs_median': 0.9714, 'zero_delta': 0.0, 'mean_drug_delta': 0.0193}\n"}
+,{"stream_name":"stderr","time":25.793144648,"data":"/kaggle/input/datasets/apexblue/lincs-v9-src/xpert_arm.py:403: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate\n"}
+,{"stream_name":"stderr","time":25.793212385,"data":"  scaler.step(opt); scaler.update(); sched.step()\n"}
+,{"stream_name":"stderr","time":25.793218267,"data":"/kaggle/input/datasets/apexblue/lincs-v9-src/xpert_arm.py:405: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.\n"}
+,{"stream_name":"stderr","time":25.793222943,"data":"Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)\n"}
+,{"stream_name":"stdout","time":25.793180977,"data":"  seed0 e0 it0/20 loss 3.5281 3s\n"}
+,{"stream_name":"stderr","time":25.793227451,"data":"  print(f'  seed{seed} e{ep} it{it}/{len(order) // a.batch} loss {float(loss):.4f} '\n"}
+,{"stream_name":"stdout","time":35.807695653,"data":"  seed0 DP seeding lockstep [0, 0]: device CUDA states equal after epoch 0 = True\n"}
+,{"stream_name":"stderr","time":35.866531616,"data":"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/linear.py:134: UserWarning: Attempting to run cuBLAS, but there was no current CUDA context! Attempting to set the primary context... (Triggered internally at /pytorch/aten/src/ATen/cuda/CublasHandlePool.cpp:330.)\n"}
+,{"stream_name":"stderr","time":35.866563247,"data":"  return F.linear(input, self.weight, self.bias)\n"}
+,{"stream_name":"stdout","time":38.695827491,"data":"  [seed 0] Pearson 0.8298  Pearson_deg -0.0113\n"}
+,{"stream_name":"stdout","time":38.695879131,"data":"\n"}
+,{"stream_name":"stdout","time":38.695979065,"data":"============================================================================================\n"}
+,{"stream_name":"stdout","time":38.696015479,"data":"v9 ON XPERT'S OWN BENCHMARK (split_cold_cell_1), mean [min, max] over 1 seeds\n"}
+,{"stream_name":"stdout","time":38.696021317,"data":"============================================================================================\n"}
+,{"stream_name":"stdout","time":38.696025304,"data":"  Pearson      (absolute) : 0.8298 [0.8298, 0.8298]   | copy-the-control 0.9650\n"}
+,{"stream_name":"stdout","time":38.69602903,"data":"  Pearson_deg  (delta)    : -0.0113 [-0.0113, -0.0113]   | mean-drug 0.0193\n"}
+,{"stream_name":"stdout","time":38.696032735,"data":"  (mean of per-row Pearson, THEIR convention. Their published 0.9804 / 0.8440 is\n"}
+,{"stream_name":"stdout","time":38.696036543,"data":"   the HDACi figure subset, NOT this benchmark, so it is not printed as a target --\n"}
+,{"stream_name":"stdout","time":38.696040532,"data":"   the like-for-like number is their checkpoint run on these same rows by\n"}
+,{"stream_name":"stdout","time":38.696044331,"data":"   model/v9/xpert_native_eval.py.)\n"}
+,{"stream_name":"stdout","time":38.696048004,"data":"\n"}
+,{"stream_name":"stdout","time":38.696051601,"data":"  3.8% of rows use a cell line we have no chromatin or lineage for; 170 test and 578 train rows were dropped for lack of drug features.\n"}
+,{"stream_name":"stdout","time":38.69637588,"data":"\n"}
+,{"stream_name":"stdout","time":38.696383636,"data":"wrote /kaggle/working/v9_xpert_arm_split_cold_cell_1_seed0_dev6s0.json\n"}
+,{"stream_name":"stdout","time":38.748487662,"data":"LOCKSTEP CHECK {\"n_gpu\": 2, \"dp_seed_mode\": \"lockstep\", \"device_seeds\": [0, 0], \"cuda_rng_states_equal_by_epoch\": [true]}\n"}
+,{"stream_name":"stdout","time":40.110510222,"data":"dropped 578 train and 170 test rows whose compound we cannot featurise (0.80% of test); the comparison runs on the rows BOTH models can score\n"}
+,{"stream_name":"stdout","time":40.133988586,"data":"DEV CELLS {\"eligible_pool\": {\"BT20\": 1593, \"HCC515\": 1859, \"HEK293T\": 224, \"HEPG2\": 1986, \"HL60\": 309, \"HME1\": 580, \"LNCAP\": 567, \"NPC\": 243, \"SKBR3\": 1666, \"U2OS\": 1648, \"U937\": 308, \"VCAP\": 969}, \"dev_cells\": [\"HEK293T\", \"HL60\", \"LNCAP\", \"SKBR3\", \"U937\", \"VCAP\"], \"rows_per_dev_cell\": {\"HEK293T\": 224, \"HL60\": 309, \"LNCAP\": 567, \"SKBR3\": 1666, \"U937\": 308, \"VCAP\": 969}, \"total_dev_rows\": 4043, \"total_remaining_training_rows\": 42888, \"dev_row_index_sha1\": \"51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980\"}\n"}
+,{"stream_name":"stdout","time":42.306558564,"data":"split_cold_cell_1: train 42888 test 4043 | rows with a cell line we know: 96.2% | device cuda\n"}
+,{"stream_name":"stdout","time":44.042122941,"data":"nulls on THEIR test rows: {'copy_ctl_abs': 0.955, 'copy_ctl_abs_median': 0.965, 'zero_delta': 0.0, 'mean_drug_delta': 0.1126}\n"}
+,{"stream_name":"stdout","time":48.869990545,"data":"  seed0 e0 it0/893 loss 3.6854 1s\n"}
+,{"stream_name":"stdout","time":165.283649308,"data":"  seed0 e0 it200/893 loss 0.7662 117s\n"}
+,{"stream_name":"stdout","time":279.944978076,"data":"  seed0 e0 it400/893 loss 0.7011 232s\n"}
+,{"stream_name":"stdout","time":394.746369419,"data":"  seed0 e0 it600/893 loss 0.5923 347s\n"}
+,{"stream_name":"stdout","time":509.634774098,"data":"  seed0 e0 it800/893 loss 0.5145 462s\n"}
+,{"stream_name":"stdout","time":562.474684729,"data":"  seed0 DP seeding distinct [0, 1000]: device CUDA states equal after epoch 0 = False\n"}
+,{"stream_name":"stdout","time":563.0567765,"data":"  seed0 e1 it0/893 loss 0.4829 515s\n"}
+,{"stream_name":"stdout","time":677.816014143,"data":"  seed0 e1 it200/893 loss 0.4496 630s\n"}
+,{"stream_name":"stdout","time":792.939487605,"data":"  seed0 e1 it400/893 loss 0.5465 745s\n"}
+,{"stream_name":"stdout","time":907.805084169,"data":"  seed0 e1 it600/893 loss 0.4155 860s\n"}
+,{"stream_name":"stdout","time":1022.851897681,"data":"  seed0 e1 it800/893 loss 0.4319 975s\n"}
+,{"stream_name":"stdout","time":1076.339840097,"data":"  seed0 e2 it0/893 loss 0.3822 1028s\n"}
+,{"stream_name":"stdout","time":1191.601689703,"data":"  seed0 e2 it200/893 loss 0.3995 1143s\n"}
+,{"stream_name":"stdout","time":1306.403215203,"data":"  seed0 e2 it400/893 loss 0.4269 1258s\n"}
+,{"stream_name":"stdout","time":1421.360173672,"data":"  seed0 e2 it600/893 loss 0.4208 1373s\n"}
+,{"stream_name":"stdout","time":1536.381669,"data":"  seed0 e2 it800/893 loss 0.3983 1488s\n"}
+,{"stream_name":"stdout","time":1589.478266675,"data":"  seed0 e3 it0/893 loss 0.3506 1541s\n"}
+,{"stream_name":"stdout","time":1704.37304426,"data":"  seed0 e3 it200/893 loss 0.3658 1656s\n"}
+,{"stream_name":"stdout","time":1819.245189298,"data":"  seed0 e3 it400/893 loss 0.3850 1771s\n"}
+,{"stream_name":"stdout","time":1934.460625496,"data":"  seed0 e3 it600/893 loss 0.3886 1886s\n"}
+,{"stream_name":"stdout","time":2049.627727314,"data":"  seed0 e3 it800/893 loss 0.3512 2002s\n"}
+,{"stream_name":"stdout","time":2103.061328505,"data":"  seed0 e4 it0/893 loss 0.3322 2055s\n"}
+,{"stream_name":"stdout","time":2217.892138558,"data":"  seed0 e4 it200/893 loss 0.3864 2170s\n"}
+,{"stream_name":"stdout","time":2333.233630291,"data":"  seed0 e4 it400/893 loss 0.3387 2285s\n"}
+,{"stream_name":"stdout","time":2448.343118278,"data":"  seed0 e4 it600/893 loss 0.3265 2400s\n"}
+,{"stream_name":"stdout","time":2563.540025432,"data":"  seed0 e4 it800/893 loss 0.3542 2515s\n"}
+,{"stream_name":"stdout","time":2617.083310531,"data":"  seed0 e5 it0/893 loss 0.3164 2569s\n"}
+,{"stream_name":"stdout","time":2732.141598504,"data":"  seed0 e5 it200/893 loss 0.3091 2684s\n"}
+,{"stream_name":"stdout","time":2847.150401967,"data":"  seed0 e5 it400/893 loss 0.3502 2799s\n"}
+,{"stream_name":"stdout","time":2962.29995023,"data":"  seed0 e5 it600/893 loss 0.3263 2914s\n"}
+,{"stream_name":"stdout","time":3077.469128837,"data":"  seed0 e5 it800/893 loss 0.3354 3029s\n"}
+,{"stream_name":"stdout","time":3131.121968477,"data":"  seed0 e6 it0/893 loss 0.3353 3083s\n"}
+,{"stream_name":"stdout","time":3245.780529633,"data":"  seed0 e6 it200/893 loss 0.3419 3198s\n"}
+,{"stream_name":"stdout","time":3360.725319366,"data":"  seed0 e6 it400/893 loss 0.2823 3313s\n"}
+,{"stream_name":"stdout","time":3475.676688336,"data":"  seed0 e6 it600/893 loss 0.2914 3428s\n"}
+,{"stream_name":"stdout","time":3590.736525359,"data":"  seed0 e6 it800/893 loss 0.3272 3543s\n"}
+,{"stream_name":"stdout","time":3644.56303316,"data":"  seed0 e7 it0/893 loss 0.3270 3596s\n"}
+,{"stream_name":"stdout","time":3759.388562737,"data":"  seed0 e7 it200/893 loss 0.3515 3711s\n"}
+,{"stream_name":"stdout","time":3874.486109284,"data":"  seed0 e7 it400/893 loss 0.2979 3826s\n"}
+,{"stream_name":"stdout","time":3989.707535537,"data":"  seed0 e7 it600/893 loss 0.3139 3942s\n"}
+,{"stream_name":"stdout","time":4105.029848008,"data":"  seed0 e7 it800/893 loss 0.3024 4057s\n"}
+,{"stream_name":"stdout","time":4158.505889085,"data":"  seed0 e8 it0/893 loss 0.3726 4110s\n"}
+,{"stream_name":"stdout","time":4273.906377666,"data":"  seed0 e8 it200/893 loss 0.3311 4226s\n"}
+,{"stream_name":"stdout","time":4389.516781543,"data":"  seed0 e8 it400/893 loss 0.3242 4341s\n"}
+,{"stream_name":"stdout","time":4505.129916052,"data":"  seed0 e8 it600/893 loss 0.3066 4457s\n"}
+,{"stream_name":"stdout","time":4620.775298611,"data":"  seed0 e8 it800/893 loss 0.3507 4573s\n"}
+,{"stream_name":"stdout","time":4674.593164941,"data":"  seed0 e9 it0/893 loss 0.2862 4626s\n"}
+,{"stream_name":"stdout","time":4790.231324317,"data":"  seed0 e9 it200/893 loss 0.3367 4742s\n"}
+,{"stream_name":"stdout","time":4905.744012847,"data":"  seed0 e9 it400/893 loss 0.2965 4858s\n"}
+,{"stream_name":"stdout","time":5021.425738671,"data":"  seed0 e9 it600/893 loss 0.3224 4973s\n"}
+,{"stream_name":"stdout","time":5137.133821399,"data":"  seed0 e9 it800/893 loss 0.3076 5089s\n"}
+,{"stream_name":"stdout","time":5190.729615489,"data":"  seed0 e10 it0/893 loss 0.2834 5143s\n"}
+,{"stream_name":"stdout","time":5306.130087097,"data":"  seed0 e10 it200/893 loss 0.2832 5258s\n"}
+,{"stream_name":"stdout","time":5421.631397014,"data":"  seed0 e10 it400/893 loss 0.3003 5374s\n"}
+,{"stream_name":"stdout","time":5537.259696816,"data":"  seed0 e10 it600/893 loss 0.2985 5489s\n"}
+,{"stream_name":"stdout","time":5652.657231145,"data":"  seed0 e10 it800/893 loss 0.2679 5605s\n"}
+,{"stream_name":"stdout","time":5706.282230455,"data":"  seed0 e11 it0/893 loss 0.3003 5658s\n"}
+,{"stream_name":"stdout","time":5821.945464511,"data":"  seed0 e11 it200/893 loss 0.3280 5774s\n"}
+,{"stream_name":"stdout","time":5937.513415311,"data":"  seed0 e11 it400/893 loss 0.3020 5889s\n"}
+,{"stream_name":"stdout","time":6052.952872977,"data":"  seed0 e11 it600/893 loss 0.2864 6005s\n"}
+,{"stream_name":"stdout","time":6168.336172843,"data":"  seed0 e11 it800/893 loss 0.2793 6120s\n"}
+,{"stream_name":"stdout","time":6258.181142482,"data":"  [seed 0] Pearson 0.9640  Pearson_deg 0.4350\n"}
+,{"stream_name":"stdout","time":6262.950056711,"data":"  seed1 e0 it0/893 loss 5.3165 1s\n"}
+,{"stream_name":"stdout","time":6378.519387584,"data":"  seed1 e0 it200/893 loss 0.7911 116s\n"}
+,{"stream_name":"stdout","time":6493.620121312,"data":"  seed1 e0 it400/893 loss 0.6752 231s\n"}
+,{"stream_name":"stdout","time":6608.74774775,"data":"  seed1 e0 it600/893 loss 0.5217 346s\n"}
+,{"stream_name":"stdout","time":6724.186736666,"data":"  seed1 e0 it800/893 loss 0.5330 462s\n"}
+,{"stream_name":"stdout","time":6776.8552715,"data":"  seed1 DP seeding distinct [1, 1001]: device CUDA states equal after epoch 0 = False\n"}
+,{"stream_name":"stdout","time":6777.431375793,"data":"  seed1 e1 it0/893 loss 0.4929 515s\n"}
+,{"stream_name":"stdout","time":6892.324314602,"data":"  seed1 e1 it200/893 loss 0.4492 630s\n"}
+,{"stream_name":"stdout","time":7007.523176117,"data":"  seed1 e1 it400/893 loss 0.4821 745s\n"}
+,{"stream_name":"stdout","time":7122.410678008,"data":"  seed1 e1 it600/893 loss 0.4370 860s\n"}
+,{"stream_name":"stdout","time":7237.649975501,"data":"  seed1 e1 it800/893 loss 0.3614 975s\n"}
+,{"stream_name":"stdout","time":7291.206278891,"data":"  seed1 e2 it0/893 loss 0.3969 1029s\n"}
+,{"stream_name":"stdout","time":7406.452349102,"data":"  seed1 e2 it200/893 loss 0.4079 1144s\n"}
+,{"stream_name":"stdout","time":7521.416553035,"data":"  seed1 e2 it400/893 loss 0.3984 1259s\n"}
+,{"stream_name":"stdout","time":7636.733876936,"data":"  seed1 e2 it600/893 loss 0.4421 1374s\n"}
+,{"stream_name":"stdout","time":7751.835458047,"data":"  seed1 e2 it800/893 loss 0.3794 1490s\n"}
+,{"stream_name":"stdout","time":7805.558170189,"data":"  seed1 e3 it0/893 loss 0.3432 1543s\n"}
+,{"stream_name":"stdout","time":7920.610690789,"data":"  seed1 e3 it200/893 loss 0.4207 1658s\n"}
+,{"stream_name":"stdout","time":8035.971362783,"data":"  seed1 e3 it400/893 loss 0.3931 1774s\n"}
+,{"stream_name":"stdout","time":8151.344477829,"data":"  seed1 e3 it600/893 loss 0.3661 1889s\n"}
+,{"stream_name":"stdout","time":8266.646415419,"data":"  seed1 e3 it800/893 loss 0.3416 2004s\n"}
+,{"stream_name":"stdout","time":8320.317440376,"data":"  seed1 e4 it0/893 loss 0.3908 2058s\n"}
+,{"stream_name":"stdout","time":8435.473037251,"data":"  seed1 e4 it200/893 loss 0.3300 2173s\n"}
+,{"stream_name":"stdout","time":8550.815334298,"data":"  seed1 e4 it400/893 loss 0.3249 2288s\n"}
+,{"stream_name":"stdout","time":8666.09503546,"data":"  seed1 e4 it600/893 loss 0.3697 2404s\n"}
+,{"stream_name":"stdout","time":8781.38843343,"data":"  seed1 e4 it800/893 loss 0.3479 2519s\n"}
+,{"stream_name":"stdout","time":8834.91916615,"data":"  seed1 e5 it0/893 loss 0.3303 2573s\n"}
+,{"stream_name":"stdout","time":8950.222996118,"data":"  seed1 e5 it200/893 loss 0.3322 2688s\n"}
+,{"stream_name":"stdout","time":9065.347151136,"data":"  seed1 e5 it400/893 loss 0.3367 2803s\n"}
+,{"stream_name":"stdout","time":9180.630300691,"data":"  seed1 e5 it600/893 loss 0.3200 2918s\n"}
+,{"stream_name":"stdout","time":9295.84322056,"data":"  seed1 e5 it800/893 loss 0.3043 3034s\n"}
+,{"stream_name":"stdout","time":9349.361449643,"data":"  seed1 e6 it0/893 loss 0.3654 3087s\n"}
+,{"stream_name":"stdout","time":9464.541261229,"data":"  seed1 e6 it200/893 loss 0.3179 3202s\n"}
+,{"stream_name":"stdout","time":9580.002168035,"data":"  seed1 e6 it400/893 loss 0.3292 3318s\n"}
+,{"stream_name":"stdout","time":9694.931595322,"data":"  seed1 e6 it600/893 loss 0.3372 3433s\n"}
+,{"stream_name":"stdout","time":9809.864735082,"data":"  seed1 e6 it800/893 loss 0.3405 3548s\n"}
+,{"stream_name":"stdout","time":9863.22713164,"data":"  seed1 e7 it0/893 loss 0.3154 3601s\n"}
+,{"stream_name":"stdout","time":9978.194137225,"data":"  seed1 e7 it200/893 loss 0.3457 3716s\n"}
+,{"stream_name":"stdout","time":10093.253264351,"data":"  seed1 e7 it400/893 loss 0.3123 3831s\n"}
+,{"stream_name":"stdout","time":10208.2023876,"data":"  seed1 e7 it600/893 loss 0.2637 3946s\n"}
+,{"stream_name":"stdout","time":10323.299278684,"data":"  seed1 e7 it800/893 loss 0.3007 4061s\n"}
+,{"stream_name":"stdout","time":10376.474725452,"data":"  seed1 e8 it0/893 loss 0.2950 4114s\n"}
+,{"stream_name":"stdout","time":10491.290008505,"data":"  seed1 e8 it200/893 loss 0.3256 4229s\n"}
+,{"stream_name":"stdout","time":10606.17100189,"data":"  seed1 e8 it400/893 loss 0.2749 4344s\n"}
+,{"stream_name":"stdout","time":10720.702322044,"data":"  seed1 e8 it600/893 loss 0.3054 4458s\n"}
+,{"stream_name":"stdout","time":10835.579782984,"data":"  seed1 e8 it800/893 loss 0.3081 4573s\n"}
+,{"stream_name":"stdout","time":10888.95097828,"data":"  seed1 e9 it0/893 loss 0.2839 4627s\n"}
+,{"stream_name":"stdout","time":11003.767602159,"data":"  seed1 e9 it200/893 loss 0.2972 4741s\n"}
+,{"stream_name":"stdout","time":11118.302607651,"data":"  seed1 e9 it400/893 loss 0.3000 4856s\n"}
+,{"stream_name":"stdout","time":11233.038846177,"data":"  seed1 e9 it600/893 loss 0.3158 4971s\n"}
+,{"stream_name":"stdout","time":11348.048625135,"data":"  seed1 e9 it800/893 loss 0.2952 5086s\n"}
+,{"stream_name":"stdout","time":11401.458952037,"data":"  seed1 e10 it0/893 loss 0.3104 5139s\n"}
+,{"stream_name":"stdout","time":11516.291942609,"data":"  seed1 e10 it200/893 loss 0.2707 5254s\n"}
+,{"stream_name":"stdout","time":11631.372427773,"data":"  seed1 e10 it400/893 loss 0.2948 5369s\n"}
+,{"stream_name":"stdout","time":11746.299174471,"data":"  seed1 e10 it600/893 loss 0.2833 5484s\n"}
+,{"stream_name":"stdout","time":11861.076175531,"data":"  seed1 e10 it800/893 loss 0.2862 5599s\n"}
+,{"stream_name":"stdout","time":11914.359363921,"data":"  seed1 e11 it0/893 loss 0.2948 5652s\n"}
+,{"stream_name":"stdout","time":12029.056750822,"data":"  seed1 e11 it200/893 loss 0.2864 5767s\n"}
+,{"stream_name":"stdout","time":12144.145094085,"data":"  seed1 e11 it400/893 loss 0.3086 5882s\n"}
+,{"stream_name":"stdout","time":12258.71744601,"data":"  seed1 e11 it600/893 loss 0.3058 5996s\n"}
+,{"stream_name":"stdout","time":12373.680776589,"data":"  seed1 e11 it800/893 loss 0.2999 6111s\n"}
+,{"stream_name":"stdout","time":12461.979749832,"data":"  [seed 1] Pearson 0.9643  Pearson_deg 0.4383\n"}
+,{"stream_name":"stdout","time":12466.732723206,"data":"  seed2 e0 it0/893 loss 3.3173 1s\n"}
+,{"stream_name":"stdout","time":12581.883726039,"data":"  seed2 e0 it200/893 loss 0.7951 116s\n"}
+,{"stream_name":"stdout","time":12696.16568964,"data":"  seed2 e0 it400/893 loss 0.6488 230s\n"}
+,{"stream_name":"stdout","time":12810.887086986,"data":"  seed2 e0 it600/893 loss 0.6063 345s\n"}
+,{"stream_name":"stdout","time":12925.586979355,"data":"  seed2 e0 it800/893 loss 0.5201 459s\n"}
+,{"stream_name":"stdout","time":12978.165169991,"data":"  seed2 DP seeding distinct [2, 1002]: device CUDA states equal after epoch 0 = False\n"}
+,{"stream_name":"stdout","time":12978.745650371,"data":"  seed2 e1 it0/893 loss 0.5480 513s\n"}
+,{"stream_name":"stdout","time":13093.407852261,"data":"  seed2 e1 it200/893 loss 0.5212 627s\n"}
+,{"stream_name":"stdout","time":13207.904832953,"data":"  seed2 e1 it400/893 loss 0.4970 742s\n"}
+,{"stream_name":"stdout","time":13322.354512949,"data":"  seed2 e1 it600/893 loss 0.4557 856s\n"}
+,{"stream_name":"stdout","time":13436.996369899,"data":"  seed2 e1 it800/893 loss 0.4006 971s\n"}
+,{"stream_name":"stdout","time":13490.23453864,"data":"  seed2 e2 it0/893 loss 0.4690 1024s\n"}
+,{"stream_name":"stdout","time":13604.631427421,"data":"  seed2 e2 it200/893 loss 0.4536 1139s\n"}
+,{"stream_name":"stdout","time":13719.246788266,"data":"  seed2 e2 it400/893 loss 0.4112 1253s\n"}
+,{"stream_name":"stdout","time":13834.162988709,"data":"  seed2 e2 it600/893 loss 0.3504 1368s\n"}
+,{"stream_name":"stdout","time":13949.070490665,"data":"  seed2 e2 it800/893 loss 0.3639 1483s\n"}
+,{"stream_name":"stdout","time":14002.208108232,"data":"  seed2 e3 it0/893 loss 0.3423 1536s\n"}
+,{"stream_name":"stdout","time":14116.798464601,"data":"  seed2 e3 it200/893 loss 0.3530 1651s\n"}
+,{"stream_name":"stdout","time":14231.356995252,"data":"  seed2 e3 it400/893 loss 0.3812 1765s\n"}
+,{"stream_name":"stdout","time":14346.105994445,"data":"  seed2 e3 it600/893 loss 0.4311 1880s\n"}
+,{"stream_name":"stdout","time":14460.571941057,"data":"  seed2 e3 it800/893 loss 0.3686 1994s\n"}
+,{"stream_name":"stdout","time":14513.81913537,"data":"  seed2 e4 it0/893 loss 0.3364 2048s\n"}
+,{"stream_name":"stdout","time":14628.287650818,"data":"  seed2 e4 it200/893 loss 0.3464 2162s\n"}
+,{"stream_name":"stdout","time":14743.024679814,"data":"  seed2 e4 it400/893 loss 0.3669 2277s\n"}
+,{"stream_name":"stdout","time":14857.53591929,"data":"  seed2 e4 it600/893 loss 0.3374 2391s\n"}
+,{"stream_name":"stdout","time":14972.463768794,"data":"  seed2 e4 it800/893 loss 0.3272 2506s\n"}
+,{"stream_name":"stdout","time":15025.989323932,"data":"  seed2 e5 it0/893 loss 0.3334 2560s\n"}
+,{"stream_name":"stdout","time":15140.942859764,"data":"  seed2 e5 it200/893 loss 0.3415 2675s\n"}
+,{"stream_name":"stdout","time":15255.85353329,"data":"  seed2 e5 it400/893 loss 0.3376 2790s\n"}
+,{"stream_name":"stdout","time":15370.639655861,"data":"  seed2 e5 it600/893 loss 0.3054 2905s\n"}
+,{"stream_name":"stdout","time":15485.44131767,"data":"  seed2 e5 it800/893 loss 0.3439 3019s\n"}
+,{"stream_name":"stdout","time":15538.750706744,"data":"  seed2 e6 it0/893 loss 0.3346 3073s\n"}
+,{"stream_name":"stdout","time":15653.69962822,"data":"  seed2 e6 it200/893 loss 0.3324 3188s\n"}
+,{"stream_name":"stdout","time":15768.688114968,"data":"  seed2 e6 it400/893 loss 0.3330 3303s\n"}
+,{"stream_name":"stdout","time":15883.618255767,"data":"  seed2 e6 it600/893 loss 0.3751 3418s\n"}
+,{"stream_name":"stdout","time":15998.433682011,"data":"  seed2 e6 it800/893 loss 0.3345 3532s\n"}
+,{"stream_name":"stdout","time":16051.879808516,"data":"  seed2 e7 it0/893 loss 0.3088 3586s\n"}
+,{"stream_name":"stdout","time":16166.817568537,"data":"  seed2 e7 it200/893 loss 0.3201 3701s\n"}
+,{"stream_name":"stdout","time":16281.762457824,"data":"  seed2 e7 it400/893 loss 0.3198 3816s\n"}
+,{"stream_name":"stdout","time":16396.508991836,"data":"  seed2 e7 it600/893 loss 0.2989 3930s\n"}
+,{"stream_name":"stdout","time":16511.266552627,"data":"  seed2 e7 it800/893 loss 0.3402 4045s\n"}
+,{"stream_name":"stdout","time":16564.630115041,"data":"  seed2 e8 it0/893 loss 0.3202 4099s\n"}
+,{"stream_name":"stdout","time":16679.496379697,"data":"  seed2 e8 it200/893 loss 0.2963 4213s\n"}
+,{"stream_name":"stdout","time":16794.204210905,"data":"  seed2 e8 it400/893 loss 0.2885 4328s\n"}
+,{"stream_name":"stdout","time":16908.966736655,"data":"  seed2 e8 it600/893 loss 0.3467 4443s\n"}
+,{"stream_name":"stdout","time":17023.665295492,"data":"  seed2 e8 it800/893 loss 0.2934 4558s\n"}
+,{"stream_name":"stdout","time":17077.199464947,"data":"  seed2 e9 it0/893 loss 0.3398 4611s\n"}
+,{"stream_name":"stdout","time":17192.078157079,"data":"  seed2 e9 it200/893 loss 0.2873 4726s\n"}
+,{"stream_name":"stdout","time":17306.995567046,"data":"  seed2 e9 it400/893 loss 0.3065 4841s\n"}
+,{"stream_name":"stdout","time":17422.061543234,"data":"  seed2 e9 it600/893 loss 0.2875 4956s\n"}
+,{"stream_name":"stdout","time":17536.786677923,"data":"  seed2 e9 it800/893 loss 0.2814 5071s\n"}
+,{"stream_name":"stdout","time":17590.342457957,"data":"  seed2 e10 it0/893 loss 0.2854 5124s\n"}
+,{"stream_name":"stdout","time":17704.953845255,"data":"  seed2 e10 it200/893 loss 0.3052 5239s\n"}
+,{"stream_name":"stdout","time":17819.76894543,"data":"  seed2 e10 it400/893 loss 0.3146 5354s\n"}
+,{"stream_name":"stdout","time":17934.497187223,"data":"  seed2 e10 it600/893 loss 0.3006 5468s\n"}
+,{"stream_name":"stdout","time":18049.288602584,"data":"  seed2 e10 it800/893 loss 0.3268 5583s\n"}
+,{"stream_name":"stdout","time":18102.552927666,"data":"  seed2 e11 it0/893 loss 0.2876 5636s\n"}
+,{"stream_name":"stdout","time":18217.346615884,"data":"  seed2 e11 it200/893 loss 0.2888 5751s\n"}
+,{"stream_name":"stdout","time":18332.165811665,"data":"  seed2 e11 it400/893 loss 0.2861 5866s\n"}
+,{"stream_name":"stdout","time":18447.041990908,"data":"  seed2 e11 it600/893 loss 0.2773 5981s\n"}
+,{"stream_name":"stdout","time":18562.071652123,"data":"  seed2 e11 it800/893 loss 0.2963 6096s\n"}
+,{"stream_name":"stdout","time":18650.160994283,"data":"  [seed 2] Pearson 0.9642  Pearson_deg 0.4375\n"}
+,{"stream_name":"stdout","time":18650.161033626,"data":"\n"}
+,{"stream_name":"stdout","time":18650.161039934,"data":"============================================================================================\n"}
+,{"stream_name":"stdout","time":18650.16105198,"data":"v9 ON XPERT'S OWN BENCHMARK (split_cold_cell_1), mean [min, max] over 3 seeds\n"}
+,{"stream_name":"stdout","time":18650.161056813,"data":"============================================================================================\n"}
+,{"stream_name":"stdout","time":18650.161112508,"data":"  Pearson      (absolute) : 0.9642 [0.9640, 0.9643]   | copy-the-control 0.9550\n"}
+,{"stream_name":"stdout","time":18650.161916651,"data":"  Pearson_deg  (delta)    : 0.4369 [0.4350, 0.4383]   | mean-drug 0.1126\n"}
+,{"stream_name":"stdout","time":18650.161931199,"data":"  (mean of per-row Pearson, THEIR convention. Their published 0.9804 / 0.8440 is\n"}
+,{"stream_name":"stdout","time":18650.161937402,"data":"   the HDACi figure subset, NOT this benchmark, so it is not printed as a target --\n"}
+,{"stream_name":"stdout","time":18650.161943274,"data":"   the like-for-like number is their checkpoint run on these same rows by\n"}
+,{"stream_name":"stdout","time":18650.16195958,"data":"   model/v9/xpert_native_eval.py.)\n"}
+,{"stream_name":"stdout","time":18650.161963602,"data":"\n"}
+,{"stream_name":"stdout","time":18650.1619671,"data":"  3.8% of rows use a cell line we have no chromatin or lineage for; 170 test and 578 train rows were dropped for lack of drug features.\n"}
+,{"stream_name":"stdout","time":18650.162106066,"data":"\n"}
+,{"stream_name":"stdout","time":18650.162112661,"data":"wrote /kaggle/working/v9_xpert_arm_split_cold_cell_1_dev6s0.json\n"}
+,{"stream_name":"stdout","time":18650.453961246,"data":"GUARD 4 dev rows sha1 51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980 OK\n"}
+,{"stream_name":"stdout","time":18650.453992291,"data":"GUARD 5 seed 0 [0, 1000] equal-by-epoch [False, False, False, False, False, False, False, False, False, False, False, False]\n"}
+,{"stream_name":"stdout","time":18650.453995938,"data":"GUARD 5 seed 1 [1, 1001] equal-by-epoch [False, False, False, False, False, False, False, False, False, False, False, False]\n"}
+,{"stream_name":"stdout","time":18650.453998888,"data":"GUARD 5 seed 2 [2, 1002] equal-by-epoch [False, False, False, False, False, False, False, False, False, False, False, False]\n"}
+,{"stream_name":"stderr","time":18655.925523973,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":18655.925556274,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":18656.267546008,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":18656.26757346,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":18657.002055647,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":18658.429725558,"data":"[NbConvertApp] Writing 295697 bytes to __results__.html\n"}
+]

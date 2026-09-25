@@ -113,6 +113,7 @@ single-fold / small-n · **C** = suggestive only · **✗** = tested and NOT sup
 | 6.8 | The drug×cell interaction "under-expression" (26.5% vs 47.9%) is largely **OPTIMAL noise-hedging**, not a fixable defect: the model sits at MSE-optimal dispersion (std-ratio 0.47 ≈ corr 0.42) | `analyze.json`, v4 negative | **A** |
 | 6.9 | A correlation/rank loss fixes the interaction shrinkage | — **TESTED, NEGATIVE**: probe flat 0.47→0.47, corr 0.38, pearson +0.01 (noise) | **✗** |
 | 6.10 | ⇒ Interaction magnitude cannot rise without first raising cell-specific CORRELATION (an accuracy problem, not a loss problem) | 6.8/6.9 | **A** |
+| 6.13 | ⚠️ **Every v9 model trained on Kaggle 2×T4 before 2026-09-25 (§45's `v9_cc1_epi`, r0–r2, sa0, s0–s1, the warm-split arms) trained with the two halves of each batch sharing dropout and stochastic-depth masks for the whole run** — `torch.manual_seed` seeds every device alike, DataParallel, full batches only; verified empirically (RESULTS 85.6). Function and objective are unchanged; it is weaker regularisation noise, the same order as the small effects the project screens for. Disclose with every number from those models. Fixed from 85.5 on (`--dp_seed_mode distinct`) | review 021 C1; lockstep check in P2 v2 | **A** |
 
 ## 6b. Literature corroboration (2026-07-27, searches — see sources at end)
 

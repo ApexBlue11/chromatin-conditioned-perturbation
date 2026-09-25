@@ -5823,8 +5823,8 @@ desynchronises the two generators. Every GPU random draw in v9 (dropout 0.1, sto
 replica's own device generator. ⇒ on Kaggle the two halves of every batch should receive **identical dropout and
 stochastic-depth masks for the entire run.** `train_v9_gpu.py` has the same pattern (`cuda.manual_seed_all`, DP,
 `drop_last=True`), so it very likely applies to every v9 checkpoint trained on 2×T4 (§45's model, r0–r2, sa0, s0–s1).
-**Verification is running** (a 1-epoch lockstep-mode check at the start of P2 v2); the record for those checkpoints is
-corrected once it reports.
+**Verified in 85.6** (device states equal after epoch 0 under the old seeding); the record for those checkpoints is
+corrected in CLAIMS 6.13.
 
 **Fix, adopted (C1 option a):** `xpert_arm.py --dp_seed_mode distinct` (the new default) reseeds device k ≥ 1 with
 seed + 1000·k; device 0 keeps `seed`, so one-GPU runs are unchanged. Every run records its device seeds and whether the
@@ -5847,6 +5847,27 @@ by the PI as ~20 lines of glue, tested locally with faked device generators.)
 **Void (2026-09-25):** Lightning refuses GPU compute to free-tier accounts without a verified payment method (403), and
 the principal adds no card. No Lightning run happened; **every §85 run is on Kaggle 2×T4 with distinct seeding**, so
 rules 1–5 above are moot and rule 6 holds trivially.
+
+### 85.6 P2 RESULT: the baseline noise on the dev cells, and the lockstep claim verified (2026-09-25)
+Kernel `apexblue/lincs-v9dev-base2` (Kaggle 2×T4, `--dp_seed_mode distinct`), dev rows sha1 `51e7e4ab` (GUARD 4 OK), 3 seeds;
+scored by `model/v9/score_dev.py` (PI-written instrument) → `model/results/v9_dev_score_baseline_kaggle.json`.
+
+**The lockstep check, run first (review 021 C1):** 1 epoch, 960 rows, the pre-85.5 seeding: device seeds [0, 0], device CUDA
+states **equal after epoch 0: [True]**. ⇒ **Verified empirically:** under `torch.manual_seed` + DataParallel + full batches the
+two T4s' generators stay in lockstep, so the halves of each batch share dropout and stochastic-depth masks. With distinct
+seeding every epoch of every seed shows unequal states (GUARD 5 OK).
+
+| seed | per-row mean (primary) | mean of cell means | seconds | device seeds |
+|---|---|---|---|---|
+| 0 | 0.4350 | 0.4317 | 6207 | [0, 1000] |
+| 1 | 0.4383 | 0.4430 | 6196 | [1, 1001] |
+| 2 | 0.4375 | 0.4368 | 6181 | [2, 1002] |
+
+**μ0 = 0.43693, s0 = 0.00169** (3 seeds). ⇒ **Thresholds, fixed by 85.2:** advance a one-seed variant iff
+Δ ≥ max(2·s0, 0.003) = **0.0034**; drop iff Δ < s0 = **0.0017**; otherwise one more seed. Accept at 3 seeds iff
+Δ ≥ max(0.003, 2·√(s0²/3 + s_v²/3)) (the floor governs unless the variant's sd is much larger), with Δ > 0 on the mean of
+cell means, ≥ 4 of 6 cells, and the 85.2 rule-8 gate. **Cost: ~1.72 h per seed on 2×T4** (6,180–6,210 s), not the 1.5 h
+assumed in packet 019; ~24.5 Kaggle GPU-h used this week.
 
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
@@ -5990,7 +6011,7 @@ session 1's epochs are full length from epoch 0 (437 s). A note beside the run r
 (`external/kaggle_out/cc1_v9/DEVIATIONS_CORRECTION.md`). Provenance only, not a deviation: empty
 `__init__.py` in `datasets/` and `models/` (008b).
 **v9 side, disclosed:** the committed model (`v9_cc1_epi_seed0`, trained on Kaggle) very likely trained under
-DataParallel with lockstep masks for its whole run (85.5, review 021 C1; verification running in P2 v2). The budget
+DataParallel with lockstep masks for its whole run (85.5, review 021 C1; the mechanism verified empirically in 85.6). The budget
 asymmetry runs in XPert's favour: 91 epochs with test-loss checkpoint selection against v9's fixed 12. **Symmetric
 disclosure (review 022 C3):** the compared v9 (`v9_cc1_epi_seed0.npz`, sha1 `28bb8910be7cce55db5e4c4ff253e564a5a2e201`,
 recorded now; its 0.4734 is quoted in §71.3 as committed at `3d76cda`, before O2) was one of two cc1 variants with test
