@@ -1,0 +1,21 @@
+{
+ "id": "apexblue/lincs-moa-r2",
+ "title": "lincs moa r2",
+ "code_file": "lincs-moa-r2.py",
+ "language": "python",
+ "kernel_type": "script",
+ "is_private": true,
+ "enable_gpu": false,
+ "enable_tpu": false,
+ "enable_internet": false,
+ "keywords": [],
+ "dataset_sources": [
+  "apexblue/lincs-v9-bundle",
+  "apexblue/lincs-v9-src",
+  "apexblue/lincs-v9-moa-inputs"
+ ],
+ "kernel_sources": [],
+ "competition_sources": [],
+ "model_sources": [],
+ "docker_image": "gcr.io/kaggle-private-byod/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461"
+}

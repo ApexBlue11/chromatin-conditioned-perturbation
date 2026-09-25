@@ -320,9 +320,26 @@ def main():
 
     roots = ['/kaggle/input', os.path.join(r'C:\Projects\LINCS'), os.path.join(r'C:\Projects\LINCS',
                                                                               'external')]
+    if os.environ.get('LINCS_DATA_ROOT'):                       # Lightning (RESULTS 85.5)
+        roots.insert(0, os.environ['LINCS_DATA_ROOT'])
     roots = [r for r in roots if os.path.isdir(r)]
     npz = find(a.bundle, roots)
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+    # RESULTS 85.5 rule 4: record the precision class on every platform; on request (Lightning) assert it.
+    platform = {'gpus': [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())],
+                'torch': torch.__version__, 'matmul_allow_tf32': torch.backends.cuda.matmul.allow_tf32,
+                'cudnn_allow_tf32': torch.backends.cudnn.allow_tf32,
+                'float32_matmul_precision': torch.get_float32_matmul_precision(),
+                'NVIDIA_TF32_OVERRIDE': os.environ.get('NVIDIA_TF32_OVERRIDE')}
+    if dev == 'cuda':
+        platform.update(flash_sdp=torch.backends.cuda.flash_sdp_enabled(),
+                        mem_efficient_sdp=torch.backends.cuda.mem_efficient_sdp_enabled(),
+                        capability=list(torch.cuda.get_device_capability(0)))
+    print('PLATFORM ' + json.dumps(platform), flush=True)
+    if os.environ.get('LINCS_ASSERT_NO_TF32'):
+        if platform['matmul_allow_tf32'] or platform['float32_matmul_precision'] != 'highest' or \
+                platform['NVIDIA_TF32_OVERRIDE'] is not None:
+            raise SystemExit('FATAL: TF32 or a non-highest fp32 matmul precision is active (RESULTS 85.5 rule 4).')
     if dev == 'cuda' and any('P100' in torch.cuda.get_device_name(i)
                              for i in range(torch.cuda.device_count())):
         raise SystemExit('FATAL: P100 assigned; Kaggle torch has no sm_60 kernels.')
@@ -481,6 +498,7 @@ def main():
     out = os.path.join(WORK, f'v9_xpert_arm_{tag}{dev_suffix}.json')
     
     json_data = {'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
+               'platform': platform,
                'n_dropped_test_unfeaturisable': int(getattr(D, 'n_dropped_test', 0)),
                'ablate_epi': bool(a.ablate_epi),
                'metric': 'mean of per-row Pearson (XPert metrics.py convention)',
