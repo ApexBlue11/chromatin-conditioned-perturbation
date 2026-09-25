@@ -5889,7 +5889,7 @@ dev training rows, fp32, CPU. Computed once by a calibration script, written int
 as "at the pre-registered weight". K = 50 and τ = 1 are fixed choices.
 
 **C8b ordering (ask 3):** C8b's MoA study (fold 0, its own pre-registration with review 023's seven requirements) is
-**executed iff C8b's seed-0 dev Δ ≥ −s0** — non-inferiority, because C8b exists for interpretability; entering the final
+*(amended by §88.5: gated on the 3-seed mean, C8b runs 3 dev seeds regardless)* **executed iff C8b's seed-0 dev Δ ≥ −s0** — non-inferiority, because C8b exists for interpretability; entering the final
 stack still requires §85.2's accept rule. **The MoA pre-registration is written and committed before C8b's screen is
 read**; only its execution is gated. The MoA data (fold-0 test rows) are disjoint from the cc1 dev cells.
 
@@ -6041,6 +6041,63 @@ disclosure (review 022 C3):** the compared v9 (`v9_cc1_epi_seed0.npz`, sha1 `28b
 recorded now; its 0.4734 is quoted in §71.3 as committed at `3d76cda`, before O2) was one of two cc1 variants with test
 scores seen; the alternative (chromatin ablated) scores 0.0042 lower row-pooled (≈ 0.0004 cluster), which bounds that
 selection's effect against +0.046.
+
+## 88. 🔒 PRE-REGISTERED: C8b's drug-specific mechanism test — packet 025 as amended by review 025, committed before C8b exists (2026-09-25)
+A trained, unsupervised, post-perturbation named pathway layer (85.7 C8b), trained on fold 0, read against annotated
+mechanism. Calibrated **against untrained inits**, not against a trained null (a model trained with permuted drug
+identities would be the exact null; it is not bought) — stated as such in any write-up.
+
+### 88.1 Design (packet 025)
+1. **Models:** v9 + `--post_pathway`, trained on **fold 0** (our own splits — they contain unseen compounds by
+   scaffold, which cc1 does not), seeds 0, 1, 2, V9Config defaults otherwise, `train_v9_gpu.py`'s fold-0 recipe **with
+   distinct per-device seeding and TF32 off**, i.e. the same seeding fix as 85.5 ported to that trainer (a change I will
+   make and test before training; recorded as a deviation from the r-series recipe). ~5.6 GPU-h per seed. These models
+   are **separate from §85's cc1 dev work**; nothing about them enters §85's accuracy acceptance, and §85's reading
+   never enters this one (req. 7).
+2. **One primary readout (req. 1):** per row, `Δa[p] = ‖a_post(d)[p] − a_post(mean drug)[p]‖₂` over the node's
+   `d_pathway` channels, with 020 C4's fixed mean drug (global = mean over scored compounds; atoms = `k̄` copies of the
+   mean atom vector, mask exactly `k̄`); per compound the median over ≤ 4 rows. Gradient × activation is not computed.
+3. **Supervision (req. 2):** the post layer is **unsupervised** — no aux loss; any alignment is emergent.
+4. **Rows, positives, nulls:** exactly §86 (the same fold-0 test rows, `strength ≥ eval_min_strength`, ≤ 4 per compound;
+   ChEMBL mechanism targets; full GMT gene sets; Null 1 = label permutation, 1,000; Null 2 = size-matched, 200).
+5. **Calibration against untrained models (req. 3):** **5 untrained inits** (seeds 0–4, default init, quantiser fitted
+   on training rows) through the identical pipeline. Their `diff` values define `m_u` and `sd_u` (sd over the 5).
+6. **Readouts compared by diff only (req. 4):** the output projection and data projection of §86 reported beside it,
+   each with its own nulls.
+7. **Strata (req. 5, 6):** compounds unseen vs seen in fold-0 training (the unseen stratum licenses a mechanism claim;
+   its Null-1 sd reported); target responsiveness split **at the median** of each compound's target responsiveness
+   percentile (mean rank of its landmark targets' |y_Δ| among its rows; compounds with no landmark target form a third,
+   reported group), so both sides have usable n.
+
+### 88.2 Order of checks (review 025 C2: §86's first two carried over)
+1. **Degeneracy:** max ‖Δa‖ > 1e−12, else void. 2. **Gate:** median cross-compound Spearman of the Δa rankings < 0.95,
+reported before any alignment number; a gate failure is NULL. 3. S, Null 1, Null 2 as §86. 4. **Null 1s (C4):** label
+permutation **within quintiles of compound response strength** (median |y_Δ| over the compound's scored rows), 1,000
+permutations — it removes the strong-perturber pairing (strong perturbers' changes concentrate in generally responsive
+pathways, where their targets also sit). 5. Untrained calibration: 5 inits, each producing all-rows and per-stratum diffs.
+6. Reference readouts (output, data projection) and strata, as 88.1. `k̄` = `int(round(median atom count))`.
+
+### 88.3 Readings, pre-committed
+| result | reading |
+|---|---|
+| gate passes, and on **all three** seeds: all-rows `diff ≤ min(untrained)` and `≤ m_u − 2·sd_u`, Null-1 p < 0.05, **Null-1s p < 0.05**, S below Null 2's mean; **and** in the unseen-compound stratum on all three seeds: `diff ≤ min(untrained unseen-stratum diffs)` and `≤ m_u,unseen − 2·sd_u,unseen`, p < 0.05, and diff ≤ −0.02 (C1) | **SIGNAL:** *"a trained drug-dependent named pathway layer aligns with annotated mechanism, including for unseen compounds"* |
+| the all-rows conditions on all three seeds; the unseen-stratum conditions fail | **SEEN-ONLY:** not separable from memory (017); no mechanism claim |
+| anything else | **NULL** |
+
+**Wording qualifiers on a SIGNAL (C3):** *"… beyond the data's own target alignment"* only if the data projection's diff
+is not ≤ −0.02 with p < 0.05; *"… beyond the model's predicted signature"* only if the output projection's diff is not
+≤ −0.02 with p < 0.05 — otherwise *"… a named readout of a predicted signature that is itself target-aligned."*
+No per-drug case-study figure without a separate pre-registration.
+
+### 88.4 Recipe deviation (ask 2)
+The fold-0 C8b models use `train_v9_gpu.py` with **distinct per-device seeding** (85.5) and TF32 off. **TF32-off is inert on
+T4s** (Turing has no TF32), so on Kaggle only the seeding change does anything; nothing here is compared with the
+r-series, so the change affects only cross-study comparability with §86, which is not read.
+
+### 88.5 The execution gate, decided now (ask 4)
+A one-seed gate (seed-0 Δ ≥ −s0) would skip a C8b with no true accuracy effect ~19 % of the time. **Amended:** C8b's dev
+screen runs **all three seeds regardless of rule 6**, and the MoA study (§88) executes iff C8b's **3-seed mean dev Δ ≥
+−s0** (skip rate for a null-effect C8b ~7 %). C8b's entry into the final stack still requires §85.2's accept rule.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
