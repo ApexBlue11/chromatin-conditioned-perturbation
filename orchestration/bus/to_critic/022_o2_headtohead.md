@@ -1,7 +1,7 @@
 # PACKET 022 — RESULT: the pre-registered v9-versus-XPert cold-cell head-to-head (O2 complete)
 packet_id: 022
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: fa0d24d
 type: **RESULT.** Read mechanically by `model/v9/coldcell_h2h.py`; nothing here was chosen after seeing it.
 
 ## The rules this is read under, verbatim
