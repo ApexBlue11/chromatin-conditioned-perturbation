@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "024_candidate_specs"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -48,12 +46,13 @@
     "020_moa_gradient_probe",
     "021_lightning_allocation",
     "022_o2_headtohead",
-    "023_moa_probe_result"
+    "023_moa_probe_result",
+    "024_candidate_specs"
   ],
   "gpu_hours_spent_this_session": 18.71,
   "pending_decision": "Packet 022 (O2 result) with the critic. P2 v2 running. MoA probe (86) outputs to read. Lightning L-base to launch.",
   "note_current": "O2 FINAL (87, no cell-level claim). MoA probe NULL (86.4). P2 done (85.6: mu0 0.4369, s0 0.0017). Next: packet 024, the exact specs of candidates C1-C6 + C8b before building them.",
-  "challenges_upheld": "121 of 124",
+  "challenges_upheld": "125 of 128",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",

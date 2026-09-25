@@ -5869,6 +5869,30 @@ seeding every epoch of every seed shows unequal states (GUARD 5 OK).
 cell means, ≥ 4 of 6 cells, and the 85.2 rule-8 gate. **Cost: ~1.72 h per seed on 2×T4** (6,180–6,210 s), not the 1.5 h
 assumed in packet 019; ~24.5 Kaggle GPU-h used this week.
 
+### 85.7 🔒 The candidate definitions, as amended by review 024 — binding, committed before any is built (2026-09-25)
+Common command and rules as packet 024 (seed 0 first; one flag each; default-off byte-identical; §85.2 rules 6–8 against
+P2's μ0 = 0.43693, s0 = 0.00169; with these numbers the 0.003 floor binds both advance and acceptance).
+
+| id | flag | definition | acceptance test (asserted in code) |
+|---|---|---|---|
+| **C1** | `--no_atoms` | drug sequence `[global]` only; atom tokens reach nothing (not zeroed-but-present, which would still enter as `ln_atom(w_a(0)) + type_atom`) | prediction invariant to replacing the atom tokens (dY = 0); changes with `u_feats` |
+| **C2** | `--l_control 0` | **raw control, no learned encoder (C1 of the review):** both control views keep `gene_tok + expr(x)` and lose their `_GeneBlock`s — TxPert's contrast. (Removing the control entirely is a different hypothesis, answered by §37, and is not run.) | the control streams have 0 blocks; the prediction still changes when `x_ctl` changes |
+| **C3** | `--listnet_w w3` | **symmetric** ListNet (C3): ½[CE(softmax(z(y_Δ)), softmax(z(ŷ_Δ))) + CE(softmax(−z(y_Δ)), softmax(−z(ŷ_Δ)))], z = (x − row mean)/(row sd + 1e−3), τ = 1, the delta loss's rows | equals a reference implementation on a fixed batch |
+| **C4** | `--deg_adapt_k 50` | the delta Huber term becomes `w_delta·(α_all·L_all + α_DE·L_DE)`, **α_all = sg((L_all + L_DE) / (2·L_all)), α_DE = sg((L_all + L_DE) / (2·L_DE))**, per batch (each term's value becomes their mean): an equal-magnitude reweighting *inspired by* PertAdapt's L_adapt, **not claimed to be their exact equation** (their equations/tables were not verifiable, W12b) | the α's equal the formula on a fixed batch and have `requires_grad == False`; with K = 978 the term equals 2·w_delta·L_all |
+| **C6** | `--sign_head_w w6` | as packet 024 (BCE on `1[y_Δ > 0]`, each row's top-50 `\|y_Δ\|` genes, linear head on the final gene tokens) | the head's parameters get no gradient from the prediction losses; outputs identical with/without the head |
+| **C8b** | `--post_pathway` | second `NamedPathwayReadout` after the last perturb block, residual write-back with stochastic depth at `cfg.stoch_depth` (the same rate as the first readout's `sd_path`), **unsupervised**; `aux['pathway_activations']` stays the PRE-perturbation layer (§85.2 rule 8 reads it); the new one is `aux['post_pathway_activations']` | post activations change with the drug (Δa ≠ 0); pre activations do not |
+
+**Auxiliary weights by rule (ask 2), fixed before any C3/C6 run:** `w = 0.1 × ‖∇θ L_delta‖ / ‖∇θ L_aux‖`, with
+L_delta = the delta Huber term (weighted as in the baseline) and L_aux the unit-weight auxiliary term, both at a fresh
+seed-0 initialisation of the baseline configuration, averaged over the first 20 batches of seed 0's training order on the
+dev training rows, fp32, CPU. Computed once by a calibration script, written into this section, frozen. A null is stated
+as "at the pre-registered weight". K = 50 and τ = 1 are fixed choices.
+
+**C8b ordering (ask 3):** C8b's MoA study (fold 0, its own pre-registration with review 023's seven requirements) is
+**executed iff C8b's seed-0 dev Δ ≥ −s0** — non-inferiority, because C8b exists for interpretability; entering the final
+stack still requires §85.2's accept rule. **The MoA pre-registration is written and committed before C8b's screen is
+read**; only its execution is gated. The MoA data (fold-0 test rows) are disjoint from the cc1 dev cells.
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
