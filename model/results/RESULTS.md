@@ -5905,6 +5905,7 @@ seconds and notes.
 |---|---|---|---|---|---|---|---|---|
 | C2 | C2_lctl0 | 1 | +0.00161 | -0.00397 | 4 / 6 | 3962 | **DROPPED** | 36% faster than baseline |
 | C1 | C1_noatoms | 1 | -0.00859 | -0.00917 | 0 / 6 | 5897 | **DROPPED** | 0/6 cells; training without atoms hurts every dev cell (cf. 37's inference ablation, reported not read) |
+| C4 | C4_degk50 | 1 | -0.00424 | -0.00956 | 2 / 6 | 6090 | **DROPPED** | 2/6 cells; the two smallest dev cells lose most |
 
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 

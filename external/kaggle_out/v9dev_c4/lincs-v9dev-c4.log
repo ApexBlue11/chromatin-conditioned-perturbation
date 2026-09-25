@@ -1,0 +1,101 @@
+[{"stream_name":"stdout","time":7.548539869,"data":"/kaggle/input contains: ['datasets']\n"}
+,{"stream_name":"stdout","time":7.819554308,"data":"source dir: /kaggle/input/datasets/apexblue/lincs-v9-src\n"}
+,{"stream_name":"stdout","time":8.132806583,"data":"GPUs: ['Tesla T4', 'Tesla T4']\n"}
+,{"stream_name":"stdout","time":8.476332681,"data":"mounted code verified: quantiser fix + their-metric reporting present\n"}
+,{"stream_name":"stdout","time":8.509053536,"data":"PLATFORM {\"gpus\": [\"Tesla T4\", \"Tesla T4\"], \"torch\": \"2.10.0+cu128\", \"matmul_allow_tf32\": false, \"cudnn_allow_tf32\": true, \"float32_matmul_precision\": \"highest\", \"NVIDIA_TF32_OVERRIDE\": null, \"flash_sdp\": true, \"mem_efficient_sdp\": true, \"capability\": [7, 5]}\n"}
+,{"stream_name":"stdout","time":13.213707248,"data":"dropped 578 train and 170 test rows whose compound we cannot featurise (0.80% of test); the comparison runs on the rows BOTH models can score\n"}
+,{"stream_name":"stdout","time":13.238553501,"data":"DEV CELLS {\"eligible_pool\": {\"BT20\": 1593, \"HCC515\": 1859, \"HEK293T\": 224, \"HEPG2\": 1986, \"HL60\": 309, \"HME1\": 580, \"LNCAP\": 567, \"NPC\": 243, \"SKBR3\": 1666, \"U2OS\": 1648, \"U937\": 308, \"VCAP\": 969}, \"dev_cells\": [\"HEK293T\", \"HL60\", \"LNCAP\", \"SKBR3\", \"U937\", \"VCAP\"], \"rows_per_dev_cell\": {\"HEK293T\": 224, \"HL60\": 309, \"LNCAP\": 567, \"SKBR3\": 1666, \"U937\": 308, \"VCAP\": 969}, \"total_dev_rows\": 4043, \"total_remaining_training_rows\": 42888, \"dev_row_index_sha1\": \"51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980\"}\n"}
+,{"stream_name":"stdout","time":16.289842454,"data":"split_cold_cell_1: train 42888 test 4043 | rows with a cell line we know: 96.2% | device cuda\n"}
+,{"stream_name":"stdout","time":18.213119366,"data":"nulls on THEIR test rows: {'copy_ctl_abs': 0.955, 'copy_ctl_abs_median': 0.965, 'zero_delta': 0.0, 'mean_drug_delta': 0.1126}\n"}
+,{"stream_name":"stderr","time":31.098167667,"data":"/kaggle/input/datasets/apexblue/lincs-v9-src/xpert_arm.py:440: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate\n"}
+,{"stream_name":"stderr","time":31.098216189,"data":"  scaler.step(opt); scaler.update(); sched.step()\n"}
+,{"stream_name":"stdout","time":31.098350964,"data":"  seed0 e0 it0/893 loss 5.9179 3s\n"}
+,{"stream_name":"stderr","time":31.098367926,"data":"/kaggle/input/datasets/apexblue/lincs-v9-src/xpert_arm.py:442: UserWarning: Converting a tensor with requires_grad=True to a scalar may lead to unexpected behavior.\n"}
+,{"stream_name":"stderr","time":31.098373128,"data":"Consider using tensor.detach() first. (Triggered internally at /pytorch/torch/csrc/autograd/generated/python_variable_methods.cpp:836.)\n"}
+,{"stream_name":"stderr","time":31.098378087,"data":"  print(f'  seed{seed} e{ep} it{it}/{len(order) // a.batch} loss {float(loss):.4f} '\n"}
+,{"stream_name":"stdout","time":150.570958168,"data":"  seed0 e0 it200/893 loss 1.9874 123s\n"}
+,{"stream_name":"stdout","time":263.638983891,"data":"  seed0 e0 it400/893 loss 1.9057 236s\n"}
+,{"stream_name":"stdout","time":376.261397239,"data":"  seed0 e0 it600/893 loss 1.4530 348s\n"}
+,{"stream_name":"stdout","time":489.075098903,"data":"  seed0 e0 it800/893 loss 1.3958 461s\n"}
+,{"stream_name":"stdout","time":540.932169305,"data":"  seed0 DP seeding distinct [0, 1000]: device CUDA states equal after epoch 0 = False\n"}
+,{"stream_name":"stdout","time":541.505083778,"data":"  seed0 e1 it0/893 loss 1.2078 514s\n"}
+,{"stream_name":"stdout","time":654.266304591,"data":"  seed0 e1 it200/893 loss 1.0570 626s\n"}
+,{"stream_name":"stdout","time":767.071948277,"data":"  seed0 e1 it400/893 loss 1.3375 739s\n"}
+,{"stream_name":"stdout","time":879.912241637,"data":"  seed0 e1 it600/893 loss 1.0717 852s\n"}
+,{"stream_name":"stdout","time":992.822290731,"data":"  seed0 e1 it800/893 loss 0.9935 965s\n"}
+,{"stream_name":"stdout","time":1045.340825224,"data":"  seed0 e2 it0/893 loss 0.8832 1017s\n"}
+,{"stream_name":"stdout","time":1158.183983257,"data":"  seed0 e2 it200/893 loss 1.0052 1130s\n"}
+,{"stream_name":"stdout","time":1271.327720136,"data":"  seed0 e2 it400/893 loss 1.0188 1243s\n"}
+,{"stream_name":"stdout","time":1384.066108427,"data":"  seed0 e2 it600/893 loss 1.0405 1356s\n"}
+,{"stream_name":"stdout","time":1496.944896753,"data":"  seed0 e2 it800/893 loss 0.9712 1469s\n"}
+,{"stream_name":"stdout","time":1549.40811522,"data":"  seed0 e3 it0/893 loss 0.8140 1521s\n"}
+,{"stream_name":"stdout","time":1662.331439802,"data":"  seed0 e3 it200/893 loss 0.8765 1634s\n"}
+,{"stream_name":"stdout","time":1775.171073909,"data":"  seed0 e3 it400/893 loss 0.9248 1747s\n"}
+,{"stream_name":"stdout","time":1888.076805859,"data":"  seed0 e3 it600/893 loss 0.9188 1860s\n"}
+,{"stream_name":"stdout","time":2000.871621751,"data":"  seed0 e3 it800/893 loss 0.7930 1973s\n"}
+,{"stream_name":"stdout","time":2053.325754696,"data":"  seed0 e4 it0/893 loss 0.7299 2025s\n"}
+,{"stream_name":"stdout","time":2166.140506551,"data":"  seed0 e4 it200/893 loss 0.9041 2138s\n"}
+,{"stream_name":"stdout","time":2279.055113053,"data":"  seed0 e4 it400/893 loss 0.7881 2251s\n"}
+,{"stream_name":"stdout","time":2392.157993328,"data":"  seed0 e4 it600/893 loss 0.7388 2364s\n"}
+,{"stream_name":"stdout","time":2504.952444022,"data":"  seed0 e4 it800/893 loss 0.8159 2477s\n"}
+,{"stream_name":"stdout","time":2557.347265399,"data":"  seed0 e5 it0/893 loss 0.7233 2529s\n"}
+,{"stream_name":"stdout","time":2670.273380203,"data":"  seed0 e5 it200/893 loss 0.7346 2642s\n"}
+,{"stream_name":"stdout","time":2783.21468543,"data":"  seed0 e5 it400/893 loss 0.8265 2755s\n"}
+,{"stream_name":"stdout","time":2896.114111846,"data":"  seed0 e5 it600/893 loss 0.7486 2868s\n"}
+,{"stream_name":"stdout","time":3009.062465098,"data":"  seed0 e5 it800/893 loss 0.7762 2981s\n"}
+,{"stream_name":"stdout","time":3061.64304936,"data":"  seed0 e6 it0/893 loss 0.7927 3034s\n"}
+,{"stream_name":"stdout","time":3174.494982083,"data":"  seed0 e6 it200/893 loss 0.8293 3146s\n"}
+,{"stream_name":"stdout","time":3287.3806022,"data":"  seed0 e6 it400/893 loss 0.6706 3259s\n"}
+,{"stream_name":"stdout","time":3400.028661148,"data":"  seed0 e6 it600/893 loss 0.6676 3372s\n"}
+,{"stream_name":"stdout","time":3512.887486734,"data":"  seed0 e6 it800/893 loss 0.7477 3485s\n"}
+,{"stream_name":"stdout","time":3565.39179133,"data":"  seed0 e7 it0/893 loss 0.7906 3537s\n"}
+,{"stream_name":"stdout","time":3678.411804709,"data":"  seed0 e7 it200/893 loss 0.8588 3650s\n"}
+,{"stream_name":"stdout","time":3791.488806414,"data":"  seed0 e7 it400/893 loss 0.6487 3763s\n"}
+,{"stream_name":"stdout","time":3904.263434608,"data":"  seed0 e7 it600/893 loss 0.7418 3876s\n"}
+,{"stream_name":"stdout","time":4016.939982898,"data":"  seed0 e7 it800/893 loss 0.7084 3989s\n"}
+,{"stream_name":"stdout","time":4069.510141405,"data":"  seed0 e8 it0/893 loss 0.8772 4042s\n"}
+,{"stream_name":"stdout","time":4182.801433821,"data":"  seed0 e8 it200/893 loss 0.7663 4155s\n"}
+,{"stream_name":"stdout","time":4295.710890906,"data":"  seed0 e8 it400/893 loss 0.7487 4268s\n"}
+,{"stream_name":"stdout","time":4408.723965221,"data":"  seed0 e8 it600/893 loss 0.7385 4381s\n"}
+,{"stream_name":"stdout","time":4521.502370769,"data":"  seed0 e8 it800/893 loss 0.8836 4494s\n"}
+,{"stream_name":"stdout","time":4574.110688521,"data":"  seed0 e9 it0/893 loss 0.6769 4546s\n"}
+,{"stream_name":"stdout","time":4686.97457014,"data":"  seed0 e9 it200/893 loss 0.8023 4659s\n"}
+,{"stream_name":"stdout","time":4800.05546294,"data":"  seed0 e9 it400/893 loss 0.7091 4772s\n"}
+,{"stream_name":"stdout","time":4912.956714944,"data":"  seed0 e9 it600/893 loss 0.7707 4885s\n"}
+,{"stream_name":"stdout","time":5025.914031816,"data":"  seed0 e9 it800/893 loss 0.7420 4998s\n"}
+,{"stream_name":"stdout","time":5078.321249609,"data":"  seed0 e10 it0/893 loss 0.6997 5050s\n"}
+,{"stream_name":"stdout","time":5191.228451901,"data":"  seed0 e10 it200/893 loss 0.6329 5163s\n"}
+,{"stream_name":"stdout","time":5304.120122123,"data":"  seed0 e10 it400/893 loss 0.7213 5276s\n"}
+,{"stream_name":"stdout","time":5417.371057521,"data":"  seed0 e10 it600/893 loss 0.6930 5389s\n"}
+,{"stream_name":"stdout","time":5530.244902649,"data":"  seed0 e10 it800/893 loss 0.6185 5502s\n"}
+,{"stream_name":"stdout","time":5582.630654424,"data":"  seed0 e11 it0/893 loss 0.7187 5555s\n"}
+,{"stream_name":"stdout","time":5695.414861598,"data":"  seed0 e11 it200/893 loss 0.7369 5667s\n"}
+,{"stream_name":"stdout","time":5808.346841125,"data":"  seed0 e11 it400/893 loss 0.6840 5780s\n"}
+,{"stream_name":"stdout","time":5921.208134914,"data":"  seed0 e11 it600/893 loss 0.6479 5893s\n"}
+,{"stream_name":"stdout","time":6034.098071242,"data":"  seed0 e11 it800/893 loss 0.6598 6006s\n"}
+,{"stream_name":"stderr","time":6086.056129826,"data":"/usr/local/lib/python3.12/dist-packages/torch/nn/modules/linear.py:134: UserWarning: Attempting to run cuBLAS, but there was no current CUDA context! Attempting to set the primary context... (Triggered internally at /pytorch/aten/src/ATen/cuda/CublasHandlePool.cpp:330.)\n"}
+,{"stream_name":"stderr","time":6086.056179867,"data":"  return F.linear(input, self.weight, self.bias)\n"}
+,{"stream_name":"stdout","time":6121.085637202,"data":"  [seed 0] Pearson 0.9614  Pearson_deg 0.4327\n"}
+,{"stream_name":"stdout","time":6121.085669758,"data":"\n"}
+,{"stream_name":"stdout","time":6121.085675551,"data":"============================================================================================\n"}
+,{"stream_name":"stdout","time":6121.085681506,"data":"v9 ON XPERT'S OWN BENCHMARK (split_cold_cell_1), mean [min, max] over 1 seeds\n"}
+,{"stream_name":"stdout","time":6121.085694565,"data":"============================================================================================\n"}
+,{"stream_name":"stdout","time":6121.085700172,"data":"  Pearson      (absolute) : 0.9614 [0.9614, 0.9614]   | copy-the-control 0.9550\n"}
+,{"stream_name":"stdout","time":6121.085705312,"data":"  Pearson_deg  (delta)    : 0.4327 [0.4327, 0.4327]   | mean-drug 0.1126\n"}
+,{"stream_name":"stdout","time":6121.085710583,"data":"  (mean of per-row Pearson, THEIR convention. Their published 0.9804 / 0.8440 is\n"}
+,{"stream_name":"stdout","time":6121.085715701,"data":"   the HDACi figure subset, NOT this benchmark, so it is not printed as a target --\n"}
+,{"stream_name":"stdout","time":6121.085721045,"data":"   the like-for-like number is their checkpoint run on these same rows by\n"}
+,{"stream_name":"stdout","time":6121.085726249,"data":"   model/v9/xpert_native_eval.py.)\n"}
+,{"stream_name":"stdout","time":6121.085731247,"data":"\n"}
+,{"stream_name":"stdout","time":6121.085736572,"data":"  3.8% of rows use a cell line we have no chromatin or lineage for; 170 test and 578 train rows were dropped for lack of drug features.\n"}
+,{"stream_name":"stdout","time":6121.086312192,"data":"\n"}
+,{"stream_name":"stdout","time":6121.08633226,"data":"wrote /kaggle/working/v9_xpert_arm_split_cold_cell_1_seed0_dev6s0_degk50.json\n"}
+,{"stream_name":"stdout","time":6121.307824526,"data":"GUARD 4 dev rows sha1 51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980 OK\n"}
+,{"stream_name":"stdout","time":6121.307874004,"data":"GUARD 5 seed 0 [0, 1000] equal-by-epoch [False, False, False, False, False, False, False, False, False, False, False, False]\n"}
+,{"stream_name":"stderr","time":6126.353289444,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":6126.353320073,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":6126.655903509,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":6126.655931046,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":6127.37570536,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":6128.737090073,"data":"[NbConvertApp] Writing 292297 bytes to __results__.html\n"}
+]
