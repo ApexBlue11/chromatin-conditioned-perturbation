@@ -1,7 +1,7 @@
 # PACKET 024 — PRE-REGISTRATION: the exact definitions of §85's first six candidates, before any is built
 packet_id: 024
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: c3a42ba
 type: **DESIGN / pre-registration.** No candidate code exists. P2 is done (§85.6): μ0 = 0.43693, s0 = 0.00169 on the
 6 dev cells, Kaggle 2×T4, distinct seeding, ~1.72 h per seed.
 
