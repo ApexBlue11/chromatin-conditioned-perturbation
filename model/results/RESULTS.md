@@ -5724,6 +5724,14 @@ seeding is not changed mid-run. `xpert_dp_patch.py`'s docstring is corrected (do
    over:** if the first two Lightning epochs average more than 1.25 × `epoch_s_L`, re-price before continuing.
 6. **The C4 chain test reruns on Lightning (ask 4)**, and the in-process 81.3a restore round-trip must pass there (ask 5).
 
+### 84.5 The 84.4 migration: NOT taken — the pre-committed cost rule fails by bound (2026-09-25)
+Credit balance from the Lightning billing API: **$14.99** (free credits). 84.4's cap 0.7 × B = **$10.49**. At most 165
+epochs remain after session 2; at 440 s/epoch on 2×T4 and one A100 at ~2–2.5× that pair (~180–200 s/epoch, $2.19/h)
+training alone is ~$19, and even an implausible 4× speed-up gives $11.0 before overheads. **O2 stays on Kaggle.** The
+probe was not bought: no plausible measurement could satisfy the rule, and skipping it can only prevent a migration.
+Decided on prices, balance and Kaggle-measured timing only (84.1 (iii)). The principal allocated the credits to v9
+development (packet 021).
+
 ## 85. 🔒 PRE-REGISTERED: the v9 development protocol (packet 019 as amended by review 019), committed before any dev run (2026-09-25)
 
 Develops v9 on a carve of TRAINING cells of XPert's `split_cold_cell_1`, never predicts test cells in dev mode, and

@@ -1,5 +1,5 @@
 {
-  "iteration": 35,
+  "iteration": 36,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "021_lightning_allocation"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -46,7 +48,7 @@
     "020_moa_gradient_probe"
   ],
   "gpu_hours_spent_this_session": 15.47,
-  "pending_decision": "84.4 GO. Blocked on: the principal's `lightning login` (credit balance B, machine access); W13 (resume-patch CUDA-RNG device mapping) and W14 (Lightning driver) to build and verify. If not ready when session 2 ends, session 3 runs on Kaggle.",
+  "pending_decision": "Packet 021. O2 session 2 ends ~16:30 IST -> session 3 on Kaggle (quota permitting). P2 dev baseline running on Kaggle. W16b fixing the MoA probe.",
   "note_current": "O2 session 2 running (Kaggle). 84.4 built, blocked on lightning login. 85 committed; W15 (dev harness) running -- needs the banded carve + fit exclusion assert on top. Next: A11 step-1 pre-registration (zero-GPU drug-specific readout).",
   "challenges_upheld": "111 of 114",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
@@ -74,7 +76,7 @@
     "List all four deviations with the MyDataset patch sha1s; report as XPert as published (review 009 C1)."
   ],
   "o2": {
-    "status": "session 1 ended at a clean boundary (epoch 65); session 2 launching",
+    "status": "session 2 running on Kaggle; O2 stays on Kaggle (84.5)",
     "sessions": [
       {
         "index": 1,
@@ -107,6 +109,6 @@
     "state_dataset": "apexblue/xpert-cc1-state (private; version 1 = session 1 handoff)"
   },
   "compute": {
-    "lightning": "free credits only, no card (principal, 2026-09-25) -- paid use NOT authorised. Studio s_01m3b77d8c9cw7ex0j1e9agmtr; local CLI in .venv-lightning awaiting the principal's login."
+    "lightning": "balance $14.99 free credits (2026-09-25). 84.4 migration NOT taken (84.5). Principal: credits go to v9 dev runs; packet 021 (Lightning baseline rule) with the critic."
   }
 }
