@@ -217,6 +217,7 @@ class XPertData:
         G = self.X.shape[1]
         self.E = np.zeros((len(self.X), G, E.shape[2]), np.float32)
         self.r = np.zeros((len(self.X), G), np.float32)
+        self.Em = np.zeros((len(self.X), G, Em.shape[2]), bool)
         self.ctx = np.zeros((len(self.X), lin.shape[1]), np.float32)
         self.ctx[:, 0] = 1.0
         known = 0
@@ -227,6 +228,7 @@ class XPertData:
             known += 1
             self.E[i] = E[j]
             self.r[i] = Em[j].any(-1).astype(np.float32)
+            self.Em[i] = Em[j]
             self.ctx[i] = lin[j]
         self.known_cell_frac = known / len(self.cell)
 
@@ -279,7 +281,7 @@ class XPertData:
                 'y_l5': t(np.zeros((len(idx), self.X.shape[1]), np.float32)),
                 'm_l3': torch.ones(len(idx), dtype=torch.bool, device=device),
                 'm_l5': torch.zeros(len(idx), dtype=torch.bool, device=device),
-                'E': t(self.E[idx]), 'r': t(self.r[idx]), 'cell_ctx': t(self.ctx[idx]),
+                'E': t(self.E[idx]), 'r': t(self.r[idx]), 'E_mask': t(self.Em[idx].astype(np.float32)), 'cell_ctx': t(self.ctx[idx]),
                 'atoms': t(atoms), 'atom_mask': torch.as_tensor(amask).to(device),
                 'u_feats': t(self.u[idx]), 'dose': t(self.dose_n[idx]), 'time': t(self.time_n[idx])}
 
@@ -329,6 +331,10 @@ def main():
                     help='C6: sign-prediction BCE head weight (0 = off)')
     ap.add_argument('--post_pathway', action='store_true',
                     help='C8b: second NamedPathwayReadout after last perturb block')
+    ap.add_argument('--chromatin_edges', action='store_true',
+                    help='C7: Chromatin-gated union-graph edges')
+    ap.add_argument('--union_edges', action='store_true',
+                    help='C7u: Ungated union-graph edges')
     a = ap.parse_args()
 
     roots = ['/kaggle/input', os.path.join(r'C:\Projects\LINCS'), os.path.join(r'C:\Projects\LINCS',
@@ -400,6 +406,9 @@ def main():
         cfg.deg_adapt_k = a.deg_adapt_k
         cfg.sign_head_w = a.sign_head_w
         cfg.post_pathway = a.post_pathway
+        cfg.chromatin_edges = a.chromatin_edges
+        cfg.union_edges = a.union_edges
+        assert not (cfg.chromatin_edges and cfg.union_edges), "Cannot use both --chromatin_edges and --union_edges"
         core = LincsV9(cfg, M, ppi, gv)
         if cfg.expr_encoder == 'binned':
             Xfit = D.C[D.tr]                  # THEIR training rows only
@@ -529,6 +538,10 @@ def main():
         cand_suffix += '_signhead'
     if a.post_pathway:
         cand_suffix += '_postpath'
+    if a.chromatin_edges:
+        cand_suffix += '_chromedges'
+    if a.union_edges:
+        cand_suffix += '_unionedges'
 
     out = os.path.join(WORK, f'v9_xpert_arm_{tag}{dev_suffix}{cand_suffix}.json')
     
@@ -539,6 +552,8 @@ def main():
         'deg_adapt_k': a.deg_adapt_k,
         'sign_head_w': a.sign_head_w,
         'post_pathway': a.post_pathway,
+        'chromatin_edges': a.chromatin_edges,
+        'union_edges': a.union_edges,
     }
 
     json_data = {'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,

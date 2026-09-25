@@ -415,3 +415,55 @@ class MultiTaskHeads(nn.Module):
         else:
             d, epi_contrib = self.delta(h).squeeze(-1), torch.zeros_like(h[..., 0])
         return {'delta': d, 'abs': x_ctl + d, 'l5': self.l5(h).squeeze(-1)}, epi_contrib
+
+class ChromatinGatedUnionMP(nn.Module):
+    def __init__(self, edge_index, n_genes, d, stoch_depth, gated=True):
+        super().__init__()
+        self.gated = gated
+        import math
+        
+        # edge_index: [2, E]
+        edges = torch.cat([edge_index, edge_index.flip(0)], dim=1)
+        edges = torch.unique(edges, dim=1)
+        mask = (edges[0] != edges[1]) & (edges[0] < n_genes) & (edges[1] < n_genes)
+        edges = edges[:, mask]
+        
+        num_undirected = edges.shape[1] // 2
+        print(f"ChromatinGatedUnionMP: final undirected edge count = {num_undirected}")
+        
+        A = torch.zeros((n_genes, n_genes), dtype=torch.float32)
+        A[edges[0], edges[1]] = 1.0
+        
+        degree = A.sum(dim=1)
+        d_inv_sqrt = degree.pow(-0.5)
+        d_inv_sqrt[torch.isinf(d_inv_sqrt)] = 0.0
+        
+        A_hat = d_inv_sqrt.unsqueeze(1) * A * d_inv_sqrt.unsqueeze(0)
+        self.register_buffer('A_hat', A_hat)
+        
+        self.W = nn.Linear(d, d)
+        self.sd = StochasticDepth(stoch_depth)
+        
+        if self.gated:
+            self.mlp = nn.Sequential(
+                nn.Linear(6, 8),
+                nn.GELU(),
+                nn.Linear(8, 1)
+            )
+            nn.init.zeros_(self.mlp[2].weight)
+            nn.init.constant_(self.mlp[2].bias, math.log(0.95 / (1 - 0.95)))
+            
+    def forward(self, h, E=None, E_mask=None):
+        if self.gated:
+            m_f = E_mask.float()
+            inp = torch.cat([E * m_f, m_f], dim=-1)
+            a = torch.sigmoid(self.mlp(inp)).squeeze(-1)
+            any_obs = E_mask.any(dim=-1)
+            a = torch.where(any_obs, a, torch.ones_like(a))
+            g = torch.sqrt(a.unsqueeze(2) * a.unsqueeze(1))
+            A_eff = self.A_hat.unsqueeze(0) * g
+        else:
+            A_eff = self.A_hat.unsqueeze(0).expand(h.size(0), -1, -1)
+            
+        msg = torch.bmm(A_eff, h)
+        return h + self.sd(self.W(msg))

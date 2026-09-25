@@ -38,7 +38,7 @@ sys.path.insert(0, HERE)
 
 from modules import DoseTimeFiLM
 from modules_v9 import (RMSNorm, CrossAttention, StochasticDepth, PPIMessagePassing, BinnedExpression,
-                        _DrugBlock,
+                        _DrugBlock, ChromatinGatedUnionMP,
                         RawExpression, GeneRepresentation, ControlEncoder, NamedPathwayReadout,
                         MultiTaskHeads, _GeneBlock)
 
@@ -107,7 +107,20 @@ class LincsV9(nn.Module):
         self.perturb = nn.ModuleList([PerturbBlock(cfg, rates[cfg.l_base + i])
                                       for i in range(cfg.l_perturb)])
 
-        self.ppi = PPIMessagePassing(ppi, d, cfg.dropout) if (cfg.use_ppi and ppi is not None) else None
+        if getattr(cfg, 'chromatin_edges', False) or getattr(cfg, 'union_edges', False):
+            repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            ug_path = os.path.join(repo_root, 'network', 'outputs', 'v9', 'union_graph_v9.npz')
+            if not os.path.exists(ug_path):                     # Kaggle mounts inputs flat under /kaggle/input
+                import glob
+                hits = glob.glob('/kaggle/input/**/union_graph_v9.npz', recursive=True)
+                if len(hits) != 1:
+                    raise FileNotFoundError('union_graph_v9.npz: expected one, found %d' % len(hits))
+                ug_path = hits[0]
+            union_graph = np.load(ug_path)
+            edge_index = torch.as_tensor(union_graph['edge_index'], dtype=torch.long)
+            self.ppi = ChromatinGatedUnionMP(edge_index, G, d, cfg.stoch_depth, gated=getattr(cfg, 'chromatin_edges', False))
+        else:
+            self.ppi = PPIMessagePassing(ppi, d, cfg.dropout) if (cfg.use_ppi and ppi is not None) else None
         self.sd_ppi = StochasticDepth(cfg.stoch_depth)
         self.pathway = NamedPathwayReadout(M_pathway, d, cfg.d_pathway)
         self.sd_path = StochasticDepth(cfg.stoch_depth)
@@ -142,6 +155,7 @@ class LincsV9(nn.Module):
         batch_drug_global_self_only = batch.get('drug_global_self_only', drug_global_self_only) if isinstance(batch, dict) else drug_global_self_only
         batch_drug_xattn_global_only = batch.get('drug_xattn_global_only', drug_xattn_global_only) if isinstance(batch, dict) else drug_xattn_global_only
         E, r = batch['E'], batch['r']
+        E_mask = batch.get('E_mask')
         x_ctl = batch['x_ctl']
         x_cell = batch.get('x_cell', x_ctl)
         atoms, atom_valid = batch['atoms'], batch['atom_mask']
@@ -171,7 +185,10 @@ class LincsV9(nn.Module):
         for blk in self.base:
             h = blk(h)
         if self.ppi is not None:
-            h = h + self.sd_ppi(self.ppi(h))
+            if isinstance(self.ppi, ChromatinGatedUnionMP):
+                h = self.ppi(h, E=E, E_mask=E_mask)
+            else:
+                h = h + self.sd_ppi(self.ppi(h))
 
         path_delta, pathways = self.pathway(h)
         h = h + self.sd_path(path_delta)

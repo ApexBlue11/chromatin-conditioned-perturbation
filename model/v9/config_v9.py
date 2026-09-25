@@ -126,6 +126,8 @@ class V9Config:
     deg_adapt_k: int = 0            # C4: adaptive DE weighting, K genes (0 = off)
     sign_head_w: float = 0.0        # C6: sign-prediction BCE weight (0 = off)
     post_pathway: bool = False      # C8b: second NamedPathwayReadout after last perturb block
+    chromatin_edges: bool = False   # C7: Chromatin-gated union-graph edges
+    union_edges: bool = False       # C7u: Ungated union-graph edges
 
 
 @dataclass

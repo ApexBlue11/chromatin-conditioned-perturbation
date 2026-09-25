@@ -404,17 +404,14 @@ def test_calibrate_smoke():
                           '.venv-cuda', 'Scripts', 'python.exe')
     if not os.path.exists(python):
         python = sys.executable
-    out_path = os.path.join(os.path.dirname(os.path.dirname(HERE)),
-                            'model', 'results', 'v9_aux_weight_calibration.json')
-
-    # Remove old output if exists
-    if os.path.exists(out_path):
-        os.remove(out_path)
+    # NEVER the frozen record (model/results/v9_aux_weight_calibration.json): a temp path only.
+    import tempfile
+    out_path = os.path.join(tempfile.mkdtemp(), 'calibration_smoke.json')
 
     project_root = os.path.dirname(os.path.dirname(HERE))
 
     result = subprocess.run(
-        [python, script, '--n_batches', '2', '--batch', '4'],
+        [python, script, '--n_batches', '2', '--batch', '4', '--out', out_path],
         capture_output=True, text=True, timeout=600,
         cwd=project_root
     )

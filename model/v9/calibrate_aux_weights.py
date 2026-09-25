@@ -40,6 +40,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--n_batches', type=int, default=20)
     ap.add_argument('--batch', type=int, default=48)
+    ap.add_argument('--out', default=None, help='output JSON; default = the frozen record path (PI runs only)')
     a = ap.parse_args()
 
     # Import XPertData and helpers from xpert_arm
@@ -171,8 +172,8 @@ def main():
         'ratios_sign': [round(r, 6) for r in ratios_sign],
     }
 
-    out_path = os.path.join(os.path.dirname(os.path.dirname(HERE)), 'model', 'results',
-                            'v9_aux_weight_calibration.json')
+    out_path = a.out or os.path.join(os.path.dirname(os.path.dirname(HERE)), 'model', 'results',
+                                     'v9_aux_weight_calibration.json')
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
     json.dump(result, open(out_path, 'w'), indent=2)
     print(f'\nw3 = {w3:.6f}  (0.1 * {avg_ratio_listnet:.4f})')
