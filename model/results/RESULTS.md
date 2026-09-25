@@ -5887,6 +5887,9 @@ L_delta = the delta Huber term (weighted as in the baseline) and L_aux the unit-
 seed-0 initialisation of the baseline configuration, averaged over the first 20 batches of seed 0's training order on the
 dev training rows, fp32, CPU. Computed once by a calibration script, written into this section, frozen. A null is stated
 as "at the pre-registered weight". K = 50 and τ = 1 are fixed choices.
+**Frozen (2026-09-25, `lincs-v9calib`, Kaggle CPU; `model/results/v9_aux_weight_calibration.json`): w3 = 1.116903 (ListNet),
+w6 = 0.492066 (sign head)** — mean ratios 11.169 and 4.921 over 20 batches; the first two batches reproduce the
+laptop's partial run exactly (12.6395 / 9.7683 and 4.9983 / 4.0042), so the calibration is deterministic.
 
 **C8b ordering (ask 3):** C8b's MoA study (fold 0, its own pre-registration with review 023's seven requirements) is
 *(amended by §88.5: gated on the 3-seed mean, C8b runs 3 dev seeds regardless)* **executed iff C8b's seed-0 dev Δ ≥ −s0** — non-inferiority, because C8b exists for interpretability; entering the final

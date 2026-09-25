@@ -1,0 +1,24 @@
+{
+ "id": "apexblue/lincs-v9dev-c3",
+ "title": "lincs v9dev c3",
+ "code_file": "lincs-v9dev-c3.py",
+ "language": "python",
+ "kernel_type": "script",
+ "is_private": true,
+ "enable_gpu": true,
+ "enable_tpu": false,
+ "enable_internet": false,
+ "keywords": [
+  "gpu"
+ ],
+ "dataset_sources": [
+  "apexblue/lincs-v9-bundle",
+  "apexblue/lincs-v9-src",
+  "apexblue/xpert-mdmt-benchmark"
+ ],
+ "kernel_sources": [],
+ "competition_sources": [],
+ "model_sources": [],
+ "docker_image": "gcr.io/kaggle-private-byod/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461",
+ "machine_shape": "NvidiaTeslaT4"
+}
