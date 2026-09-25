@@ -1,3 +1,9 @@
+> **⚠️ READ WITH `W12b_verification_REPORT.md` — do not cite from this file alone.** An adversarial check (W12b) found 6 of 17
+> verifiable claims wrong or overstated: the ensembling "+0.015–0.025 Pearson" is UNSOURCED (that competition scored
+> MRRMSE); GenePT's venue/DOI/title are wrong (Nat Biomed Eng, 10.1038/s41551-024-01284-6); the TxPert and PerturBench
+> "verbatim" quotes are composites; ranks 3, 7, 8 are not unseen-cell evidence. The PI verified Table R13 against the local
+> supplementary: numbers correct, but the cold-cell cls_loss effect (+0.002) is far inside the fold sd (0.040), and v9 has no cls_loss.
+
 # TASK W12: Measurable Drivers of Transcriptional Perturbation Accuracy (2023–2026)
 ## Empirical Ablations, Mechanics, Critiques, and Prioritisation for Unseen-Cell Generalisation
 
