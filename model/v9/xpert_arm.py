@@ -75,6 +75,27 @@ def carve_dev(rows_per_cell, K, seed, min_rows=200, max_rows=2000):
     chosen = rng.choice(len(pool), K, replace=False)
     return sorted([pool[i] for i in chosen])
 
+def seed_devices(seed, n_gpu, mode):
+    """RESULTS 85.5 (review 021 C1). `torch.manual_seed` seeds EVERY CUDA device alike, and this loop only ever builds
+    full batches, so under DataParallel the replicas' dropout and stochastic-depth masks would be identical for the
+    whole run (rows j and j + batch/2 share them). 'distinct' reseeds device k >= 1 with seed + 1000 * k; device 0 keeps
+    `seed`, so a one-GPU run is unchanged. 'lockstep' is the behaviour before 85.5. Returns the seed of each device."""
+    seeds = [seed] * n_gpu
+    if mode == 'distinct':
+        for k in range(1, n_gpu):
+            seeds[k] = seed + 1000 * k
+            torch.cuda.default_generators[k].manual_seed(seeds[k])
+    return seeds
+
+
+def cuda_states_equal(n_gpu):
+    """True iff every device's CUDA generator state is byte-equal to device 0's (None on fewer than 2 devices)."""
+    if n_gpu < 2:
+        return None
+    s0 = torch.cuda.get_rng_state(0)
+    return all(torch.equal(s0, torch.cuda.get_rng_state(k)) for k in range(1, n_gpu))
+
+
 class XPertData:
     """Their rows, presented in the v9 batch format."""
 
@@ -290,6 +311,8 @@ def main():
     ap.add_argument('--limit_train', type=int, default=0,
                     help='cap training rows -- for a plumbing check, NOT a result')
     ap.add_argument('--dev_cells', type=int, default=0)
+    ap.add_argument('--dp_seed_mode', choices=['distinct', 'lockstep'], default='distinct',
+                    help='RESULTS 85.5: per-device CUDA seeds under DataParallel; lockstep = the pre-85.5 behaviour')
     ap.add_argument('--dev_seed', type=int, default=0)
     ap.add_argument('--dev_min_rows', type=int, default=200)
     ap.add_argument('--dev_max_rows', type=int, default=2000)
@@ -333,6 +356,9 @@ def main():
     for seed in range(a.seed_start, a.seed_start + a.seeds):
         torch.manual_seed(seed)
         np.random.seed(seed)
+        n_gpu = torch.cuda.device_count() if dev == 'cuda' else 0
+        device_seeds = seed_devices(seed, n_gpu, a.dp_seed_mode)
+        rng_equal_by_epoch = []
         cfg = V9Config()
         cfg.d_model, cfg.d_ff, cfg.expr_encoder = a.d_model, 4 * a.d_model, a.expr_encoder
         cfg.n_pathways = M.shape[0]
@@ -378,6 +404,10 @@ def main():
                 if it % 200 == 0:
                     print(f'  seed{seed} e{ep} it{it}/{len(order) // a.batch} loss {float(loss):.4f} '
                           f'{time.time() - t0:.0f}s', flush=True)
+            rng_equal_by_epoch.append(cuda_states_equal(n_gpu))
+            if ep == 0:
+                print(f'  seed{seed} DP seeding {a.dp_seed_mode} {device_seeds}: device CUDA states equal after '
+                      f'epoch 0 = {rng_equal_by_epoch[-1]}', flush=True)
         model.eval()
         P, T = [], []
         with torch.no_grad():
@@ -396,7 +426,9 @@ def main():
                'Pearson_deg': round(their_pearson(pd, Xte - Cte), 4),
                'Pearson_median': round(float(np.nanmedian(pearson_rows(pa, Xte))), 4),
                'Pearson_deg_median': round(float(np.nanmedian(pearson_rows(pd, Xte - Cte))), 4),
-               'seconds': round(time.time() - t0, 1)}
+               'seconds': round(time.time() - t0, 1),
+               'n_gpu': n_gpu, 'dp_seed_mode': a.dp_seed_mode, 'device_seeds': device_seeds,
+               'cuda_rng_states_equal_by_epoch': rng_equal_by_epoch}
         if a.save_ckpt:
             ckpt_name = a.save_ckpt
             if getattr(a, 'dev_cells', 0) > 0:

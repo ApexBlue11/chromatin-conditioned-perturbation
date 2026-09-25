@@ -5816,6 +5816,34 @@ LNCAP 567 · NPC 243 · SKBR3 1,666 · U2OS 1,648 · U937 308 · VCAP 969 (the r
 the 8 test cells' rows are removed from every array before fitting; asserts guard the training rows, the quantiser fit
 and every evaluation batch.
 
+### 85.5 AMENDMENT (review 021): per-device seeding under DataParallel, and the Lightning block (2026-09-25)
+**C1, the finding.** `xpert_arm.py` calls `torch.manual_seed(seed)` — which seeds **every** CUDA device alike — then wraps
+the model in `DataParallel` on 2×T4, and trains on full batches only (`len(order) // batch`), so nothing ever
+desynchronises the two generators. Every GPU random draw in v9 (dropout 0.1, stochastic depth 0.1) comes from the
+replica's own device generator. ⇒ on Kaggle the two halves of every batch should receive **identical dropout and
+stochastic-depth masks for the entire run.** `train_v9_gpu.py` has the same pattern (`cuda.manual_seed_all`, DP,
+`drop_last=True`), so it very likely applies to every v9 checkpoint trained on 2×T4 (§45's model, r0–r2, sa0, s0–s1).
+**Verification is running** (a 1-epoch lockstep-mode check at the start of P2 v2); the record for those checkpoints is
+corrected once it reports.
+
+**Fix, adopted (C1 option a):** `xpert_arm.py --dp_seed_mode distinct` (the new default) reseeds device k ≥ 1 with
+seed + 1000·k; device 0 keeps `seed`, so one-GPU runs are unchanged. Every run records its device seeds and whether the
+devices' CUDA states are equal after each epoch; the kernel fatals if a distinct-mode run shows equality. **P2 v1
+(lockstep) was stopped and deleted after ~0.6 h and is never read; P2 v2 restarts the baseline under the fix.** (Written
+by the PI as ~20 lines of glue, tested locally with faked device generators.)
+
+**Lightning block rules (binding):**
+1. Within-platform comparisons only: a Lightning-screened variant is compared with a Lightning baseline (seeds 0–2).
+2. **s0 = max(s_K, s_L)** for every threshold on both platforms, with the 0.003 floor (C2; no pooling test).
+3. All seeds of a variant run on the platform of its first seed. A Lightning set cut short by credit exhaustion is
+   discarded and rerun in full on Kaggle, never mixed (C3). Every run in the ledger with its platform.
+4. §85 runs go through `xpert_arm.py` only; on Lightning assert `torch.backends.cuda.matmul.allow_tf32 is False` and
+   `NVIDIA_TF32_OVERRIDE` unset, and ledger the backend flags (C4; `train_v9_gpu.py` sets TF32 on).
+5. **Configuration check (ask 2):** with distinct seeding the platforms should agree up to rounding; halt Lightning
+   screening if |baseline_L − baseline_K| > 3·√(s_K²/3 + s_L²/3).
+6. **P6 (stack confirmation) and P7 (final) run on Kaggle 2×T4** with distinct seeding, so Lightning-accepted variants
+   are confirmed on the final platform.
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
