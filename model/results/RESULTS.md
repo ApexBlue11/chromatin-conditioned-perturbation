@@ -5904,6 +5904,7 @@ seconds and notes.
 | cand | label | seeds | Δ per-row mean | Δ mean of cell means | cells favouring | seconds/seed | rule 6 | note |
 |---|---|---|---|---|---|---|---|---|
 | C2 | C2_lctl0 | 1 | +0.00161 | -0.00397 | 4 / 6 | 3962 | **DROPPED** | 36% faster than baseline |
+| C1 | C1_noatoms | 1 | -0.00859 | -0.00917 | 0 / 6 | 5897 | **DROPPED** | 0/6 cells; training without atoms hurts every dev cell (cf. 37's inference ablation, reported not read) |
 
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
