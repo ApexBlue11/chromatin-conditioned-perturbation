@@ -1,7 +1,7 @@
 # PACKET 025 — PRE-REGISTRATION: C8b's drug-specific mechanism test (a trained post-perturbation named readout)
 packet_id: 025
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: 887f701
 type: **PRE-REGISTRATION**, written before C8b exists or its accuracy screen is run (RESULTS 85.7 ordering). Its
 **execution** is gated on C8b's seed-0 dev Δ ≥ −s0 (= −0.00169); its **design** is fixed here.
 
