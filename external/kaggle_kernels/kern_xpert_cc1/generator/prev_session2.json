@@ -1,0 +1,10 @@
+{
+ "cuda": "12.8",
+ "final_epoch": 65,
+ "sha1": {
+  "best.pth": "8b216a57aecbca8d8a7ccb03f71ec241dc8b1eb1",
+  "full_state.pt": "59c5e9603de2a741e0d397a48f11475e94a2b087",
+  "resume_from.pt": "0f6989e25adfdc3b71ee86ca6a1198914a64693f"
+ },
+ "torch": "2.10.0+cu128"
+}

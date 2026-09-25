@@ -5640,6 +5640,20 @@ If a mid-run stop could be declared final, I would be choosing where the compari
   the full-state resume hooks.
 - **Ask 2:** terminating at the marker, before their post-loop test pass (never read), is accepted.
 
+### 84.3 Session log — timing, state integrity and quota only (84.1: never the logged loss)
+| session | kernel / commit | ended by | epochs | epoch s (min / mean / max) | wall h | handoff |
+|---|---|---|---|---|---|---|
+| 1 | v8 / `f252b12` | **session boundary** (clean) | 0–65 (66) | 434.5 / 440.0 / 442.6 | 8.254 | 3 sha1s re-verified locally after download |
+
+- **C4 chain test PASSED** in session 1: marker → termination → `counter_at_end == patience` → 21,321-row prediction.
+- **Amendment E:** first-two mean 437.2 s against 1.25 × 482.2 = 602.8 s → **no re-price.** Epochs ran ~9 % under the
+  §78 projection; the per-session capacity is ~66 epochs.
+- Host memory: minimum available 15.8 GB over 496 samples. Executed args matched the published recipe (GUARD E).
+- State uploaded as the private dataset `apexblue/xpert-cc1-state`; session 2's kernel carries the handoff as a literal
+  (`generator/prev_session2.json`) and fatals unless the attached bytes match it and the torch/CUDA stack is unchanged.
+- **Remaining, at most:** 231 epochs to the 297 horizon, ~28.2 GPU-h at the session-1 rate. Their own early stop can end
+  it sooner; nothing about when is read or acted on here.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

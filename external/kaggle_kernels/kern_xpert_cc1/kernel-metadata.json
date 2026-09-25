@@ -12,7 +12,8 @@
   "gpu"
  ],
  "dataset_sources": [
-  "apexblue/xpert-train-src"
+  "apexblue/xpert-train-src",
+  "apexblue/xpert-cc1-state"
  ],
  "kernel_sources": [],
  "competition_sources": [],

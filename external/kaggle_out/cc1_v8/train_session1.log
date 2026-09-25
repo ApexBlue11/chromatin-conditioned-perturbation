@@ -1,0 +1,772 @@
+LINCS DataParallel devices: [0, 1]
+LINCS resume hooks: []
+
+---------args-----------
+mode: train
+nfold: split_cold_cell_1
+drug_feat: unimol
+device: cuda:0
+model: XPert
+config: config_l1000
+seed: 2024
+dataset: l1000_mdmt
+pretrained_mode: global
+include_cell_idx: True
+wo_HG: False
+wo_atom: False
+wo_atom_HG: False
+wo_unimol: False
+wo_ppi: False
+use_gene_pos_emed: False
+use_gradscaler: True
+lr_scheduler: True
+resume_from: None
+saved_model_path: None
+saved_model: None
+pretrained_model: None
+output_profile: True
+output_attention: False
+output_cls_embed: False
+weighted_loss: False
+kl_loss: False
+
+
+
+--------configs----------
+model:
+    ATTN:
+        n_heads: 8
+        attention_probs_dropout_prob: 0.1
+        hidden_dropout_prob: 0.1
+        cell_input_hidden_dropout_prob: 0.1
+        drug_input_hidden_dropout_prob: 0.1
+        topk_cell: 128
+        topk_drug: 32
+        sparse_flag: False
+        hidden_size: 256
+        trt_structure: CA+SA+SA+CA
+        ctl_structure: SA+SA+SA+SA
+        ppi_gene_vector_path: processed_data/PPI_gene_vector_128d.npy
+    HG:
+        node_input_dim: 512
+        conv_layers: 2
+        hg_path: HG_data/
+        drug_hg_pretrained_embed_path: HG_data/saved_embedding/HG_drug_embeddings.npy
+dataset:
+    n_bins: 128
+    gene_num: 978
+    atom_num: 24
+    max_atom_size: 122
+    max_value: 15.002
+    min_value: 0.0
+    l1000:
+        num_pert_dose: 10
+        num_pert_time: 3
+        num_cell_id: 240
+        num_tissue_id: 21
+    panacea:
+        num_pert_dose: 10
+        num_pert_time: 3
+        num_cell_id: 240
+        num_tissue_id: 21
+    cdsdb:
+        num_pert_dose: 11
+        num_pert_time: 8
+        num_cell_id: 14
+        num_tissue_id: 14
+    l1000_sdst_data_root: processed_data/l1000_sdst_78453.h5ad
+    l1000_mdmt_data_root: processed_data/l1000_mdmt_68830_subset.h5ad
+    l1000_mdmt_pretrain_data_root: processed_data/l1000_mdmt_268022_pretrain.h5ad
+    l1000_mdmt_full_data_root: processed_data/l1000_mdmt_full_336852.h5ad
+    drug_unimol_path: processed_data/all_drugs_unimol_arr.npy
+    drug_KPGT_path: processed_data/all_drugs_idx2KPGT.npy
+    drug_smi_path: processed_data/all_drugs_idx2smi_8981.npy
+    drug_morgan_path: processed_data/all_drugs_idx2morgan.npy
+train:
+    train_lr: 0.004
+    weight_decay: 1e-05
+    batch_size: 128
+    num_epochs: 2500
+    init_epoch: 70
+    loss_weight: [0.2, 0.003, 0.2, 1]
+    patience: 50
+    bandwidth: 0.3
+finetune:
+    finetune_params: all
+    exclude_keys: []
+    init_epoch: 0
+    finetune_lr: 0.001
+    weight_decay: 1e-05
+Use GPU: cuda:0
+
+Train mode:
+train data:47509
+Valid data:21321
+Test data:21321
+For dataset l1000_mdmt, max_value:15.002, min_value:0.0
+Starting load train data...
+binning process... n_bins:128
+
+  0%|          | 0/47509 [00:00<?, ?it/s]
+  1%|          | 354/47509 [00:00<00:13, 3536.62it/s]
+  1%|▏         | 708/47509 [00:00<00:13, 3505.39it/s]
+  2%|▏         | 1059/47509 [00:00<00:13, 3483.70it/s]
+  3%|▎         | 1409/47509 [00:00<00:13, 3489.41it/s]
+  4%|▎         | 1758/47509 [00:00<00:13, 3468.77it/s]
+  4%|▍         | 2105/47509 [00:00<00:13, 3468.37it/s]
+  5%|▌         | 2452/47509 [00:00<00:13, 3449.03it/s]
+  6%|▌         | 2801/47509 [00:00<00:12, 3459.48it/s]
+  7%|▋         | 3157/47509 [00:00<00:12, 3489.95it/s]
+  7%|▋         | 3507/47509 [00:01<00:12, 3487.09it/s]
+  8%|▊         | 3859/47509 [00:01<00:12, 3495.81it/s]
+  9%|▉         | 4209/47509 [00:01<00:12, 3476.89it/s]
+ 10%|▉         | 4565/47509 [00:01<00:12, 3500.16it/s]
+ 10%|█         | 4925/47509 [00:01<00:12, 3528.83it/s]
+ 11%|█         | 5278/47509 [00:01<00:22, 1899.23it/s]
+ 12%|█▏        | 5649/47509 [00:01<00:18, 2238.91it/s]
+ 13%|█▎        | 6008/47509 [00:01<00:16, 2524.07it/s]
+ 13%|█▎        | 6378/47509 [00:02<00:14, 2795.82it/s]
+ 14%|█▍        | 6741/47509 [00:02<00:13, 3002.78it/s]
+ 15%|█▍        | 7121/47509 [00:02<00:12, 3210.49it/s]
+ 16%|█▌        | 7515/47509 [00:02<00:11, 3390.56it/s]
+ 17%|█▋        | 7912/47509 [00:02<00:11, 3551.65it/s]
+ 17%|█▋        | 8305/47509 [00:02<00:10, 3658.48it/s]
+ 18%|█▊        | 8685/47509 [00:02<00:10, 3658.76it/s]
+ 19%|█▉        | 9081/47509 [00:02<00:10, 3743.87it/s]
+ 20%|█▉        | 9465/47509 [00:02<00:10, 3770.77it/s]
+ 21%|██        | 9858/47509 [00:03<00:09, 3816.24it/s]
+ 22%|██▏       | 10244/47509 [00:03<00:09, 3826.85it/s]
+ 22%|██▏       | 10639/47509 [00:03<00:09, 3862.07it/s]
+ 23%|██▎       | 11027/47509 [00:03<00:09, 3832.16it/s]
+ 24%|██▍       | 11428/47509 [00:03<00:09, 3883.05it/s]
+ 25%|██▍       | 11818/47509 [00:03<00:09, 3871.31it/s]
+ 26%|██▌       | 12218/47509 [00:03<00:09, 3907.19it/s]
+ 27%|██▋       | 12610/47509 [00:03<00:09, 3852.33it/s]
+ 27%|██▋       | 13008/47509 [00:03<00:08, 3887.28it/s]
+ 28%|██▊       | 13398/47509 [00:03<00:08, 3882.66it/s]
+ 29%|██▉       | 13792/47509 [00:04<00:08, 3898.05it/s]
+ 30%|██▉       | 14190/47509 [00:04<00:08, 3921.97it/s]
+ 31%|███       | 14583/47509 [00:04<00:08, 3851.94it/s]
+ 32%|███▏      | 14983/47509 [00:04<00:08, 3893.31it/s]
+ 32%|███▏      | 15373/47509 [00:04<00:08, 3876.86it/s]
+ 33%|███▎      | 15773/47509 [00:04<00:08, 3911.85it/s]
+ 34%|███▍      | 16165/47509 [00:04<00:08, 3912.17it/s]
+ 35%|███▍      | 16564/47509 [00:04<00:07, 3933.67it/s]
+ 36%|███▌      | 16963/47509 [00:04<00:07, 3949.33it/s]
+ 37%|███▋      | 17363/47509 [00:04<00:07, 3961.77it/s]
+ 37%|███▋      | 17761/47509 [00:05<00:07, 3964.99it/s]
+ 38%|███▊      | 18158/47509 [00:05<00:07, 3966.00it/s]
+ 39%|███▉      | 18555/47509 [00:05<00:07, 3920.08it/s]
+ 40%|███▉      | 18961/47509 [00:05<00:07, 3958.54it/s]
+ 41%|████      | 19357/47509 [00:05<00:07, 3949.03it/s]
+ 42%|████▏     | 19763/47509 [00:05<00:06, 3981.62it/s]
+ 42%|████▏     | 20162/47509 [00:05<00:06, 3965.63it/s]
+ 43%|████▎     | 20563/47509 [00:05<00:06, 3976.97it/s]
+ 44%|████▍     | 20961/47509 [00:05<00:06, 3972.00it/s]
+ 45%|████▍     | 21359/47509 [00:06<00:13, 1957.79it/s]
+ 46%|████▌     | 21664/47509 [00:06<00:12, 2145.43it/s]
+ 46%|████▋     | 22020/47509 [00:06<00:10, 2426.03it/s]
+ 47%|████▋     | 22425/47509 [00:06<00:09, 2784.54it/s]
+ 48%|████▊     | 22812/47509 [00:06<00:08, 3044.88it/s]
+ 49%|████▉     | 23213/47509 [00:06<00:07, 3289.81it/s]
+ 50%|████▉     | 23598/47509 [00:06<00:06, 3437.35it/s]
+ 50%|█████     | 23990/47509 [00:06<00:06, 3570.48it/s]
+ 51%|█████▏    | 24374/47509 [00:07<00:06, 3645.55it/s]
+ 52%|█████▏    | 24769/47509 [00:07<00:06, 3732.76it/s]
+ 53%|█████▎    | 25157/47509 [00:07<00:05, 3775.58it/s]
+ 54%|█████▍    | 25543/47509 [00:07<00:05, 3790.62it/s]
+ 55%|█████▍    | 25933/47509 [00:07<00:05, 3820.52it/s]
+ 55%|█████▌    | 26320/47509 [00:07<00:05, 3799.04it/s]
+ 56%|█████▌    | 26703/47509 [00:07<00:05, 3772.76it/s]
+ 57%|█████▋    | 27083/47509 [00:07<00:05, 3755.78it/s]
+ 58%|█████▊    | 27462/47509 [00:07<00:05, 3763.76it/s]
+ 59%|█████▊    | 27840/47509 [00:07<00:05, 3752.20it/s]
+ 59%|█████▉    | 28224/47509 [00:08<00:05, 3775.80it/s]
+ 60%|██████    | 28603/47509 [00:08<00:05, 3771.14it/s]
+ 61%|██████    | 28982/47509 [00:08<00:04, 3773.24it/s]
+ 62%|██████▏   | 29372/47509 [00:08<00:04, 3810.96it/s]
+ 63%|██████▎   | 29754/47509 [00:08<00:04, 3755.57it/s]
+ 63%|██████▎   | 30161/47509 [00:08<00:04, 3848.25it/s]
+ 64%|██████▍   | 30547/47509 [00:08<00:04, 3801.29it/s]
+ 65%|██████▌   | 30954/47509 [00:08<00:04, 3879.93it/s]
+ 66%|██████▌   | 31343/47509 [00:08<00:04, 3869.49it/s]
+ 67%|██████▋   | 31732/47509 [00:09<00:04, 3874.38it/s]
+ 68%|██████▊   | 32120/47509 [00:09<00:03, 3847.52it/s]
+ 68%|██████▊   | 32505/47509 [00:09<00:03, 3847.88it/s]
+ 69%|██████▉   | 32890/47509 [00:09<00:03, 3810.50it/s]
+ 70%|███████   | 33279/47509 [00:09<00:03, 3830.87it/s]
+ 71%|███████   | 33669/47509 [00:09<00:03, 3849.43it/s]
+ 72%|███████▏  | 34073/47509 [00:09<00:03, 3903.88it/s]
+ 73%|███████▎  | 34464/47509 [00:09<00:03, 3871.22it/s]
+ 73%|███████▎  | 34861/47509 [00:09<00:03, 3899.37it/s]
+ 74%|███████▍  | 35267/47509 [00:09<00:03, 3946.54it/s]
+ 75%|███████▌  | 35662/47509 [00:10<00:03, 3942.85it/s]
+ 76%|███████▌  | 36061/47509 [00:10<00:02, 3954.92it/s]
+ 77%|███████▋  | 36458/47509 [00:10<00:02, 3957.73it/s]
+ 78%|███████▊  | 36854/47509 [00:10<00:02, 3941.12it/s]
+ 78%|███████▊  | 37249/47509 [00:10<00:02, 3934.95it/s]
+ 79%|███████▉  | 37648/47509 [00:10<00:02, 3949.93it/s]
+ 80%|████████  | 38044/47509 [00:10<00:02, 3935.99it/s]
+ 81%|████████  | 38438/47509 [00:10<00:02, 3905.25it/s]
+ 82%|████████▏ | 38829/47509 [00:10<00:02, 3887.53it/s]
+ 83%|████████▎ | 39226/47509 [00:10<00:02, 3909.13it/s]
+ 83%|████████▎ | 39618/47509 [00:11<00:02, 3910.05it/s]
+ 84%|████████▍ | 40010/47509 [00:11<00:01, 3902.68it/s]
+ 85%|████████▌ | 40401/47509 [00:11<00:01, 3879.51it/s]
+ 86%|████████▌ | 40789/47509 [00:11<00:01, 3875.90it/s]
+ 87%|████████▋ | 41177/47509 [00:11<00:01, 3855.71it/s]
+ 87%|████████▋ | 41563/47509 [00:11<00:03, 1702.98it/s]
+ 88%|████████▊ | 41938/47509 [00:12<00:02, 2025.36it/s]
+ 89%|████████▉ | 42321/47509 [00:12<00:02, 2357.23it/s]
+ 90%|████████▉ | 42711/47509 [00:12<00:01, 2677.02it/s]
+ 91%|█████████ | 43109/47509 [00:12<00:01, 2974.69it/s]
+ 92%|█████████▏| 43520/47509 [00:12<00:01, 3253.10it/s]
+ 92%|█████████▏| 43917/47509 [00:12<00:01, 3438.87it/s]
+ 93%|█████████▎| 44325/47509 [00:12<00:00, 3611.47it/s]
+ 94%|█████████▍| 44717/47509 [00:12<00:00, 3670.42it/s]
+ 95%|█████████▍| 45125/47509 [00:12<00:00, 3786.44it/s]
+ 96%|█████████▌| 45520/47509 [00:12<00:00, 3829.55it/s]
+ 97%|█████████▋| 45925/47509 [00:13<00:00, 3893.30it/s]
+ 98%|█████████▊| 46326/47509 [00:13<00:00, 3923.48it/s]
+ 98%|█████████▊| 46724/47509 [00:13<00:00, 3904.17it/s]
+ 99%|█████████▉| 47119/47509 [00:13<00:00, 3777.99it/s]
+100%|█████████▉| 47501/47509 [00:13<00:00, 3727.47it/s]
+100%|██████████| 47509/47509 [00:13<00:00, 3524.59it/s]
+Starting load valid data...
+binning process... n_bins:128
+
+  0%|          | 0/21321 [00:00<?, ?it/s]
+  2%|▏         | 330/21321 [00:00<00:06, 3299.03it/s]
+  3%|▎         | 693/21321 [00:00<00:05, 3491.99it/s]
+  5%|▍         | 1050/21321 [00:00<00:05, 3524.99it/s]
+  7%|▋         | 1403/21321 [00:00<00:06, 3183.18it/s]
+  8%|▊         | 1755/21321 [00:00<00:05, 3295.57it/s]
+ 10%|▉         | 2093/21321 [00:00<00:05, 3320.95it/s]
+ 11%|█▏        | 2428/21321 [00:00<00:06, 2947.60it/s]
+ 13%|█▎        | 2785/21321 [00:00<00:05, 3125.38it/s]
+ 15%|█▍        | 3135/21321 [00:00<00:05, 3230.44it/s]
+ 16%|█▋        | 3474/21321 [00:01<00:05, 3274.59it/s]
+ 18%|█▊        | 3818/21321 [00:01<00:05, 3322.72it/s]
+ 20%|█▉        | 4167/21321 [00:01<00:05, 3371.05it/s]
+ 21%|██        | 4507/21321 [00:01<00:04, 3370.25it/s]
+ 23%|██▎       | 4861/21321 [00:01<00:04, 3420.72it/s]
+ 24%|██▍       | 5214/21321 [00:01<00:04, 3452.26it/s]
+ 26%|██▌       | 5561/21321 [00:01<00:04, 3448.85it/s]
+ 28%|██▊       | 5917/21321 [00:01<00:04, 3479.62it/s]
+ 29%|██▉       | 6266/21321 [00:01<00:04, 3476.06it/s]
+ 31%|███       | 6625/21321 [00:01<00:04, 3508.39it/s]
+ 33%|███▎      | 6977/21321 [00:02<00:04, 3452.70it/s]
+ 34%|███▍      | 7337/21321 [00:02<00:04, 3494.20it/s]
+ 36%|███▌      | 7715/21321 [00:02<00:03, 3578.20it/s]
+ 38%|███▊      | 8091/21321 [00:02<00:03, 3630.93it/s]
+ 40%|███▉      | 8479/21321 [00:02<00:03, 3703.03it/s]
+ 42%|████▏     | 8856/21321 [00:02<00:03, 3722.79it/s]
+ 43%|████▎     | 9229/21321 [00:02<00:03, 3724.71it/s]
+ 45%|████▌     | 9605/21321 [00:02<00:03, 3733.02it/s]
+ 47%|████▋     | 9995/21321 [00:02<00:02, 3780.86it/s]
+ 49%|████▊     | 10374/21321 [00:02<00:02, 3749.90it/s]
+ 50%|█████     | 10750/21321 [00:03<00:02, 3704.10it/s]
+ 52%|█████▏    | 11128/21321 [00:03<00:02, 3724.47it/s]
+ 54%|█████▍    | 11501/21321 [00:03<00:02, 3688.30it/s]
+ 56%|█████▌    | 11880/21321 [00:03<00:02, 3718.04it/s]
+ 57%|█████▋    | 12252/21321 [00:03<00:02, 3715.82it/s]
+ 59%|█████▉    | 12637/21321 [00:03<00:02, 3753.46it/s]
+ 61%|██████    | 13013/21321 [00:03<00:02, 3708.86it/s]
+ 63%|██████▎   | 13385/21321 [00:03<00:02, 3710.45it/s]
+ 65%|██████▍   | 13757/21321 [00:03<00:02, 3705.83it/s]
+ 66%|██████▋   | 14139/21321 [00:03<00:01, 3737.58it/s]
+ 68%|██████▊   | 14513/21321 [00:04<00:01, 3689.95it/s]
+ 70%|██████▉   | 14893/21321 [00:04<00:01, 3721.91it/s]
+ 72%|███████▏  | 15274/21321 [00:04<00:01, 3747.93it/s]
+ 73%|███████▎  | 15649/21321 [00:04<00:01, 3743.49it/s]
+ 75%|███████▌  | 16029/21321 [00:04<00:01, 3759.76it/s]
+ 77%|███████▋  | 16406/21321 [00:04<00:01, 3634.90it/s]
+ 79%|███████▉  | 16794/21321 [00:04<00:01, 3706.17it/s]
+ 81%|████████  | 17167/21321 [00:04<00:01, 3713.07it/s]
+ 82%|████████▏ | 17547/21321 [00:04<00:01, 3736.61it/s]
+ 84%|████████▍ | 17922/21321 [00:05<00:00, 3729.82it/s]
+ 86%|████████▌ | 18296/21321 [00:05<00:00, 3709.17it/s]
+ 88%|████████▊ | 18692/21321 [00:05<00:00, 3781.68it/s]
+ 89%|████████▉ | 19071/21321 [00:05<00:01, 1437.61it/s]
+ 91%|█████████▏| 19472/21321 [00:05<00:01, 1795.03it/s]
+ 93%|█████████▎| 19851/21321 [00:06<00:00, 2125.31it/s]
+ 95%|█████████▍| 20243/21321 [00:06<00:00, 2468.33it/s]
+ 97%|█████████▋| 20635/21321 [00:06<00:00, 2778.89it/s]
+ 99%|█████████▊| 21016/21321 [00:06<00:00, 3019.44it/s]
+100%|██████████| 21321/21321 [00:06<00:00, 3306.48it/s]
+Starting load test data...
+binning process... n_bins:128
+
+  0%|          | 0/21321 [00:00<?, ?it/s]
+  2%|▏         | 355/21321 [00:00<00:05, 3542.74it/s]
+  3%|▎         | 714/21321 [00:00<00:05, 3563.99it/s]
+  5%|▌         | 1081/21321 [00:00<00:05, 3609.30it/s]
+  7%|▋         | 1442/21321 [00:00<00:05, 3607.07it/s]
+  8%|▊         | 1803/21321 [00:00<00:05, 3543.58it/s]
+ 10%|█         | 2163/21321 [00:00<00:05, 3561.12it/s]
+ 12%|█▏        | 2523/21321 [00:00<00:05, 3570.31it/s]
+ 14%|█▎        | 2891/21321 [00:00<00:05, 3603.65it/s]
+ 15%|█▌        | 3252/21321 [00:00<00:05, 3591.07it/s]
+ 17%|█▋        | 3612/21321 [00:01<00:04, 3583.80it/s]
+ 19%|█▊        | 3980/21321 [00:01<00:04, 3612.36it/s]
+ 20%|██        | 4342/21321 [00:01<00:04, 3586.05it/s]
+ 22%|██▏       | 4711/21321 [00:01<00:04, 3615.22it/s]
+ 24%|██▍       | 5073/21321 [00:01<00:04, 3596.83it/s]
+ 25%|██▌       | 5433/21321 [00:01<00:04, 3569.93it/s]
+ 27%|██▋       | 5791/21321 [00:01<00:04, 3565.68it/s]
+ 29%|██▉       | 6148/21321 [00:01<00:04, 3465.50it/s]
+ 31%|███       | 6503/21321 [00:01<00:04, 3488.73it/s]
+ 32%|███▏      | 6873/21321 [00:01<00:04, 3549.46it/s]
+ 34%|███▍      | 7229/21321 [00:02<00:04, 3255.64it/s]
+ 35%|███▌      | 7560/21321 [00:02<00:04, 3226.08it/s]
+ 37%|███▋      | 7927/21321 [00:02<00:03, 3348.69it/s]
+ 39%|███▉      | 8299/21321 [00:02<00:03, 3454.32it/s]
+ 41%|████      | 8671/21321 [00:02<00:03, 3530.03it/s]
+ 42%|████▏     | 9043/21321 [00:02<00:03, 3584.53it/s]
+ 44%|████▍     | 9421/21321 [00:02<00:03, 3640.80it/s]
+ 46%|████▌     | 9810/21321 [00:02<00:03, 3713.36it/s]
+ 48%|████▊     | 10192/21321 [00:02<00:02, 3741.92it/s]
+ 50%|████▉     | 10571/21321 [00:02<00:02, 3754.06it/s]
+ 51%|█████▏    | 10947/21321 [00:03<00:02, 3737.03it/s]
+ 53%|█████▎    | 11322/21321 [00:03<00:02, 3739.67it/s]
+ 55%|█████▍    | 11697/21321 [00:03<00:02, 3735.15it/s]
+ 57%|█████▋    | 12071/21321 [00:03<00:02, 3736.32it/s]
+ 58%|█████▊    | 12445/21321 [00:03<00:02, 3686.00it/s]
+ 60%|██████    | 12841/21321 [00:03<00:02, 3764.67it/s]
+ 62%|██████▏   | 13226/21321 [00:03<00:02, 3787.69it/s]
+ 64%|██████▍   | 13624/21321 [00:03<00:02, 3844.85it/s]
+ 66%|██████▌   | 14017/21321 [00:03<00:01, 3867.58it/s]
+ 68%|██████▊   | 14409/21321 [00:03<00:01, 3882.20it/s]
+ 69%|██████▉   | 14798/21321 [00:04<00:01, 3870.35it/s]
+ 71%|███████   | 15186/21321 [00:04<00:01, 3811.98it/s]
+ 73%|███████▎  | 15580/21321 [00:04<00:01, 3848.32it/s]
+ 75%|███████▍  | 15966/21321 [00:04<00:01, 3841.16it/s]
+ 77%|███████▋  | 16351/21321 [00:04<00:01, 3808.34it/s]
+ 78%|███████▊  | 16732/21321 [00:04<00:01, 3808.70it/s]
+ 80%|████████  | 17117/21321 [00:04<00:01, 3820.34it/s]
+ 82%|████████▏ | 17500/21321 [00:04<00:01, 3820.80it/s]
+ 84%|████████▍ | 17883/21321 [00:04<00:00, 3801.34it/s]
+ 86%|████████▌ | 18264/21321 [00:04<00:00, 3746.75it/s]
+ 88%|████████▊ | 18668/21321 [00:05<00:00, 3832.84it/s]
+ 89%|████████▉ | 19070/21321 [00:05<00:00, 3887.96it/s]
+ 91%|█████████▏| 19478/21321 [00:05<00:00, 3943.28it/s]
+ 93%|█████████▎| 19874/21321 [00:05<00:00, 3946.82it/s]
+ 95%|█████████▌| 20277/21321 [00:05<00:00, 3970.30it/s]
+ 97%|█████████▋| 20682/21321 [00:05<00:00, 3993.12it/s]
+ 99%|█████████▉| 21082/21321 [00:05<00:00, 3906.21it/s]
+100%|██████████| 21321/21321 [00:05<00:00, 3701.80it/s]
+train dataloader:372
+Valid dataloader:167
+Test dataloader:167
+For cell embedding: using ppi_gene_vector + exp embedding
+Using dose and time embedding
+Using sparse attn: False
+Using sparse attn: False
+LINCS froze 10 unused parameters
+XPertNet(
+  (cell_emb): cell_Embeddings(
+    (word_embeddings): Embedding(128, 256)
+    (linear): Linear(in_features=128, out_features=256, bias=True)
+    (pretrained_embed): Embedding(978, 256)
+    (LayerNorm): LayerNorm()
+    (dropout): Dropout(p=0.1, inplace=False)
+  )
+  (drug_emb): unimol_Embeddings(
+    (pert_dose_emb): Embedding(10, 256)
+    (pert_time_emb): Embedding(3, 256)
+    (position_embeddings): Embedding(124, 256)
+    (LayerNorm): LayerNorm()
+    (dropout): Dropout(p=0.1, inplace=False)
+    (linear): Linear(in_features=512, out_features=256, bias=True)
+  )
+  (attnEncoder_ctl): AttnEncoder(
+    (crossEncoders): ModuleList()
+    (selfEncoders): ModuleList(
+      (0-3): 4 x Encoder(
+        (attention): SelfAttention(
+          (query): Linear(in_features=256, out_features=256, bias=True)
+          (key): Linear(in_features=256, out_features=256, bias=True)
+          (value): Linear(in_features=256, out_features=256, bias=True)
+        )
+        (sublayer): SublayerConnection(
+          (LayerNorm): LayerNorm()
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+        (output): SelfOutput(
+          (feed_forward): FeedForward(
+            (dense_1): Linear(in_features=256, out_features=512, bias=True)
+            (intermediate_act_fn): ReLU()
+            (dense_2): Linear(in_features=512, out_features=256, bias=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+          (sublayer): SublayerConnection(
+            (LayerNorm): LayerNorm()
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+      )
+    )
+  )
+  (attnEncoder_trt): AttnEncoder(
+    (crossEncoders): ModuleList(
+      (0-1): 2 x crossEncoder(
+        (LayerNorm): LayerNorm()
+        (attention_CA): CrossAttention(
+          (query): Linear(in_features=256, out_features=256, bias=True)
+          (key): Linear(in_features=256, out_features=256, bias=True)
+          (value): Linear(in_features=256, out_features=256, bias=True)
+        )
+        (attention): SelfAttention(
+          (query): Linear(in_features=256, out_features=256, bias=True)
+          (key): Linear(in_features=256, out_features=256, bias=True)
+          (value): Linear(in_features=256, out_features=256, bias=True)
+        )
+        (sublayer): SublayerConnection(
+          (LayerNorm): LayerNorm()
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+        (output): SelfOutput(
+          (feed_forward): FeedForward(
+            (dense_1): Linear(in_features=256, out_features=512, bias=True)
+            (intermediate_act_fn): ReLU()
+            (dense_2): Linear(in_features=512, out_features=256, bias=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+          (sublayer): SublayerConnection(
+            (LayerNorm): LayerNorm()
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+        (drug_SA): Encoder(
+          (attention): SelfAttention(
+            (query): Linear(in_features=256, out_features=256, bias=True)
+            (key): Linear(in_features=256, out_features=256, bias=True)
+            (value): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (sublayer): SublayerConnection(
+            (LayerNorm): LayerNorm()
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+          (output): SelfOutput(
+            (feed_forward): FeedForward(
+              (dense_1): Linear(in_features=256, out_features=512, bias=True)
+              (intermediate_act_fn): ReLU()
+              (dense_2): Linear(in_features=512, out_features=256, bias=True)
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+            (sublayer): SublayerConnection(
+              (LayerNorm): LayerNorm()
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+          )
+        )
+      )
+    )
+    (selfEncoders): ModuleList(
+      (0-1): 2 x Encoder(
+        (attention): SelfAttention(
+          (query): Linear(in_features=256, out_features=256, bias=True)
+          (key): Linear(in_features=256, out_features=256, bias=True)
+          (value): Linear(in_features=256, out_features=256, bias=True)
+        )
+        (sublayer): SublayerConnection(
+          (LayerNorm): LayerNorm()
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+        (output): SelfOutput(
+          (feed_forward): FeedForward(
+            (dense_1): Linear(in_features=256, out_features=512, bias=True)
+            (intermediate_act_fn): ReLU()
+            (dense_2): Linear(in_features=512, out_features=256, bias=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+          (sublayer): SublayerConnection(
+            (LayerNorm): LayerNorm()
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+      )
+    )
+  )
+  (ctl_fc): Sequential(
+    (0): Linear(in_features=256, out_features=64, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.1, inplace=False)
+    (3): Linear(in_features=64, out_features=1, bias=True)
+  )
+  (trt_fc): Sequential(
+    (0): Linear(in_features=256, out_features=64, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.1, inplace=False)
+    (3): Linear(in_features=64, out_features=1, bias=True)
+  )
+  (deg_fc): Sequential(
+    (0): Linear(in_features=256, out_features=64, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.1, inplace=False)
+    (3): Linear(in_features=64, out_features=1, bias=True)
+  )
+  (class_fc): Linear(in_features=256, out_features=240, bias=True)
+)
+Number of parameters: 5.60M
+Using GradScaler to accelerate trainning..
+For metric mse, the lower the better
+Epoch 0, Train Total Loss: 6.268, Loss1: 4.107, Loss2: 6.871, Loss3: 3.184, Loss4: 0.847
+Epoch_0_train_time:6.00min
+Epoch 0, Valid Total Loss: 1.013, Loss1: 0.645, Loss2: 28.627, Loss3: 0.636, Loss4: 0.763
+LINCS STATE SAVED epoch 0 | best_score 0.7633586212783698 | counter 0 | epoch_s 437.2
+Epoch 1, Learning Rate: 0.004
+Epoch_0_valid_time:1.27min
+Epoch 1, Train Total Loss: 1.016, Loss1: 1.034, Loss2: 2.713, Loss3: 0.600, Loss4: 0.722
+Epoch 1, Valid Total Loss: 1.002, Loss1: 0.646, Loss2: 26.647, Loss3: 0.637, Loss4: 0.758
+LINCS STATE SAVED epoch 1 | best_score 0.7575278396001704 | counter 0 | epoch_s 437.3
+Epoch 2, Train Total Loss: 0.921, Loss1: 0.943, Loss2: 0.463, Loss3: 0.590, Loss4: 0.672
+Epoch 2, Valid Total Loss: 0.965, Loss1: 0.629, Loss2: 26.749, Loss3: 0.632, Loss4: 0.725
+LINCS STATE SAVED epoch 2 | best_score 0.7251613232807764 | counter 0 | epoch_s 437.1
+Epoch 3, Train Total Loss: 0.849, Loss1: 0.861, Loss2: 0.186, Loss3: 0.580, Loss4: 0.633
+Epoch 3, Valid Total Loss: 0.956, Loss1: 0.638, Loss2: 24.956, Loss3: 0.631, Loss4: 0.720
+LINCS STATE SAVED epoch 3 | best_score 0.7202476620265978 | counter 0 | epoch_s 437.4
+Epoch 4, Train Total Loss: 0.800, Loss1: 0.810, Loss2: 0.112, Loss3: 0.572, Loss4: 0.603
+EarlyStopping counter: 1 out of 50
+Epoch 4, Valid Total Loss: 0.955, Loss1: 0.631, Loss2: 23.796, Loss3: 0.635, Loss4: 0.723
+LINCS STATE SAVED epoch 4 | best_score 0.7202476620265978 | counter 1 | epoch_s 439.0
+Epoch 5, Train Total Loss: 0.746, Loss1: 0.768, Loss2: 0.083, Loss3: 0.561, Loss4: 0.565
+Epoch 5, Valid Total Loss: 0.948, Loss1: 0.625, Loss2: 22.636, Loss3: 0.641, Loss4: 0.719
+LINCS STATE SAVED epoch 5 | best_score 0.719442712238026 | counter 0 | epoch_s 439.4
+Epoch 6, Train Total Loss: 0.693, Loss1: 0.728, Loss2: 0.070, Loss3: 0.549, Loss4: 0.527
+Epoch 6, Valid Total Loss: 0.926, Loss1: 0.621, Loss2: 21.431, Loss3: 0.633, Loss4: 0.705
+LINCS STATE SAVED epoch 6 | best_score 0.7046062873298928 | counter 0 | epoch_s 441.5
+Epoch 7, Train Total Loss: 0.647, Loss1: 0.687, Loss2: 0.062, Loss3: 0.537, Loss4: 0.495
+Epoch 7, Valid Total Loss: 0.897, Loss1: 0.617, Loss2: 19.583, Loss3: 0.617, Loss4: 0.686
+LINCS STATE SAVED epoch 7 | best_score 0.6855675197386797 | counter 0 | epoch_s 441.0
+Epoch 8, Train Total Loss: 0.610, Loss1: 0.647, Loss2: 0.058, Loss3: 0.527, Loss4: 0.470
+Epoch 8, Valid Total Loss: 0.883, Loss1: 0.637, Loss2: 19.270, Loss3: 0.621, Loss4: 0.667
+LINCS STATE SAVED epoch 8 | best_score 0.667053050000987 | counter 0 | epoch_s 442.4
+Epoch 9, Train Total Loss: 0.583, Loss1: 0.617, Loss2: 0.055, Loss3: 0.519, Loss4: 0.453
+Epoch 9, Valid Total Loss: 0.889, Loss1: 0.662, Loss2: 18.454, Loss3: 0.650, Loss4: 0.662
+LINCS STATE SAVED epoch 9 | best_score 0.6615733324734994 | counter 0 | epoch_s 442.6
+Epoch 10, Train Total Loss: 0.564, Loss1: 0.599, Loss2: 0.054, Loss3: 0.513, Loss4: 0.439
+EarlyStopping counter: 1 out of 50
+Epoch 10, Valid Total Loss: 0.869, Loss1: 0.618, Loss2: 17.839, Loss3: 0.616, Loss4: 0.663
+LINCS STATE SAVED epoch 10 | best_score 0.6615733324734994 | counter 1 | epoch_s 441.4
+Epoch 11, Learning Rate: 0.004
+Epoch 11, Train Total Loss: 0.550, Loss1: 0.583, Loss2: 0.050, Loss3: 0.508, Loss4: 0.431
+Epoch 11, Valid Total Loss: 0.841, Loss1: 0.612, Loss2: 17.410, Loss3: 0.604, Loss4: 0.640
+LINCS STATE SAVED epoch 11 | best_score 0.6403902958349776 | counter 0 | epoch_s 442.5
+Epoch 12, Train Total Loss: 0.539, Loss1: 0.571, Loss2: 0.051, Loss3: 0.504, Loss4: 0.423
+EarlyStopping counter: 1 out of 50
+Epoch 12, Valid Total Loss: 0.856, Loss1: 0.618, Loss2: 17.752, Loss3: 0.618, Loss4: 0.650
+LINCS STATE SAVED epoch 12 | best_score 0.6403902958349776 | counter 1 | epoch_s 441.4
+Epoch 13, Train Total Loss: 0.532, Loss1: 0.563, Loss2: 0.051, Loss3: 0.502, Loss4: 0.419
+EarlyStopping counter: 2 out of 50
+Epoch 13, Valid Total Loss: 0.851, Loss1: 0.606, Loss2: 17.379, Loss3: 0.605, Loss4: 0.652
+LINCS STATE SAVED epoch 13 | best_score 0.6403902958349776 | counter 2 | epoch_s 442.2
+Epoch 14, Train Total Loss: 0.525, Loss1: 0.555, Loss2: 0.051, Loss3: 0.499, Loss4: 0.413
+EarlyStopping counter: 3 out of 50
+Epoch 14, Valid Total Loss: 0.858, Loss1: 0.622, Loss2: 17.374, Loss3: 0.613, Loss4: 0.654
+LINCS STATE SAVED epoch 14 | best_score 0.6403902958349776 | counter 3 | epoch_s 440.9
+Epoch 15, Train Total Loss: 0.521, Loss1: 0.549, Loss2: 0.049, Loss3: 0.498, Loss4: 0.411
+EarlyStopping counter: 4 out of 50
+Epoch 15, Valid Total Loss: 0.839, Loss1: 0.611, Loss2: 17.377, Loss3: 0.600, Loss4: 0.641
+LINCS STATE SAVED epoch 15 | best_score 0.6403902958349776 | counter 4 | epoch_s 442.1
+Epoch 16, Train Total Loss: 0.516, Loss1: 0.544, Loss2: 0.051, Loss3: 0.496, Loss4: 0.407
+Epoch 16, Valid Total Loss: 0.841, Loss1: 0.613, Loss2: 17.606, Loss3: 0.608, Loss4: 0.639
+LINCS STATE SAVED epoch 16 | best_score 0.6394382578968459 | counter 0 | epoch_s 441.2
+Epoch 17, Train Total Loss: 0.512, Loss1: 0.540, Loss2: 0.054, Loss3: 0.494, Loss4: 0.405
+EarlyStopping counter: 1 out of 50
+Epoch 17, Valid Total Loss: 0.845, Loss1: 0.610, Loss2: 17.308, Loss3: 0.607, Loss4: 0.645
+LINCS STATE SAVED epoch 17 | best_score 0.6394382578968459 | counter 1 | epoch_s 442.1
+Epoch 18, Train Total Loss: 0.508, Loss1: 0.537, Loss2: 0.052, Loss3: 0.493, Loss4: 0.402
+EarlyStopping counter: 2 out of 50
+Epoch 18, Valid Total Loss: 0.844, Loss1: 0.606, Loss2: 17.646, Loss3: 0.605, Loss4: 0.644
+LINCS STATE SAVED epoch 18 | best_score 0.6394382578968459 | counter 2 | epoch_s 441.6
+Epoch 19, Train Total Loss: 0.507, Loss1: 0.535, Loss2: 0.054, Loss3: 0.492, Loss4: 0.401
+EarlyStopping counter: 3 out of 50
+Epoch 19, Valid Total Loss: 0.845, Loss1: 0.607, Loss2: 16.907, Loss3: 0.600, Loss4: 0.649
+LINCS STATE SAVED epoch 19 | best_score 0.6394382578968459 | counter 3 | epoch_s 440.9
+Epoch 20, Train Total Loss: 0.504, Loss1: 0.532, Loss2: 0.053, Loss3: 0.491, Loss4: 0.399
+Epoch 20, Valid Total Loss: 0.825, Loss1: 0.613, Loss2: 17.041, Loss3: 0.598, Loss4: 0.628
+LINCS STATE SAVED epoch 20 | best_score 0.6276458007388823 | counter 0 | epoch_s 442.6
+Epoch 21, Learning Rate: 0.004
+Epoch 21, Train Total Loss: 0.502, Loss1: 0.530, Loss2: 0.054, Loss3: 0.491, Loss4: 0.398
+EarlyStopping counter: 1 out of 50
+Epoch 21, Valid Total Loss: 0.828, Loss1: 0.602, Loss2: 17.035, Loss3: 0.602, Loss4: 0.632
+LINCS STATE SAVED epoch 21 | best_score 0.6276458007388823 | counter 1 | epoch_s 441.3
+Epoch 22, Train Total Loss: 0.500, Loss1: 0.527, Loss2: 0.054, Loss3: 0.490, Loss4: 0.396
+EarlyStopping counter: 2 out of 50
+Epoch 22, Valid Total Loss: 0.847, Loss1: 0.623, Loss2: 17.370, Loss3: 0.617, Loss4: 0.641
+LINCS STATE SAVED epoch 22 | best_score 0.6276458007388823 | counter 2 | epoch_s 441.5
+Epoch 23, Train Total Loss: 0.499, Loss1: 0.526, Loss2: 0.053, Loss3: 0.489, Loss4: 0.395
+EarlyStopping counter: 3 out of 50
+Epoch 23, Valid Total Loss: 0.857, Loss1: 0.628, Loss2: 17.421, Loss3: 0.634, Loss4: 0.645
+LINCS STATE SAVED epoch 23 | best_score 0.6276458007388823 | counter 3 | epoch_s 442.3
+Epoch 24, Train Total Loss: 0.497, Loss1: 0.526, Loss2: 0.053, Loss3: 0.489, Loss4: 0.394
+EarlyStopping counter: 4 out of 50
+Epoch 24, Valid Total Loss: 0.842, Loss1: 0.619, Loss2: 16.553, Loss3: 0.609, Loss4: 0.642
+LINCS STATE SAVED epoch 24 | best_score 0.6276458007388823 | counter 4 | epoch_s 441.2
+Epoch 25, Train Total Loss: 0.494, Loss1: 0.523, Loss2: 0.052, Loss3: 0.487, Loss4: 0.392
+EarlyStopping counter: 5 out of 50
+Epoch 25, Valid Total Loss: 0.841, Loss1: 0.618, Loss2: 16.735, Loss3: 0.609, Loss4: 0.640
+LINCS STATE SAVED epoch 25 | best_score 0.6276458007388823 | counter 5 | epoch_s 442.1
+Epoch 26, Train Total Loss: 0.493, Loss1: 0.523, Loss2: 0.053, Loss3: 0.487, Loss4: 0.391
+EarlyStopping counter: 6 out of 50
+Epoch 26, Valid Total Loss: 0.837, Loss1: 0.627, Loss2: 17.511, Loss3: 0.620, Loss4: 0.629
+LINCS STATE SAVED epoch 26 | best_score 0.6276458007388823 | counter 6 | epoch_s 441.4
+Epoch 27, Train Total Loss: 0.493, Loss1: 0.523, Loss2: 0.051, Loss3: 0.487, Loss4: 0.391
+EarlyStopping counter: 7 out of 50
+Epoch 27, Valid Total Loss: 0.832, Loss1: 0.612, Loss2: 17.892, Loss3: 0.594, Loss4: 0.633
+LINCS STATE SAVED epoch 27 | best_score 0.6276458007388823 | counter 7 | epoch_s 441.3
+Epoch 28, Train Total Loss: 0.492, Loss1: 0.521, Loss2: 0.051, Loss3: 0.487, Loss4: 0.390
+EarlyStopping counter: 8 out of 50
+Epoch 28, Valid Total Loss: 0.857, Loss1: 0.611, Loss2: 19.008, Loss3: 0.612, Loss4: 0.651
+LINCS STATE SAVED epoch 28 | best_score 0.6276458007388823 | counter 8 | epoch_s 442.0
+Epoch 29, Train Total Loss: 0.491, Loss1: 0.521, Loss2: 0.053, Loss3: 0.486, Loss4: 0.389
+EarlyStopping counter: 9 out of 50
+Epoch 29, Valid Total Loss: 0.833, Loss1: 0.606, Loss2: 17.513, Loss3: 0.604, Loss4: 0.634
+LINCS STATE SAVED epoch 29 | best_score 0.6276458007388823 | counter 9 | epoch_s 440.5
+Epoch 30, Train Total Loss: 0.490, Loss1: 0.520, Loss2: 0.053, Loss3: 0.486, Loss4: 0.388
+EarlyStopping counter: 10 out of 50
+Epoch 30, Valid Total Loss: 0.825, Loss1: 0.602, Loss2: 16.711, Loss3: 0.601, Loss4: 0.630
+LINCS STATE SAVED epoch 30 | best_score 0.6276458007388823 | counter 10 | epoch_s 441.0
+Epoch 31, Learning Rate: 0.004
+Epoch 31, Train Total Loss: 0.488, Loss1: 0.520, Loss2: 0.049, Loss3: 0.485, Loss4: 0.387
+Epoch 31, Valid Total Loss: 0.826, Loss1: 0.617, Loss2: 16.963, Loss3: 0.601, Loss4: 0.626
+LINCS STATE SAVED epoch 31 | best_score 0.6264501696629057 | counter 0 | epoch_s 440.4
+Epoch 32, Train Total Loss: 0.489, Loss1: 0.520, Loss2: 0.051, Loss3: 0.485, Loss4: 0.387
+EarlyStopping counter: 1 out of 50
+Epoch 32, Valid Total Loss: 0.821, Loss1: 0.597, Loss2: 16.356, Loss3: 0.593, Loss4: 0.631
+LINCS STATE SAVED epoch 32 | best_score 0.6264501696629057 | counter 1 | epoch_s 440.4
+Epoch 33, Train Total Loss: 0.486, Loss1: 0.518, Loss2: 0.052, Loss3: 0.484, Loss4: 0.385
+EarlyStopping counter: 2 out of 50
+Epoch 33, Valid Total Loss: 0.834, Loss1: 0.611, Loss2: 17.092, Loss3: 0.613, Loss4: 0.633
+LINCS STATE SAVED epoch 33 | best_score 0.6264501696629057 | counter 2 | epoch_s 441.2
+Epoch 34, Train Total Loss: 0.486, Loss1: 0.518, Loss2: 0.051, Loss3: 0.484, Loss4: 0.386
+EarlyStopping counter: 3 out of 50
+Epoch 34, Valid Total Loss: 0.844, Loss1: 0.620, Loss2: 17.085, Loss3: 0.615, Loss4: 0.640
+LINCS STATE SAVED epoch 34 | best_score 0.6264501696629057 | counter 3 | epoch_s 439.7
+Epoch 35, Train Total Loss: 0.485, Loss1: 0.517, Loss2: 0.050, Loss3: 0.483, Loss4: 0.384
+Epoch 35, Valid Total Loss: 0.819, Loss1: 0.602, Loss2: 17.676, Loss3: 0.598, Loss4: 0.622
+LINCS STATE SAVED epoch 35 | best_score 0.621818887969912 | counter 0 | epoch_s 440.5
+Epoch 36, Train Total Loss: 0.484, Loss1: 0.517, Loss2: 0.049, Loss3: 0.483, Loss4: 0.384
+EarlyStopping counter: 1 out of 50
+Epoch 36, Valid Total Loss: 0.822, Loss1: 0.604, Loss2: 16.935, Loss3: 0.597, Loss4: 0.627
+LINCS STATE SAVED epoch 36 | best_score 0.621818887969912 | counter 1 | epoch_s 440.8
+Epoch 37, Train Total Loss: 0.484, Loss1: 0.517, Loss2: 0.049, Loss3: 0.483, Loss4: 0.384
+EarlyStopping counter: 2 out of 50
+Epoch 37, Valid Total Loss: 0.837, Loss1: 0.622, Loss2: 17.201, Loss3: 0.608, Loss4: 0.634
+LINCS STATE SAVED epoch 37 | best_score 0.621818887969912 | counter 2 | epoch_s 440.4
+Epoch 38, Train Total Loss: 0.484, Loss1: 0.517, Loss2: 0.048, Loss3: 0.483, Loss4: 0.384
+EarlyStopping counter: 3 out of 50
+Epoch 38, Valid Total Loss: 0.837, Loss1: 0.611, Loss2: 17.971, Loss3: 0.609, Loss4: 0.635
+LINCS STATE SAVED epoch 38 | best_score 0.621818887969912 | counter 3 | epoch_s 441.0
+Epoch 39, Train Total Loss: 0.483, Loss1: 0.517, Loss2: 0.047, Loss3: 0.483, Loss4: 0.383
+EarlyStopping counter: 4 out of 50
+Epoch 39, Valid Total Loss: 0.838, Loss1: 0.617, Loss2: 17.023, Loss3: 0.609, Loss4: 0.637
+LINCS STATE SAVED epoch 39 | best_score 0.621818887969912 | counter 4 | epoch_s 439.7
+Epoch 40, Train Total Loss: 0.461, Loss1: 0.505, Loss2: 0.033, Loss3: 0.472, Loss4: 0.365
+Epoch 40, Valid Total Loss: 0.805, Loss1: 0.597, Loss2: 16.369, Loss3: 0.593, Loss4: 0.614
+LINCS STATE SAVED epoch 40 | best_score 0.6138327073315105 | counter 0 | epoch_s 440.7
+Epoch 41, Learning Rate: 0.002
+Epoch 41, Train Total Loss: 0.458, Loss1: 0.504, Loss2: 0.033, Loss3: 0.471, Loss4: 0.363
+EarlyStopping counter: 1 out of 50
+Epoch 41, Valid Total Loss: 0.819, Loss1: 0.607, Loss2: 17.088, Loss3: 0.604, Loss4: 0.621
+LINCS STATE SAVED epoch 41 | best_score 0.6138327073315105 | counter 1 | epoch_s 439.7
+Epoch 42, Train Total Loss: 0.458, Loss1: 0.504, Loss2: 0.035, Loss3: 0.471, Loss4: 0.363
+EarlyStopping counter: 2 out of 50
+Epoch 42, Valid Total Loss: 0.823, Loss1: 0.603, Loss2: 17.401, Loss3: 0.599, Loss4: 0.626
+LINCS STATE SAVED epoch 42 | best_score 0.6138327073315105 | counter 2 | epoch_s 439.9
+Epoch 43, Train Total Loss: 0.457, Loss1: 0.504, Loss2: 0.034, Loss3: 0.471, Loss4: 0.362
+EarlyStopping counter: 3 out of 50
+Epoch 43, Valid Total Loss: 0.817, Loss1: 0.598, Loss2: 17.398, Loss3: 0.600, Loss4: 0.621
+LINCS STATE SAVED epoch 43 | best_score 0.6138327073315105 | counter 3 | epoch_s 439.4
+Epoch 44, Train Total Loss: 0.456, Loss1: 0.504, Loss2: 0.033, Loss3: 0.470, Loss4: 0.361
+EarlyStopping counter: 4 out of 50
+Epoch 44, Valid Total Loss: 0.829, Loss1: 0.610, Loss2: 17.904, Loss3: 0.603, Loss4: 0.628
+LINCS STATE SAVED epoch 44 | best_score 0.6138327073315105 | counter 4 | epoch_s 439.6
+Epoch 45, Train Total Loss: 0.455, Loss1: 0.503, Loss2: 0.034, Loss3: 0.470, Loss4: 0.361
+EarlyStopping counter: 5 out of 50
+Epoch 45, Valid Total Loss: 0.821, Loss1: 0.619, Loss2: 17.318, Loss3: 0.607, Loss4: 0.619
+LINCS STATE SAVED epoch 45 | best_score 0.6138327073315105 | counter 5 | epoch_s 440.1
+Epoch 46, Train Total Loss: 0.455, Loss1: 0.503, Loss2: 0.032, Loss3: 0.469, Loss4: 0.360
+EarlyStopping counter: 6 out of 50
+Epoch 46, Valid Total Loss: 0.810, Loss1: 0.607, Loss2: 16.439, Loss3: 0.604, Loss4: 0.614
+LINCS STATE SAVED epoch 46 | best_score 0.6138327073315105 | counter 6 | epoch_s 440.5
+Epoch 47, Train Total Loss: 0.453, Loss1: 0.502, Loss2: 0.032, Loss3: 0.468, Loss4: 0.359
+EarlyStopping counter: 7 out of 50
+Epoch 47, Valid Total Loss: 0.811, Loss1: 0.597, Loss2: 16.808, Loss3: 0.595, Loss4: 0.618
+LINCS STATE SAVED epoch 47 | best_score 0.6138327073315105 | counter 7 | epoch_s 439.2
+Epoch 48, Train Total Loss: 0.453, Loss1: 0.502, Loss2: 0.031, Loss3: 0.468, Loss4: 0.358
+EarlyStopping counter: 8 out of 50
+Epoch 48, Valid Total Loss: 0.820, Loss1: 0.601, Loss2: 17.352, Loss3: 0.599, Loss4: 0.624
+LINCS STATE SAVED epoch 48 | best_score 0.6138327073315105 | counter 8 | epoch_s 440.2
+Epoch 49, Train Total Loss: 0.452, Loss1: 0.502, Loss2: 0.030, Loss3: 0.468, Loss4: 0.358
+EarlyStopping counter: 9 out of 50
+Epoch 49, Valid Total Loss: 0.826, Loss1: 0.597, Loss2: 17.105, Loss3: 0.596, Loss4: 0.632
+LINCS STATE SAVED epoch 49 | best_score 0.6138327073315105 | counter 9 | epoch_s 440.0
+Epoch 50, Train Total Loss: 0.451, Loss1: 0.501, Loss2: 0.032, Loss3: 0.468, Loss4: 0.357
+EarlyStopping counter: 10 out of 50
+Epoch 50, Valid Total Loss: 0.825, Loss1: 0.608, Loss2: 17.188, Loss3: 0.602, Loss4: 0.627
+LINCS STATE SAVED epoch 50 | best_score 0.6138327073315105 | counter 10 | epoch_s 440.8
+Epoch 51, Learning Rate: 0.002
+Epoch 51, Train Total Loss: 0.451, Loss1: 0.501, Loss2: 0.031, Loss3: 0.467, Loss4: 0.357
+EarlyStopping counter: 11 out of 50
+Epoch 51, Valid Total Loss: 0.828, Loss1: 0.610, Loss2: 17.115, Loss3: 0.609, Loss4: 0.628
+LINCS STATE SAVED epoch 51 | best_score 0.6138327073315105 | counter 11 | epoch_s 441.7
+Epoch 52, Train Total Loss: 0.450, Loss1: 0.501, Loss2: 0.031, Loss3: 0.467, Loss4: 0.356
+EarlyStopping counter: 12 out of 50
+Epoch 52, Valid Total Loss: 0.823, Loss1: 0.611, Loss2: 17.409, Loss3: 0.603, Loss4: 0.623
+LINCS STATE SAVED epoch 52 | best_score 0.6138327073315105 | counter 12 | epoch_s 440.7
+Epoch 53, Train Total Loss: 0.450, Loss1: 0.501, Loss2: 0.030, Loss3: 0.467, Loss4: 0.356
+EarlyStopping counter: 13 out of 50
+Epoch 53, Valid Total Loss: 0.833, Loss1: 0.621, Loss2: 17.619, Loss3: 0.612, Loss4: 0.628
+LINCS STATE SAVED epoch 53 | best_score 0.6138327073315105 | counter 13 | epoch_s 441.4
+Epoch 54, Train Total Loss: 0.449, Loss1: 0.501, Loss2: 0.031, Loss3: 0.466, Loss4: 0.355
+EarlyStopping counter: 14 out of 50
+Epoch 54, Valid Total Loss: 0.826, Loss1: 0.604, Loss2: 17.886, Loss3: 0.603, Loss4: 0.626
+LINCS STATE SAVED epoch 54 | best_score 0.6138327073315105 | counter 14 | epoch_s 440.4
+Epoch 55, Train Total Loss: 0.448, Loss1: 0.500, Loss2: 0.030, Loss3: 0.466, Loss4: 0.355
+EarlyStopping counter: 15 out of 50
+Epoch 55, Valid Total Loss: 0.817, Loss1: 0.609, Loss2: 17.660, Loss3: 0.602, Loss4: 0.618
+LINCS STATE SAVED epoch 55 | best_score 0.6138327073315105 | counter 15 | epoch_s 439.7
+Epoch 56, Train Total Loss: 0.448, Loss1: 0.500, Loss2: 0.030, Loss3: 0.466, Loss4: 0.354
+EarlyStopping counter: 16 out of 50
+Epoch 56, Valid Total Loss: 0.818, Loss1: 0.605, Loss2: 18.419, Loss3: 0.598, Loss4: 0.618
+LINCS STATE SAVED epoch 56 | best_score 0.6138327073315105 | counter 16 | epoch_s 439.8
+Epoch 57, Train Total Loss: 0.448, Loss1: 0.500, Loss2: 0.032, Loss3: 0.466, Loss4: 0.354
+EarlyStopping counter: 17 out of 50
+Epoch 57, Valid Total Loss: 0.818, Loss1: 0.606, Loss2: 17.972, Loss3: 0.603, Loss4: 0.618
+LINCS STATE SAVED epoch 57 | best_score 0.6138327073315105 | counter 17 | epoch_s 437.9
+Epoch 58, Train Total Loss: 0.447, Loss1: 0.500, Loss2: 0.030, Loss3: 0.465, Loss4: 0.354
+EarlyStopping counter: 18 out of 50
+Epoch 58, Valid Total Loss: 0.829, Loss1: 0.610, Loss2: 17.396, Loss3: 0.602, Loss4: 0.630
+LINCS STATE SAVED epoch 58 | best_score 0.6138327073315105 | counter 18 | epoch_s 436.4
+Epoch 59, Train Total Loss: 0.447, Loss1: 0.499, Loss2: 0.030, Loss3: 0.465, Loss4: 0.353
+EarlyStopping counter: 19 out of 50
+Epoch 59, Valid Total Loss: 0.820, Loss1: 0.605, Loss2: 16.617, Loss3: 0.598, Loss4: 0.625
+LINCS STATE SAVED epoch 59 | best_score 0.6138327073315105 | counter 19 | epoch_s 434.9
+Epoch 60, Train Total Loss: 0.446, Loss1: 0.499, Loss2: 0.030, Loss3: 0.465, Loss4: 0.353
+EarlyStopping counter: 20 out of 50
+Epoch 60, Valid Total Loss: 0.818, Loss1: 0.597, Loss2: 17.876, Loss3: 0.596, Loss4: 0.622
+LINCS STATE SAVED epoch 60 | best_score 0.6138327073315105 | counter 20 | epoch_s 435.9
+Epoch 61, Learning Rate: 0.002
+Epoch 61, Train Total Loss: 0.446, Loss1: 0.499, Loss2: 0.030, Loss3: 0.465, Loss4: 0.353
+EarlyStopping counter: 21 out of 50
+Epoch 61, Valid Total Loss: 0.833, Loss1: 0.609, Loss2: 18.134, Loss3: 0.603, Loss4: 0.631
+LINCS STATE SAVED epoch 61 | best_score 0.6138327073315105 | counter 21 | epoch_s 435.0
+Epoch 62, Train Total Loss: 0.445, Loss1: 0.499, Loss2: 0.031, Loss3: 0.465, Loss4: 0.352
+EarlyStopping counter: 22 out of 50
+Epoch 62, Valid Total Loss: 0.824, Loss1: 0.610, Loss2: 16.709, Loss3: 0.608, Loss4: 0.626
+LINCS STATE SAVED epoch 62 | best_score 0.6138327073315105 | counter 22 | epoch_s 435.9
+Epoch 63, Train Total Loss: 0.445, Loss1: 0.499, Loss2: 0.030, Loss3: 0.465, Loss4: 0.352
+EarlyStopping counter: 23 out of 50
+Epoch 63, Valid Total Loss: 0.823, Loss1: 0.610, Loss2: 17.764, Loss3: 0.613, Loss4: 0.620
+LINCS STATE SAVED epoch 63 | best_score 0.6138327073315105 | counter 23 | epoch_s 434.6
+Epoch 64, Train Total Loss: 0.444, Loss1: 0.498, Loss2: 0.031, Loss3: 0.464, Loss4: 0.351
+EarlyStopping counter: 24 out of 50
+Epoch 64, Valid Total Loss: 0.828, Loss1: 0.606, Loss2: 17.116, Loss3: 0.608, Loss4: 0.629
+LINCS STATE SAVED epoch 64 | best_score 0.6138327073315105 | counter 24 | epoch_s 434.5
+Epoch 65, Train Total Loss: 0.444, Loss1: 0.498, Loss2: 0.029, Loss3: 0.464, Loss4: 0.351
+EarlyStopping counter: 25 out of 50
+Epoch 65, Valid Total Loss: 0.824, Loss1: 0.613, Loss2: 17.339, Loss3: 0.601, Loss4: 0.624
+LINCS STATE SAVED epoch 65 | best_score 0.6138327073315105 | counter 25 | epoch_s 435.4
+LINCS SESSION BOUNDARY {"epoch": 65, "best_score": 0.6138327073315105, "counter": 25, "max_epoch_s": 442.5876786708832}

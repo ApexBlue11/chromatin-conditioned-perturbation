@@ -41,9 +41,9 @@
     "015_o2_launch_design",
     "016_a1_pretests"
   ],
-  "gpu_hours_spent_this_session": 7.22,
-  "pending_decision": "O2 session 1 running (includes the C4 chain test). On its end: read run_record; if session_boundary, verify handoff sha1s, upload state as a dataset version, generate session 2 with the sha1s as git-committed literals; Amendment E check before session 2.",
-  "note_current": "O2 session 1 running. 83 (full-graph A1 prerequisite) rerunning after a NaN fix.",
+  "gpu_hours_spent_this_session": 15.47,
+  "pending_decision": "O2 session 2 running. On its end: read run_record; boundary -> verify handoff, new dataset version, generate session 3; early_stop/horizon -> coldcell_h2h + result packet.",
+  "note_current": "O2 session 2 running. T1 (76.2 warm-split memorisation) rerunning locally.",
   "challenges_upheld": "95 of 98",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
@@ -67,16 +67,36 @@
     "List all four deviations with the MyDataset patch sha1s; report as XPert as published (review 009 C1)."
   ],
   "o2": {
-    "status": "session 1 launched as kernel v8 at commit f252b12, 2026-09-24",
+    "status": "session 1 ended at a clean boundary (epoch 65); session 2 launching",
     "sessions": [
       {
         "index": 1,
         "kernel_version": 8,
         "commit": "f252b12",
-        "outcome": "running"
+        "outcome": "session_boundary",
+        "epochs": "0-65",
+        "wall_h": 8.254,
+        "chain_test": "PASS",
+        "amendment_E_reprice": false,
+        "handoff": {
+          "sha1": {
+            "full_state.pt": "59c5e9603de2a741e0d397a48f11475e94a2b087",
+            "resume_from.pt": "0f6989e25adfdc3b71ee86ca6a1198914a64693f",
+            "best.pth": "8b216a57aecbca8d8a7ccb03f71ec241dc8b1eb1"
+          },
+          "final_epoch": 65,
+          "torch": "2.10.0+cu128",
+          "cuda": "12.8"
+        }
+      },
+      {
+        "index": 2,
+        "kernel_version": null,
+        "commit": null,
+        "outcome": "launching"
       }
     ],
     "horizon_epochs": 297,
-    "state_dataset": "apexblue/xpert-cc1-state (created after session 1)"
+    "state_dataset": "apexblue/xpert-cc1-state (private; version 1 = session 1 handoff)"
   }
 }

@@ -47,11 +47,11 @@ BUDGET_H = 8.3          # wall-clock guard for TRAINING; prediction needs ~10 mi
 # with that number in hand rather than discovered through stopped_by == 'watchdog'.
 MEASURE_ONLY = False
 # O2 PRODUCTION [RESULTS 84, review 015]. GUARD G / H (RESULTS 81) were proved in v7 [81.7] and are not rerun.
-SESSION = 1
+SESSION = 2
 HORIZON_EPOCHS = 297          # 84.1: FINAL at 297 completed epochs; the only other final end is their early stop
-PREV = None
+PREV = {'cuda': '12.8', 'final_epoch': 65, 'sha1': {'best.pth': '8b216a57aecbca8d8a7ccb03f71ec241dc8b1eb1', 'full_state.pt': '59c5e9603de2a741e0d397a48f11475e94a2b087', 'resume_from.pt': '0f6989e25adfdc3b71ee86ca6a1198914a64693f'}, 'torch': '2.10.0+cu128'}
 # PREV = session k-1's handoff, pasted as a literal and committed to git before this push (015 C3).
-# Production session 1. The v7 proof and resume tests are in the v7 kernel (git da3c5ac).
+# Production session 2. The v7 proof and resume tests are in the v7 kernel (git da3c5ac).
 FOLD = 'split_cold_cell_1'
 W = '/kaggle/working'
 RECORD = {'fold': FOLD, 'budget_h': BUDGET_H, 'guards': {}, 'decision': 'option (a) as published, disclosed'}
