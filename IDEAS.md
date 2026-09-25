@@ -59,6 +59,7 @@ pathways it opens and closes.
   mismatched-chromatin null key (a trained gate can use chromatin as a cell barcode) and `unseen_cell` as the
   pre-registered readout. **The diffusion route
   is closed;** A1 now needs a trained model (~5.8 GPU-h), queued behind O2.
+- **Trained arm PRE-REGISTERED as C7 [RESULTS §89]** (review 026): 6-input gate with observed-indicators, C7u ungated control, mismatched-chromatin attribution requiring ≥ half the gain.
 - **Null it must beat:** the same model with chromatin mean-ablated in the edge gate only, plus the
   existing gene-level EpiGate left untouched — so the arm isolates edge gating from gene gating.
 - **Pre-register before spending:** method rules 13, 16, 17 all apply. Null key and estimand fixed first.

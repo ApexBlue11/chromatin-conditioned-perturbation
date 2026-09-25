@@ -6113,6 +6113,41 @@ A one-seed gate (seed-0 Δ ≥ −s0) would skip a C8b with no true accuracy eff
 screen runs **all three seeds regardless of rule 6**, and the MoA study (§88) executes iff C8b's **3-seed mean dev Δ ≥
 −s0** (skip rate for a null-effect C8b ~7 %). C8b's entry into the final stack still requires §85.2's accept rule.
 
+## 89. 🔒 PRE-REGISTERED: C7, chromatin gating the union graph's edges — packet 026 as amended by review 026; C5 deferred (2026-09-25)
+Coverage and the C5 deferral as packet 026 (`model/results/cc1_input_coverage.json`): the local CCLE baseline is landmark-only
+and duplicates `x_cell` for DMSO-fallback cells; genome-wide CCLE would be a separate design.
+
+### 89.1 C7, defined (binding)
+- **Graph:** the binary union of STRING, Reactome and GO:BP on the 978 landmarks (`union_graph_v9.npz`, 81,846 edge entries
+  — symmetrised, de-duplicated, self-loops removed, the final undirected edge count recorded; density ~17 %), symmetric
+  normalisation `Â`.
+- **Gate (C1):** per gene, `a_i = σ(MLP_6→8→1([E_i·m_i, m_i]))` — three track values with missing → 0, **plus three
+  observed-indicators**, so absence is never read as a value; `a_i = 1` exactly when all three tracks are missing (the
+  ungated layer). The final bias is initialised so σ ≈ 0.95. Edge gate `g_ij = √(a_i a_j)`.
+- **Layer:** `h ← h + sd(W · Σ_j Â_ij g_ij h_j)` at `cfg.stoch_depth`, **replacing** the STRING message-passing step (so
+  depth is unchanged; it also changes the §85.2 rule-8 gate's input, and rule 8 applies). Flag `--chromatin_edges`.
+- **C7u, the ungated control:** the same layer with `a_i ≡ 1` (flag `--union_edges`).
+- **Acceptance tests:** flag off → bitwise today; a cell with all tracks missing gets exactly C7u's layer; toggling one
+  track's indicator with its value fixed at 0 changes `a_i`; changing a gene's chromatin changes only that gene's edge gates.
+
+### 89.2 Readings, pre-committed
+1. **Accuracy:** §85.2 rules 6–8 against P2.
+2. **If C7 is accepted, run C7u (3 seeds)** and report both increments: C7 − C7u (gating) and C7u − P2 (the graph).
+3. **Attribution, if C7 is accepted, on the dev rows:** each dev cell scored with its own chromatin and with each of the 5
+   other dev cells' chromatin (C3: **values swapped only where both cells observe the track; the evaluated cell keeps its
+   own observed-indicator mask; where only it observes a track, the donor's track mean is used**), averaged over the 5.
+   `Δ_own = r(own) − r(mismatched)` per row. Reading **"most of C7's gain is attributable to each cell's own chromatin,
+   through edge gating"** iff, at 3 seeds: mean Δ_own > 0 with a row-bootstrap CI excluding 0, **and** mean Δ_own ≥
+   ½ × (C7 − P2) (C2), **and** the mean of per-cell Δ_own > 0, **and** ≥ 4 of 6 dev cells positive, **and** C7 − C7u ≥
+   §85.2 rule 7's floor. Otherwise: *"not attributable to the cell's own chromatin."*
+4. **What enters the stack (C4):** if C7 is accepted and C7 − C7u fails rule 7's floor, P6 stacks **C7u**, not C7.
+5. **Wording (ask 2):** chromatin can help unseen cells as a cell-similarity descriptor routed through the gate, so the
+   licensed sentence is *"used cell-specifically, through edge gating"*. **"Chromatin decides which edges conduct"** is a
+   biological claim needing a separate gate-level check with pre-registered signs (gates rising with accessibility and
+   H3K27ac, falling with H3K27me3) — not claimed unless that check is registered and run.
+6. **P7 disclosure (ask 4):** 3 of 8 test cells (BJAB, H1975, HS578T — the last 1,074 rows) have no chromatin, so a C7 in
+   the final model acts as C7u on them.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
