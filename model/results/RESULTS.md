@@ -5923,7 +5923,7 @@ null, target-responsiveness stratification). Committed before any v9 code exists
 
 ### 86.4 RESULT: **NULL**, as pre-committed — the probe is valid, the drug does reorder pathway importance, but the effect clears the floor on only 1 of 3 seeds (2026-09-25)
 `model/v9/probe_moa_v9.py` on Kaggle CPU (kernels `lincs-moa-{r0,r1,r2,u0,u1,u2}`, checkpoints sha1-checked in-kernel);
-read by `model/v9/read_moa_86.py`, committed at `dfc8abc` **before any output was read** (it fixes the one numeric form 86
+read by `model/v9/read_moa_86.py`, committed at `dfc8abc` **43 s after the outputs arrived locally and before it was run** (review 023 C3: git witnesses arrival order, not reading; readers are committed while kernels run from now on) (it fixes the one numeric form 86
 left open: a stratum "shows it" iff diff ≤ −0.02 and p < 0.05 on all three seeds). 496 compounds scored (fold-0 test
 rows with ≥ 1 ChEMBL mechanism target in a named node's full gene set); all 800 nodes matched a GMT term. 0 GPU-hours.
 
@@ -5939,15 +5939,15 @@ reading, 86.3: NULL** — the SIGNAL conditions hold on seed 1 only (seed 0 miss
 is −0.0053, p 0.26), and PARTIAL's second clause fails because seed 2's p is not < 0.05. **C8b — a trained
 post-perturbation named pathway readout — enters §85's candidate list**, with its own pre-registered MoA test.
 
-*Reported, not read:* the direction is favourable on every seed; the gradient readout's S sits well below the output
-projection's and the data projection's (gradient vs output vs data, per seed: 0.400 vs 0.563 vs 0.552 / 0.410 vs 0.555 vs 0.552 / 0.427 vs 0.554 vs 0.552 — the projections rank target
-pathways worse than their nulls' typical ~0.43); strata:
+*Reported, not read — corrected by review 023 C1 (compare readouts by diff against their own nulls, never by S):* gradient readout diff −0.019 / −0.020 / −0.005; output projection +0.005 / +0.007 / −0.001; data projection −0.001 on every seed. The projections' nulls sit near 0.55, the gradient readout's near 0.43, so S is not comparable across readouts. The data projection carries **no** target-pathway alignment at this readout, so whatever the gradient readout shows is not a reproduction of alignment already in the measurements. The "favourable on every seed" direction must not reappear as a weak positive (C2). strata:
 
 | seed | seen | unseen | targets not responsive | landmark-only tier |
 |---|---|---|---|---|
 | r0 | -0.0227 (p 0.006) | -0.0111 (p 0.225) | -0.0178 (p 0.018) | -0.0101 (p 0.171) |
 | r1 | -0.0172 (p 0.037) | -0.0240 (p 0.052) | -0.0159 (p 0.022) | -0.0200 (p 0.055) |
 | r2 | -0.0056 (p 0.275) | -0.0088 (p 0.249) | -0.0043 (p 0.335) | +0.0046 (p 0.641) |
+**A finding about the method (review 023 C2):** the within-model permutation p is **not calibrated across initialisations**. Untrained gradient diffs span −0.0024 to +0.0235, and the untrained **output projection** reaches −0.0234 (p 0.023) and −0.0211 (p 0.039) on 2 of 3 inits — a readout with no training clearing the floor and p. The all-three-seeds rule and the untrained contrast are what kept this from a false PARTIAL. **Stated plainly:** *the pre-perturbation pathway layer does not carry a replicable drug-specific mechanism signal readable by gradient × activation.*
+
 
 ## 87. ✅ O2 FINAL and the §71 head-to-head: **NO CELL-LEVEL CLAIM**, as pre-committed — v9 ahead on average and on the five large cells, not on 7 of 8 (2026-09-25)
 

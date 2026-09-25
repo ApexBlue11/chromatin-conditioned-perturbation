@@ -177,6 +177,7 @@ warm split.** A test must commit its prediction first; nothing in §74 is read u
   pathway readout (C8b). Pre-register before computing.
 - **Step 1 RESULT [§86.4]: NULL** (valid probe; drug reorders importance, rho_del ~0.16; floor met on 1 of 3 seeds).
   **C8b is now the route**: a trained post-perturbation named readout, with its own MoA test pre-registered.
+- **C8b's MoA test must pre-register (review 023 ask 3):** (1) ONE primary readout — the node's activation difference Δa = a(d) − a(mean drug), fixed mean drug; (2) whether the nodes are aux-supervised (then bounded near the data projection, which shows no alignment) or unsupervised; (3) calibration against ≥ 5 untrained inits — every trained seed's diff below the untrained minimum (or mean − 2 sd fixed from those inits), since −0.02 is inside the observed spread; (4) readouts compared by diff only; (5) a responsiveness split with usable sizes on both sides (the top-50 rule gave 483 vs 13); (6) the unseen-compound stratum licenses a mechanism claim, with its null sd stated; (7) run on v9 fold-0 test rows, trained separately from §85's cc1 dev work, and the MoA reading never influences C8b's accuracy acceptance or vice versa.
 
 ### A7. 🔵 "New startup mechanisms" — raised by the principal, no recorded source
 The principal listed this alongside new loss functions on 2026-09-21. **There is no item in RESULTS it maps
