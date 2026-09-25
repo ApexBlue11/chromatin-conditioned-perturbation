@@ -175,6 +175,8 @@ warm split.** A test must commit its prediction first; nothing in §74 is read u
   (CLAIMS 4.14) on existing checkpoints — does it reorder across drugs, and do target-containing pathways rank
   above a label-permutation AND a drug-shuffle null? Step 2 only if null: a trained post-perturbation named
   pathway readout (C8b). Pre-register before computing.
+- **Step 1 RESULT [§86.4]: NULL** (valid probe; drug reorders importance, rho_del ~0.16; floor met on 1 of 3 seeds).
+  **C8b is now the route**: a trained post-perturbation named readout, with its own MoA test pre-registered.
 
 ### A7. 🔵 "New startup mechanisms" — raised by the principal, no recorded source
 The principal listed this alongside new loss functions on 2026-09-21. **There is no item in RESULTS it maps
