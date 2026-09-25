@@ -1,7 +1,7 @@
 # PACKET 018 — DESIGN: move O2's remaining sessions from Kaggle (2×T4, DataParallel) to Lightning AI (one GPU)
 packet_id: 018
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: 1187792
 type: **DESIGN — an amendment to locked decisions (84, 015 C3). Nothing is migrated before your verdict.**
 
 ## Why this is in front of you
