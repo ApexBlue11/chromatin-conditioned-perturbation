@@ -1,7 +1,7 @@
 # PACKET 026 — PRE-REGISTRATION: C7, chromatin gating the edges of the union graph (IDEAS A1's trained arm); C5 deferred
 packet_id: 026
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: ae78f26
 type: **PRE-REGISTRATION.** No C7 code exists. Kaggle's weekly GPU quota is exhausted, so nothing can run before the reset.
 
 ## Coverage first (review 019 ask 5), `model/results/cc1_input_coverage.json`
