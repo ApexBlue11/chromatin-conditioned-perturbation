@@ -116,6 +116,15 @@ class LincsV9(nn.Module):
             self.aux_path = nn.Linear(cfg.d_pathway, 1)
             self.aux_epi = nn.Linear(d, 1)
 
+        # C6 sign head: nn.Linear(d_model, 1) on the final gene tokens
+        if cfg.sign_head_w > 0:
+            self.sign_head = nn.Linear(d, 1)
+
+        # C8b post-pathway: second NamedPathwayReadout after last perturb block
+        if cfg.post_pathway:
+            self.post_pathway_readout = NamedPathwayReadout(M_pathway, d, cfg.d_pathway)
+            self.sd_post_path = StochasticDepth(cfg.stoch_depth)
+
     # ---- fitting the quantiser is a DATA step, not a training step: training rows only ----
     def fit_bins(self, X_ctl_train, X_cell_train=None):
         if self.cfg.expr_encoder != 'binned':
@@ -154,6 +163,11 @@ class LincsV9(nn.Module):
                        self.ln_atom(self.w_a(atoms)) + self.type_atom], dim=1)
         key_mask = ~torch.cat([torch.ones(B, 1, dtype=torch.bool, device=x_ctl.device), atom_valid], 1)
 
+        # C1: drug sequence is [global] only; atom tokens reach nothing
+        if self.cfg.no_atoms:
+            D = D[:, :1, :]                                                  # [B, 1, d]
+            key_mask = torch.zeros(B, 1, dtype=torch.bool, device=x_ctl.device)  # global always valid
+
         for blk in self.base:
             h = blk(h)
         if self.ppi is not None:
@@ -169,12 +183,24 @@ class LincsV9(nn.Module):
             else:
                 h, D = blk(h, D, key_mask, diagonal=diag, drug_alpha=alpha, drug_atom_alpha=atom_alpha, drug_global_self_only=batch_drug_global_self_only, xattn_global_only=batch_drug_xattn_global_only)
 
+        # C8b: second NamedPathwayReadout after the LAST perturb block
+        post_pathways = None
+        if self.cfg.post_pathway:
+            post_delta, post_pathways = self.post_pathway_readout(h)
+            h = h + self.sd_post_path(post_delta)
+
         out, epi_contrib = self.heads(h, E, r, x_ctl)
         if return_aux or return_interp:
             aux = {'pathway_activations': pathways, 'epi_contrib': epi_contrib, 'atom_gene': attn}
             if self.cfg.use_aux:
                 aux['pathway_pred'] = self.aux_path(pathways).squeeze(-1)
                 aux['epi_pred'] = self.aux_epi(h).squeeze(-1)
+            # C6: sign head logits (loss computed in v9_loss)
+            if self.cfg.sign_head_w > 0:
+                aux['sign_logits'] = self.sign_head(h).squeeze(-1)           # [B, G]
+            # C8b: post-pathway activations (unsupervised; pre-pathway stays in pathway_activations)
+            if post_pathways is not None:
+                aux['post_pathway_activations'] = post_pathways
             return out, aux
         return out
 
@@ -200,6 +226,29 @@ def aux_targets(delta, M_norm):
     return torch.einsum('pg,bg->bp', M_norm, a), a
 
 
+def listnet_loss(pred, target):
+    """C3: Symmetric ListNet ranking loss on each row.
+
+    z = (x - row_mean) / (row_std + 1e-3), tau = 1.
+    Loss = 0.5 * [KL(softmax(z_target) || softmax(z_pred)) +
+                   KL(softmax(-z_target) || softmax(-z_pred))]
+    averaged over rows. KL divergence so the loss is zero when pred == target.
+    """
+    def z_norm(x):
+        m = x.mean(dim=-1, keepdim=True)
+        s = x.std(dim=-1, keepdim=True)
+        return (x - m) / (s + 1e-3)
+
+    zp = z_norm(pred)
+    zt = z_norm(target)
+    # KL(p || q) = sum(p * (log_p - log_q)); zero when p == q
+    def kl(a, b):
+        p = torch.softmax(a, dim=-1)
+        return (p * (torch.log_softmax(a, dim=-1) - torch.log_softmax(b, dim=-1))).sum(dim=-1)
+
+    return 0.5 * (kl(zt, zp) + kl(-zt, -zp)).mean()
+
+
 def v9_loss(out, batch, cfg, M_norm, aux=None):
     """abs + delta + l5 + PCC(delta), with the auxiliaries at small FIXED weights.
 
@@ -219,7 +268,36 @@ def v9_loss(out, batch, cfg, M_norm, aux=None):
 
     if cfg_pred(cfg, 'predict_delta') and 'y_delta' in batch:
         l = masked(out['delta'], batch['y_delta'], batch.get('m_l3'))
-        losses = losses + w_delta * l; parts['delta'] = float(l.detach())
+
+        # C4: adaptive DE weighting
+        deg_adapt_k = getattr(cfg, 'deg_adapt_k', 0)
+        if deg_adapt_k > 0:
+            y_d = batch['y_delta']
+            m_l3 = batch.get('m_l3')
+            # L_all is the standard Huber
+            L_all = l
+            # L_DE: Huber over each row's top-K genes by |y_delta|
+            topk_idx = y_d.abs().topk(min(deg_adapt_k, y_d.shape[1]), dim=1).indices  # [B, K]
+            pred_de = out['delta'].gather(1, topk_idx)
+            tgt_de = y_d.gather(1, topk_idx)
+            if m_l3 is not None and not bool(m_l3.all()):
+                if bool(m_l3.any()):
+                    L_DE = hub(pred_de[m_l3], tgt_de[m_l3], delta=cfg.huber_delta)
+                else:
+                    L_DE = pred_de.sum() * 0.0
+            else:
+                L_DE = hub(pred_de, tgt_de, delta=cfg.huber_delta)
+            eps = 1e-8
+            a_all = ((L_all + L_DE) / (2 * L_all + eps)).detach()
+            a_DE = ((L_all + L_DE) / (2 * L_DE + eps)).detach()
+            parts['a_all'] = float(a_all)
+            parts['a_DE'] = float(a_DE)
+            losses = losses + w_delta * (a_all * L_all + a_DE * L_DE)
+            parts['delta'] = float(l.detach())
+        else:
+            losses = losses + w_delta * l
+            parts['delta'] = float(l.detach())
+
         p = out['delta'] - out['delta'].mean(1, keepdim=True)
         t = batch['y_delta'] - batch['y_delta'].mean(1, keepdim=True)
         pcc = (p * t).sum(1) / (p.norm(dim=1) * t.norm(dim=1)).clamp(min=1e-6)
@@ -227,6 +305,14 @@ def v9_loss(out, batch, cfg, M_norm, aux=None):
         pcc = pcc[m] if (m is not None and bool(m.any()) and not bool(m.all())) else pcc
         lp = 1.0 - pcc.mean()
         losses = losses + w_pcc * lp; parts['pcc'] = float(lp.detach())
+
+        # C3: symmetric ListNet ranking loss
+        listnet_w = getattr(cfg, 'listnet_w', 0.0)
+        if listnet_w > 0:
+            ll = listnet_loss(out['delta'], batch['y_delta'])
+            losses = losses + listnet_w * ll
+            parts['listnet'] = float(ll.detach())
+
     if cfg_pred(cfg, 'predict_abs') and 'y_abs' in batch:
         l = masked(out['abs'], batch['y_abs'], batch.get('m_l3'))
         losses = losses + w_abs * l; parts['abs'] = float(l.detach())
@@ -240,6 +326,21 @@ def v9_loss(out, batch, cfg, M_norm, aux=None):
         le = hub(aux['epi_pred'], te, delta=cfg.huber_delta)
         losses = losses + cfg.aux_pathway_w * lp + cfg.aux_epi_w * le
         parts['aux_pathway'], parts['aux_epi'] = float(lp.detach()), float(le.detach())
+
+    # C6: sign-prediction head (BCE on top-50 genes by |y_delta|)
+    sign_head_w = getattr(cfg, 'sign_head_w', 0.0)
+    if sign_head_w > 0 and aux is not None and 'sign_logits' in aux and 'y_delta' in batch:
+        y_d = batch['y_delta']
+        topk = min(50, y_d.shape[1])
+        topk_idx = y_d.abs().topk(topk, dim=1).indices                      # [B, 50]
+        logits = aux['sign_logits'].gather(1, topk_idx)                      # [B, 50]
+        target_sign = (y_d.gather(1, topk_idx) > 0).float()
+        sl = nn.functional.binary_cross_entropy_with_logits(logits, target_sign)
+        losses = losses + sign_head_w * sl
+        parts['sign_loss'] = float(sl.detach())
+        if 'sign_loss' not in aux:
+            aux['sign_loss'] = sl
+
     return losses, parts
 
 

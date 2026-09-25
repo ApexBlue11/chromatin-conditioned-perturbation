@@ -316,6 +316,19 @@ def main():
     ap.add_argument('--dev_seed', type=int, default=0)
     ap.add_argument('--dev_min_rows', type=int, default=200)
     ap.add_argument('--dev_max_rows', type=int, default=2000)
+    # --- §85.7 candidate flags ---
+    ap.add_argument('--no_atoms', action='store_true',
+                    help='C1: drug sequence is [global] only; atom tokens reach nothing')
+    ap.add_argument('--l_control', type=int, default=2,
+                    help='C2: number of _GeneBlock layers in ControlEncoder (default 2; 0 = no blocks)')
+    ap.add_argument('--listnet_w', type=float, default=0.0,
+                    help='C3: symmetric ListNet ranking loss weight (0 = off)')
+    ap.add_argument('--deg_adapt_k', type=int, default=0,
+                    help='C4: adaptive DE weighting, top-K genes by |y_delta| (0 = off)')
+    ap.add_argument('--sign_head_w', type=float, default=0.0,
+                    help='C6: sign-prediction BCE head weight (0 = off)')
+    ap.add_argument('--post_pathway', action='store_true',
+                    help='C8b: second NamedPathwayReadout after last perturb block')
     a = ap.parse_args()
 
     roots = ['/kaggle/input', os.path.join(r'C:\Projects\LINCS'), os.path.join(r'C:\Projects\LINCS',
@@ -380,6 +393,13 @@ def main():
         cfg.d_model, cfg.d_ff, cfg.expr_encoder = a.d_model, 4 * a.d_model, a.expr_encoder
         cfg.n_pathways = M.shape[0]
         cfg.predict_l5 = False
+        # §85.7 candidate flags
+        cfg.no_atoms = a.no_atoms
+        cfg.l_control = a.l_control
+        cfg.listnet_w = a.listnet_w
+        cfg.deg_adapt_k = a.deg_adapt_k
+        cfg.sign_head_w = a.sign_head_w
+        cfg.post_pathway = a.post_pathway
         core = LincsV9(cfg, M, ppi, gv)
         if cfg.expr_encoder == 'binned':
             Xfit = D.C[D.tr]                  # THEIR training rows only
@@ -495,15 +515,40 @@ def main():
     if getattr(a, 'dev_cells', 0) > 0:
         dev_suffix = f'_dev{a.dev_cells}s{a.dev_seed}'
     
-    out = os.path.join(WORK, f'v9_xpert_arm_{tag}{dev_suffix}.json')
+    # §85.7: output-name tags appended only when non-default
+    cand_suffix = ''
+    if a.no_atoms:
+        cand_suffix += '_noatoms'
+    if a.l_control != 2:
+        cand_suffix += '_lctl0'
+    if a.listnet_w > 0:
+        cand_suffix += '_listnet'
+    if a.deg_adapt_k > 0:
+        cand_suffix += '_degk50'
+    if a.sign_head_w > 0:
+        cand_suffix += '_signhead'
+    if a.post_pathway:
+        cand_suffix += '_postpath'
+
+    out = os.path.join(WORK, f'v9_xpert_arm_{tag}{dev_suffix}{cand_suffix}.json')
     
+    candidate_flags = {
+        'no_atoms': a.no_atoms,
+        'l_control': a.l_control,
+        'listnet_w': a.listnet_w,
+        'deg_adapt_k': a.deg_adapt_k,
+        'sign_head_w': a.sign_head_w,
+        'post_pathway': a.post_pathway,
+    }
+
     json_data = {'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
                'platform': platform,
                'n_dropped_test_unfeaturisable': int(getattr(D, 'n_dropped_test', 0)),
                'ablate_epi': bool(a.ablate_epi),
                'metric': 'mean of per-row Pearson (XPert metrics.py convention)',
                'known_cell_frac': round(D.known_cell_frac, 4),
-               'n_train': int(len(D.tr)), 'n_test': int(len(D.te))}
+               'n_train': int(len(D.tr)), 'n_test': int(len(D.te)),
+               'candidate_flags': candidate_flags}
                
     if getattr(a, 'dev_cells', 0) > 0:
         json_data['mode'] = 'dev'

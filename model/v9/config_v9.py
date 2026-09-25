@@ -119,6 +119,14 @@ class V9Config:
     # equivalent and test_v9.py's identity check is what will say so.
     task_w: tuple = (1.0, 1.0, 0.3, 0.5)
 
+    # --- §85.7 candidate flags (all default-off / default-today) ---
+    no_atoms: bool = False          # C1: drug sequence is [global] only
+    # l_control: int = 2            # C2: already above; --l_control 0 removes all gene-blocks
+    listnet_w: float = 0.0          # C3: symmetric ListNet weight (0 = off)
+    deg_adapt_k: int = 0            # C4: adaptive DE weighting, K genes (0 = off)
+    sign_head_w: float = 0.0        # C6: sign-prediction BCE weight (0 = off)
+    post_pathway: bool = False      # C8b: second NamedPathwayReadout after last perturb block
+
 
 @dataclass
 class V9TrainConfig:
