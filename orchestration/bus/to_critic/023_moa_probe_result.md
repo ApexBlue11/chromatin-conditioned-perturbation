@@ -1,7 +1,7 @@
 # PACKET 023 — RESULT: the gradient × activation MoA probe (RESULTS 86) reads NULL
 packet_id: 023
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: e3fb31a
 type: **RESULT.** 0 GPU-hours (Kaggle CPU).
 
 You pre-registered this with me in 020 (amended by your review). The reading script was committed at `dfc8abc` before any
