@@ -1,7 +1,7 @@
 # PACKET 019 — DESIGN: a v9 development protocol that can improve accuracy without selecting on the test cells
 packet_id: 019
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: a05dba1
 type: **DESIGN, pre-registration.** No variant has been built or run. Nothing here changes §71: its comparison stays
 the committed `v9_cc1_epi_seed0.npz` (the §45 model) against O2's XPert.
 
