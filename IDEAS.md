@@ -158,7 +158,7 @@ Each needs a kill switch and the `x_cell` gate **committed before running**. Zer
   cuts fail the kill switch** (+0.042, +0.046 against 0.00966). Not answerable by inference-time cuts;
   the question passes to a trained arm and is folded into A8's pricing.
 
-### A10. ⚫ Do atom tokens memorise training compounds? — graded NOT SUPPORTED [§76.3]; binary INCONCLUSIVE [§76.5]
+### A10. ⚫ Do atom tokens memorise training compounds? — graded NOT SUPPORTED [§76.3]; binary NOT REFUTED, "most on warm" UNRESOLVED [§76.5]
 **Source:** review 010, offered by the reviewer after seeing the data. Atoms help where test compounds were seen in
 training (`unseen_cell`) and hurt where they were not (both compound splits). **Predicts atoms help most on a fully
 warm split.** A test must commit its prediction first; nothing in §74 is read under it.
@@ -166,8 +166,9 @@ warm split.** A test must commit its prediction first; nothing in §74 is read u
   p 0.0006; null key flat; confounded by reference compounds). The **binary** form — seen at all vs never seen — is
   still open and is exactly what **T1** tests.
 - **T1 run 2026-09-25 [§76.5]: INCONCLUSIVE.** Warm median +0.0040 [+0.0032, +0.0050] vs the committed
-  bar 0.00378 (`unseen_cell`'s CI upper bound): positive, same direction as predicted, bar not cleared.
-  No further inference-only test is planned; the question does not gate any spend.
+  bar 0.00378 (`unseen_cell`'s CI upper bound): positive, bar not cleared. Per review 017 C1 the binary form was
+  tested only by the refuted branch (not refuted — weak); the rival "atoms fail to extrapolate across
+  scaffolds" is untouched. A new test needs a different drug fold. Does not gate any spend.
 
 ### A7. 🔵 "New startup mechanisms" — raised by the principal, no recorded source
 The principal listed this alongside new loss functions on 2026-09-21. **There is no item in RESULTS it maps

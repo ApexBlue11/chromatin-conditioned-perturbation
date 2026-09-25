@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "017_t1_warm"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -41,12 +39,13 @@
     "013_a9_result_and_dp_criteria",
     "014_dp_redesign_and_resume",
     "015_o2_launch_design",
-    "016_a1_pretests"
+    "016_a1_pretests",
+    "017_t1_warm"
   ],
   "gpu_hours_spent_this_session": 15.47,
   "pending_decision": "O2 session 2 running. On its end: read run_record; boundary -> verify handoff, new dataset version, generate session 3; early_stop/horizon -> coldcell_h2h + result packet.",
-  "note_current": "O2 session 2 running. Packet 017 (T1 inconclusive) with the critic.",
-  "challenges_upheld": "95 of 98",
+  "note_current": "O2 session 2 running. W12 (literature: losses/mechanisms/tricks) running on agy.",
+  "challenges_upheld": "97 of 100",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
@@ -100,5 +99,8 @@
     ],
     "horizon_epochs": 297,
     "state_dataset": "apexblue/xpert-cc1-state (private; version 1 = session 1 handoff)"
+  },
+  "compute": {
+    "lightning": "Studio s_01m3b77d8c9cw7ex0j1e9agmtr@ssh.lightning.ai connected 2026-09-25 (CPU now). Credits balance not readable via SDK; budget to be set by the principal."
   }
 }

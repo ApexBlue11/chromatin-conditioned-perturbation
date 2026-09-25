@@ -4716,7 +4716,9 @@ Review 010 offered, after seeing the data, that **atom tokens memorise training 
 compounds were seen in training (`unseen_cell`) and hurt where they were not (both compound splits). The split-level
 contrast that suggested it cannot also test it. These two tests use data **nobody has examined**, and their rules are
 fixed here first. Checked in code, not data: `build_splits` (`model/data.py:225`) makes `val` a random slice of rows
-whose cell **and** compound are both in training — a fully warm split — and `test_coldcell` contains only compounds
+whose cell **and** compound are both in training — a fully warm split *(amended by review 017 C2: `val` is warm in
+cell by construction and in compound for 99.6 % of scored rows — 5 of 1,344 have a compound absent from `train`,
+the critic's count; dropping them moves T1's median 0.00401 → 0.00406, immaterial)* — and `test_coldcell` contains only compounds
 seen in training.
 
 ### 76.1 T2 (primary) — dose-response on training exposure, WITHIN `unseen_cell`
@@ -4789,7 +4791,9 @@ The reviewer checked the ordering (`55a3098` committed 13:53:42, the result writ
 two corrections, both upheld:
 
 - **Scope.** T2 tests a *graded* prediction — more exposure, more help. The hypothesis actually offered in review 010
-  was *binary*: atoms help when the test compound was **seen** in training and hurt when it was **not**. "Seen once is
+  was *binary*: atoms help when the test compound was **seen** in training and hurt when it was **not**.
+  *(Scope narrowed by review 017 C1: T1 tests the binary form only through its "refuted" branch; its "supported"
+  branch tests the stronger "most on warm" corollary. See 76.5.)* "Seen once is
   enough" predicts ρ ≈ 0 inside `unseen_cell`, and T2 cannot tell that from no memorisation at all. So the record
   says **"graded memorisation not supported"**, and the binary form stays open until T1 reports. My §76.3 claim that T1
   could no longer rescue it was wrong.
@@ -4801,7 +4805,7 @@ two corrections, both upheld:
 
 
 
-### 76.5 T1 RESULT: INCONCLUSIVE, as pre-committed — the binary form of memorisation is neither supported nor refuted (2026-09-25)
+### 76.5 T1 RESULT: INCONCLUSIVE, as pre-committed — the binary form's positive prediction NOT REFUTED; the "most on warm" corollary UNRESOLVED (2026-09-25)
 `model/v9/alpha_sweep.py --splits unseen_cell,unseen_compound,unseen_both,warm` (flag added at `9bc575d`, after §76.2
 was committed at `55a3098`), `sa0`, operator `atom_only`, alpha 1, batch 48. Artefact
 `model/results/v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0_op-atom_only_a1_splits-ucell-ucompound-uboth-warm.json`. 0 GPU-hours.
@@ -4809,17 +4813,26 @@ was committed at `55a3098`), `sa0`, operator `atom_only`, alpha 1, batch 48. Art
 **Reproduction first.** The three original splits' alpha = 1 per-row arrays (`r_full`, `r_abl`, 1,500 rows each) are
 **byte-identical** to §74's `v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0_op-atom_only_rows.npz`: appending `warm` moved nothing.
 
-| split | rows | atom effect, median per row [95 % CI] | pooled effect [95 % CI] |
+| split | rows | **atom effect, median per row [95 % CI]** (the estimand, §61.2) | pooled [95 % CI] — secondary, not the estimand |
 |---|---|---|---|
 | `unseen_cell` (§74, reproduced) | 1,500 | +0.00290 [+0.00176, **+0.00378**] | +0.0053 |
 | **`warm`** (`val`, every row) | **1344** (all eligible) | **+0.00401 [+0.00316, +0.00498]** | +0.0188 [+0.0100, +0.0263] |
 
 ⇒ **Pre-committed reading, 76.2: INCONCLUSIVE.** The warm median is positive, but its CI lower bound (0.00316) is
 **not above** `unseen_cell`'s CI upper bound (0.00378), so "supported" fails; the median is not ≤ 0 and the CI is not
-below 0, so "refuted" fails too. The binary memorisation hypothesis stays open; nothing in §76 now tests it.
+below 0, so "refuted" fails too.
 
-*Reported, not read:* the warm point estimates exceed `unseen_cell`'s (median +0.0040 vs +0.0029, pooled +0.019 vs
-+0.005), the direction the reviewer predicted, and sign p = 1.6e-34. The committed bar is a non-overlap of two
+**Which branch tested what (review 017 C1, the record of this result).** *"T1 INCONCLUSIVE. The binary form's positive
+prediction (atoms help on seen-compound rows) was not refuted on the unexamined warm split. The stronger 'most on warm'
+corollary is unresolved."* Both splits have seen compounds, so the binary form predicts both positive; only the
+refuted branch tested it, and "not refuted" is weak — any account in which atoms help on in-distribution compounds
+predicts warm > 0. **A rival explanation is untouched:** the compound holdout is a Bemis–Murcko scaffold split
+(`data.py:227`), so atom features that fail to extrapolate across scaffolds give the same pattern with no
+memorisation. Not upgraded to supported. No further inference-only test exists on these artefacts (every checkpoint
+is fold 0; 5 warm rows with an unseen compound are too few); a new test needs a different drug fold.
+
+*Reported, not read:* the warm point estimates exceed `unseen_cell`'s (median +0.0040 vs +0.0029; the pooled figure,
+4.7× the median on warm because a few high-variance rows dominate, is secondary), the direction the reviewer predicted, and sign p = 1.6e-34. The committed bar is a non-overlap of two
 intervals on different rows, which is strict by design; it was not met, and it is not re-read as a difference test.
 
 **Checked in code before writing this (method rule 20):** `val` does not select `sa0`'s checkpoint. `train_v9_gpu.py`
