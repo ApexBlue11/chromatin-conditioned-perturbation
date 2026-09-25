@@ -63,10 +63,22 @@ def pearson_rows(a, b):
     return np.where(d > 0, n / np.maximum(d, 1e-12), np.nan)
 
 
+
+def carve_dev(rows_per_cell, K, seed, min_rows=200, max_rows=2000):
+    pool = [c for c, count in rows_per_cell.items() if min_rows <= count <= max_rows]
+    pool.sort()
+    if len(pool) < K:
+        raise ValueError(f"Pool size {len(pool)} is less than K {K}")
+    if K == 0:
+        return []
+    rng = np.random.RandomState(seed)
+    chosen = rng.choice(len(pool), K, replace=False)
+    return sorted([pool[i] for i in chosen])
+
 class XPertData:
     """Their rows, presented in the v9 batch format."""
 
-    def __init__(self, npz, roots, split, ablate_epi=False):
+    def __init__(self, npz, roots, split, ablate_epi=False, dev_args=None):
         z = np.load(npz, allow_pickle=True)
         lab = z[f'split_{split}']
         self.tr = np.flatnonzero(lab == 'train')
@@ -111,6 +123,55 @@ class XPertData:
                      100 * self.n_dropped_test / max(1, n_te0)), flush=True)
         else:
             self.n_dropped_train = self.n_dropped_test = 0
+
+        self.original_test_row_indices = set(self.row_index[self.te].tolist())
+        
+        self.dev_info = None
+        if dev_args and dev_args.dev_cells > 0:
+            import hashlib
+            cells_tr = self.cell[self.tr]
+            unique_c, counts = np.unique(cells_tr, return_counts=True)
+            rows_per_cell = dict(zip(unique_c, counts))
+            dev_cells = carve_dev(rows_per_cell, dev_args.dev_cells, dev_args.dev_seed,
+                                  min_rows=dev_args.dev_min_rows, max_rows=dev_args.dev_max_rows)
+            
+            dev_cells_set = set(dev_cells)
+            is_dev = np.array([c in dev_cells_set for c in cells_tr])
+            new_tr = self.tr[~is_dev]
+            new_te = self.tr[is_dev]
+            
+            # eligible pool for printing
+            pool = sorted([c for c, cnt in rows_per_cell.items() 
+                           if dev_args.dev_min_rows <= cnt <= dev_args.dev_max_rows])
+            pool_dict = {c: int(rows_per_cell[c]) for c in pool}
+            
+            dev_row_indices = self.row_index[new_te].astype(np.int64).copy()
+            dev_row_indices.sort()
+            sha = hashlib.sha1(dev_row_indices.tobytes()).hexdigest()
+            
+            self.dev_info = {
+                "eligible_pool": pool_dict,
+                "dev_cells": dev_cells,
+                "rows_per_dev_cell": {c: int(rows_per_cell[c]) for c in dev_cells},
+                "total_dev_rows": len(new_te),
+                "total_remaining_training_rows": len(new_tr),
+                "dev_row_index_sha1": sha
+            }
+            print(f"DEV CELLS {json.dumps(self.dev_info)}", flush=True)
+            
+            # keep only new_tr and new_te
+            keep_indices = np.concatenate([new_tr, new_te])
+            for attr in ['X', 'C', 'pert', 'cell', 'dose', 'time', 'row_index']:
+                setattr(self, attr, getattr(self, attr)[keep_indices])
+                
+            self.tr = np.arange(len(new_tr))
+            self.te = np.arange(len(new_tr), len(keep_indices))
+            self.test_rows_dropped = True
+            self.dev_row_indices = set(self.row_index[self.te].tolist())
+        else:
+            self.test_rows_dropped = False
+
+
         rows = np.array([di[p] for p in self.pert])
         desc = np.load(find('drug_descriptors.npy', roots)).astype(np.float32)
         desc = (desc - desc.mean(0)) / (desc.std(0) + 1e-6)
@@ -161,6 +222,11 @@ class XPertData:
                   'Lineage (cell_ctx) is untouched -- this isolates chromatin, not cell identity.',
                   flush=True)
 
+
+        if getattr(self, 'test_rows_dropped', False):
+            tr_ri = set(self.row_index[self.tr].tolist())
+            assert not tr_ri.intersection(self.original_test_row_indices)
+            assert not tr_ri.intersection(self.dev_row_indices)
         ld = np.log10(np.clip(self.dose, 1e-4, None))
         self.dose_n = ((ld - ld[self.tr].mean()) / (ld[self.tr].std() + 1e-6)).astype(np.float32)
         self.time_n = ((self.time - self.time[self.tr].mean()) /
@@ -223,6 +289,10 @@ def main():
     ap.add_argument('--expr_encoder', default='binned')
     ap.add_argument('--limit_train', type=int, default=0,
                     help='cap training rows -- for a plumbing check, NOT a result')
+    ap.add_argument('--dev_cells', type=int, default=0)
+    ap.add_argument('--dev_seed', type=int, default=0)
+    ap.add_argument('--dev_min_rows', type=int, default=200)
+    ap.add_argument('--dev_max_rows', type=int, default=2000)
     a = ap.parse_args()
 
     roots = ['/kaggle/input', os.path.join(r'C:\Projects\LINCS'), os.path.join(r'C:\Projects\LINCS',
@@ -233,7 +303,7 @@ def main():
     if dev == 'cuda' and any('P100' in torch.cuda.get_device_name(i)
                              for i in range(torch.cuda.device_count())):
         raise SystemExit('FATAL: P100 assigned; Kaggle torch has no sm_60 kernels.')
-    D = XPertData(npz, roots, a.split, ablate_epi=a.ablate_epi)
+    D = XPertData(npz, roots, a.split, ablate_epi=a.ablate_epi, dev_args=a)
     if a.limit_train:
         D.tr = D.tr[:a.limit_train]
         D.te = D.te[:min(len(D.te), 400)]
@@ -270,6 +340,10 @@ def main():
         core = LincsV9(cfg, M, ppi, gv)
         if cfg.expr_encoder == 'binned':
             Xfit = D.C[D.tr]                  # THEIR training rows only
+            if getattr(D, 'test_rows_dropped', False):
+                tr_ri = set(D.row_index[D.tr].tolist())
+                assert not tr_ri.intersection(D.original_test_row_indices)
+                assert not tr_ri.intersection(D.dev_row_indices)
             if not np.isfinite(Xfit).all():
                 raise SystemExit('FATAL: non-finite values in the quantiser fitting sample.')
             core.fit_bins(Xfit)
@@ -309,6 +383,9 @@ def main():
         with torch.no_grad():
             for s in range(0, len(D.te), 64):
                 idx = D.te[s:s + 64]
+                if getattr(D, 'test_rows_dropped', False):
+                    eval_ri = set(D.row_index[idx].tolist())
+                    assert not eval_ri.intersection(D.original_test_row_indices)
                 b = D.batch(idx, dev)
                 o = model(b)
                 P.append(o['abs'].float().cpu().numpy())
@@ -321,11 +398,17 @@ def main():
                'Pearson_deg_median': round(float(np.nanmedian(pearson_rows(pd, Xte - Cte))), 4),
                'seconds': round(time.time() - t0, 1)}
         if a.save_ckpt:
+            ckpt_name = a.save_ckpt
+            if getattr(a, 'dev_cells', 0) > 0:
+                ckpt_name = ckpt_name.replace('.pt', f'_dev{a.dev_cells}s{a.dev_seed}.pt')
             torch.save({'model': core.state_dict(), 'cfg': vars(cfg), 'split': a.split, 'seed': seed,
                         'ablate_epi': bool(a.ablate_epi), 'epochs': a.epochs},
-                       a.save_ckpt.replace('.pt', '_seed%d.pt' % seed))
+                       ckpt_name.replace('.pt', '_seed%d.pt' % seed))
         if a.save_pred:
-            np.savez_compressed(a.save_pred.replace('.npz', '_seed%d.npz' % seed),
+            pred_name = a.save_pred
+            if getattr(a, 'dev_cells', 0) > 0:
+                pred_name = pred_name.replace('.npz', f'_dev{a.dev_cells}s{a.dev_seed}.npz')
+            np.savez_compressed(pred_name.replace('.npz', '_seed%d.npz' % seed),
                                 y_pred=pa.astype(np.float32), deg_pred=pd.astype(np.float32),
                                 y_true=Xte.astype(np.float32), ctl_true=Cte.astype(np.float32),
                                 row_index=D.row_index[D.te] if hasattr(D, 'row_index') else D.te)
@@ -358,13 +441,24 @@ def main():
     tag = a.split if a.seeds == 3 and a.seed_start == 0 else f'{a.split}_seed{a.seed_start}'
     if a.ablate_epi:
         tag += '_noepi'
-    out = os.path.join(WORK, f'v9_xpert_arm_{tag}.json')
-    json.dump({'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
+    
+    dev_suffix = ''
+    if getattr(a, 'dev_cells', 0) > 0:
+        dev_suffix = f'_dev{a.dev_cells}s{a.dev_seed}'
+    
+    out = os.path.join(WORK, f'v9_xpert_arm_{tag}{dev_suffix}.json')
+    
+    json_data = {'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
                'n_dropped_test_unfeaturisable': int(getattr(D, 'n_dropped_test', 0)),
                'ablate_epi': bool(a.ablate_epi),
                'metric': 'mean of per-row Pearson (XPert metrics.py convention)',
                'known_cell_frac': round(D.known_cell_frac, 4),
-               'n_train': int(len(D.tr)), 'n_test': int(len(D.te))}, open(out, 'w'), indent=2)
+               'n_train': int(len(D.tr)), 'n_test': int(len(D.te))}
+               
+    if getattr(a, 'dev_cells', 0) > 0:
+        json_data['mode'] = 'dev'
+        json_data['dev'] = D.dev_info
+    json.dump(json_data, open(out, 'w'), indent=2)
     print(f'\nwrote {out}')
 
 

@@ -5789,6 +5789,25 @@ reorders across drugs, and whether pathways containing a drug's annotated target
 label-permutation null **and** a drug-shuffle null (CLAIMS 4.15: never against 0.5). Only if that is null does a
 trained post-perturbation named pathway readout become candidate C8b.
 
+### 85.4 The dev carve, recorded before any dev training (2026-09-25)
+From `xpert_arm.py --bundle xpert_mdmt_splits.npz --split split_cold_cell_1 --dev_cells 6 --dev_seed 0` (W15; only a
+1-epoch, 300-row plumbing run has touched it). Eligible pool (200–2,000 training rows, after the 578 unfeaturisable
+training rows are dropped): **12 cells** — BT20 1,593 · HCC515 1,859 · HEK293T 224 · HEPG2 1,986 · HL60 309 · HME1 580 ·
+LNCAP 567 · NPC 243 · SKBR3 1,666 · U2OS 1,648 · U937 308 · VCAP 969 (the reviewer's count, reproduced).
+
+| dev cell | rows | primary site (LINCS cell info) | CCLE basal match |
+|---|---|---|---|
+| HEK293T | 224 | kidney (immortalised normal) | none — LINCS DMSO fallback |
+| HL60 | 309 | haematopoietic and lymphoid | ACH-000002 |
+| LNCAP | 567 | prostate | none — LINCS DMSO fallback |
+| SKBR3 | 1,666 | breast | ACH-000017 |
+| U937 | 308 | haematopoietic and lymphoid | ACH-000406 |
+| VCAP | 969 | prostate | ACH-000115 |
+
+**4,043 dev rows; 42,888 training rows remain;** dev `row_index` sha1 `51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980`. In dev mode
+the 8 test cells' rows are removed from every array before fitting; asserts guard the training rows, the quantiser fit
+and every evaluation batch.
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
