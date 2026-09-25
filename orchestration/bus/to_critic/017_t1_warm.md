@@ -1,7 +1,7 @@
 # PACKET 017 — T1 (the binary memorisation test, RESULTS 76.2): INCONCLUSIVE as pre-committed
 packet_id: 017
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: d63ccf4
 type: **RESULT.** 0 GPU-hours. O2 session 2 is running on Kaggle; nothing here touches it.
 
 ## Background
