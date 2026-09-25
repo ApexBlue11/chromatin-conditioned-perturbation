@@ -4801,6 +4801,32 @@ two corrections, both upheld:
 
 
 
+### 76.5 T1 RESULT: INCONCLUSIVE, as pre-committed — the binary form of memorisation is neither supported nor refuted (2026-09-25)
+`model/v9/alpha_sweep.py --splits unseen_cell,unseen_compound,unseen_both,warm` (flag added at `9bc575d`, after §76.2
+was committed at `55a3098`), `sa0`, operator `atom_only`, alpha 1, batch 48. Artefact
+`model/results/v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0_op-atom_only_a1_splits-ucell-ucompound-uboth-warm.json`. 0 GPU-hours.
+
+**Reproduction first.** The three original splits' alpha = 1 per-row arrays (`r_full`, `r_abl`, 1,500 rows each) are
+**byte-identical** to §74's `v9_alpha_sweep_sa0_ckpt_v9_fold0_seed0_op-atom_only_rows.npz`: appending `warm` moved nothing.
+
+| split | rows | atom effect, median per row [95 % CI] | pooled effect [95 % CI] |
+|---|---|---|---|
+| `unseen_cell` (§74, reproduced) | 1,500 | +0.00290 [+0.00176, **+0.00378**] | +0.0053 |
+| **`warm`** (`val`, every row) | **1344** (all eligible) | **+0.00401 [+0.00316, +0.00498]** | +0.0188 [+0.0100, +0.0263] |
+
+⇒ **Pre-committed reading, 76.2: INCONCLUSIVE.** The warm median is positive, but its CI lower bound (0.00316) is
+**not above** `unseen_cell`'s CI upper bound (0.00378), so "supported" fails; the median is not ≤ 0 and the CI is not
+below 0, so "refuted" fails too. The binary memorisation hypothesis stays open; nothing in §76 now tests it.
+
+*Reported, not read:* the warm point estimates exceed `unseen_cell`'s (median +0.0040 vs +0.0029, pooled +0.019 vs
++0.005), the direction the reviewer predicted, and sign p = 1.6e-34. The committed bar is a non-overlap of two
+intervals on different rows, which is strict by design; it was not met, and it is not re-read as a difference test.
+
+**Checked in code before writing this (method rule 20):** `val` does not select `sa0`'s checkpoint. `train_v9_gpu.py`
+runs a fixed schedule, saves the last epoch, and evaluates only the three test splits (`:233-236`, `:260-266`); `val`
+rows are never read in training. So `warm` is untouched rows whose cell **and** compound were both trained on
+(`data.py:225`), as §76 assumed. `warm` has 1,344 rows after the strength filter, all scored (`n_eval_bound: false`).
+
 ## 77. Launch 4: host memory fixed, then CUDA out of memory — their recipe needs ~15 GiB of activations on a 14.6 GiB card (2026-09-23)
 
 v4 passed **all seven guards** — dependencies, split, unimol array, attention, module resolution, the one-batch probe,
