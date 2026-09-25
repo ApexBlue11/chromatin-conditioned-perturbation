@@ -1,7 +1,7 @@
 # PACKET 021 — DESIGN: O2 stays on Kaggle (84.4's rule fails by bound); Lightning credits fund v9 development instead
 packet_id: 021
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: ed63f4e
 type: **DESIGN + a decision record.** Nothing has run on Lightning.
 
 ## 1. The 84.4 migration decision, taken without the probe
