@@ -1,0 +1,579 @@
+LINCS DataParallel devices: [0, 1]
+LINCS resume hooks: []
+
+---------args-----------
+mode: train
+nfold: split_cold_cell_1
+drug_feat: unimol
+device: cuda:0
+model: XPert
+config: config_l1000
+seed: 2024
+dataset: l1000_mdmt
+pretrained_mode: global
+include_cell_idx: True
+wo_HG: False
+wo_atom: False
+wo_atom_HG: False
+wo_unimol: False
+wo_ppi: False
+use_gene_pos_emed: False
+use_gradscaler: True
+lr_scheduler: True
+resume_from: /kaggle/input/xpert-cc1-state/resume_from.pt
+saved_model_path: None
+saved_model: None
+pretrained_model: None
+output_profile: True
+output_attention: False
+output_cls_embed: False
+weighted_loss: False
+kl_loss: False
+
+
+
+--------configs----------
+model:
+    ATTN:
+        n_heads: 8
+        attention_probs_dropout_prob: 0.1
+        hidden_dropout_prob: 0.1
+        cell_input_hidden_dropout_prob: 0.1
+        drug_input_hidden_dropout_prob: 0.1
+        topk_cell: 128
+        topk_drug: 32
+        sparse_flag: False
+        hidden_size: 256
+        trt_structure: CA+SA+SA+CA
+        ctl_structure: SA+SA+SA+SA
+        ppi_gene_vector_path: processed_data/PPI_gene_vector_128d.npy
+    HG:
+        node_input_dim: 512
+        conv_layers: 2
+        hg_path: HG_data/
+        drug_hg_pretrained_embed_path: HG_data/saved_embedding/HG_drug_embeddings.npy
+dataset:
+    n_bins: 128
+    gene_num: 978
+    atom_num: 24
+    max_atom_size: 122
+    max_value: 15.002
+    min_value: 0.0
+    l1000:
+        num_pert_dose: 10
+        num_pert_time: 3
+        num_cell_id: 240
+        num_tissue_id: 21
+    panacea:
+        num_pert_dose: 10
+        num_pert_time: 3
+        num_cell_id: 240
+        num_tissue_id: 21
+    cdsdb:
+        num_pert_dose: 11
+        num_pert_time: 8
+        num_cell_id: 14
+        num_tissue_id: 14
+    l1000_sdst_data_root: processed_data/l1000_sdst_78453.h5ad
+    l1000_mdmt_data_root: processed_data/l1000_mdmt_68830_subset.h5ad
+    l1000_mdmt_pretrain_data_root: processed_data/l1000_mdmt_268022_pretrain.h5ad
+    l1000_mdmt_full_data_root: processed_data/l1000_mdmt_full_336852.h5ad
+    drug_unimol_path: processed_data/all_drugs_unimol_arr.npy
+    drug_KPGT_path: processed_data/all_drugs_idx2KPGT.npy
+    drug_smi_path: processed_data/all_drugs_idx2smi_8981.npy
+    drug_morgan_path: processed_data/all_drugs_idx2morgan.npy
+train:
+    train_lr: 0.004
+    weight_decay: 1e-05
+    batch_size: 128
+    num_epochs: 2500
+    init_epoch: 70
+    loss_weight: [0.2, 0.003, 0.2, 1]
+    patience: 50
+    bandwidth: 0.3
+finetune:
+    finetune_params: all
+    exclude_keys: []
+    init_epoch: 0
+    finetune_lr: 0.001
+    weight_decay: 1e-05
+Use GPU: cuda:0
+
+Train mode:
+train data:47509
+Valid data:21321
+Test data:21321
+For dataset l1000_mdmt, max_value:15.002, min_value:0.0
+Starting load train data...
+binning process... n_bins:128
+
+  0%|          | 0/47509 [00:00<?, ?it/s]
+  1%|          | 439/47509 [00:00<00:10, 4388.49it/s]
+  2%|▏         | 878/47509 [00:00<00:10, 4384.63it/s]
+  3%|▎         | 1317/47509 [00:00<00:10, 4366.69it/s]
+  4%|▎         | 1758/47509 [00:00<00:10, 4382.56it/s]
+  5%|▍         | 2201/47509 [00:00<00:10, 4396.38it/s]
+  6%|▌         | 2643/47509 [00:00<00:10, 4402.86it/s]
+  7%|▋         | 3096/47509 [00:00<00:10, 4440.34it/s]
+  7%|▋         | 3541/47509 [00:00<00:09, 4422.95it/s]
+  8%|▊         | 3984/47509 [00:00<00:09, 4424.02it/s]
+  9%|▉         | 4427/47509 [00:01<00:09, 4417.61it/s]
+ 10%|█         | 4873/47509 [00:01<00:09, 4429.50it/s]
+ 11%|█         | 5316/47509 [00:01<00:16, 2580.79it/s]
+ 12%|█▏        | 5742/47509 [00:01<00:14, 2918.25it/s]
+ 13%|█▎        | 6182/47509 [00:01<00:12, 3249.11it/s]
+ 14%|█▍        | 6624/47509 [00:01<00:11, 3531.56it/s]
+ 15%|█▍        | 7076/47509 [00:01<00:10, 3784.04it/s]
+ 16%|█▌        | 7550/47509 [00:01<00:09, 4038.40it/s]
+ 17%|█▋        | 8026/47509 [00:02<00:09, 4237.68it/s]
+ 18%|█▊        | 8503/47509 [00:02<00:08, 4387.29it/s]
+ 19%|█▉        | 8972/47509 [00:02<00:08, 4473.87it/s]
+ 20%|█▉        | 9433/47509 [00:02<00:08, 4487.62it/s]
+ 21%|██        | 9901/47509 [00:02<00:08, 4542.98it/s]
+ 22%|██▏       | 10362/47509 [00:02<00:08, 4561.21it/s]
+ 23%|██▎       | 10828/47509 [00:02<00:07, 4586.82it/s]
+ 24%|██▍       | 11300/47509 [00:02<00:07, 4623.93it/s]
+ 25%|██▍       | 11777/47509 [00:02<00:07, 4664.51it/s]
+ 26%|██▌       | 12261/47509 [00:02<00:07, 4715.71it/s]
+ 27%|██▋       | 12744/47509 [00:03<00:07, 4749.53it/s]
+ 28%|██▊       | 13233/47509 [00:03<00:07, 4790.32it/s]
+ 29%|██▉       | 13713/47509 [00:03<00:07, 4769.57it/s]
+ 30%|██▉       | 14191/47509 [00:03<00:07, 4749.06it/s]
+ 31%|███       | 14667/47509 [00:03<00:06, 4732.36it/s]
+ 32%|███▏      | 15141/47509 [00:03<00:06, 4722.62it/s]
+ 33%|███▎      | 15616/47509 [00:03<00:06, 4729.21it/s]
+ 34%|███▍      | 16096/47509 [00:03<00:06, 4749.85it/s]
+ 35%|███▍      | 16586/47509 [00:03<00:06, 4793.55it/s]
+ 36%|███▌      | 17074/47509 [00:03<00:06, 4818.78it/s]
+ 37%|███▋      | 17567/47509 [00:04<00:06, 4851.71it/s]
+ 38%|███▊      | 18055/47509 [00:04<00:06, 4859.75it/s]
+ 39%|███▉      | 18549/47509 [00:04<00:05, 4881.89it/s]
+ 40%|████      | 19047/47509 [00:04<00:05, 4910.83it/s]
+ 41%|████      | 19539/47509 [00:04<00:05, 4913.41it/s]
+ 42%|████▏     | 20031/47509 [00:04<00:05, 4874.38it/s]
+ 43%|████▎     | 20533/47509 [00:04<00:05, 4916.24it/s]
+ 44%|████▍     | 21025/47509 [00:05<00:10, 2646.73it/s]
+ 45%|████▌     | 21524/47509 [00:05<00:08, 3083.21it/s]
+ 46%|████▋     | 22001/47509 [00:05<00:07, 3437.73it/s]
+ 47%|████▋     | 22494/47509 [00:05<00:06, 3781.19it/s]
+ 48%|████▊     | 22977/47509 [00:05<00:06, 4040.52it/s]
+ 49%|████▉     | 23466/47509 [00:05<00:05, 4262.30it/s]
+ 50%|█████     | 23936/47509 [00:05<00:05, 4368.26it/s]
+ 51%|█████▏    | 24418/47509 [00:05<00:05, 4493.89it/s]
+ 52%|█████▏    | 24891/47509 [00:05<00:05, 4299.91it/s]
+ 53%|█████▎    | 25350/47509 [00:05<00:05, 4379.08it/s]
+ 54%|█████▍    | 25819/47509 [00:06<00:04, 4465.75it/s]
+ 55%|█████▌    | 26276/47509 [00:06<00:05, 3895.90it/s]
+ 56%|█████▋    | 26752/47509 [00:06<00:05, 4122.85it/s]
+ 57%|█████▋    | 27232/47509 [00:06<00:04, 4306.21it/s]
+ 58%|█████▊    | 27702/47509 [00:06<00:04, 4415.28it/s]
+ 59%|█████▉    | 28164/47509 [00:06<00:04, 4473.20it/s]
+ 60%|██████    | 28619/47509 [00:06<00:04, 4466.47it/s]
+ 61%|██████    | 29073/47509 [00:06<00:04, 4486.46it/s]
+ 62%|██████▏   | 29531/47509 [00:06<00:03, 4513.28it/s]
+ 63%|██████▎   | 29993/47509 [00:07<00:03, 4543.77it/s]
+ 64%|██████▍   | 30480/47509 [00:07<00:03, 4640.30it/s]
+ 65%|██████▌   | 30962/47509 [00:07<00:03, 4692.37it/s]
+ 66%|██████▌   | 31433/47509 [00:07<00:03, 4638.78it/s]
+ 67%|██████▋   | 31913/47509 [00:07<00:03, 4675.31it/s]
+ 68%|██████▊   | 32383/47509 [00:07<00:03, 4681.34it/s]
+ 69%|██████▉   | 32852/47509 [00:07<00:03, 4669.53it/s]
+ 70%|███████   | 33320/47509 [00:07<00:03, 4669.32it/s]
+ 71%|███████   | 33799/47509 [00:07<00:02, 4703.88it/s]
+ 72%|███████▏  | 34297/47509 [00:07<00:02, 4784.11it/s]
+ 73%|███████▎  | 34776/47509 [00:08<00:02, 4751.04it/s]
+ 74%|███████▍  | 35268/47509 [00:08<00:02, 4791.68it/s]
+ 75%|███████▌  | 35757/47509 [00:08<00:02, 4820.43it/s]
+ 76%|███████▋  | 36240/47509 [00:08<00:02, 4795.14it/s]
+ 77%|███████▋  | 36731/47509 [00:08<00:02, 4826.62it/s]
+ 78%|███████▊  | 37214/47509 [00:08<00:02, 4807.79it/s]
+ 79%|███████▉  | 37696/47509 [00:08<00:02, 4810.96it/s]
+ 80%|████████  | 38178/47509 [00:08<00:01, 4700.75it/s]
+ 81%|████████▏ | 38649/47509 [00:08<00:01, 4648.95it/s]
+ 82%|████████▏ | 39139/47509 [00:08<00:01, 4720.62it/s]
+ 83%|████████▎ | 39628/47509 [00:09<00:01, 4769.01it/s]
+ 84%|████████▍ | 40106/47509 [00:09<00:01, 4759.40it/s]
+ 85%|████████▌ | 40584/47509 [00:09<00:01, 4763.34it/s]
+ 86%|████████▋ | 41072/47509 [00:09<00:01, 4796.71it/s]
+ 87%|████████▋ | 41552/47509 [00:09<00:02, 2277.34it/s]
+ 88%|████████▊ | 42035/47509 [00:09<00:02, 2706.78it/s]
+ 90%|████████▉ | 42523/47509 [00:10<00:01, 3127.94it/s]
+ 91%|█████████ | 43021/47509 [00:10<00:01, 3529.31it/s]
+ 92%|█████████▏| 43522/47509 [00:10<00:01, 3878.99it/s]
+ 93%|█████████▎| 43991/47509 [00:10<00:00, 4083.63it/s]
+ 94%|█████████▎| 44487/47509 [00:10<00:00, 4314.16it/s]
+ 95%|█████████▍| 44973/47509 [00:10<00:00, 4463.30it/s]
+ 96%|█████████▌| 45462/47509 [00:10<00:00, 4583.23it/s]
+ 97%|█████████▋| 45947/47509 [00:10<00:00, 4658.00it/s]
+ 98%|█████████▊| 46430/47509 [00:10<00:00, 4617.16it/s]
+ 99%|█████████▊| 46904/47509 [00:10<00:00, 4572.44it/s]
+100%|█████████▉| 47370/47509 [00:11<00:00, 4524.09it/s]
+100%|██████████| 47509/47509 [00:11<00:00, 4292.07it/s]
+Starting load valid data...
+binning process... n_bins:128
+
+  0%|          | 0/21321 [00:00<?, ?it/s]
+  2%|▏         | 436/21321 [00:00<00:04, 4358.05it/s]
+  4%|▍         | 892/21321 [00:00<00:04, 4476.57it/s]
+  6%|▋         | 1340/21321 [00:00<00:04, 4441.59it/s]
+  8%|▊         | 1785/21321 [00:00<00:04, 4412.75it/s]
+ 10%|█         | 2227/21321 [00:00<00:04, 4296.33it/s]
+ 12%|█▏        | 2662/21321 [00:00<00:04, 4309.60it/s]
+ 15%|█▍        | 3095/21321 [00:00<00:04, 4315.25it/s]
+ 17%|█▋        | 3531/21321 [00:00<00:04, 4325.48it/s]
+ 19%|█▊        | 3969/21321 [00:00<00:03, 4341.32it/s]
+ 21%|██        | 4404/21321 [00:01<00:03, 4328.39it/s]
+ 23%|██▎       | 4837/21321 [00:01<00:03, 4309.89it/s]
+ 25%|██▍       | 5272/21321 [00:01<00:03, 4320.89it/s]
+ 27%|██▋       | 5705/21321 [00:01<00:03, 4319.61it/s]
+ 29%|██▉       | 6141/21321 [00:01<00:03, 4329.75it/s]
+ 31%|███       | 6577/21321 [00:01<00:03, 4338.54it/s]
+ 33%|███▎      | 7011/21321 [00:01<00:03, 4278.28it/s]
+ 35%|███▍      | 7448/21321 [00:01<00:03, 4304.42it/s]
+ 37%|███▋      | 7892/21321 [00:01<00:03, 4342.24it/s]
+ 39%|███▉      | 8351/21321 [00:01<00:02, 4414.78it/s]
+ 41%|████▏     | 8804/21321 [00:02<00:02, 4448.85it/s]
+ 43%|████▎     | 9256/21321 [00:02<00:02, 4469.35it/s]
+ 46%|████▌     | 9709/21321 [00:02<00:02, 4487.08it/s]
+ 48%|████▊     | 10183/21321 [00:02<00:02, 4560.60it/s]
+ 50%|████▉     | 10645/21321 [00:02<00:02, 4577.53it/s]
+ 52%|█████▏    | 11103/21321 [00:02<00:02, 4549.20it/s]
+ 54%|█████▍    | 11558/21321 [00:02<00:02, 4531.80it/s]
+ 56%|█████▋    | 12012/21321 [00:02<00:02, 4416.29it/s]
+ 58%|█████▊    | 12472/21321 [00:02<00:01, 4468.18it/s]
+ 61%|██████    | 12939/21321 [00:02<00:01, 4525.81it/s]
+ 63%|██████▎   | 13393/21321 [00:03<00:02, 3879.22it/s]
+ 65%|██████▍   | 13836/21321 [00:03<00:01, 4024.93it/s]
+ 67%|██████▋   | 14295/21321 [00:03<00:01, 4178.67it/s]
+ 69%|██████▉   | 14744/21321 [00:03<00:01, 4264.93it/s]
+ 71%|███████   | 15179/21321 [00:03<00:01, 4282.93it/s]
+ 73%|███████▎  | 15633/21321 [00:03<00:01, 4355.95it/s]
+ 76%|███████▌  | 16101/21321 [00:03<00:01, 4448.88it/s]
+ 78%|███████▊  | 16554/21321 [00:03<00:01, 4469.09it/s]
+ 80%|███████▉  | 17004/21321 [00:03<00:00, 4463.37it/s]
+ 82%|████████▏ | 17477/21321 [00:03<00:00, 4540.39it/s]
+ 84%|████████▍ | 17933/21321 [00:04<00:00, 4526.78it/s]
+ 86%|████████▋ | 18401/21321 [00:04<00:00, 4569.58it/s]
+ 88%|████████▊ | 18859/21321 [00:04<00:01, 1884.27it/s]
+ 91%|█████████ | 19337/21321 [00:04<00:00, 2316.14it/s]
+ 93%|█████████▎| 19824/21321 [00:04<00:00, 2764.80it/s]
+ 95%|█████████▌| 20332/21321 [00:05<00:00, 3229.02it/s]
+ 98%|█████████▊| 20819/21321 [00:05<00:00, 3593.63it/s]
+100%|█████████▉| 21275/21321 [00:05<00:00, 3823.96it/s]
+100%|██████████| 21321/21321 [00:05<00:00, 4034.80it/s]
+Starting load test data...
+binning process... n_bins:128
+
+  0%|          | 0/21321 [00:00<?, ?it/s]
+  2%|▏         | 429/21321 [00:00<00:04, 4286.09it/s]
+  4%|▍         | 876/21321 [00:00<00:04, 4394.04it/s]
+  6%|▌         | 1321/21321 [00:00<00:04, 4419.00it/s]
+  8%|▊         | 1763/21321 [00:00<00:04, 4345.87it/s]
+ 10%|█         | 2198/21321 [00:00<00:04, 4346.53it/s]
+ 12%|█▏        | 2633/21321 [00:00<00:04, 4334.48it/s]
+ 14%|█▍        | 3067/21321 [00:00<00:04, 4321.62it/s]
+ 16%|█▋        | 3500/21321 [00:00<00:04, 4274.24it/s]
+ 18%|█▊        | 3936/21321 [00:00<00:04, 4298.36it/s]
+ 20%|██        | 4366/21321 [00:01<00:03, 4263.92it/s]
+ 22%|██▏       | 4795/21321 [00:01<00:03, 4269.39it/s]
+ 24%|██▍       | 5223/21321 [00:01<00:03, 4257.37it/s]
+ 26%|██▋       | 5649/21321 [00:01<00:03, 4257.56it/s]
+ 29%|██▊       | 6093/21321 [00:01<00:03, 4311.71it/s]
+ 31%|███       | 6534/21321 [00:01<00:03, 4338.41it/s]
+ 33%|███▎      | 6975/21321 [00:01<00:03, 4357.54it/s]
+ 35%|███▍      | 7411/21321 [00:01<00:03, 4317.58it/s]
+ 37%|███▋      | 7866/21321 [00:01<00:03, 4386.12it/s]
+ 39%|███▉      | 8305/21321 [00:01<00:02, 4381.44it/s]
+ 41%|████      | 8746/21321 [00:02<00:02, 4389.29it/s]
+ 43%|████▎     | 9201/21321 [00:02<00:02, 4436.38it/s]
+ 45%|████▌     | 9667/21321 [00:02<00:02, 4502.15it/s]
+ 47%|████▋     | 10118/21321 [00:02<00:02, 4484.97it/s]
+ 50%|████▉     | 10568/21321 [00:02<00:02, 4485.93it/s]
+ 52%|█████▏    | 11028/21321 [00:02<00:02, 4519.23it/s]
+ 54%|█████▍    | 11484/21321 [00:02<00:02, 4530.95it/s]
+ 56%|█████▌    | 11945/21321 [00:02<00:02, 4553.19it/s]
+ 58%|█████▊    | 12401/21321 [00:02<00:01, 4536.66it/s]
+ 60%|██████    | 12855/21321 [00:02<00:01, 4534.06it/s]
+ 62%|██████▏   | 13309/21321 [00:03<00:01, 4524.40it/s]
+ 65%|██████▍   | 13762/21321 [00:03<00:01, 4517.58it/s]
+ 67%|██████▋   | 14214/21321 [00:03<00:01, 4494.79it/s]
+ 69%|██████▉   | 14664/21321 [00:03<00:01, 4486.49it/s]
+ 71%|███████   | 15114/21321 [00:03<00:01, 4488.04it/s]
+ 73%|███████▎  | 15571/21321 [00:03<00:01, 4510.60it/s]
+ 75%|███████▌  | 16035/21321 [00:03<00:01, 4548.98it/s]
+ 77%|███████▋  | 16505/21321 [00:03<00:01, 4591.87it/s]
+ 80%|███████▉  | 16965/21321 [00:03<00:00, 4592.88it/s]
+ 82%|████████▏ | 17428/21321 [00:03<00:00, 4603.77it/s]
+ 84%|████████▍ | 17893/21321 [00:04<00:00, 4616.78it/s]
+ 86%|████████▌ | 18355/21321 [00:04<00:00, 4553.24it/s]
+ 88%|████████▊ | 18844/21321 [00:04<00:00, 4650.70it/s]
+ 91%|█████████ | 19320/21321 [00:04<00:00, 4680.16it/s]
+ 93%|█████████▎| 19805/21321 [00:04<00:00, 4730.71it/s]
+ 95%|█████████▌| 20305/21321 [00:04<00:00, 4809.50it/s]
+ 98%|█████████▊| 20791/21321 [00:04<00:00, 4822.92it/s]
+100%|█████████▉| 21275/21321 [00:04<00:00, 4825.68it/s]
+100%|██████████| 21321/21321 [00:04<00:00, 4495.50it/s]
+train dataloader:372
+Valid dataloader:167
+Test dataloader:167
+For cell embedding: using ppi_gene_vector + exp embedding
+Using dose and time embedding
+Using sparse attn: False
+Using sparse attn: False
+LINCS froze 10 unused parameters
+XPertNet(
+  (cell_emb): cell_Embeddings(
+    (word_embeddings): Embedding(128, 256)
+    (linear): Linear(in_features=128, out_features=256, bias=True)
+    (pretrained_embed): Embedding(978, 256)
+    (LayerNorm): LayerNorm()
+    (dropout): Dropout(p=0.1, inplace=False)
+  )
+  (drug_emb): unimol_Embeddings(
+    (pert_dose_emb): Embedding(10, 256)
+    (pert_time_emb): Embedding(3, 256)
+    (position_embeddings): Embedding(124, 256)
+    (LayerNorm): LayerNorm()
+    (dropout): Dropout(p=0.1, inplace=False)
+    (linear): Linear(in_features=512, out_features=256, bias=True)
+  )
+  (attnEncoder_ctl): AttnEncoder(
+    (crossEncoders): ModuleList()
+    (selfEncoders): ModuleList(
+      (0-3): 4 x Encoder(
+        (attention): SelfAttention(
+          (query): Linear(in_features=256, out_features=256, bias=True)
+          (key): Linear(in_features=256, out_features=256, bias=True)
+          (value): Linear(in_features=256, out_features=256, bias=True)
+        )
+        (sublayer): SublayerConnection(
+          (LayerNorm): LayerNorm()
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+        (output): SelfOutput(
+          (feed_forward): FeedForward(
+            (dense_1): Linear(in_features=256, out_features=512, bias=True)
+            (intermediate_act_fn): ReLU()
+            (dense_2): Linear(in_features=512, out_features=256, bias=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+          (sublayer): SublayerConnection(
+            (LayerNorm): LayerNorm()
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+      )
+    )
+  )
+  (attnEncoder_trt): AttnEncoder(
+    (crossEncoders): ModuleList(
+      (0-1): 2 x crossEncoder(
+        (LayerNorm): LayerNorm()
+        (attention_CA): CrossAttention(
+          (query): Linear(in_features=256, out_features=256, bias=True)
+          (key): Linear(in_features=256, out_features=256, bias=True)
+          (value): Linear(in_features=256, out_features=256, bias=True)
+        )
+        (attention): SelfAttention(
+          (query): Linear(in_features=256, out_features=256, bias=True)
+          (key): Linear(in_features=256, out_features=256, bias=True)
+          (value): Linear(in_features=256, out_features=256, bias=True)
+        )
+        (sublayer): SublayerConnection(
+          (LayerNorm): LayerNorm()
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+        (output): SelfOutput(
+          (feed_forward): FeedForward(
+            (dense_1): Linear(in_features=256, out_features=512, bias=True)
+            (intermediate_act_fn): ReLU()
+            (dense_2): Linear(in_features=512, out_features=256, bias=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+          (sublayer): SublayerConnection(
+            (LayerNorm): LayerNorm()
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+        (drug_SA): Encoder(
+          (attention): SelfAttention(
+            (query): Linear(in_features=256, out_features=256, bias=True)
+            (key): Linear(in_features=256, out_features=256, bias=True)
+            (value): Linear(in_features=256, out_features=256, bias=True)
+          )
+          (sublayer): SublayerConnection(
+            (LayerNorm): LayerNorm()
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+          (output): SelfOutput(
+            (feed_forward): FeedForward(
+              (dense_1): Linear(in_features=256, out_features=512, bias=True)
+              (intermediate_act_fn): ReLU()
+              (dense_2): Linear(in_features=512, out_features=256, bias=True)
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+            (sublayer): SublayerConnection(
+              (LayerNorm): LayerNorm()
+              (dropout): Dropout(p=0.1, inplace=False)
+            )
+          )
+        )
+      )
+    )
+    (selfEncoders): ModuleList(
+      (0-1): 2 x Encoder(
+        (attention): SelfAttention(
+          (query): Linear(in_features=256, out_features=256, bias=True)
+          (key): Linear(in_features=256, out_features=256, bias=True)
+          (value): Linear(in_features=256, out_features=256, bias=True)
+        )
+        (sublayer): SublayerConnection(
+          (LayerNorm): LayerNorm()
+          (dropout): Dropout(p=0.1, inplace=False)
+        )
+        (output): SelfOutput(
+          (feed_forward): FeedForward(
+            (dense_1): Linear(in_features=256, out_features=512, bias=True)
+            (intermediate_act_fn): ReLU()
+            (dense_2): Linear(in_features=512, out_features=256, bias=True)
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+          (sublayer): SublayerConnection(
+            (LayerNorm): LayerNorm()
+            (dropout): Dropout(p=0.1, inplace=False)
+          )
+        )
+      )
+    )
+  )
+  (ctl_fc): Sequential(
+    (0): Linear(in_features=256, out_features=64, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.1, inplace=False)
+    (3): Linear(in_features=64, out_features=1, bias=True)
+  )
+  (trt_fc): Sequential(
+    (0): Linear(in_features=256, out_features=64, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.1, inplace=False)
+    (3): Linear(in_features=64, out_features=1, bias=True)
+  )
+  (deg_fc): Sequential(
+    (0): Linear(in_features=256, out_features=64, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.1, inplace=False)
+    (3): Linear(in_features=64, out_features=1, bias=True)
+  )
+  (class_fc): Linear(in_features=256, out_features=240, bias=True)
+)
+Number of parameters: 5.60M
+Using GradScaler to accelerate trainning..
+resume_from path:/kaggle/input/xpert-cc1-state/resume_from.pt
+Load previous-trained parameters sucessfully! From epoch 66 to train……
+For metric mse, the lower the better
+LINCS RESTORE ROUND-TRIP exact: every field bitwise equal
+LINCS RESUME restored epoch 65 | best_score 0.6138327073315105 | counter 25 | best checkpoint restored
+Epoch 66, Train Total Loss: 0.443, Loss1: 0.498, Loss2: 0.029, Loss3: 0.464, Loss4: 0.351
+Epoch_66_train_time:6.13min
+EarlyStopping counter: 26 out of 50
+Epoch 66, Valid Total Loss: 0.822, Loss1: 0.605, Loss2: 17.720, Loss3: 0.605, Loss4: 0.622
+LINCS STATE SAVED epoch 66 | best_score 0.6138327073315105 | counter 26 | epoch_s 445.4
+Epoch 67, Learning Rate: 0.002
+Epoch_66_valid_time:1.27min
+Epoch 67, Train Total Loss: 0.444, Loss1: 0.498, Loss2: 0.031, Loss3: 0.464, Loss4: 0.351
+EarlyStopping counter: 27 out of 50
+Epoch 67, Valid Total Loss: 0.836, Loss1: 0.626, Loss2: 17.812, Loss3: 0.628, Loss4: 0.626
+LINCS STATE SAVED epoch 67 | best_score 0.6138327073315105 | counter 27 | epoch_s 445.7
+Epoch 68, Train Total Loss: 0.444, Loss1: 0.498, Loss2: 0.030, Loss3: 0.464, Loss4: 0.351
+EarlyStopping counter: 28 out of 50
+Epoch 68, Valid Total Loss: 0.824, Loss1: 0.607, Loss2: 18.738, Loss3: 0.603, Loss4: 0.621
+LINCS STATE SAVED epoch 68 | best_score 0.6138327073315105 | counter 28 | epoch_s 446.2
+Epoch 69, Train Total Loss: 0.443, Loss1: 0.497, Loss2: 0.030, Loss3: 0.463, Loss4: 0.350
+EarlyStopping counter: 29 out of 50
+Epoch 69, Valid Total Loss: 0.842, Loss1: 0.623, Loss2: 17.911, Loss3: 0.612, Loss4: 0.636
+LINCS STATE SAVED epoch 69 | best_score 0.6138327073315105 | counter 29 | epoch_s 445.5
+Epoch 70, Train Total Loss: 0.602, Loss1: 0.612, Loss2: 0.127, Loss3: 0.531, Loss4: 0.471
+EarlyStopping counter: 30 out of 50
+Epoch 70, Valid Total Loss: 0.870, Loss1: 0.622, Loss2: 23.525, Loss3: 0.613, Loss4: 0.647
+LINCS STATE SAVED epoch 70 | best_score 0.6138327073315105 | counter 30 | epoch_s 442.9
+Epoch 71, Learning Rate: 0.002
+Epoch 71, Train Total Loss: 0.492, Loss1: 0.520, Loss2: 0.019, Loss3: 0.487, Loss4: 0.390
+EarlyStopping counter: 31 out of 50
+Epoch 71, Valid Total Loss: 0.836, Loss1: 0.611, Loss2: 21.123, Loss3: 0.603, Loss4: 0.626
+LINCS STATE SAVED epoch 71 | best_score 0.6138327073315105 | counter 31 | epoch_s 444.5
+Epoch 72, Train Total Loss: 0.465, Loss1: 0.508, Loss2: 0.013, Loss3: 0.474, Loss4: 0.369
+EarlyStopping counter: 32 out of 50
+Epoch 72, Valid Total Loss: 0.840, Loss1: 0.619, Loss2: 20.537, Loss3: 0.616, Loss4: 0.626
+LINCS STATE SAVED epoch 72 | best_score 0.6138327073315105 | counter 32 | epoch_s 443.9
+Epoch 73, Train Total Loss: 0.452, Loss1: 0.502, Loss2: 0.011, Loss3: 0.468, Loss4: 0.358
+EarlyStopping counter: 33 out of 50
+Epoch 73, Valid Total Loss: 0.833, Loss1: 0.606, Loss2: 20.661, Loss3: 0.606, Loss4: 0.624
+LINCS STATE SAVED epoch 73 | best_score 0.6138327073315105 | counter 33 | epoch_s 444.7
+Epoch 74, Train Total Loss: 0.444, Loss1: 0.497, Loss2: 0.010, Loss3: 0.464, Loss4: 0.351
+EarlyStopping counter: 34 out of 50
+Epoch 74, Valid Total Loss: 0.828, Loss1: 0.611, Loss2: 20.014, Loss3: 0.610, Loss4: 0.619
+LINCS STATE SAVED epoch 74 | best_score 0.6138327073315105 | counter 34 | epoch_s 443.8
+Epoch 75, Train Total Loss: 0.438, Loss1: 0.495, Loss2: 0.009, Loss3: 0.461, Loss4: 0.346
+EarlyStopping counter: 35 out of 50
+Epoch 75, Valid Total Loss: 0.835, Loss1: 0.614, Loss2: 21.039, Loss3: 0.606, Loss4: 0.623
+LINCS STATE SAVED epoch 75 | best_score 0.6138327073315105 | counter 35 | epoch_s 445.7
+Epoch 76, Train Total Loss: 0.433, Loss1: 0.492, Loss2: 0.008, Loss3: 0.459, Loss4: 0.342
+EarlyStopping counter: 36 out of 50
+Epoch 76, Valid Total Loss: 0.821, Loss1: 0.607, Loss2: 20.118, Loss3: 0.600, Loss4: 0.615
+LINCS STATE SAVED epoch 76 | best_score 0.6138327073315105 | counter 36 | epoch_s 444.6
+Epoch 77, Train Total Loss: 0.429, Loss1: 0.490, Loss2: 0.007, Loss3: 0.456, Loss4: 0.339
+EarlyStopping counter: 37 out of 50
+Epoch 77, Valid Total Loss: 0.829, Loss1: 0.614, Loss2: 20.596, Loss3: 0.605, Loss4: 0.619
+LINCS STATE SAVED epoch 77 | best_score 0.6138327073315105 | counter 37 | epoch_s 444.6
+Epoch 78, Train Total Loss: 0.426, Loss1: 0.489, Loss2: 0.007, Loss3: 0.455, Loss4: 0.337
+EarlyStopping counter: 38 out of 50
+Epoch 78, Valid Total Loss: 0.826, Loss1: 0.611, Loss2: 19.558, Loss3: 0.605, Loss4: 0.619
+LINCS STATE SAVED epoch 78 | best_score 0.6138327073315105 | counter 38 | epoch_s 445.3
+Epoch 79, Train Total Loss: 0.423, Loss1: 0.487, Loss2: 0.007, Loss3: 0.454, Loss4: 0.334
+EarlyStopping counter: 39 out of 50
+Epoch 79, Valid Total Loss: 0.827, Loss1: 0.608, Loss2: 20.327, Loss3: 0.603, Loss4: 0.620
+LINCS STATE SAVED epoch 79 | best_score 0.6138327073315105 | counter 39 | epoch_s 444.4
+Epoch 80, Train Total Loss: 0.421, Loss1: 0.486, Loss2: 0.007, Loss3: 0.452, Loss4: 0.333
+EarlyStopping counter: 40 out of 50
+Epoch 80, Valid Total Loss: 0.838, Loss1: 0.621, Loss2: 19.884, Loss3: 0.622, Loss4: 0.624
+LINCS STATE SAVED epoch 80 | best_score 0.6138327073315105 | counter 40 | epoch_s 445.4
+Epoch 81, Learning Rate: 0.002
+Epoch 81, Train Total Loss: 0.419, Loss1: 0.485, Loss2: 0.007, Loss3: 0.451, Loss4: 0.331
+EarlyStopping counter: 41 out of 50
+Epoch 81, Valid Total Loss: 0.836, Loss1: 0.618, Loss2: 19.683, Loss3: 0.613, Loss4: 0.625
+LINCS STATE SAVED epoch 81 | best_score 0.6138327073315105 | counter 41 | epoch_s 445.3
+Epoch 82, Train Total Loss: 0.417, Loss1: 0.484, Loss2: 0.006, Loss3: 0.450, Loss4: 0.329
+EarlyStopping counter: 42 out of 50
+Epoch 82, Valid Total Loss: 0.828, Loss1: 0.607, Loss2: 19.542, Loss3: 0.604, Loss4: 0.623
+LINCS STATE SAVED epoch 82 | best_score 0.6138327073315105 | counter 42 | epoch_s 445.1
+Epoch 83, Train Total Loss: 0.415, Loss1: 0.484, Loss2: 0.005, Loss3: 0.450, Loss4: 0.328
+EarlyStopping counter: 43 out of 50
+Epoch 83, Valid Total Loss: 0.828, Loss1: 0.616, Loss2: 19.813, Loss3: 0.608, Loss4: 0.619
+LINCS STATE SAVED epoch 83 | best_score 0.6138327073315105 | counter 43 | epoch_s 445.8
+Epoch 84, Train Total Loss: 0.413, Loss1: 0.483, Loss2: 0.005, Loss3: 0.448, Loss4: 0.326
+EarlyStopping counter: 44 out of 50
+Epoch 84, Valid Total Loss: 0.822, Loss1: 0.606, Loss2: 19.493, Loss3: 0.602, Loss4: 0.617
+LINCS STATE SAVED epoch 84 | best_score 0.6138327073315105 | counter 44 | epoch_s 445.1
+Epoch 85, Train Total Loss: 0.411, Loss1: 0.482, Loss2: 0.005, Loss3: 0.447, Loss4: 0.325
+EarlyStopping counter: 45 out of 50
+Epoch 85, Valid Total Loss: 0.829, Loss1: 0.617, Loss2: 19.290, Loss3: 0.611, Loss4: 0.620
+LINCS STATE SAVED epoch 85 | best_score 0.6138327073315105 | counter 45 | epoch_s 445.9
+Epoch 86, Train Total Loss: 0.410, Loss1: 0.481, Loss2: 0.005, Loss3: 0.447, Loss4: 0.324
+EarlyStopping counter: 46 out of 50
+Epoch 86, Valid Total Loss: 0.827, Loss1: 0.620, Loss2: 19.593, Loss3: 0.614, Loss4: 0.616
+LINCS STATE SAVED epoch 86 | best_score 0.6138327073315105 | counter 46 | epoch_s 445.2
+Epoch 87, Train Total Loss: 0.408, Loss1: 0.480, Loss2: 0.005, Loss3: 0.446, Loss4: 0.322
+EarlyStopping counter: 47 out of 50
+Epoch 87, Valid Total Loss: 0.825, Loss1: 0.605, Loss2: 19.433, Loss3: 0.603, Loss4: 0.621
+LINCS STATE SAVED epoch 87 | best_score 0.6138327073315105 | counter 47 | epoch_s 446.3
+Epoch 88, Train Total Loss: 0.407, Loss1: 0.480, Loss2: 0.005, Loss3: 0.445, Loss4: 0.321
+EarlyStopping counter: 48 out of 50
+Epoch 88, Valid Total Loss: 0.832, Loss1: 0.615, Loss2: 19.261, Loss3: 0.620, Loss4: 0.621
+LINCS STATE SAVED epoch 88 | best_score 0.6138327073315105 | counter 48 | epoch_s 445.8
+Epoch 89, Train Total Loss: 0.406, Loss1: 0.479, Loss2: 0.005, Loss3: 0.444, Loss4: 0.320
+EarlyStopping counter: 49 out of 50
+Epoch 89, Valid Total Loss: 0.834, Loss1: 0.621, Loss2: 20.041, Loss3: 0.620, Loss4: 0.620
+LINCS STATE SAVED epoch 89 | best_score 0.6138327073315105 | counter 49 | epoch_s 446.4
+Epoch 90, Train Total Loss: 0.405, Loss1: 0.478, Loss2: 0.005, Loss3: 0.444, Loss4: 0.319
+EarlyStopping counter: 50 out of 50
+LINCS EARLY STOP {"epoch": 90, "best_score": 0.6138327073315105, "counter": 50}

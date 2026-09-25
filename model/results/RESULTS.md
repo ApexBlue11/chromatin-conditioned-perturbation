@@ -5896,6 +5896,57 @@ null, target-responsiveness stratification). Committed before any v9 code exists
 - The claim attaches to the r-series architecture (fold 0, no drug self-attention), not automatically to the model in the
   XPert comparison (C5). No per-drug case-study figure without a separate pre-registration (CLAIMS 4.9–4.11).
 
+## 87. ✅ O2 FINAL and the §71 head-to-head: **NO CELL-LEVEL CLAIM**, as pre-committed — v9 ahead on average and on the five large cells, not on 7 of 8 (2026-09-25)
+
+**How O2 ended (84.1):** their early stopping, in session 2 (kernel v9, 3.24 h): marker epoch **90**, counter 50,
+best epoch **40**, `counter_at_end == 50 == marker counter` asserted. 91 epochs over two sessions, ~11.5 GPU-h.
+`best_epoch < 70`: the checkpoint was selected on their "accelerated" objective before the switch at `init_epoch` 70
+— disclosed, not vetoed (71.7). The final checkpoint is byte-identical to session 1's `best.pth` (sha1 `8b216a57`),
+as it must be. Prediction profile sha1 `69484323`; read by `model/v9/coldcell_h2h.py` →
+`model/results/coldcell_h2h_split_cold_cell_1_O2.json`.
+
+| cell | rows | d_c = median(r_v9 − r_XPert) [95 % CI] | v9 | XPert |
+|---|---|---|---|---|
+| MCF7 | 10815 | +0.07513 [+0.07278, +0.07716] | 0.4459 | 0.3686 |
+| HT29 | 5837 | +0.12246 [+0.11917, +0.12611] | 0.5371 | 0.4179 |
+| MDAMB231 | 2188 | +0.06965 [+0.06569, +0.07366] | 0.4728 | 0.4099 |
+| HS578T | 1074 | +0.10606 [+0.10198, +0.11017] | 0.5128 | 0.4038 |
+| THP1 | 815 | +0.07535 [+0.06357, +0.08384] | 0.4044 | 0.3345 |
+| CD34 | 295 | -0.03545 [-0.04248, -0.02198] | 0.3037 | 0.3289 |
+| BJAB | 73 | -0.00122 [-0.01675, +0.01346] | 0.3251 | 0.3246 |
+| H1975 | 54 | -0.04019 [-0.07018, -0.03042] | 0.5240 | 0.5826 |
+
+| | value |
+|---|---|
+| **cluster (estimand of record):** mean d_c | **+0.04647** [+0.00477, +0.08613], width 0.081 (informative: < 0.10) |
+| cells favouring v9 / XPert | **5 / 3** (sign p 0.727) |
+| row-pooled (labelled: MCF7 = 51.1 % of rows) | +0.08667 [+0.08527, +0.08811]; v9 0.4734 vs XPert 0.3868; v9 better on 81.8 % of rows |
+| **reproduction (71.4):** XPert on all 21321 test rows | **0.3862**, inside the band [0.302, 0.464] around their published cold-cell 0.383 ± 0.027 |
+| admissible for a v9-win claim (71.7) | True |
+
+⇒ **Pre-committed reading, 71.3 row 3: NO CELL-LEVEL CLAIM.** The cluster mean favours v9 with a CI excluding 0
+and informative, but **5 of 8** cells favour it where 71.3 requires ≥ 7. Reported as 71.3 prescribes: the per-cell
+table and the row-pooled number, the latter labelled as MCF7-dominated. **XPert trained to its published recipe on
+`split_cold_cell_1`** — not "their cold-cell run reproduced" — but its score on these rows, 0.386, lands inside the
+band of their published five-fold cold-cell mean (0.383 ± 0.027).
+*Reported, not read:* the three cells favouring XPert are the three smallest (CD34 295 rows, BJAB 73, H1975 54). 71.3
+said in advance that its conjunction lets a noisy small cell cause a false no-claim, never a false win; that is not
+re-read. The registered second comparison is §85's P7 (a dev-selected v9, 3 seeds), read under the same rule.
+
+**Deviations of the XPert run, as recorded, with one correction.** (1) flash_attn shim; (2) `MyDataset`: one tensor
+per drug instead of per row, values proven identical (`prove_mydataset_patch.py`, sha1 `8d8c50f24a9c` →
+`31b5ef68355a`); (3) `all_drugs_unimol_arr.npy` rebuilt from the released npz; (4) DataParallel over two T4s inside
+`XPertNet.forward`, float64 gradients equal to one GPU to 5e−16 — with the two GPUs' dropout masks **identical in
+epoch 0** (review 018 C1); (5) the ten never-used parameters frozen; (6) full-state resume across the session
+boundary, exact. **Correction:** the run record's list also names "activation checkpointing"; it was carried over
+from the v7 kernel's list and is **wrong for the trained model** — the production trainer applied only the
+DataParallel patch and the resume hooks (its log shows `LINCS DataParallel devices: [0, 1]` and no checkpointing
+line); checkpointing ran only inside GUARD F's one-batch probe. Provenance only, not a deviation: empty
+`__init__.py` in `datasets/` and `models/` (008b).
+**v9 side, disclosed:** the committed model (`v9_cc1_epi_seed0`, trained on Kaggle) very likely trained under
+DataParallel with lockstep masks for its whole run (85.5, review 021 C1; verification running in P2 v2). The budget
+asymmetry runs in XPert's favour: 91 epochs with test-loss checkpoint selection against v9's fixed 12.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

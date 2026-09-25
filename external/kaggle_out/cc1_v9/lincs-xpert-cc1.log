@@ -1,0 +1,38 @@
+[{"stream_name":"stdout","time":7.984892465,"data":"[   0.1 min] GPUs: ['Tesla T4', 'Tesla T4'] | torch 2.10.0+cu128\n"}
+,{"stream_name":"stdout","time":48.49646834,"data":"[   0.8 min] pip exit 0\n"}
+,{"stream_name":"stdout","time":99.285724228,"data":"[   1.6 min] staged /kaggle/input/datasets/apexblue/xpert-train-src/XPert -\u003e /kaggle/working/XPert\n"}
+,{"stream_name":"stdout","time":99.480477184,"data":"[   1.6 min] GUARD A {'test': 21321, 'train': 47509} -- no valid level: their early stopping will monitor TEST loss (disclosed)\n"}
+,{"stream_name":"stdout","time":108.390472697,"data":"npz: idx (1970,) in [1, 8949], feat (1970, 122, 514) float32\n"}
+,{"stream_name":"stdout","time":108.390522482,"data":"h5ad: 1970 unique pert_idx in [1, 8949]; 0 not covered by the npz\n"}
+,{"stream_name":"stdout","time":108.390527231,"data":"valid atoms/drug: min 5 max 122 mean 53.9 of 122 slots | padded slots 55.8% | padded features all zero: True\n"}
+,{"stream_name":"stdout","time":108.390530622,"data":"dense array would be (8950, 122, 514) float32 = 2.24 GB\n"}
+,{"stream_name":"stdout","time":108.390534063,"data":"round-trip verified on 64 sampled drugs\n"}
+,{"stream_name":"stdout","time":108.390537215,"data":"wrote /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy (2.24 GB)\n"}
+,{"stream_name":"stdout","time":108.390540403,"data":" \n"}
+,{"stream_name":"stdout","time":108.39054335,"data":"[   1.8 min] GUARD B unimol array built: /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy\n"}
+,{"stream_name":"stdout","time":110.440423071,"data":"[   1.8 min] GUARD C flash_attn -\u003e /kaggle/working/v9src/_shims/flash_attn/flash_attn_interface.py | unmasked\n"}
+,{"stream_name":"stdout","time":121.466916221,"data":"[   2.0 min] GUARD D their modules resolve inside /kaggle/working/XPert\n"}
+,{"stream_name":"stdout","time":210.023084223,"data":"TIMING {\"s_train_step\": 2.2141273498535154, \"s_val_step\": 0.40707788467407224, \"peak_gib\": 3.7379846572875977, \"train_batches\": 372, \"val_batches\": 167}\n"}
+,{"stream_name":"stdout","time":210.023144334,"data":"GUARD F training step at batch 128 peak GPU GiB 3.74\n"}
+,{"stream_name":"stdout","time":210.023150564,"data":"pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True\n"}
+,{"stream_name":"stdout","time":210.023161198,"data":"\n"}
+,{"stream_name":"stdout","time":210.023165818,"data":"[   3.5 min] GUARD F one real batch + forward OK: pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True\n"}
+,{"stream_name":"stdout","time":210.02326019,"data":"[   3.5 min] TIMING {'s_train_step': 2.2141273498535154, 's_val_step': 0.40707788467407224, 'peak_gib': 3.7379846572875977, 'train_batches': 372, 'val_batches': 167, 'setup_s': 208.9, 'epoch_s_projected': 891.6, 'epochs_within_budget_projected': 32.3, 'budget_h': 8.3, 'note': 'steady state, checkpointed, optimizer step included; 900 s reserved for prediction and artefacts'}\n"}
+,{"stream_name":"stdout","time":211.506327686,"data":"[   3.5 min] SESSION 2 resumes from epoch 65; attached state verified against the git-committed handoff\n"}
+,{"stream_name":"stdout","time":211.506378876,"data":"[   3.5 min] TRAIN (session 2): /usr/bin/python3 -u run_train_dp.py --mode train --nfold split_cold_cell_1 --device cuda:0 --output_profile True --model XPert --config config_l1000 --drug_feat unimol --dataset l1000_mdmt --use_gradscaler True --include_cell_idx True --resume_from /kaggle/input/xpert-cc1-state/resume_from.pt\n"}
+,{"stream_name":"stdout","time":706.274525143,"data":"[  11.8 min] session2 epoch 66 | Epoch 66, Valid Total Loss: 0.822, Loss1: 0.605, Loss2: 17.720, Loss3: 0.605, Loss4: 0.622\n"}
+,{"stream_name":"stdout","time":1151.828878413,"data":"[  19.2 min] session2 epoch 67 | Epoch 67, Valid Total Loss: 0.836, Loss1: 0.626, Loss2: 17.812, Loss3: 0.628, Loss4: 0.626\n"}
+,{"stream_name":"stdout","time":1598.046306754,"data":"[  26.6 min] session2 epoch 68 | Epoch 68, Valid Total Loss: 0.824, Loss1: 0.607, Loss2: 18.738, Loss3: 0.603, Loss4: 0.621\n"}
+,{"stream_name":"stdout","time":4709.176979913,"data":"[  78.5 min] session2 epoch 75 | Epoch 75, Valid Total Loss: 0.835, Loss1: 0.614, Loss2: 21.039, Loss3: 0.606, Loss4: 0.623\n"}
+,{"stream_name":"stdout","time":9160.575275166,"data":"[ 152.7 min] session2 epoch 85 | Epoch 85, Valid Total Loss: 0.829, Loss1: 0.617, Loss2: 19.290, Loss3: 0.611, Loss4: 0.620\n"}
+,{"stream_name":"stdout","time":11389.603256478,"data":"[ 189.8 min] session2 LINCS EARLY STOP {\"epoch\": 90, \"best_score\": 0.6138327073315105, \"counter\": 50}\n"}
+,{"stream_name":"stdout","time":11390.320391494,"data":"[ 189.8 min] session 2 ended: early_stop | epochs this session 24\n"}
+,{"stream_name":"stdout","time":11671.850967508,"data":"[ 194.5 min] FINAL (finished): best epoch 40, last 90, counter 50, admissible True\n"}
+,{"stream_name":"stdout","time":11672.221004711,"data":"[ 194.5 min] DONE {\"stopped_by\": \"finished\", \"total_hours\": 3.242}\n"}
+,{"stream_name":"stderr","time":11674.753350316,"data":"/usr/local/lib/python3.12/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":11674.753406692,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":11675.005492069,"data":"/usr/local/lib/python3.12/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":11675.005521609,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":11675.683622459,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":11677.050362903,"data":"[NbConvertApp] Writing 544933 bytes to __results__.html\n"}
+]

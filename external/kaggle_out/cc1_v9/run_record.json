@@ -1,0 +1,944 @@
+{
+  "fold": "split_cold_cell_1",
+  "budget_h": 8.3,
+  "guards": {
+    "deps": "scanpy, torchmetrics, unimol_tools importable; torch unchanged",
+    "split": {
+      "test": 21321,
+      "train": 47509
+    },
+    "unimol_array": [
+      "dense array would be (8950, 122, 514) float32 = 2.24 GB",
+      "round-trip verified on 64 sampled drugs",
+      "wrote /kaggle/working/XPert/processed_data/all_drugs_unimol_arr.npy (2.24 GB)"
+    ],
+    "attention": "our shim, unmasked (option A)",
+    "their_modules": "datasets.MyDataset, models.*, metrics, utils all resolve inside the staged copy",
+    "one_batch_forward": "pandas 2.3.3 | train batches 372 | val rows 21321 | test rows 21321 | out [(128, 978), (128, 978), (128, 978)] | finite True"
+  },
+  "decision": "option (a) as published, disclosed",
+  "gpus": [
+    "Tesla T4",
+    "Tesla T4"
+  ],
+  "torch": "2.10.0+cu128",
+  "memory_patch": {
+    "file": "datasets/MyDataset.py",
+    "line_replaced": "drug_feat = tensor(drug_feat, dtype=torch.float32) if self.args.drug_feat != 'smi' else drug_feat",
+    "sha1_before": "8d8c50f24a9c",
+    "sha1_after": "31b5ef68355a",
+    "proof": "model/v9/prove_mydataset_patch.py: 6000 tensors torch.equal"
+  },
+  "activation_checkpointing": {
+    "patched": [
+      "Encoder",
+      "crossEncoder"
+    ],
+    "how": "runtime wrapper; their files verbatim",
+    "proof": "model/v9/prove_checkpoint_exact.py"
+  },
+  "deviations": [
+    "flash_attn shim on PYTHONPATH (their model imports it at module scope)",
+    "MyDataset: one tensor per drug instead of one per row -- values proven identical, storage shared; the unpatched recipe needs ~24.7 GB of dataset RAM on this fold",
+    "activation checkpointing of Encoder/crossEncoder, applied at runtime by a wrapper -- same batch 128, same loss, gradients within the noise floor; the unpatched recipe needs ~14.95 GiB of activations on a 14.56 GiB T4",
+    "all_drugs_unimol_arr.npy rebuilt from the released npz (config names it, never released)",
+    "DataParallel over both T4s, a runtime patch inside XPertNet.forward: loss on the gathered batch of 128; float64 gradients equal to one GPU to 5e-16 [RESULTS 81.7]",
+    "the ten parameters their loss never uses are frozen (requires_grad=False): a no-op on one GPU, and it stops DataParallel zero-gradients from letting weight decay move them [80.5]",
+    "full-state checkpoint and resume hooks across Kaggle sessions (model, Adam, GradScaler, LambdaLR, stopper, RNG), exact bitwise [81.7]; their lossy --resume_from sets start_epoch only",
+    "empty __init__.py in datasets/ and models/ so their packages are not shadowed by the image's HuggingFace `datasets`"
+  ],
+  "disclosed_asymmetry": "no valid level -> utils.py:133 sets val_data = test_data -> early stopping and checkpoint selection monitor TEST loss4",
+  "timing": {
+    "s_train_step": 2.2141273498535154,
+    "s_val_step": 0.40707788467407224,
+    "peak_gib": 3.7379846572875977,
+    "train_batches": 372,
+    "val_batches": 167,
+    "setup_s": 208.9,
+    "epoch_s_projected": 891.6,
+    "epochs_within_budget_projected": 32.3,
+    "budget_h": 8.3,
+    "note": "steady state, checkpointed, optimizer step included; 900 s reserved for prediction and artefacts"
+  },
+  "train_cmd": "/usr/bin/python3 -u run_train_ckpt.py --mode train --nfold split_cold_cell_1 --device cuda:0 --output_profile True --model XPert --config config_l1000 --drug_feat unimol --dataset l1000_mdmt --use_gradscaler True --include_cell_idx True",
+  "published_command_source": "scripts/train.sh:15 (mdmt) and README; fold list reduced to split_cold_cell_1; folds independent per train_xpert.py:425-455",
+  "seed_note": "seed 2024 set once at train_xpert.py:402 before the fold loop, so this fold starts from a fresh seed-2024 state, not the state their 3-fold sequential run would reach",
+  "session": {
+    "index": 2,
+    "horizon_epochs": 297,
+    "stack": {
+      "torch": "2.10.0+cu128",
+      "cuda": "12.8"
+    },
+    "prev": {
+      "cuda": "12.8",
+      "final_epoch": 65,
+      "sha1": {
+        "best.pth": "8b216a57aecbca8d8a7ccb03f71ec241dc8b1eb1",
+        "full_state.pt": "59c5e9603de2a741e0d397a48f11475e94a2b087",
+        "resume_from.pt": "0f6989e25adfdc3b71ee86ca6a1198914a64693f"
+      },
+      "torch": "2.10.0+cu128"
+    },
+    "resume_dir": "/kaggle/input/xpert-cc1-state",
+    "attached_sha1_verified": true
+  },
+  "host_memory": {
+    "min_available_gb": 15.91,
+    "samples": 190,
+    "trace_min_gb": [
+      [
+        0.0,
+        30.38
+      ],
+      [
+        1.0,
+        29.94
+      ],
+      [
+        2.0,
+        28.99
+      ],
+      [
+        3.0,
+        20.19
+      ],
+      [
+        4.0,
+        23.85
+      ],
+      [
+        5.0,
+        17.47
+      ],
+      [
+        6.0,
+        17.23
+      ],
+      [
+        7.0,
+        16.77
+      ],
+      [
+        8.0,
+        16.55
+      ],
+      [
+        9.0,
+        16.34
+      ],
+      [
+        10.0,
+        16.17
+      ],
+      [
+        11.0,
+        17.39
+      ],
+      [
+        12.0,
+        17.47
+      ],
+      [
+        13.0,
+        17.2
+      ],
+      [
+        14.0,
+        16.89
+      ],
+      [
+        15.0,
+        16.66
+      ],
+      [
+        16.0,
+        16.45
+      ],
+      [
+        17.0,
+        16.21
+      ],
+      [
+        18.0,
+        17.44
+      ],
+      [
+        19.0,
+        17.27
+      ],
+      [
+        20.0,
+        17.31
+      ],
+      [
+        21.0,
+        17.0
+      ],
+      [
+        22.0,
+        16.8
+      ],
+      [
+        23.0,
+        16.32
+      ],
+      [
+        24.0,
+        16.1
+      ],
+      [
+        25.0,
+        15.94
+      ],
+      [
+        26.0,
+        17.36
+      ],
+      [
+        27.0,
+        17.46
+      ],
+      [
+        28.0,
+        17.13
+      ],
+      [
+        29.0,
+        16.86
+      ],
+      [
+        30.0,
+        16.64
+      ],
+      [
+        31.0,
+        16.41
+      ],
+      [
+        32.0,
+        16.19
+      ],
+      [
+        33.0,
+        17.54
+      ],
+      [
+        34.0,
+        17.59
+      ],
+      [
+        35.0,
+        17.29
+      ],
+      [
+        36.0,
+        16.99
+      ],
+      [
+        37.0,
+        16.73
+      ],
+      [
+        38.0,
+        16.48
+      ],
+      [
+        39.0,
+        16.32
+      ],
+      [
+        40.0,
+        16.53
+      ],
+      [
+        41.0,
+        17.29
+      ],
+      [
+        42.0,
+        17.42
+      ],
+      [
+        43.0,
+        17.08
+      ],
+      [
+        44.0,
+        16.6
+      ],
+      [
+        45.0,
+        16.36
+      ],
+      [
+        46.0,
+        16.13
+      ],
+      [
+        47.0,
+        15.94
+      ],
+      [
+        48.0,
+        17.53
+      ],
+      [
+        49.0,
+        17.48
+      ],
+      [
+        50.0,
+        17.26
+      ],
+      [
+        51.0,
+        16.94
+      ],
+      [
+        52.0,
+        16.69
+      ],
+      [
+        53.0,
+        16.45
+      ],
+      [
+        54.0,
+        16.23
+      ],
+      [
+        55.0,
+        17.6
+      ],
+      [
+        56.0,
+        17.29
+      ],
+      [
+        57.0,
+        17.39
+      ],
+      [
+        58.0,
+        17.07
+      ],
+      [
+        59.0,
+        16.81
+      ],
+      [
+        60.0,
+        16.56
+      ],
+      [
+        61.0,
+        16.14
+      ],
+      [
+        62.0,
+        15.95
+      ],
+      [
+        63.0,
+        17.42
+      ],
+      [
+        64.0,
+        17.49
+      ],
+      [
+        65.0,
+        17.13
+      ],
+      [
+        66.0,
+        16.87
+      ],
+      [
+        67.0,
+        16.63
+      ],
+      [
+        68.0,
+        16.43
+      ],
+      [
+        69.0,
+        16.15
+      ],
+      [
+        70.0,
+        17.55
+      ],
+      [
+        71.0,
+        17.78
+      ],
+      [
+        72.0,
+        17.28
+      ],
+      [
+        73.0,
+        16.98
+      ],
+      [
+        74.0,
+        16.75
+      ],
+      [
+        75.0,
+        16.52
+      ],
+      [
+        76.0,
+        16.31
+      ],
+      [
+        77.0,
+        16.26
+      ],
+      [
+        78.0,
+        17.36
+      ],
+      [
+        79.0,
+        17.4
+      ],
+      [
+        80.0,
+        17.12
+      ],
+      [
+        81.0,
+        16.84
+      ],
+      [
+        82.0,
+        16.57
+      ],
+      [
+        83.0,
+        16.39
+      ],
+      [
+        84.0,
+        16.15
+      ],
+      [
+        85.0,
+        17.48
+      ],
+      [
+        86.0,
+        17.53
+      ],
+      [
+        87.0,
+        17.17
+      ],
+      [
+        88.0,
+        16.86
+      ],
+      [
+        89.0,
+        16.62
+      ],
+      [
+        90.0,
+        16.43
+      ],
+      [
+        91.0,
+        16.19
+      ],
+      [
+        92.0,
+        16.8
+      ],
+      [
+        93.0,
+        17.26
+      ],
+      [
+        94.0,
+        17.32
+      ],
+      [
+        95.0,
+        17.02
+      ],
+      [
+        96.0,
+        16.77
+      ],
+      [
+        97.0,
+        16.34
+      ],
+      [
+        98.0,
+        16.12
+      ],
+      [
+        99.0,
+        15.94
+      ],
+      [
+        100.0,
+        17.39
+      ],
+      [
+        101.0,
+        17.46
+      ],
+      [
+        102.0,
+        17.14
+      ],
+      [
+        103.0,
+        16.82
+      ],
+      [
+        104.0,
+        16.62
+      ],
+      [
+        105.0,
+        16.39
+      ],
+      [
+        106.0,
+        16.19
+      ],
+      [
+        107.0,
+        17.58
+      ],
+      [
+        108.0,
+        17.39
+      ],
+      [
+        109.0,
+        17.23
+      ],
+      [
+        110.0,
+        16.95
+      ],
+      [
+        111.0,
+        16.73
+      ],
+      [
+        112.0,
+        16.49
+      ],
+      [
+        113.0,
+        16.31
+      ],
+      [
+        114.0,
+        16.12
+      ],
+      [
+        115.0,
+        17.33
+      ],
+      [
+        116.0,
+        17.4
+      ],
+      [
+        117.0,
+        17.08
+      ],
+      [
+        118.0,
+        16.84
+      ],
+      [
+        119.0,
+        16.58
+      ],
+      [
+        120.0,
+        16.35
+      ],
+      [
+        121.0,
+        16.17
+      ],
+      [
+        122.0,
+        17.45
+      ],
+      [
+        123.0,
+        17.58
+      ],
+      [
+        124.0,
+        17.2
+      ],
+      [
+        125.0,
+        16.93
+      ],
+      [
+        126.0,
+        16.67
+      ],
+      [
+        127.0,
+        16.46
+      ],
+      [
+        128.0,
+        16.21
+      ],
+      [
+        129.0,
+        16.6
+      ],
+      [
+        130.0,
+        17.26
+      ],
+      [
+        131.0,
+        17.35
+      ],
+      [
+        132.0,
+        16.81
+      ],
+      [
+        133.0,
+        16.55
+      ],
+      [
+        134.0,
+        16.32
+      ],
+      [
+        135.0,
+        16.12
+      ],
+      [
+        136.0,
+        15.91
+      ],
+      [
+        137.0,
+        17.46
+      ],
+      [
+        138.0,
+        17.5
+      ],
+      [
+        139.0,
+        17.12
+      ],
+      [
+        140.0,
+        16.85
+      ],
+      [
+        141.0,
+        16.65
+      ],
+      [
+        142.0,
+        16.39
+      ],
+      [
+        143.0,
+        16.18
+      ],
+      [
+        144.0,
+        17.66
+      ],
+      [
+        145.0,
+        17.2
+      ],
+      [
+        146.0,
+        17.29
+      ],
+      [
+        147.0,
+        16.99
+      ],
+      [
+        148.0,
+        16.52
+      ],
+      [
+        149.0,
+        16.33
+      ],
+      [
+        150.0,
+        16.04
+      ],
+      [
+        151.0,
+        15.92
+      ],
+      [
+        152.0,
+        17.45
+      ],
+      [
+        153.0,
+        17.41
+      ],
+      [
+        154.0,
+        17.12
+      ],
+      [
+        155.0,
+        16.87
+      ],
+      [
+        156.0,
+        16.63
+      ],
+      [
+        157.0,
+        16.36
+      ],
+      [
+        158.0,
+        16.18
+      ],
+      [
+        159.0,
+        17.6
+      ],
+      [
+        160.0,
+        17.59
+      ],
+      [
+        161.0,
+        17.24
+      ],
+      [
+        162.0,
+        16.93
+      ],
+      [
+        163.0,
+        16.7
+      ],
+      [
+        164.0,
+        16.48
+      ],
+      [
+        165.0,
+        16.27
+      ],
+      [
+        166.0,
+        16.12
+      ],
+      [
+        167.0,
+        17.3
+      ],
+      [
+        168.0,
+        17.35
+      ],
+      [
+        169.0,
+        17.07
+      ],
+      [
+        170.0,
+        16.8
+      ],
+      [
+        171.0,
+        16.55
+      ],
+      [
+        172.0,
+        16.34
+      ],
+      [
+        173.0,
+        16.15
+      ],
+      [
+        174.0,
+        17.54
+      ],
+      [
+        175.0,
+        17.51
+      ],
+      [
+        176.0,
+        17.19
+      ],
+      [
+        177.0,
+        16.94
+      ],
+      [
+        178.0,
+        16.66
+      ],
+      [
+        179.0,
+        16.45
+      ],
+      [
+        180.0,
+        16.09
+      ],
+      [
+        181.0,
+        16.43
+      ],
+      [
+        182.0,
+        17.3
+      ],
+      [
+        183.0,
+        17.31
+      ],
+      [
+        184.0,
+        17.04
+      ],
+      [
+        185.0,
+        16.77
+      ],
+      [
+        186.0,
+        16.53
+      ],
+      [
+        187.0,
+        16.32
+      ],
+      [
+        188.0,
+        16.09
+      ],
+      [
+        189.0,
+        17.46
+      ]
+    ]
+  },
+  "session_log": {
+    "index": 2,
+    "outcome": "early_stop",
+    "returncode": -15,
+    "marker": {
+      "epoch": 90,
+      "best_score": 0.6138327073315105,
+      "counter": 50
+    },
+    "epochs_this_session": 24,
+    "first_saved": [
+      "LINCS STATE SAVED epoch 66 | best_score 0.6138327073315105 | counter 26 | epoch_s 445.4"
+    ],
+    "last_saved": [
+      "LINCS STATE SAVED epoch 89 | best_score 0.6138327073315105 | counter 49 | epoch_s 446.4"
+    ],
+    "epoch_s": [
+      445.4,
+      445.7,
+      446.2,
+      445.5,
+      442.9,
+      444.5,
+      443.9,
+      444.7,
+      443.8,
+      445.7,
+      444.6,
+      444.6,
+      445.3,
+      444.4,
+      445.4,
+      445.3,
+      445.1,
+      445.8,
+      445.1,
+      445.9,
+      445.2,
+      446.3,
+      445.8,
+      446.4
+    ],
+    "wall_h": 3.164,
+    "executed_args": {
+      "mode": "train",
+      "nfold": "split_cold_cell_1",
+      "drug_feat": "unimol",
+      "device": "cuda:0",
+      "model": "XPert",
+      "config": "config_l1000",
+      "seed": "2024",
+      "dataset": "l1000_mdmt",
+      "pretrained_mode": "global",
+      "include_cell_idx": "True",
+      "wo_HG": "False",
+      "wo_atom": "False",
+      "wo_atom_HG": "False",
+      "wo_unimol": "False",
+      "wo_ppi": "False",
+      "use_gene_pos_emed": "False",
+      "use_gradscaler": "True",
+      "lr_scheduler": "True",
+      "resume_from": "/kaggle/input/xpert-cc1-state/resume_from.pt",
+      "saved_model_path": "None",
+      "saved_model": "None",
+      "pretrained_model": "None",
+      "output_profile": "True",
+      "output_attention": "False",
+      "output_cls_embed": "False",
+      "weighted_loss": "False",
+      "kl_loss": "False"
+    }
+  },
+  "stopped_by": "finished",
+  "best_checkpoint": "/kaggle/working/XPert/experiment/l1000/20260925_024546/split_cold_cell_1_fold_early_stop.pth",
+  "best_epoch": 40,
+  "last_epoch_index": 90,
+  "counter_at_end": 50,
+  "marker": {
+    "epoch": 90,
+    "best_score": 0.6138327073315105,
+    "counter": 50
+  },
+  "patience": 50,
+  "best_selected_before_init_epoch_70": true,
+  "admissible_for_v9_win": true,
+  "profile": {
+    "path": "/kaggle/working/xpert_trained_split_cold_cell_1_final_test_profile.npy",
+    "n": 21321
+  },
+  "framing": "XPert trained to its published recipe on split_cold_cell_1. NOT a reproduction of their cold-cell run: an independent draw of the recipe.",
+  "total_hours": 3.242
+}

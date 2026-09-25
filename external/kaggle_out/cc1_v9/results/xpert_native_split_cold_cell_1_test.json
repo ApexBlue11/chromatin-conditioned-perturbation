@@ -1,0 +1,18 @@
+{
+  "split_cold_cell_1": {
+    "Pearson": 0.9639,
+    "Pearson_deg": 0.3862,
+    "Spearman": 0.9616,
+    "Spearman_deg": 0.2957,
+    "MSE": 0.3518,
+    "MSE_deg": 0.3518,
+    "copy_ctl_Pearson": 0.9571,
+    "n": 21321,
+    "abs_value_added": 0.0068,
+    "pad_mode": "asis",
+    "mask_drug_keys": false,
+    "max_rows": 0,
+    "seed": 0,
+    "rows": "test"
+  }
+}
