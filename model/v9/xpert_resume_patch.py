@@ -99,6 +99,48 @@ def _sha1(path):
     return h.hexdigest()
 
 
+def map_cuda_rng(saved, n_devices, seed_fn, base_seed=2024, stride=1000):
+    """Map saved CUDA RNG states to a (possibly different) number of devices.
+
+    Args:
+        saved: list of CPU ByteTensors (CUDA generator states).
+        n_devices: number of CUDA devices in this session.
+        seed_fn: callable(device_index, seed) -> CPU ByteTensor; seeds a device and returns its state.
+        base_seed: base seed for newly-seeded devices.
+        stride: seed stride per device index.
+
+    Returns:
+        (targets, record) where targets is a list of length n_devices and record is a JSON-serialisable dict.
+    """
+    targets = []
+    restored = []
+    seeded = {}
+    dropped_sha1 = {}
+    n_saved = len(saved)
+    # Devices that have a saved state: restore it
+    for i in range(min(n_saved, n_devices)):
+        targets.append(saved[i])
+        restored.append(i)
+    # Devices beyond the saved count: seed them
+    for i in range(n_saved, n_devices):
+        seed = base_seed + stride * i
+        targets.append(seed_fn(i, seed))
+        seeded[i] = seed
+    # Saved states beyond the device count: drop and record sha1
+    for i in range(n_devices, n_saved):
+        h = hashlib.sha1(saved[i].numpy().tobytes()).hexdigest()
+        dropped_sha1[i] = h
+    # Uniqueness check: if n_devices > 1, no two target states may be byte-equal
+    if n_devices > 1:
+        for a in range(len(targets)):
+            for b in range(a + 1, len(targets)):
+                if targets[a].shape == targets[b].shape and torch.equal(targets[a], targets[b]):
+                    raise RuntimeError('map_cuda_rng: target states for devices %d and %d are byte-equal' % (a, b))
+    record = {'n_saved': n_saved, 'n_devices': n_devices, 'restored': restored,
+              'seeded': seeded, 'dropped_sha1': dropped_sha1}
+    return targets, record
+
+
 def collect_state():
     """Everything restorable, in one structure -- used by the save AND by the post-restore dump, so the exact
     round-trip test of RESULTS 81.3a compares like with like, field for field."""
@@ -208,13 +250,25 @@ def restore_state():
         os.makedirs(os.path.dirname(stopper.filepath), exist_ok=True)
         shutil.copyfile(best, stopper.filepath)
     torch.set_rng_state(st['rng']['torch'])
-    torch.cuda.set_rng_state_all(st['rng']['cuda'])
+    n_devices = torch.cuda.device_count()
+    def _real_seed_fn(i, seed):
+        torch.cuda.default_generators[i].manual_seed(seed)
+        return torch.cuda.get_rng_state(i)
+    targets, cuda_rng_record = map_cuda_rng(st['rng']['cuda'], n_devices, _real_seed_fn)
+    for i, t in enumerate(targets):
+        torch.cuda.set_rng_state(t, i)
+    print('LINCS CUDA RNG MAP %s' % json.dumps(cuda_rng_record), flush=True)
+    _STATE['cuda_rng_map'] = cuda_rng_record
     np.random.set_state(st['rng']['numpy'])
     random.setstate(st['rng']['python'])
     _STATE['expect_first_epoch'] = st['epoch'] + 1
     # 015 C3: the exact round-trip of RESULTS 81.3a, IN PROCESS, every session: any difference is fatal.
+    # Compare live CUDA states against the mapped targets, not st['rng']['cuda'].
+    expected = dict(st)
+    expected['rng'] = dict(st['rng'])
+    expected['rng']['cuda'] = targets
     live = collect_state()
-    diff = compare_states(st, live)
+    diff = compare_states(expected, live)
     if diff:
         raise RuntimeError('xpert_resume_patch: restored state differs from the saved state in %r' % diff[:10])
     print('LINCS RESTORE ROUND-TRIP exact: every field bitwise equal', flush=True)
