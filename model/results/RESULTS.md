@@ -5789,6 +5789,58 @@ reorders across drugs, and whether pathways containing a drug's annotated target
 label-permutation null **and** a drug-shuffle null (CLAIMS 4.15: never against 0.5). Only if that is null does a
 trained post-perturbation named pathway readout become candidate C8b.
 
+## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
+
+Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
+— to v9, keeping all five of its safeguards (degeneracy check, gate on `rho_del`, label-permutation null, size-matched
+null, target-responsiveness stratification). Committed before any v9 code exists.
+
+### 86.1 Estimand
+- **Checkpoints:** `r0/r1/r2` (fold 0, seeds 0–2, drug self-attention off, `use_aux` on). **Untrained controls:** v9
+  built with the same config at `torch.manual_seed(0/1/2)`, default init (v9's pathway readout has no zero-init, so the
+  branch is live untrained; checked in `modules_v9.py`). `sa0` reported, not read. The §45 model is scored too if a
+  checkpoint of it exists (reported, not read); otherwise the claim's scope is the r-series only (C5).
+- **Rows:** the three fold-0 TEST splits, `strength ≥ eval_min_strength`, ≤ 4 rows per compound, fixed order, identical
+  across every checkpoint and control.
+- **Importance:** `imp[p] = Σ_c a[p,c] · ∂O/∂a[p,c]`, `O = ‖Ŷ_delta‖²`. `Δimp = imp_d − imp_mean`, where the mean-drug
+  baseline is **one fixed input for every row (C4):** global features = their mean over the scored compounds; atom
+  tokens = `k̄` copies of the mean valid atom vector over those compounds, `k̄` = their median atom count, with the mask
+  valid for exactly those `k̄`. Dose, time, cell and control stay at the row's values (they act before the readout,
+  identically in both passes). Per compound: median `Δimp` over its rows.
+- **Positive set:** named nodes whose FULL gene set (`network/data/ReactomePathways.gmt`, `GO_Biological_Process_2023.gmt`,
+  by term id) contains ≥ 1 ChEMBL mechanism target (`chembl_dti_edges.tsv`, human single protein, direct). The GMT match
+  rate over the 800 nodes and the positive-set size distribution are reported; no node is dropped silently.
+  Landmark-only membership is the secondary tier.
+
+### 86.2 Order of checks, each computed and reported before the next
+1. **Degeneracy:** max |imp| > 1e−12, else that checkpoint is void.
+2. **Gate G (C1):** median cross-compound Spearman of `|Δimp|` (`rho_del`) **< 0.95**; `rho_raw` reported beside it.
+3. **Statistic:** `S` = median over compounds of the median rank percentile (0 = top) of its positives by `|Δimp|`.
+   **Null 1**, label permutation (1,000): `diff = S − mean(null1)`, one-sided p. **Null 2**, size-matched (200).
+4. **Untrained control (C2):** the identical pipeline on the three untrained models. **The probe is VALID only if the
+   untrained control reads NULL** under 86.3's rules; if it reads PARTIAL or SIGNAL, nothing about the trained models is
+   read, and the structural confound is the finding. `diff_trained − diff_untrained` is reported per seed.
+5. **Reference readouts (C3), same rows, compounds and nulls:** output projection, nodes ranked by
+   `|M_norm·(Ŷ_d − Ŷ_mean)|`; data projection, `|M_norm·(Δ_measured,d − Δ̄_cell)|`.
+6. **Strata (C3, ask 4):** compounds unseen vs seen in training; targets among vs not among the cell's responsive genes.
+
+### 86.3 Readings, pre-committed
+| result | reading |
+|---|---|
+| valid (4), G passes, and on **all three** seeds: `diff ≤ −0.02`, p < 0.05, S below Null 2's mean, **and** `diff_trained − diff_untrained ≤ −0.02` | **SIGNAL**, worded by the scoping rules below |
+| valid, G passes, and the SIGNAL conditions on 2 of 3 seeds, **or** on all 3 with p < 0.05 and −0.02 < diff < 0 | **PARTIAL:** reported; no mechanistic claim in the abstract |
+| anything else | **NULL:** reported as a null; C8b (a trained post-perturbation named readout) enters §85's candidates |
+
+**Scoping, binding on any SIGNAL:**
+- *"model-internal, readable by gradient × activation"* only if the gradient readout's S is below the output projection's
+  S on all three seeds by more than 0.01; otherwise *"v9's predicted signatures are enriched in target pathways"*, stating
+  whether the data projection is too (i.e. whether the model reproduces a pattern already in the measurements).
+- A mechanism claim needs the **unseen-compound** stratum to show it (seen compounds cannot separate mechanism from
+  memory, packet 017), and the stratum whose targets are **not** among the responsive genes (strong perturbers would
+  otherwise carry it, ask 4).
+- The claim attaches to the r-series architecture (fold 0, no drug self-attention), not automatically to the model in the
+  XPert comparison (C5). No per-drug case-study figure without a separate pre-registration (CLAIMS 4.9–4.11).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
