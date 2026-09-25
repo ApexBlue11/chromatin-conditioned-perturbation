@@ -1,0 +1,107 @@
+{
+  "split": "split_cold_cell_1",
+  "bundle": "xpert_mdmt_splits.npz",
+  "runs": [
+    {
+      "seed": 0,
+      "Pearson": 0.964,
+      "Pearson_deg": 0.4385,
+      "Pearson_median": 0.9711,
+      "Pearson_deg_median": 0.4555,
+      "seconds": 3919.8,
+      "n_gpu": 2,
+      "dp_seed_mode": "distinct",
+      "device_seeds": [
+        0,
+        1000
+      ],
+      "cuda_rng_states_equal_by_epoch": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  ],
+  "nulls": {
+    "copy_ctl_abs": 0.955,
+    "copy_ctl_abs_median": 0.965,
+    "zero_delta": 0.0,
+    "mean_drug_delta": 0.1126
+  },
+  "platform": {
+    "gpus": [
+      "Tesla T4",
+      "Tesla T4"
+    ],
+    "torch": "2.10.0+cu128",
+    "matmul_allow_tf32": false,
+    "cudnn_allow_tf32": true,
+    "float32_matmul_precision": "highest",
+    "NVIDIA_TF32_OVERRIDE": null,
+    "flash_sdp": true,
+    "mem_efficient_sdp": true,
+    "capability": [
+      7,
+      5
+    ]
+  },
+  "n_dropped_test_unfeaturisable": 170,
+  "ablate_epi": false,
+  "metric": "mean of per-row Pearson (XPert metrics.py convention)",
+  "known_cell_frac": 0.9622,
+  "n_train": 42888,
+  "n_test": 4043,
+  "candidate_flags": {
+    "no_atoms": false,
+    "l_control": 0,
+    "listnet_w": 0.0,
+    "deg_adapt_k": 0,
+    "sign_head_w": 0.0,
+    "post_pathway": false
+  },
+  "mode": "dev",
+  "dev": {
+    "eligible_pool": {
+      "BT20": 1593,
+      "HCC515": 1859,
+      "HEK293T": 224,
+      "HEPG2": 1986,
+      "HL60": 309,
+      "HME1": 580,
+      "LNCAP": 567,
+      "NPC": 243,
+      "SKBR3": 1666,
+      "U2OS": 1648,
+      "U937": 308,
+      "VCAP": 969
+    },
+    "dev_cells": [
+      "HEK293T",
+      "HL60",
+      "LNCAP",
+      "SKBR3",
+      "U937",
+      "VCAP"
+    ],
+    "rows_per_dev_cell": {
+      "HEK293T": 224,
+      "HL60": 309,
+      "LNCAP": 567,
+      "SKBR3": 1666,
+      "U937": 308,
+      "VCAP": 969
+    },
+    "total_dev_rows": 4043,
+    "total_remaining_training_rows": 42888,
+    "dev_row_index_sha1": "51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980"
+  }
+}

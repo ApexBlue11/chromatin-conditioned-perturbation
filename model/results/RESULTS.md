@@ -5893,6 +5893,15 @@ as "at the pre-registered weight". K = 50 and τ = 1 are fixed choices.
 stack still requires §85.2's accept rule. **The MoA pre-registration is written and committed before C8b's screen is
 read**; only its execution is gated. The MoA data (fold-0 test rows) are disjoint from the cc1 dev cells.
 
+### 85.8 The screen log (§85.2 rule 6 read mechanically: advance Δ ≥ 0.0034; drop Δ < 0.00169; else one more seed)
+Against P2 (μ0 0.43693, s0 0.00169, 3 seeds, Kaggle 2×T4, distinct seeding). Scored by `score_dev.py`;
+every run is also in `model/results/v9_dev_ledger.jsonl`. *Reported, not read:* the cell-means column, cells,
+seconds and notes.
+
+| cand | label | seeds | Δ per-row mean | Δ mean of cell means | cells favouring | seconds/seed | rule 6 | note |
+|---|---|---|---|---|---|---|---|---|
+| C2 | C2_lctl0 | 1 | +0.00161 | -0.00397 | 4 / 6 | 3962 | **DROPPED** | 36% faster than baseline |
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
