@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "019_v9_dev_protocol"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -43,12 +41,13 @@
     "015_o2_launch_design",
     "016_a1_pretests",
     "017_t1_warm",
-    "018_o2_lightning_migration"
+    "018_o2_lightning_migration",
+    "019_v9_dev_protocol"
   ],
   "gpu_hours_spent_this_session": 15.47,
   "pending_decision": "84.4 GO. Blocked on: the principal's `lightning login` (credit balance B, machine access); W13 (resume-patch CUDA-RNG device mapping) and W14 (Lightning driver) to build and verify. If not ready when session 2 ends, session 3 runs on Kaggle.",
-  "note_current": "O2 session 2 running (Kaggle). 84.4 Lightning migration built (W13, W14 verified); blocked on the principal's `lightning login`. Packet 019 (v9 dev protocol) with the critic.",
-  "challenges_upheld": "101 of 104",
+  "note_current": "O2 session 2 running (Kaggle). 84.4 built, blocked on lightning login. 85 committed; W15 (dev harness) running -- needs the banded carve + fit exclusion assert on top. Next: A11 step-1 pre-registration (zero-GPU drug-specific readout).",
+  "challenges_upheld": "106 of 109",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
@@ -63,7 +62,8 @@
     "RESULTS 81.5: v6 dumps are never re-read under 81; no bar is set after v7; fp32 dp-vs-single and split-vs-single stay reported only.",
     "Production DP variant is dp (no checkpointing).",
     "RESULTS 84.1: O2 ends FINAL only by their early stopping or at 297 cumulative completed epochs; everything else is incomplete and never read through 71.7; between sessions only timing, state integrity and quota inform decisions.",
-    "RESULTS 84.4 (review 018): O2 sessions >=3 may run on Lightning, one GPU, under six binding conditions; decided on timing/credits/guards only."
+    "RESULTS 84.4 (review 018): O2 sessions >=3 may run on Lightning, one GPU, under six binding conditions; decided on timing/credits/guards only.",
+    "RESULTS 85: v9 development protocol (banded dev carve, accept floor 0.003, seeds 0-2, every run ledgered, scoped non-inferiority interpretability gate, P7 as a second comparison with an outcome-to-claim table). 71 untouched."
   ],
   "result_packet_obligations": [
     "Quote RESULTS 71.7 VERBATIM with its commit (08b0a90), as packet 005 quoted 58.4: the reviewer is blinded from RESULTS.md and 71.7 decides admissibility.",

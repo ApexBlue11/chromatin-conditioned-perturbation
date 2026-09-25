@@ -5724,6 +5724,71 @@ seeding is not changed mid-run. `xpert_dp_patch.py`'s docstring is corrected (do
    over:** if the first two Lightning epochs average more than 1.25 × `epoch_s_L`, re-price before continuing.
 6. **The C4 chain test reruns on Lightning (ask 4)**, and the in-process 81.3a restore round-trip must pass there (ask 5).
 
+## 85. 🔒 PRE-REGISTERED: the v9 development protocol (packet 019 as amended by review 019), committed before any dev run (2026-09-25)
+
+Develops v9 on a carve of TRAINING cells of XPert's `split_cold_cell_1`, never predicts test cells in dev mode, and
+touches the 8 test cells once. **§71 is untouched:** its comparison stays `v9_cc1_epi_seed0.npz` against O2's XPert.
+This protocol guarantees that nothing ADDED from now on was selected on test cells; it cannot launder earlier choices.
+
+### 85.1 Scope correction first (review 019 C1; a method-rule-20 miss of mine)
+The one interpretability readout that survives in v9 — the named pathway layer's alignment, +0.08 to +0.12 against a
+label-permutation null of ~0 ± 0.01 [§37] — is **cell-level and drug-independent by construction**: `self.pathway(h)`
+runs after the base blocks and PPI and **before any perturb block**, and the drug tokens enter only in the perturb
+blocks (`model_v9.py`, `LincsV9.forward`). Its activations are identical for any two drugs with the same cell, control,
+dose and time; when `use_aux` is on it is also partly **supervised** on the very `mean|Δ|` target it is scored against.
+**This was already recorded for v6 in CLAIMS 4.12 (2026-07-30) and was not carried into §37's wording.**
+⇒ **No drug-specific mechanistic readout currently survives in this project** (atom→gene target recovery was
+retracted, CLAIMS 4.1a). The gate below protects the cell-level readout only, and says so.
+
+### 85.2 Rules, binding
+1. **Dev carve (C2).** Pool = the training cells of `split_cold_cell_1` with **200 ≤ rows ≤ 2,000** (the reviewer
+   counted 12). Choose **6** with `np.random.RandomState(0)` over the sorted pool. Record cells, lineages and row counts
+   before any training. Giants (> 2,000 rows) stay in training; tiny cells (< 200) never enter the per-cell rule.
+2. **Fitting excludes dev cells (ask 1).** Every step fitted from data (quantiser `fit_bins`, any normalisation, the
+   per-cell control means) uses the new training rows only; the harness asserts dev and test cells are absent from them.
+3. **Scores.** Per-row mean delta Pearson (XPert's metric; primary, the form §71.3 reads) **and** the mean of per-cell
+   means (secondary), both on the dev rows.
+4. **Seeds 0, 1, 2 fixed. Every dev run is logged** in `model/results/v9_dev_ledger.jsonl`, dropped ones included; no
+   silent reruns.
+5. **Noise first (P2).** Baseline = `xpert_arm.py` defaults (V9Config: `drug_self_attn` **False**, batch 48, 12 epochs)
+   × 3 seeds → μ0, s0. The seed sd may be **pooled** across every completed 3-seed condition (variance, not effect;
+   fixed now).
+6. **Advance (P3).** One seed per variant: Δ ≥ max(2·s0, 0.003) → seeds 1, 2; Δ < s0 → dropped; otherwise seed 1, then
+   the same rule on the mean.
+7. **Accept (C3).** 3-seed mean Δ ≥ **max(0.003, 2·√(s0²/3 + s_v²/3))** on the per-row mean, **and** Δ > 0 on the mean of
+   per-cell means, **and** ≥ 4 of 6 dev cells favour it (a sanity filter only: its one-sided sign-test p is 0.34), **and**
+   the gate in 8.
+8. **Interpretability gate, scoped (C1).** *Keeps the named pathway layer's cell-level alignment (drug-independent;
+   partly supervised by the aux loss).* Non-inferiority: the variant's 3-seed mean alignment ≥ the baseline's − **0.02**
+   on the same dev rows, **and** ≥ 5 sd of its own permutation null. It binds in practice on C2, C5, C7 (they change the
+   readout's input) and C3, C4 (they reweight the loss the aux term shares); C1 and C6 act after it.
+9. **Candidates** as in packet 019, with **C1's prior stated in full (C4):** in the baseline's configuration (drug
+   self-attention OFF, §37) ablating atoms at inference *helped* on `unseen_cell` (−0.007 lost with atoms); with drug
+   self-attention ON (`sa0`, §74, reproduced in 76.5) atoms *help* on `unseen_cell`, +0.0029 [+0.0018, +0.0038]. Mixed.
+   **C5 (CCLE) and C7 (chromatin edges) each need, before they are built:** coverage for all 40 cells of the split,
+   pre-registered missing-cell handling, and for C7 the mismatched-chromatin null key (review 016).
+10. **Final (P7, C5).** The stacked model on all 32 training cells, seeds 0–2, scored once on the 8 test cells.
+    **Estimand: the per-row score averaged over the 3 seeds** (never the ensemble; a 3-seed prediction average is
+    reported separately, labelled as an ensemble). Read under §71.3's rule with §71.7's XPert admissibility unchanged,
+    labelled *"dev-selected increments on a baseline partly chosen with test-cell knowledge"*: `split_cold_cell_1`'s test
+    cells were read in §44 (ridge ± chromatin), §45 (v9 ± chromatin; v9 vs ridge) and §46.4 (v9 vs published).
+
+| §71 (committed v9) | P7 (dev-selected v9) | licensed claim |
+|---|---|---|
+| v9 wins | v9 wins | the committed v9 generalises better than XPert as published; the dev-selected v9 also does (secondary, labelled) |
+| v9 wins | anything else | the headline rests on the committed model; P7 reported |
+| no claim | v9 wins | *"a dev-selected v9 generalises better than XPert as published"* — secondary, with the label; §71 reported as no claim |
+| XPert wins | — | uninterpretable as a model comparison for that row (§71.3), reported plainly |
+
+### 85.3 Added: C8, a drug-specific mechanistic readout (proposed here; pre-registered separately before use)
+The principal's goal is mechanistic interpretability, and 85.1 shows none drug-specific survives. CLAIMS 4.14 already
+found the route: the drug enters *above* the pathway layer, so the **gradient** `∂Ŷ/∂a_p` carries it even though the
+activation does not — and on an untrained model the importance *ranking* was drug-invariant, so whether a trained model
+reorders is open. **Step 1 is zero-GPU:** on existing v9 checkpoints, test whether pathway importance `|a·∂Ŷ/∂a|`
+reorders across drugs, and whether pathways containing a drug's annotated targets rank higher than under a
+label-permutation null **and** a drug-shuffle null (CLAIMS 4.15: never against 0.5). Only if that is null does a
+trained post-perturbation named pathway readout become candidate C8b.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

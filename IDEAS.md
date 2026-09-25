@@ -170,6 +170,12 @@ warm split.** A test must commit its prediction first; nothing in §74 is read u
   tested only by the refuted branch (not refuted — weak); the rival "atoms fail to extrapolate across
   scaffolds" is untouched. A new test needs a different drug fold. Does not gate any spend.
 
+### A11. 🔵 A DRUG-SPECIFIC mechanistic readout — the project has none today [RESULTS §85.1, §85.3]
+- v9's pathway alignment is cell-level (CLAIMS 4.16). Step 1, zero GPU: gradient importance `|a·∂Ŷ/∂a|`
+  (CLAIMS 4.14) on existing checkpoints — does it reorder across drugs, and do target-containing pathways rank
+  above a label-permutation AND a drug-shuffle null? Step 2 only if null: a trained post-perturbation named
+  pathway readout (C8b). Pre-register before computing.
+
 ### A7. 🔵 "New startup mechanisms" — raised by the principal, no recorded source
 The principal listed this alongside new loss functions on 2026-09-21. **There is no item in RESULTS it maps
 onto**, so it is recorded here unattributed rather than invented. v9 currently uses a **WSD schedule** with
