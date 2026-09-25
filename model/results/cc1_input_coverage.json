@@ -1,0 +1,451 @@
+{
+ "per_cell": {
+  "A375": {
+   "group": "train",
+   "rows": 6887,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": true,
+    "H3K27me3": false
+   }
+  },
+  "A549": {
+   "group": "train",
+   "rows": 6794,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "AGS": {
+   "group": "train",
+   "rows": 52,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": true,
+    "H3K27me3": false
+   }
+  },
+  "BJAB": {
+   "group": "test",
+   "rows": 84,
+   "ccle": "absent",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "BT20": {
+   "group": "train",
+   "rows": 1593,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "CD34": {
+   "group": "test",
+   "rows": 295,
+   "ccle": "lincs_dmso_fallback",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "H1975": {
+   "group": "test",
+   "rows": 54,
+   "ccle": "absent",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "HA1E": {
+   "group": "train",
+   "rows": 5881,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "HCC515": {
+   "group": "train",
+   "rows": 1859,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "HCT116": {
+   "group": "train",
+   "rows": 54,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "HEC108": {
+   "group": "train",
+   "rows": 197,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "HEK293T": {
+   "group": "dev",
+   "rows": 224,
+   "ccle": "lincs_dmso_fallback",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "HELA": {
+   "group": "train",
+   "rows": 3877,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "HEPG2": {
+   "group": "train",
+   "rows": 1986,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "HL60": {
+   "group": "dev",
+   "rows": 309,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "HME1": {
+   "group": "train",
+   "rows": 580,
+   "ccle": "lincs_dmso_fallback",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "HMELZ": {
+   "group": "train",
+   "rows": 3,
+   "ccle": "absent",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "HPTEC": {
+   "group": "train",
+   "rows": 32,
+   "ccle": "absent",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "HS578T": {
+   "group": "test",
+   "rows": 1074,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "HT29": {
+   "group": "test",
+   "rows": 5837,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": false
+   }
+  },
+  "HUH7": {
+   "group": "train",
+   "rows": 135,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": false
+   }
+  },
+  "JURKAT": {
+   "group": "train",
+   "rows": 75,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "LNCAP": {
+   "group": "dev",
+   "rows": 567,
+   "ccle": "lincs_dmso_fallback",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "MCF10A": {
+   "group": "train",
+   "rows": 3001,
+   "ccle": "lincs_dmso_fallback",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "MCF7": {
+   "group": "test",
+   "rows": 10969,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "MDAMB231": {
+   "group": "test",
+   "rows": 2188,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "NCIH1975": {
+   "group": "train",
+   "rows": 54,
+   "ccle": "absent",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "NCIH2073": {
+   "group": "train",
+   "rows": 54,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "NCIH508": {
+   "group": "train",
+   "rows": 56,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "NCIH596": {
+   "group": "train",
+   "rows": 56,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "NOMO1": {
+   "group": "train",
+   "rows": 159,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "NPC": {
+   "group": "train",
+   "rows": 243,
+   "ccle": "lincs_dmso_fallback",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "PC3": {
+   "group": "train",
+   "rows": 7972,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "PHH": {
+   "group": "train",
+   "rows": 35,
+   "ccle": "lincs_dmso_fallback",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": true
+   }
+  },
+  "SKBR3": {
+   "group": "dev",
+   "rows": 1666,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  },
+  "SUDHL4": {
+   "group": "train",
+   "rows": 37,
+   "ccle": "absent",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "THP1": {
+   "group": "test",
+   "rows": 820,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": true,
+    "H3K27me3": false
+   }
+  },
+  "U2OS": {
+   "group": "train",
+   "rows": 1794,
+   "ccle": "absent",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "U937": {
+   "group": "dev",
+   "rows": 308,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": true,
+    "H3K27ac": false,
+    "H3K27me3": false
+   }
+  },
+  "VCAP": {
+   "group": "dev",
+   "rows": 969,
+   "ccle": "direct_match_ccle",
+   "tracks": {
+    "ATAC": false,
+    "H3K27ac": true,
+    "H3K27me3": true
+   }
+  }
+ },
+ "summary": {
+  "train": {
+   "cells": 26,
+   "rows": 43466,
+   "ccle_direct_cells": 17,
+   "ccle_direct_rows_frac": 0.867,
+   "ccle_dmso_fallback_cells": 4,
+   "ccle_absent_cells": 5,
+   "ATAC_cells": 9,
+   "ATAC_rows_frac": 0.563,
+   "H3K27ac_cells": 10,
+   "H3K27ac_rows_frac": 0.709,
+   "H3K27me3_cells": 8,
+   "H3K27me3_rows_frac": 0.547,
+   "any_track_cells": 12
+  },
+  "dev": {
+   "cells": 6,
+   "rows": 4043,
+   "ccle_direct_cells": 4,
+   "ccle_direct_rows_frac": 0.804,
+   "ccle_dmso_fallback_cells": 2,
+   "ccle_absent_cells": 0,
+   "ATAC_cells": 5,
+   "ATAC_rows_frac": 0.76,
+   "H3K27ac_cells": 5,
+   "H3K27ac_rows_frac": 0.924,
+   "H3K27me3_cells": 5,
+   "H3K27me3_rows_frac": 0.924,
+   "any_track_cells": 6
+  },
+  "test": {
+   "cells": 8,
+   "rows": 21321,
+   "ccle_direct_cells": 5,
+   "ccle_direct_rows_frac": 0.98,
+   "ccle_dmso_fallback_cells": 1,
+   "ccle_absent_cells": 2,
+   "ATAC_cells": 5,
+   "ATAC_rows_frac": 0.943,
+   "H3K27ac_cells": 5,
+   "H3K27ac_rows_frac": 0.943,
+   "H3K27me3_cells": 3,
+   "H3K27me3_rows_frac": 0.631,
+   "any_track_cells": 5
+  }
+ }
+}
