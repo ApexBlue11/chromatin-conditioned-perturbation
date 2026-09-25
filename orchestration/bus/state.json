@@ -1,5 +1,5 @@
 {
-  "iteration": 32,
+  "iteration": 33,
   "max_iterations": 12,
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "018_o2_lightning_migration"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -43,7 +45,7 @@
     "017_t1_warm"
   ],
   "gpu_hours_spent_this_session": 15.47,
-  "pending_decision": "O2 session 2 running. On its end: read run_record; boundary -> verify handoff, new dataset version, generate session 3; early_stop/horizon -> coldcell_h2h + result packet.",
+  "pending_decision": "Packet 018: migrate O2 sessions >=3 to Lightning (one GPU) -- principal says yes if the critic agrees. Session 2 running on Kaggle meanwhile; if 018 is not GO by its end, session 3 goes to Kaggle.",
   "note_current": "O2 session 2 running. W12 (literature: losses/mechanisms/tricks) running on agy.",
   "challenges_upheld": "97 of 100",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
@@ -101,6 +103,6 @@
     "state_dataset": "apexblue/xpert-cc1-state (private; version 1 = session 1 handoff)"
   },
   "compute": {
-    "lightning": "Studio s_01m3b77d8c9cw7ex0j1e9agmtr@ssh.lightning.ai connected 2026-09-25 (CPU now). Credits balance not readable via SDK; budget to be set by the principal."
+    "lightning": "free credits only, no card (principal, 2026-09-25) -- paid use NOT authorised. Studio s_01m3b77d8c9cw7ex0j1e9agmtr; local CLI in .venv-lightning awaiting the principal's login."
   }
 }
