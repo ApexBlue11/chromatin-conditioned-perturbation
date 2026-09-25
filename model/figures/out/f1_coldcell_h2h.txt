@@ -1,0 +1,1 @@
+v9 minus XPert (trained to its published recipe), per-row delta Pearson; 5 of 8 cells favour v9; the pre-registered criterion (≥ 7 of 8 and a cluster CI excluding 0) was not met.
