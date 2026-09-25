@@ -114,6 +114,6 @@
     "state_dataset": "apexblue/xpert-cc1-state (private; version 1 = session 1 handoff)"
   },
   "compute": {
-    "lightning": "balance $14.99 free credits (2026-09-25). 84.4 migration NOT taken (84.5). Principal: credits go to v9 dev runs; packet 021 (Lightning baseline rule) with the critic."
+    "lightning": "CPU-only: GPU refused (403, free tier needs a verified payment method; principal: no card). 85.5 Lightning block void; all 85 dev runs on Kaggle 2xT4 (distinct seeding). $14.99 unspent."
   }
 }

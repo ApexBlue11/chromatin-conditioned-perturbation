@@ -5844,6 +5844,10 @@ by the PI as ~20 lines of glue, tested locally with faked device generators.)
 6. **P6 (stack confirmation) and P7 (final) run on Kaggle 2×T4** with distinct seeding, so Lightning-accepted variants
    are confirmed on the final platform.
 
+**Void (2026-09-25):** Lightning refuses GPU compute to free-tier accounts without a verified payment method (403), and
+the principal adds no card. No Lightning run happened; **every §85 run is on Kaggle 2×T4 with distinct seeding**, so
+rules 1–5 above are moot and rule 6 holds trivially.
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
