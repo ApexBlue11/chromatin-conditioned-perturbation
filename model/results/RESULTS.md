@@ -5693,6 +5693,37 @@ If a mid-run stop could be declared final, I would be choosing where the compari
 - **Remaining, at most:** 231 epochs to the 297 horizon, ~28.2 GPU-h at the session-1 rate. Their own early stop can end
   it sooner; nothing about when is read or acted on here.
 
+### 84.4 🔒 AMENDMENT (review 018, GO with conditions): sessions ≥ 3 may run on Lightning AI, one GPU (2026-09-25)
+Decided on timing, credits and guard outcomes only (84.1 (iii)); **no logged loss of sessions 1–2 was consulted.** The
+recipe, test-loss early stopping, the 297-epoch horizon, the 84.1 terminations and 71.3 / 71.7 are unchanged.
+
+**Correction to the record first (C1).** The O2 DataParallel deviation said the replicas' dropout masks were i.i.d.
+They were not in epoch 0: `torch.manual_seed` (their `set_random_seed`, `utils.py:311`) seeds every device alike, so both
+CUDA generators started at (2024, 0) and ran in lockstep, and **the two halves of every epoch-0 batch received identical
+dropout masks** (attention and hidden). The 11/10 split of each epoch's ragged last batch (47,509 = 371 × 128 + 21)
+desynchronised them from epoch 1; at epoch 65 the Philox offsets differ by exactly 66 × 63,528,788 (the reviewer's
+arithmetic from `full_state.pt`). One epoch of correlated dropout noise, function and objective unchanged; disclosed, and
+seeding is not changed mid-run. `xpert_dp_patch.py`'s docstring is corrected (docstring only).
+
+**Conditions of GO, all binding before any Lightning session:**
+1. **Declared deviation (ask 1):** *"sessions 1–2 on 2×T4 DataParallel; sessions ≥ 3 on one <GPU model> as published;
+   different GPU architecture and SDPA backend (rounding-level); CUDA RNG of the second device not carried across."*
+   Configuration as sessions 1–2 (`dp` variant, no activation checkpointing; shim, memory patch, frozen ten, resume
+   hooks). The flash_attn **shim** stays; the real package is not installed mid-run. The driver asserts an explicit
+   platform expectation (one GPU of the declared model, ≥ 40 GB), not a deleted two-GPU assert.
+2. **CUDA RNG across a device-count change (C2), tested before use:** saved states restore to the lowest device
+   indices; a surplus saved state is recorded (sha1) as dropped; every device beyond the saved ones is seeded from a
+   recorded, distinct seed (2024 + 1000 · device); **after restore, no two device states may be equal** (asserted).
+3. **Precision class pinned (C3):** a guard that `torch.backends.cuda.matmul.allow_tf32 is False`,
+   `torch.get_float32_matmul_precision() == 'highest'` and `NVIDIA_TF32_OVERRIDE` unset; the SDPA backend selected
+   is recorded as part of the hardware change.
+4. **State never stranded (C4):** the state is copied off the machine at every boundary, with its sha1 committed as a
+   git literal before the next session; each session's deadline leaves enough credit to copy the final state out.
+5. **Pricing (ask 3):** `C` covers the probe, each session's setup and guards, the chain test, the final prediction
+   (~10 min) and one lost epoch per session; migrate iff all guards pass and `C ≤ 0.7 × B`. **Amendment E carries
+   over:** if the first two Lightning epochs average more than 1.25 × `epoch_s_L`, re-price before continuing.
+6. **The C4 chain test reruns on Lightning (ask 4)**, and the in-process 81.3a restore round-trip must pass there (ask 5).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

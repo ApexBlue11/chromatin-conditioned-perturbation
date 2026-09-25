@@ -11,8 +11,11 @@ Why it is exact for their recipe, where gradient accumulation was not [RESULTS 7
 scatters the batch, runs one replica per GPU, and GATHERS the outputs to GPU 0 before their train() computes the loss,
 so batch_weighted_loss's sqrt(loss / num_samples) terms see all 128 samples exactly as on one GPU. Gradients from the
 replicas are summed into the original parameters. XPert has LayerNorm only, no BatchNorm, so no statistic depends on
-the per-replica batch. Dropout masks differ per replica: i.i.d. draws of the same Bernoulli, a different realisation,
-as a different seed is [review 012 ask 3].
+the per-replica batch. Dropout: each element's marginal is the published Bernoulli, but the replicas' masks are NOT
+independent at the start. `torch.manual_seed` seeds every device alike, so both generators start at (seed, 0) and run
+in lockstep until a ragged batch splits unevenly: in O2 the two halves of each epoch-0 batch received IDENTICAL masks,
+and the 11/10 split of the ragged last batch desynchronised the streams from epoch 1 [review 018 C1, correcting
+012 ask 3; offsets at epoch 65 differ by exactly 66 x 63,528,788].
 
 Two things in their forward are pinned to one device and are localised on each replica:
   * `self.device`, which forward uses to move every input (model_XPert.py:188-198);
