@@ -1,7 +1,7 @@
 # PACKET 020 — PRE-REGISTRATION: does trained v9 carry DRUG-SPECIFIC pathway mechanism? (IDEAS A11 step 1, 0 GPU-h)
 packet_id: 020
 created: 2026-09-25
-repo_commit: (the commit carrying this packet)
+repo_commit: 6a5192b
 type: **PRE-REGISTRATION.** No code for v9 exists yet; nothing has been computed on a trained model.
 
 ## Why
