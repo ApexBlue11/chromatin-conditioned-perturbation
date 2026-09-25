@@ -5957,9 +5957,20 @@ and informative, but **5 of 8** cells favour it where 71.3 requires ≥ 7. Repor
 table and the row-pooled number, the latter labelled as MCF7-dominated. **XPert trained to its published recipe on
 `split_cold_cell_1`** — not "their cold-cell run reproduced" — but its score on these rows, 0.386, lands inside the
 band of their published five-fold cold-cell mean (0.383 ± 0.027).
-*Reported, not read:* the three cells favouring XPert are the three smallest (CD34 295 rows, BJAB 73, H1975 54). 71.3
-said in advance that its conjunction lets a noisy small cell cause a false no-claim, never a false win; that is not
-re-read. The registered second comparison is §85's P7 (a dev-selected v9, 3 seeds), read under the same rule.
+*Corrected by review 022 C1:* the cells favouring XPert are **CD34 −0.0355 [−0.0425, −0.0220]** and **H1975 −0.0402
+[−0.0702, −0.0304]** — both beyond row-level noise in this pair of runs — and **BJAB, a tie** (−0.0012 [−0.0168,
++0.0135]). The no-claim is **not** attributed to small-cell noise; the row-bootstrap CIs carry no run-to-run variance
+(one run each), which is what 71.3's conjunction protects against. The per-cell pattern (a haematopoietic progenitor
+and a lung line) is hypothesis-generating only and cannot be pursued on these cells without spending their freshness. The registered second comparison is §85's P7 (a dev-selected v9, 3 seeds), read under the same rule, **reported
+alongside this no-claim, never instead of it**.
+
+**What the paper may say (review 022 ask 4):** *"On XPert's `split_cold_cell_1` (8 held-out cell lines; one training run
+each; XPert trained by us to its published recipe, scoring 0.386 against its published 0.383 ± 0.027), v9 had higher
+per-row delta correlation on 5 of 8 cell lines, including the five with the most test rows, and lower on 3 (CD34 and
+H1975 beyond row-level noise; BJAB tied). The pre-registered criterion for a cell-level claim — a cluster CI excluding
+0 and ≥ 7 of 8 cells — was not met, so we make no claim that v9 generalises to unseen cell lines better than XPert.
+Row-pooled, the convention the field reports, v9 scored 0.473 against 0.387, dominated by MCF7 (51 % of rows)."* **May not say:** "outperforms XPert / SOTA on unseen cell lines" or any superiority claim in the abstract;
+"significant" for the cluster mean alone; that the three losses are noise; the "conservative win" framing.
 
 **Deviations of the XPert run, as recorded, with one correction.** (1) flash_attn shim; (2) `MyDataset`: one tensor
 per drug instead of per row, values proven identical (`prove_mydataset_patch.py`, sha1 `8d8c50f24a9c` →
@@ -5969,11 +5980,18 @@ epoch 0** (review 018 C1); (5) the ten never-used parameters frozen; (6) full-st
 boundary, exact. **Correction:** the run record's list also names "activation checkpointing"; it was carried over
 from the v7 kernel's list and is **wrong for the trained model** — the production trainer applied only the
 DataParallel patch and the resume hooks (its log shows `LINCS DataParallel devices: [0, 1]` and no checkpointing
-line); checkpointing ran only inside GUARD F's one-batch probe. Provenance only, not a deviation: empty
+line); checkpointing ran only inside GUARD F's one-batch probe. Evidence: `train_session1.log` and `train_session2.log`
+each show `LINCS DataParallel devices: [0, 1]` and `LINCS froze 10 unused parameters` and zero checkpointing lines, and
+session 1's epochs are full length from epoch 0 (437 s). A note beside the run record says so
+(`external/kaggle_out/cc1_v9/DEVIATIONS_CORRECTION.md`). Provenance only, not a deviation: empty
 `__init__.py` in `datasets/` and `models/` (008b).
 **v9 side, disclosed:** the committed model (`v9_cc1_epi_seed0`, trained on Kaggle) very likely trained under
 DataParallel with lockstep masks for its whole run (85.5, review 021 C1; verification running in P2 v2). The budget
-asymmetry runs in XPert's favour: 91 epochs with test-loss checkpoint selection against v9's fixed 12.
+asymmetry runs in XPert's favour: 91 epochs with test-loss checkpoint selection against v9's fixed 12. **Symmetric
+disclosure (review 022 C3):** the compared v9 (`v9_cc1_epi_seed0.npz`, sha1 `28bb8910be7cce55db5e4c4ff253e564a5a2e201`,
+recorded now; its 0.4734 is quoted in §71.3 as committed at `3d76cda`, before O2) was one of two cc1 variants with test
+scores seen; the alternative (chromatin ablated) scores 0.0042 lower row-pooled (≈ 0.0004 cluster), which bounds that
+selection's effect against +0.046.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
