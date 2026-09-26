@@ -38,8 +38,12 @@ print('mounted code verified: quantiser fix + their-metric reporting present', f
 
 # GUARD 3 (RESULTS 85): the mounted arm must carry the dev-cell mode (W15, 69e623f).
 if not all(k in _src for k in ('def carve_dev', 'dev_cells', 'dev_row_index_sha1', 'original_test_row_indices',
-                              'def seed_devices', 'cuda_rng_states_equal_by_epoch', 'no_atoms', 'deg_adapt_k', 'post_pathway', 'listnet_w', 'sign_head_w')):
+                              'seed_devices', 'cuda_rng_states_equal_by_epoch', 'no_atoms', 'deg_adapt_k', 'post_pathway', 'listnet_w', 'sign_head_w')):
     raise SystemExit('FATAL: mounted xpert_arm.py lacks the dev-cell mode. Refusing.')
+# seed_devices lives in dp_seeding.py since W20 (2c0bd5d); the arm imports it from there.
+_dp = glob.glob(os.path.join(SRC, 'dp_seeding.py'))
+if not _dp or 'def seed_devices' not in open(_dp[0], encoding='utf-8').read():
+    raise SystemExit('FATAL: mounted dp_seeding.py missing or lacks seed_devices. Refusing.')
 
 # RESULTS 85.7 candidate C6: --sign_head_w 0.492066, seeds 1..2 (rule 6 ADVANCE, RESULTS 85.8), the P2 command otherwise.
 sys.argv = ['xpert_arm.py', '--bundle', 'xpert_mdmt_splits.npz', '--split', 'split_cold_cell_1',

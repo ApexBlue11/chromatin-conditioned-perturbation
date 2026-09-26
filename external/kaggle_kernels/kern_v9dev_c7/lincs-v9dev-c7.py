@@ -38,8 +38,16 @@ print('mounted code verified: quantiser fix + their-metric reporting present', f
 
 # GUARD 3 (RESULTS 85): the mounted arm must carry the dev-cell mode (W15, 69e623f).
 if not all(k in _src for k in ('def carve_dev', 'dev_cells', 'dev_row_index_sha1', 'original_test_row_indices',
-                              'def seed_devices', 'cuda_rng_states_equal_by_epoch', 'no_atoms', 'deg_adapt_k', 'post_pathway', 'listnet_w', 'sign_head_w', 'chromatin_edges', 'ChromatinGatedUnionMP')):
+                              'seed_devices', 'cuda_rng_states_equal_by_epoch', 'no_atoms', 'deg_adapt_k', 'post_pathway', 'listnet_w', 'sign_head_w', 'chromatin_edges', 'union_edges')):
     raise SystemExit('FATAL: mounted xpert_arm.py lacks the dev-cell mode. Refusing.')
+# the C7 layer lives in modules_v9 / model_v9, not in the arm (the d4fd67f guard looked for it in the wrong file).
+import model_v9 as _m9
+if 'ChromatinGatedUnionMP' not in inspect.getsource(_m9):
+    raise SystemExit('FATAL: mounted model_v9.py lacks ChromatinGatedUnionMP (C7). Refusing.')
+# seed_devices lives in dp_seeding.py since W20 (2c0bd5d); the arm imports it from there.
+_dp = glob.glob(os.path.join(SRC, 'dp_seeding.py'))
+if not _dp or 'def seed_devices' not in open(_dp[0], encoding='utf-8').read():
+    raise SystemExit('FATAL: mounted dp_seeding.py missing or lacks seed_devices. Refusing.')
 
 # RESULTS 85.7 candidate C7: --chromatin_edges, seeds 0..0, the P2 command otherwise.
 sys.argv = ['xpert_arm.py', '--bundle', 'xpert_mdmt_splits.npz', '--split', 'split_cold_cell_1',
