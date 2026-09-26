@@ -1,0 +1,52 @@
+{
+ "label": "C3_listnet",
+ "n_rows": 4043,
+ "cells": {
+  "HEK293T": 224,
+  "HL60": 309,
+  "LNCAP": 567,
+  "SKBR3": 1666,
+  "U937": 308,
+  "VCAP": 969
+ },
+ "seeds": [
+  {
+   "file": "v9dev_c3_dev6s0_seed0.npz",
+   "per_row_mean": 0.41647613048553467,
+   "mean_of_cell_means": 0.41535982489585876,
+   "per_cell_median": {
+    "HEK293T": 0.5013411641120911,
+    "HL60": 0.44948887825012207,
+    "LNCAP": 0.4749794006347656,
+    "SKBR3": 0.4253700375556946,
+    "U937": 0.3157352805137634,
+    "VCAP": 0.40347620844841003
+   },
+   "per_row_mean_centred": 0.4576059000613459
+  }
+ ],
+ "mean": 0.41647613048553467,
+ "sd": null,
+ "vs_baseline": {
+  "delta_per_row_mean": -0.020457555850346865,
+  "delta_mean_of_cell_means": -0.02177967131137848,
+  "per_cell_median_delta": {
+   "HEK293T": -0.055874139070510864,
+   "HL60": 0.011287808418273926,
+   "LNCAP": -0.018546581268310547,
+   "SKBR3": -0.0167437344789505,
+   "U937": -0.029845155775547028,
+   "VCAP": -0.02881816029548645
+  },
+  "cells_favouring": 1,
+  "baseline_mean": 0.43693368633588153,
+  "baseline_sd": 0.0016892877169543108,
+  "n_seeds_variant": 1,
+  "n_seeds_baseline": 3,
+  "baseline_mean_centred": 0.47485901529051083,
+  "delta_centred": -0.01725311522916495,
+  "per_seed_paired_delta": null,
+  "per_seed_paired_delta_centred": null
+ },
+ "mean_centred": 0.4576059000613459
+}

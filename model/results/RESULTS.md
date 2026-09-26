@@ -5907,6 +5907,7 @@ seconds and notes.
 | C1 | C1_noatoms | 1 | -0.00859 | -0.00917 | 0 / 6 | 5897 | **DROPPED** | 0/6 cells; training without atoms hurts every dev cell (cf. 37's inference ablation, reported not read) |
 | C4 | C4_degk50 | 1 | -0.00424 | -0.00956 | 2 / 6 | 6090 | **DROPPED** | 2/6 cells; the two smallest dev cells lose most |
 | C8b | C8b_postpath | 3 | +0.00262 | +0.00046 | 3 / 6 | 6004 | **rule 7: NOT ACCEPTED (thr 0.00308; delta>=thr False, cell-means>0 True, cells>=4 False)** | **3 seeds by §88.5 only: seed 0 alone (+0.00066 < s0) would have been DROPPED under rule 6** (review 027 C2); §88.5 gate (3-seed Δ ≥ −s0): PASSES, so §88 executes; GUARD 4/5 OK; threshold 0.00307 with the unrounded s0 (immaterial: Δ fails the 0.003 floor alone). Write-up wording (review 027): *"C8b's dev accuracy is indistinguishable from the baseline (non-inferior by §88.5; not accepted)"*, never "a small gain" |
+| C3 | C3_listnet | 1 | -0.02046 | -0.02178 | 1 / 6 | 5924 | **DROPPED** | listnet_w 1.116903 (frozen calibration); GUARD 4/5 OK; centred delta -0.01725 (reported) |
 
 ### 85.9 Observation (reported, not read): a seed-specific prediction component worth +0.029 at K = 3 (≈ +0.05 as K → ∞), larger than any candidate effect so far (2026-09-26; retitled by review 029 C4)
 Computed after the fact from the committed dev predictions (4,043 rows, sha1 `51e7e4ab…`), per-row mean delta Pearson:
