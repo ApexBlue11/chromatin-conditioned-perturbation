@@ -5908,6 +5908,13 @@ seconds and notes.
 | C4 | C4_degk50 | 1 | -0.00424 | -0.00956 | 2 / 6 | 6090 | **DROPPED** | 2/6 cells; the two smallest dev cells lose most |
 | C8b | C8b_postpath | 3 | +0.00262 | +0.00046 | 3 / 6 | 6004 | **rule 7: NOT ACCEPTED (thr 0.00308; delta>=thr False, cell-means>0 True, cells>=4 False)** | **3 seeds by §88.5 only: seed 0 alone (+0.00066 < s0) would have been DROPPED under rule 6** (review 027 C2); §88.5 gate (3-seed Δ ≥ −s0): PASSES, so §88 executes; GUARD 4/5 OK; threshold 0.00307 with the unrounded s0 (immaterial: Δ fails the 0.003 floor alone). Write-up wording (review 027): *"C8b's dev accuracy is indistinguishable from the baseline (non-inferior by §88.5; not accepted)"*, never "a small gain" |
 
+### 85.9 Observation (reported, not read): the dev score is variance-dominated — a 3-seed prediction average gains ~+0.029 (2026-09-26)
+Computed after the fact from the committed dev predictions (4,043 rows, sha1 `51e7e4ab…`), per-row mean delta Pearson:
+P2 single seeds 0.4350 / 0.4383 / 0.4375 (mean 0.4369) vs their **prediction average 0.4662 (+0.0293)**; C8b 0.4376 / 0.4393 /
+0.4417 (mean 0.4395) vs **0.4676 (+0.0281)**. Every §85 candidate so far moved the single-seed score by < 0.009. EMA was
+measured null (§21, §38.4), so the gain is not recovered by averaging along one trajectory (the between-basin reading is
+an explanation, not a measurement). No decision is taken from this; a variance-reduction batch goes to review as packet 029.
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
