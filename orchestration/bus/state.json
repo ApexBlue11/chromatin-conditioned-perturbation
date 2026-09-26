@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "029_variance_batch"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -53,12 +51,13 @@
     "025_c8b_moa_prereg",
     "026_c7_chromatin_edges",
     "027_c8b_result_and_88_execution",
-    "028_moa88_code"
+    "028_moa88_code",
+    "029_variance_batch"
   ],
   "gpu_hours_spent_this_session": 18.71,
   "pending_decision": "Packet 022 (O2 result) with the critic. P2 v2 running. MoA probe (86) outputs to read. Lightning L-base to launch.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
-  "challenges_upheld": "141 of 144",
+  "challenges_upheld": "145 of 148",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",

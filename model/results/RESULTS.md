@@ -5908,12 +5908,17 @@ seconds and notes.
 | C4 | C4_degk50 | 1 | -0.00424 | -0.00956 | 2 / 6 | 6090 | **DROPPED** | 2/6 cells; the two smallest dev cells lose most |
 | C8b | C8b_postpath | 3 | +0.00262 | +0.00046 | 3 / 6 | 6004 | **rule 7: NOT ACCEPTED (thr 0.00308; delta>=thr False, cell-means>0 True, cells>=4 False)** | **3 seeds by §88.5 only: seed 0 alone (+0.00066 < s0) would have been DROPPED under rule 6** (review 027 C2); §88.5 gate (3-seed Δ ≥ −s0): PASSES, so §88 executes; GUARD 4/5 OK; threshold 0.00307 with the unrounded s0 (immaterial: Δ fails the 0.003 floor alone). Write-up wording (review 027): *"C8b's dev accuracy is indistinguishable from the baseline (non-inferior by §88.5; not accepted)"*, never "a small gain" |
 
-### 85.9 Observation (reported, not read): the dev score is variance-dominated — a 3-seed prediction average gains ~+0.029 (2026-09-26)
+### 85.9 Observation (reported, not read): a seed-specific prediction component worth +0.029 at K = 3 (≈ +0.05 as K → ∞), larger than any candidate effect so far (2026-09-26; retitled by review 029 C4)
 Computed after the fact from the committed dev predictions (4,043 rows, sha1 `51e7e4ab…`), per-row mean delta Pearson:
 P2 single seeds 0.4350 / 0.4383 / 0.4375 (mean 0.4369) vs their **prediction average 0.4662 (+0.0293)**; C8b 0.4376 / 0.4393 /
-0.4417 (mean 0.4395) vs **0.4676 (+0.0281)**. Every §85 candidate so far moved the single-seed score by < 0.009. EMA was
-measured null (§21, §38.4), so the gain is not recovered by averaging along one trajectory (the between-basin reading is
-an explanation, not a measurement). No decision is taken from this; a variance-reduction batch goes to review as packet 029.
+0.4417 (mean 0.4395) vs **0.4676 (+0.0281)**. The gain is ≈ 3.4× the largest candidate movement so far (C1 −0.0086)
+and ≈ 11× the largest gain (C8b +0.0026); it is present in every dev cell (+0.019 LNCAP to +0.035 VCAP). Seed predictions
+correlate 0.81 per row; an equicorrelated model fits K = 2, 3 within 0.0015 and puts the infinite-ensemble ceiling at
+≈ 0.483–0.486 — seed variance costs ≈ 0.05, the rest of the shortfall is shared across seeds (review 029 C4). **Cell-centred**
+(per-cell mean prediction and truth subtracted, §90.2), the gain survives: P2 0.4749 → 0.5018 (+0.0270), C8b +0.0258 — it is
+not a drift toward each cell's average response. EMA's null (§21, §38.4) cannot test "between-basin": at decay 0.999 its
+~1,000-step window lies inside WSD's annealed tail (review 029 ask 1); the phrase is an explanation, with V2 (§90.4) its test.
+No decision is taken from this; the variance-reduction batch is §90.
 
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
@@ -6195,6 +6200,59 @@ and duplicates `x_cell` for DMSO-fallback cells; genome-wide CCLE would be a sep
    H3K27ac, falling with H3K27me3) — not claimed unless that check is registered and run.
 6. **P7 disclosure (ask 4):** 3 of 8 test cells (BJAB, H1975, HS578T — the last 1,074 rows) have no chromatin, so a C7 in
    the final model acts as C7u on them.
+
+## 90. 🔒 PRE-REGISTERED: variance reduction — V1 (MC averaging at inference), V2 (snapshot ensemble), V3 (ensemble size); packet 029 as amended by review 029 (2026-09-26)
+Motivated by §85.9. Nothing below is built or run.
+
+### 90.1 Frozen baseline (C3)
+§85's **μ0 = 0.43693 and s0 = 0.00169 stay frozen at P2's seeds 0–2 for every §85 and §90 decision.** Any extra P2 seed
+(V3) is reported only and pooled into nothing.
+
+### 90.2 The cell-centred co-criterion (C1), required of every variance-reduction arm
+Within each dev cell, subtract the cell-mean predicted delta (over that cell's dev rows) from each row's predicted delta and
+the cell-mean true delta from each row's true delta; per-row Pearson of the two; mean over rows (`score_dev.py --centred`).
+It is invariant to a uniform pull toward the cell's average response, which is how an averaging procedure could raise the raw
+score without using the drug more (the failure reported for seven L1000 models, 81e7075). **Required: Δ_centred > 0 on the
+3-seed mean, reported beside the raw Δ.** Reference values the instrument must reproduce before any V-arm runs: P2 centred
+single-seed mean 0.4749, 3-seed prediction average 0.5018.
+
+### 90.3 V1 — MC averaging at inference (0 GPU-h; Kaggle CPU)
+- **Switch, exactly:** `model.eval()`, then `.train()` on every `nn.Dropout` and `StochasticDepth` module only. K = 8 passes per
+  row; before pass k (0–7) `torch.manual_seed(1000·seed + k)`; the row's prediction = mean of the 8 passes' `deg_pred`.
+- **Arms:** **V1-full** (dropout + stochastic depth) and **V1-drop** (dropout only; stochastic depth stays in eval) — V1-drop
+  cannot remove the drug cross-attention branch (`sdc`), V1-full can.
+- **Checkpoints:** `v9dev_c8b_dev6s0_seed{0,1,2}.pt` (the only saved 3-seed dev set; C8b's accuracy is indistinguishable from
+  P2's, review 027). **Identity check first:** the deterministic arm recomputed from each checkpoint must reproduce the saved
+  `v9dev_c8b_dev6s0_seed{s}.npz` (per-row Pearson with the saved `deg_pred` ≥ 0.9999 on every row, and the dev per-row mean to 4
+  decimals); the **paired baseline is the recomputed deterministic arm**, so numerical precision differences cancel.
+- **Reading (review 029 ask 2):** accept an arm iff the 3-seed mean paired Δ (arm − deterministic, same checkpoints) ≥ **0.003**
+  on the per-row mean, **and** Δ > 0 on **each** checkpoint, **and** Δ > 0 on the mean of cell means, **and** ≥ 4 of 6 cells (the
+  `score_dev.py` per-cell rule), **and** Δ_centred > 0.
+- **Which enters the stack:** V1-drop if it is accepted; V1-full only if it is accepted **and** its Δ_centred ≥ V1-drop's.
+- **Replication before stacking:** the accepted arm's paired Δ must have the same sign (raw and centred) on at least one other
+  architecture's saved dev checkpoint (C3, C6 or C7 seed 0).
+
+### 90.4 V2 — snapshot ensemble within one run (1.7 GPU-h per seed; next week's quota)
+- **Definition (C2):** flag `--snapshot_cycles 3` in `xpert_arm.py`. The 12-epoch budget runs as 3 cycles of 4 epochs; with
+  `L` = total steps / 3, the LR at step t is P2's WSD function evaluated on (t mod L) over a cycle of length L, with P2's
+  warmup and decay **fractions applied per cycle** (each cycle warms up and decays). Dev predictions are saved at each cycle's
+  end. **V2** = the mean of the 3 snapshot predictions; **V2-last** = the last snapshot alone. Acceptance test: the LR function
+  asserted on a toy step count against the per-cycle WSD.
+- **Reading (ask 3):** 3 V2 seeds; accept iff rule 7 against μ0 (threshold max(0.003, 2·√(s0²/3 + s_v²/3))), Δ > 0 on the mean
+  of cell means, ≥ 4 of 6 cells, and Δ_centred > 0. **Reported:** V2-last − P2 (the schedule effect), V2 − V2-last (the
+  ensembling gain), and the fraction recovered (V2 − μ0) / (0.4662 − μ0).
+- **If V2 is adopted,** §85.2 rule 10's "never the ensemble" is amended: a within-run snapshot average counts as that run's
+  prediction (the phrase excludes averaging across seeds).
+
+### 90.5 V3 — ensemble size (reported only; lowest priority)
+P2 at seeds 3 and 4 (2 × 1.7 GPU-h) to measure K = 1–5 against the equicorrelated prediction (K = 4 ≈ 0.470, K = 5 ≈ 0.473;
+review 029). Run only if quota is spare after P6/P7.
+
+### 90.6 Ensembles beside XPert (ask 4), binding for every table and sentence
+No row or sentence sets a **v9 ensemble** (across seeds or snapshots) beside **XPert's single run** as a comparison. An ensemble
+row appears only as v9's own labelled secondary; a "v9 ensemble vs XPert" row requires XPert's matched ensemble (two more XPert
+runs, ~11.5 GPU-h each). V1 applied to XPert is a labelled sensitivity row, never the comparison. If V1 is accepted and stacked,
+it is part of v9's method, and the headline compares v9 (with V1) against XPert as published, disclosed as such.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
