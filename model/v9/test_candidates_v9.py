@@ -438,6 +438,66 @@ def test_calibrate_smoke():
         check('calibration output file exists', False, f'not found: {out_path}')
 
 
+def test_W21_identity_check():
+    """W21: Identity check using mc_infer_dev.py."""
+    import subprocess
+    script = os.path.join(HERE, 'mc_infer_dev.py')
+    python = sys.executable
+    import tempfile
+    tmp_out = os.path.join(tempfile.mkdtemp(), 'out.npz')
+    cmd = [
+        python, script,
+        '--ckpt', os.path.join(HERE, '..', '..', 'external', 'kaggle_out', 'v9dev_c8b', 'v9dev_c8b_dev6s0_seed0.pt'),
+        '--arm', 'det',
+        '--limit', '128',
+        '--split', 'split_cold_cell_1',
+        '--identity_check', os.path.join(HERE, '..', '..', 'external', 'kaggle_out', 'v9dev_c8b', 'v9dev_c8b_dev6s0_seed0.npz'),
+        '--out', tmp_out
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    check('W21: mc_infer_dev.py identity check passes', res.returncode == 0, f"rc={res.returncode}, stderr={res.stderr}")
+
+
+def test_W21_smoke_run():
+    """W21: xpert_arm.py with --snapshot_cycles 3 writes snaps and main equals mean."""
+    import subprocess
+    script = os.path.join(HERE, 'xpert_arm.py')
+    python = sys.executable
+    import tempfile
+    tmp_dir = tempfile.mkdtemp()
+    out_prefix = os.path.join(tmp_dir, 'x.npz')
+    cmd = [
+        python, script,
+        '--dev_cells', '6',
+        '--epochs', '3',
+        '--snapshot_cycles', '3',
+        '--limit_train', '300',
+        '--seeds', '1',
+        '--batch', '2',
+        '--save_pred', out_prefix,
+        '--bundle', 'xpert_mdmt_splits.npz',
+        '--split', 'split_cold_cell_1'
+    ]
+    res = subprocess.run(cmd, capture_output=True, text=True)
+    check('W21: xpert_arm.py smoke run passes', res.returncode == 0, f"rc={res.returncode}, stderr={res.stderr}")
+    if res.returncode == 0:
+        base = out_prefix.replace('.npz', '_dev6s0_seed0')
+        main_f = f"{base}.npz"
+        snap0 = f"{base}_snap0.npz"
+        snap1 = f"{base}_snap1.npz"
+        snap2 = f"{base}_snap2.npz"
+        last = f"{base}_last.npz"
+        files_exist = all(os.path.exists(f) for f in [main_f, snap0, snap1, snap2, last])
+        check('W21: smoke run wrote all snapshot files', files_exist)
+        if files_exist:
+            d_main = np.load(main_f)['deg_pred']
+            d0 = np.load(snap0)['deg_pred']
+            d1 = np.load(snap1)['deg_pred']
+            d2 = np.load(snap2)['deg_pred']
+            d_last = np.load(last)['deg_pred']
+            check('W21: main prediction is mean of snapshots', np.allclose(d_main, (d0 + d1 + d2) / 3, atol=1e-5))
+            check('W21: last equals snap2', np.allclose(d_last, d2, atol=1e-5))
+
 def main():
     print('=' * 80)
     print('Section 1: Off = today (default flags -> bitwise equal)')
@@ -445,7 +505,7 @@ def main():
     test_defaults_bitwise_equal()
 
     print('\n' + '=' * 80)
-    print('Section 2: 85.7 acceptance tests')
+    print('Section 2: 85.7 candidate acceptance tests')
     print('=' * 80)
     test_C1_no_atoms()
     test_C2_l_control_0()
@@ -458,6 +518,12 @@ def main():
     print('Section 3: Deliverable B smoke test')
     print('=' * 80)
     test_calibrate_smoke()
+
+    print('\n' + '=' * 80)
+    print('Section 4: W21 tests')
+    print('=' * 80)
+    test_W21_identity_check()
+    test_W21_smoke_run()
 
     print(f'\n{sum(R)}/{len(R)} checks passed')
     sys.exit(0 if all(R) else 1)

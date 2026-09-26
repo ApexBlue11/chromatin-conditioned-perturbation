@@ -265,6 +265,13 @@ class XPertData:
                 'u_feats': t(self.u[idx]), 'dose': t(self.dose_n[idx]), 'time': t(self.time_n[idx])}
 
 
+def wsd_factor(s, steps):
+    warm = max(1, int(0.03 * steps))
+    if s < warm:
+        return s / warm
+    return max(0.0, 1 - math.sqrt(max(0, s - 0.8 * steps) / max(1, 0.2 * steps)))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--split', default='split_lung_1')
@@ -297,6 +304,8 @@ def main():
     ap.add_argument('--dev_seed', type=int, default=0)
     ap.add_argument('--dev_min_rows', type=int, default=200)
     ap.add_argument('--dev_max_rows', type=int, default=2000)
+    ap.add_argument('--snapshot_cycles', type=int, default=1,
+                    help='Number of cycles for cyclical learning rate and ensembling')
     # --- §85.7 candidate flags ---
     ap.add_argument('--no_atoms', action='store_true',
                     help='C1: drug sequence is [global] only; atom tokens reach nothing')
@@ -404,14 +413,34 @@ def main():
         model = torch.nn.DataParallel(core) if torch.cuda.device_count() > 1 else core
         opt = torch.optim.AdamW(core.parameters(), lr=a.lr, weight_decay=1e-4, betas=(0.9, 0.95))
         steps = a.epochs * max(1, len(D.tr) // a.batch)
-        warm = max(1, int(0.03 * steps))
+        assert a.epochs % a.snapshot_cycles == 0
+        L = (a.epochs // a.snapshot_cycles) * max(1, len(D.tr) // a.batch)
         sched = torch.optim.lr_scheduler.LambdaLR(
-            opt, lambda s: s / warm if s < warm else max(0.0, 1 - math.sqrt(
-                max(0, s - 0.8 * steps) / max(1, 0.2 * steps))))
+            opt, lambda s: wsd_factor(s % L, L))
         Mn = torch.as_tensor(M, dtype=torch.float32)
         Mn = (Mn / Mn.sum(1, keepdim=True).clamp(min=1)).to(dev)
         scaler = torch.amp.GradScaler('cuda', enabled=dev == 'cuda')
         t0 = time.time()
+        
+        def eval_model():
+            model.eval()
+            P, T = [], []
+            with torch.no_grad():
+                for s in range(0, len(D.te), 64):
+                    idx = D.te[s:s + 64]
+                    if getattr(D, 'test_rows_dropped', False):
+                        eval_ri = set(D.row_index[idx].tolist())
+                        assert not eval_ri.intersection(D.original_test_row_indices)
+                    b = D.batch(idx, dev)
+                    o = model(b)
+                    P.append(o['abs'].float().cpu().numpy())
+                    T.append(o['delta'].float().cpu().numpy())
+            return np.concatenate(P), np.concatenate(T)
+            
+        cycle_epochs = a.epochs // a.snapshot_cycles
+        snapshots_pa = []
+        snapshots_pd = []
+        
         model.train()
         for ep in range(a.epochs):
             order = np.random.permutation(D.tr)
@@ -433,19 +462,13 @@ def main():
             if ep == 0:
                 print(f'  seed{seed} DP seeding {a.dp_seed_mode} {device_seeds}: device CUDA states equal after '
                       f'epoch 0 = {rng_equal_by_epoch[-1]}', flush=True)
-        model.eval()
-        P, T = [], []
-        with torch.no_grad():
-            for s in range(0, len(D.te), 64):
-                idx = D.te[s:s + 64]
-                if getattr(D, 'test_rows_dropped', False):
-                    eval_ri = set(D.row_index[idx].tolist())
-                    assert not eval_ri.intersection(D.original_test_row_indices)
-                b = D.batch(idx, dev)
-                o = model(b)
-                P.append(o['abs'].float().cpu().numpy())
-                T.append(o['delta'].float().cpu().numpy())
-        pa, pd = np.concatenate(P), np.concatenate(T)
+            if (ep + 1) % cycle_epochs == 0:
+                pa, pd = eval_model()
+                snapshots_pa.append(pa)
+                snapshots_pd.append(pd)
+                model.train()
+                
+        pa, pd = np.mean(snapshots_pa, axis=0), np.mean(snapshots_pd, axis=0)
         rec = {'seed': seed,
                'Pearson': round(their_pearson(pa, Xte), 4),                    # their convention: MEAN
                'Pearson_deg': round(their_pearson(pd, Xte - Cte), 4),
@@ -465,7 +488,20 @@ def main():
             pred_name = a.save_pred
             if getattr(a, 'dev_cells', 0) > 0:
                 pred_name = pred_name.replace('.npz', f'_dev{a.dev_cells}s{a.dev_seed}.npz')
-            np.savez_compressed(pred_name.replace('.npz', '_seed%d.npz' % seed),
+            base_name = pred_name.replace('.npz', '_seed%d' % seed)
+            
+            if a.snapshot_cycles > 1:
+                for k in range(a.snapshot_cycles):
+                    np.savez_compressed(f'{base_name}_snap{k}.npz',
+                                        y_pred=snapshots_pa[k].astype(np.float32), deg_pred=snapshots_pd[k].astype(np.float32),
+                                        y_true=Xte.astype(np.float32), ctl_true=Cte.astype(np.float32),
+                                        row_index=D.row_index[D.te] if hasattr(D, 'row_index') else D.te)
+                np.savez_compressed(f'{base_name}_last.npz',
+                                    y_pred=snapshots_pa[-1].astype(np.float32), deg_pred=snapshots_pd[-1].astype(np.float32),
+                                    y_true=Xte.astype(np.float32), ctl_true=Cte.astype(np.float32),
+                                    row_index=D.row_index[D.te] if hasattr(D, 'row_index') else D.te)
+                                    
+            np.savez_compressed(f'{base_name}.npz',
                                 y_pred=pa.astype(np.float32), deg_pred=pd.astype(np.float32),
                                 y_true=Xte.astype(np.float32), ctl_true=Cte.astype(np.float32),
                                 row_index=D.row_index[D.te] if hasattr(D, 'row_index') else D.te)
@@ -505,6 +541,8 @@ def main():
     
     # §85.7: output-name tags appended only when non-default
     cand_suffix = ''
+    if a.snapshot_cycles > 1:
+        cand_suffix += f'_snap{a.snapshot_cycles}'
     if a.no_atoms:
         cand_suffix += '_noatoms'
     if a.l_control != 2:
@@ -525,6 +563,7 @@ def main():
     out = os.path.join(WORK, f'v9_xpert_arm_{tag}{dev_suffix}{cand_suffix}.json')
     
     candidate_flags = {
+        'snapshot_cycles': a.snapshot_cycles,
         'no_atoms': a.no_atoms,
         'l_control': a.l_control,
         'listnet_w': a.listnet_w,
