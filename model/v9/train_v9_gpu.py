@@ -34,6 +34,7 @@ from config_v9 import V9Config, V9TrainConfig, V9DataConfig
 from model_v9 import LincsV9, v9_loss
 from data_v9 import LincsV9Dataset, build_splits, collate_v9, check_inputs_v9
 from train_v7_gpu import probe_gpu, assert_both_gpus_used, wsd_lambda, EMA
+from dp_seeding import seed_devices, cuda_states_equal
 
 
 def resolve_v9(dc):
@@ -105,9 +106,8 @@ def evaluate(model, ds, idx, device, batch=64, max_n=3000, seed=0):
     return res
 
 
-def main():
+def build_parser():
     ap = argparse.ArgumentParser()
-    tc = V9TrainConfig()
     for f, t in [('epochs', int), ('batch', int), ('lr', float), ('budget_h', float), ('fold', int),
                  ('workers', int), ('ema_decay', float)]:
         ap.add_argument(f'--{f}', type=t, default=None)
@@ -132,7 +132,15 @@ def main():
     ap.add_argument('--l_base', type=int, default=None)
     ap.add_argument('--l_perturb', type=int, default=None)
     ap.add_argument('--gpus', type=int, default=2)
-    a = ap.parse_args()
+    ap.add_argument('--post_pathway', action='store_true')
+    ap.add_argument('--dp_seed_mode', choices=['lockstep', 'distinct'], default='lockstep')
+    ap.add_argument('--tf32', choices=['on', 'off'], default='on')
+    return ap
+
+
+def main():
+    tc = V9TrainConfig()
+    a = build_parser().parse_args()
 
     torch.manual_seed(a.seed); np.random.seed(a.seed); torch.cuda.manual_seed_all(a.seed)
     cfg = V9Config()
@@ -151,15 +159,17 @@ def main():
     cfg.use_gene_vectors = not a.no_gene_vectors
     cfg.epi_as_gene_embedding = not a.no_epi_embedding
     cfg.drug_self_attn = bool(a.drug_self_attn)
+    cfg.post_pathway = bool(a.post_pathway)
 
     names = probe_gpu(require_n=a.gpus)
     torch.backends.cudnn.benchmark = True
-    torch.backends.cuda.matmul.allow_tf32 = True
-    torch.backends.cudnn.allow_tf32 = True
+    torch.backends.cuda.matmul.allow_tf32 = (a.tf32 == 'on')
+    torch.backends.cudnn.allow_tf32 = (a.tf32 == 'on')
     device = 'cuda'
     n_gpu = torch.cuda.device_count()
+    device_seeds = seed_devices(a.seed, n_gpu, a.dp_seed_mode) if n_gpu > 0 else []
     print(f'GPUs: {names} | seed={a.seed} encoder={cfg.expr_encoder} aux={cfg.use_aux} ppi={cfg.use_ppi} '
-          f'gene_vec={cfg.use_gene_vectors} epi_emb={cfg.epi_as_gene_embedding} drug_sa={cfg.drug_self_attn}', flush=True)
+          f'gene_vec={cfg.use_gene_vectors} epi_emb={cfg.epi_as_gene_embedding} drug_sa={cfg.drug_self_attn} post_pathway={cfg.post_pathway}', flush=True)
 
     dc = resolve_v9(V9DataConfig())
     dc.cell_fold = tc.fold
@@ -233,6 +243,7 @@ def main():
     rep = {k: sp[k][full.strength[sp[k]] >= dc.eval_min_strength]
            for k in ['test_coldcell', 'test_colddrug', 'test_coldboth']}
     hist, t0 = [], time.time()
+    rng_equal_by_epoch = []
     model.train()
     for epoch in range(tc.epochs):
         te = time.time(); run = n = 0; last = {}
@@ -255,6 +266,13 @@ def main():
             if it % 200 == 0:
                 print(f'  e{epoch} it{it}/{len(dl)} loss {float(loss):.4f} '
                       f'lr {sched.get_last_lr()[0]:.2e} {last}', flush=True)
+        if n_gpu > 1:
+            eq = cuda_states_equal(n_gpu)
+            rng_equal_by_epoch.append(eq)
+            print(f'  DP seeding {a.dp_seed_mode} {device_seeds}: device CUDA states equal after epoch {epoch} = {eq}', flush=True)
+            if epoch == 0 and a.dp_seed_mode == 'distinct' and eq:
+                raise SystemExit('FATAL: CUDA RNG states are equal after epoch 0 with distinct seeding.')
+
         rec = {'epoch': epoch, 'train_loss': run / max(n, 1), 'parts': last,
                'sec': round(time.time() - te, 1), 'elapsed_h': round((time.time() - t0) / 3600, 3)}
         for name, key in [('unseen_cell', 'test_coldcell'), ('unseen_compound', 'test_colddrug'),
@@ -262,9 +280,16 @@ def main():
             rec[name] = evaluate(model, full, rep[key], device, seed=a.seed)
         hist.append(rec)
         print('EPOCH ' + json.dumps(rec), flush=True)
+        train_meta = {
+            'cuda_rng_states_equal_by_epoch': rng_equal_by_epoch,
+            'device_seeds': device_seeds,
+            'dp_seed_mode': a.dp_seed_mode,
+            'tf32': a.tf32,
+            'post_pathway': a.post_pathway
+        }
         torch.save({'model': core.state_dict(), 'ema': ema.state_dict(), 'opt': opt.state_dict(),
                     'sched': sched.state_dict(), 'epoch': epoch, 'hist': hist,
-                    'cfg': vars(cfg), 'tcfg': vars(tc)}, CKPT)
+                    'cfg': vars(cfg), 'tcfg': vars(tc), 'train_meta': train_meta}, CKPT)
         json.dump(hist, open(f'{WORK}/metrics_v9_fold{tc.fold}_seed{a.seed}.json', 'w'), indent=2)
         if (time.time() - t0) / 3600 > tc.budget_h:
             print('time budget reached -> clean checkpoint + stop (resumable)', flush=True)

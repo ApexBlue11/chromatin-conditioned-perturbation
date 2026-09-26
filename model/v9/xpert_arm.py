@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.dirname(HERE))
 
 from config_v9 import V9Config, V9DataConfig
 from model_v9 import LincsV9, v9_loss
+from dp_seeding import seed_devices, cuda_states_equal
 
 BUNDLE = 'xpert_splits.npz'
 
@@ -63,7 +64,6 @@ def pearson_rows(a, b):
     return np.where(d > 0, n / np.maximum(d, 1e-12), np.nan)
 
 
-
 def carve_dev(rows_per_cell, K, seed, min_rows=200, max_rows=2000):
     pool = [c for c, count in rows_per_cell.items() if min_rows <= count <= max_rows]
     pool.sort()
@@ -74,27 +74,6 @@ def carve_dev(rows_per_cell, K, seed, min_rows=200, max_rows=2000):
     rng = np.random.RandomState(seed)
     chosen = rng.choice(len(pool), K, replace=False)
     return sorted([pool[i] for i in chosen])
-
-def seed_devices(seed, n_gpu, mode):
-    """RESULTS 85.5 (review 021 C1). `torch.manual_seed` seeds EVERY CUDA device alike, and this loop only ever builds
-    full batches, so under DataParallel the replicas' dropout and stochastic-depth masks would be identical for the
-    whole run (rows j and j + batch/2 share them). 'distinct' reseeds device k >= 1 with seed + 1000 * k; device 0 keeps
-    `seed`, so a one-GPU run is unchanged. 'lockstep' is the behaviour before 85.5. Returns the seed of each device."""
-    seeds = [seed] * n_gpu
-    if mode == 'distinct':
-        for k in range(1, n_gpu):
-            seeds[k] = seed + 1000 * k
-            torch.cuda.default_generators[k].manual_seed(seeds[k])
-    return seeds
-
-
-def cuda_states_equal(n_gpu):
-    """True iff every device's CUDA generator state is byte-equal to device 0's (None on fewer than 2 devices)."""
-    if n_gpu < 2:
-        return None
-    s0 = torch.cuda.get_rng_state(0)
-    return all(torch.equal(s0, torch.cuda.get_rng_state(k)) for k in range(1, n_gpu))
-
 
 class XPertData:
     """Their rows, presented in the v9 batch format."""
