@@ -5906,7 +5906,7 @@ seconds and notes.
 | C2 | C2_lctl0 | 1 | +0.00161 | -0.00397 | 4 / 6 | 3962 | **DROPPED** | 36% faster than baseline |
 | C1 | C1_noatoms | 1 | -0.00859 | -0.00917 | 0 / 6 | 5897 | **DROPPED** | 0/6 cells; training without atoms hurts every dev cell (cf. 37's inference ablation, reported not read) |
 | C4 | C4_degk50 | 1 | -0.00424 | -0.00956 | 2 / 6 | 6090 | **DROPPED** | 2/6 cells; the two smallest dev cells lose most |
-| C8b | C8b_postpath | 3 | +0.00262 | +0.00046 | 3 / 6 | 6004 | **rule 7: NOT ACCEPTED (thr 0.00308; delta>=thr False, cell-means>0 True, cells>=4 False)** | 3 seeds by 88.5; 88.5 gate (3-seed delta >= -s0 = -0.00169): PASSES, so 88 executes; GUARD 4/5 OK |
+| C8b | C8b_postpath | 3 | +0.00262 | +0.00046 | 3 / 6 | 6004 | **rule 7: NOT ACCEPTED (thr 0.00308; delta>=thr False, cell-means>0 True, cells>=4 False)** | **3 seeds by §88.5 only: seed 0 alone (+0.00066 < s0) would have been DROPPED under rule 6** (review 027 C2); §88.5 gate (3-seed Δ ≥ −s0): PASSES, so §88 executes; GUARD 4/5 OK; threshold 0.00307 with the unrounded s0 (immaterial: Δ fails the 0.003 floor alone). Write-up wording (review 027): *"C8b's dev accuracy is indistinguishable from the baseline (non-inferior by §88.5; not accepted)"*, never "a small gain" |
 
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
@@ -6112,7 +6112,36 @@ r-series, so the change affects only cross-study comparability with §86, which 
 ### 88.5 The execution gate, decided now (ask 4)
 A one-seed gate (seed-0 Δ ≥ −s0) would skip a C8b with no true accuracy effect ~19 % of the time. **Amended:** C8b's dev
 screen runs **all three seeds regardless of rule 6**, and the MoA study (§88) executes iff C8b's **3-seed mean dev Δ ≥
-−s0** (skip rate for a null-effect C8b ~7 %). C8b's entry into the final stack still requires §85.2's accept rule.
+−s0** (skip rate for a null-effect C8b ~7 % — **corrected by review 027 C3: ≈ 11 %**, since with s_v ≈ s0 the 3-seed Δ has sd 0.816·s0 and Φ(−1.22) ≈ 0.11). C8b's entry into the final stack still requires §85.2's accept rule.
+
+### 88.6 Execution, operationalised — packet 027 part B as amended by review 027 (committed before any §88 model or probe output exists)
+1. **Training (C1):** `train_v9_gpu.py --post_pathway --seed S --epochs 12 --d_model 256 --budget_h 8.5 --gpus 2
+   --dp_seed_mode distinct --tf32 off`, S = 0, 1, 2: **V9Config defaults otherwise** (so `l_control` 2, drug self-attention
+   off) and batch 48 (V9TrainConfig default). The kernel asserts the fold-0 checkpoint's architecture fields equal the
+   **screened** C8b's (`v9dev_c8b_dev6s0_seed0.pt`): d_model 256, n_heads 8, d_ff 1024, l_control 2, l_base 2, l_perturb 4,
+   stoch_depth 0.1, dropout 0.1, d_pathway 32, drug_self_attn False, use_ppi True, use_aux True, use_gene_vectors True,
+   epi_as_gene_embedding True, expr_encoder binned, post_pathway True. The fold-0 C8b then differs from the screened one
+   only in its data and trainer. `--budget_h` 8.5 (not 7.5): the same recipe with self-attention on took 6.23 h; the
+   budget guard is a safety stop, and **the probe refuses any trained checkpoint whose last epoch is not 11** (C5).
+2. **Untrained inits (C5):** `--cfg_from` = the **fold-0** seed-0 C8b checkpoint; asserted `tcfg.fold == 0` and the untrained
+   model's state_dict keys and shapes equal that checkpoint's exactly; `torch.manual_seed(s)` precedes construction.
+   Whether u0–u2 equal trained seeds 0–2's starting weights (it depends on whether the trainer seeds the same way before
+   construction) is checked and stated, not assumed.
+3. **Rows:** §86's code path; row sha1 asserted `3e59a7ba7832775596f032dbab06c2c36a7723b4`.
+4. **Null 1s:** compound response strength = median over the compound's scored rows of the row mean over the 978 genes of
+   the **measured** `|y_Δ|` (never a model output); quintile edges by `np.quantile` over the D scored compounds; positives
+   permuted only within a quintile; 1,000 permutations; `p_s = mean(perm ≤ S)`. **The quintile assignment's sha1 is written
+   to every probe JSON and the reader asserts it is identical across all 8.**
+5. **Responsiveness strata:** per compound, genes ranked by the mean over its rows of measured `|y_Δ|` (percentile in
+   [0, 1), 0 = most responsive); the compound's value = mean percentile of its landmark targets; no landmark target → a third,
+   reported group; the rest split at their median (≤ median = responsive). Reported, not read.
+6. **Reader (C4):** `model/v9/read_moa_88.py`, applying §88.3 mechanically, committed **before any probe output exists,
+   trained or untrained**. `m_u`, `sd_u` = mean and sd (ddof 1) over the 5 untrained all-rows `diff`s; `m_u,unseen`,
+   `sd_u,unseen` by the same rule on the unseen stratum.
+7. **Probe on Kaggle CPU** (free), one kernel per checkpoint.
+8. **Order (ask 4; validity-neutral):** fold-0 seed 0 launches as soon as W20 is verified and a GPU slot is free; seeds 1–2
+   after C3/C6/C7's seed-0 screens are read, with any rule-6 follow-up seeds first if this week's quota cannot hold both.
+   Expected cost ~18–20 GPU-h (review 027).
 
 ## 89. 🔒 PRE-REGISTERED: C7, chromatin gating the union graph's edges — packet 026 as amended by review 026; C5 deferred (2026-09-25)
 Coverage and the C5 deferral as packet 026 (`model/results/cc1_input_coverage.json`): the local CCLE baseline is landmark-only
