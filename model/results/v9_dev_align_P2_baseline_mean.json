@@ -1,0 +1,38 @@
+{
+ "label": "P2_baseline",
+ "n_rows": 4043,
+ "n_perm": 200,
+ "per_checkpoint": [
+  {
+   "ckpt": "v9dev_base_dev6s0_seed0.pt",
+   "ckpt_sha1": "1b0ba5aa6cdee5b3a1e24c7409ce6af37afc6571",
+   "seed": 0,
+   "alignment": -0.030149609767218144,
+   "null_mean": -0.0005164265813356682,
+   "null_sd": 0.008498762586264766,
+   "z": -3.486764441893459
+  },
+  {
+   "ckpt": "v9dev_base_dev6s0_seed1.pt",
+   "ckpt_sha1": "7ed7ed8585a074d491a540291a4b9dee0b00c104",
+   "seed": 1,
+   "alignment": -0.0604255043034697,
+   "null_mean": -0.0008286952049509623,
+   "null_sd": 0.00907399882477169,
+   "z": -6.567866080809003
+  },
+  {
+   "ckpt": "v9dev_base_dev6s0_seed2.pt",
+   "ckpt_sha1": "8097c16b143c4a790c243e5551dc36f30a08359f",
+   "seed": 2,
+   "alignment": -0.024851996808381422,
+   "null_mean": -0.00046624828823229556,
+   "null_sd": 0.009188055492781387,
+   "z": -2.6540706615570437
+  }
+ ],
+ "mean_alignment": -0.03847570362635642,
+ "mean_null_mean": -0.000603790024839642,
+ "mean_null_sd": 0.008920272301272613,
+ "sd_alignment": 0.01919274571522169
+}

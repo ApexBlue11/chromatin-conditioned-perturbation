@@ -5908,7 +5908,7 @@ seconds and notes.
 | C4 | C4_degk50 | 1 | -0.00424 | -0.00956 | 2 / 6 | 6090 | **DROPPED** | 2/6 cells; the two smallest dev cells lose most |
 | C8b | C8b_postpath | 3 | +0.00262 | +0.00046 | 3 / 6 | 6004 | **rule 7: NOT ACCEPTED (thr 0.00308; delta>=thr False, cell-means>0 True, cells>=4 False)** | **3 seeds by §88.5 only: seed 0 alone (+0.00066 < s0) would have been DROPPED under rule 6** (review 027 C2); §88.5 gate (3-seed Δ ≥ −s0): PASSES, so §88 executes; GUARD 4/5 OK; threshold 0.00307 with the unrounded s0 (immaterial: Δ fails the 0.003 floor alone). Write-up wording (review 027): *"C8b's dev accuracy is indistinguishable from the baseline (non-inferior by §88.5; not accepted)"*, never "a small gain" |
 | C3 | C3_listnet | 1 | -0.02046 | -0.02178 | 1 / 6 | 5924 | **DROPPED** | listnet_w 1.116903 (frozen calibration); GUARD 4/5 OK; centred delta -0.01725 (reported) |
-| C6 | C6_signhead | 1 | +0.00485 | +0.00510 | 5 / 6 | 5940 | **ADVANCE (seeds 1, 2)** | sign_head_w 0.492066 (frozen calibration); GUARD 4/5 OK; centred delta +0.00048 (reported, not read: most of the raw gain is in the per-cell mean component) |
+| C6 | C6_signhead | 1 | +0.00485 | +0.00510 | 5 / 6 | 5940 | **ADVANCE (seeds 1, 2)** | sign_head_w 0.492066 (frozen calibration); GUARD 4/5 OK; centred Δ +0.00048 (reported, not read: the raw gain is not accompanied by a detectable centred gain at one seed; one-seed sd ≈ 0.002 — review 031 C2) |
 
 ### 85.9 Observation (reported, not read): a seed-specific prediction component worth +0.029 at K = 3 (≈ +0.05 as K → ∞), larger than any candidate effect so far (2026-09-26; retitled by review 029 C4)
 Computed after the fact from the committed dev predictions (4,043 rows, sha1 `51e7e4ab…`), per-row mean delta Pearson:
@@ -5921,6 +5921,32 @@ correlate 0.81 per row; an equicorrelated model fits K = 2, 3 within 0.0015 and 
 not a drift toward each cell's average response. EMA's null (§21, §38.4) cannot test "between-basin": at decay 0.999 its
 ~1,000-step window lies inside WSD's annealed tail (review 029 ask 1); the phrase is an explanation, with V2 (§90.4) its test.
 No decision is taken from this; the variance-reduction batch is §90.
+
+### 85.10 Rule 8's instrument, and C6's centred wording rule (review 031; committed before C6 seeds 1–2 or C7 are scored)
+- **Instrument (C1):** `model/v9/align_dev.py` (PI-written). On the 4,043 dev rows (sha1 asserted), per row: the named
+  (pre-drug) pathway layer's readout vs the pathway-level target `|y_true − ctl_true|` averaged over each node's member genes
+  (M row-normalised); per-row Spearman, mean over rows (`interp_v9.pathway_alignment`); null = the readout's pathway columns
+  permuted (one permutation for all rows), 200 permutations, rng seed 0.
+- **Baseline (P2 checkpoints `v9dev_base_dev6s0_seed{0,1,2}.pt`, fetched from the P2 kernel's output; each reproduces its
+  saved predictions, min per-row r 0.9999999 on 128 rows):**
+  | readout | seed 0 / 1 / 2 | mean (sd) | null mean ± sd | z |
+  |---|---|---|---|---|
+  | channel mean of `pathway_activations` (§37's readout) | −0.0301 / −0.0604 / −0.0249 | −0.0385 (0.0192) | −0.0006 ± 0.0089 | −2.7 to −6.6 |
+  | `aux['pathway_pred']` (the aux-supervised per-node readout) | 0.2783 / 0.2627 / 0.2785 | **0.2732 (0.0091)** | 0.0010 ± 0.0066 | 40.1 to 42.0 |
+  (`model/results/v9_dev_align_P2_baseline_{mean,aux}.json`.) The channel mean has no fixed sign across trainings (positive
+  8–12 sd in §37's fold-0 model, inverted here), so under it the baseline fails its own "≥ 5 sd" and rule 8 could pass no
+  candidate. **PROPOSED (packet 032), binding once review 032 returns and before any variant is scored:** rule 8 reads the
+  **aux readout**; a variant passes iff its 3-seed mean ≥ 0.2732 − 0.02 = **0.2532** and ≥ its mean null + 5 × its mean null sd.
+  The channel-mean readout is reported beside it, not read. As CLAIMS 4.16 says, this alignment is cell-level and partly
+  supervised on the target it is scored against; it is a non-inferiority gate, not a mechanism claim.
+- **C6's centred wording rule (ask 2), fixed now:** P2's centred seed sd frozen at **s_c0 = 0.00194** (0.47337 / 0.47416 /
+  0.47705); thr_c = max(0.003, 2·√(s_c0²/3 + s_cv²/3)) on C6's 3-seed mean centred Δ (Δ_c). Δ_c ≥ thr_c → *"improves the per-row
+  score and its drug-specific (cell-centred) component"*; |Δ_c| < thr_c → *"improves the per-row score, with no detectable change
+  in the drug-specific (cell-centred) component (Δ_c = x)"*, and C6 is never described as improving drug-response or
+  drug-specific prediction; Δ_c ≤ −thr_c → *"improves the per-row score at the expense of the drug-specific component"*. If C6
+  enters the stack, P7's report inherits the sentence. Acceptance stays rule 7 + rule 8.
+- **P7 (review 031):** the cell-centred score is reported for **both** v9 and XPert (from its saved predictions) as a labelled
+  secondary, whatever the stack contains.
 
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 

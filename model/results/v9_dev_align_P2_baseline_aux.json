@@ -1,0 +1,39 @@
+{
+ "label": "P2_baseline",
+ "readout": "aux",
+ "n_rows": 4043,
+ "n_perm": 200,
+ "per_checkpoint": [
+  {
+   "ckpt": "v9dev_base_dev6s0_seed0.pt",
+   "ckpt_sha1": "1b0ba5aa6cdee5b3a1e24c7409ce6af37afc6571",
+   "seed": 0,
+   "alignment": 0.2783276817160127,
+   "null_mean": 0.0008950551917697798,
+   "null_sd": 0.006600322373299534,
+   "z": 42.0331933553047
+  },
+  {
+   "ckpt": "v9dev_base_dev6s0_seed1.pt",
+   "ckpt_sha1": "7ed7ed8585a074d491a540291a4b9dee0b00c104",
+   "seed": 1,
+   "alignment": 0.2627063966199147,
+   "null_mean": 0.0010538125676764667,
+   "null_sd": 0.0063960790895224605,
+   "z": 40.90827839837946
+  },
+  {
+   "ckpt": "v9dev_base_dev6s0_seed2.pt",
+   "ckpt_sha1": "8097c16b143c4a790c243e5551dc36f30a08359f",
+   "seed": 2,
+   "alignment": 0.2784729915909075,
+   "null_mean": 0.0009716260179376354,
+   "null_sd": 0.006916482577929813,
+   "z": 40.12174720984107
+  }
+ ],
+ "mean_alignment": 0.27316902330894494,
+ "mean_null_mean": 0.0009734979257946273,
+ "mean_null_sd": 0.006637628013583936,
+ "sd_alignment": 0.009061191790567169
+}
