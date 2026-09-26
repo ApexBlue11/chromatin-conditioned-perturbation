@@ -5953,11 +5953,18 @@ No decision is taken from this; the variance-reduction batch is §90.
   pathway target) **0.2143** (review 032's value reproduced). **Cell-shuffle null** (each dev cell's rows given readouts drawn
   from another dev cell, 200 derangements): P2 seeds 0 / 1 / 2 **0.1021 ± 0.0183 / 0.0979 ± 0.0163 / 0.1221 ± 0.0090**.
   P2's increment over the training-row prior: +0.0491 / +0.0335 / +0.0493 (mean **+0.044**).
-- **"In this cell" (review 032 C1), fixed now for any model's write-up:** licensed iff on each of its 3 seeds the aux readout's
-  alignment minus the training-row prior exceeds **2 ×** that seed's cell-shuffle sd. P2: 0.0491 > 0.0366, 0.0335 > 0.0326
-  (narrowly), 0.0493 > 0.0180 — passes. The licensed form: *"a shared linear readout of the named pathway nodes, trained to
-  predict each pathway's response magnitude, ranks which pathways move in held-out cells at ρ = x, y above a cell-agnostic
-  training-row prior"* — cell-level, drug-independent, supervised (CLAIMS 4.16).
+- **"In this cell" — review 032 ADDENDUM (the 2-sd rule is withdrawn: it compared an increment over a constant prior with
+  the between-derangement spread of a null centred at 0.10, which measures row-level readout noise).** Reference: the **same
+  model's aux readout averaged over the OTHER dev cells' rows** (model-derived, denoised, no information from this cell). Per
+  row, ρ(own readout) − ρ(other-cells mean readout), averaged within each dev cell. **Licensed iff the 3-seed mean per-cell
+  increment is > 0 in ≥ 5 of 6 dev cells AND the mean of the six per-cell increments is > 0 on every seed** (≥ 5 of 6 is a
+  consistency filter, one-sided sign p = 0.11, not a significance test); the increment over the training-row prior is
+  reported beside it as the magnitude. **P2 (checked before any variant): licensed** — 3-seed per-cell increments HEK293T
+  +0.076, HL60 +0.029, LNCAP +0.140, SKBR3 +0.051, U937 +0.033, VCAP +0.101 (6 / 6); seed means +0.071 / +0.069 / +0.074
+  (`v9_dev_align_P2_baseline_incell_aux.json`). The cell-shuffle null stays in the JSON, reported only. The licensed form:
+  *"a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which
+  pathways move in held-out cells at ρ = x, y above a cell-agnostic training-row prior"*, plus *"in this cell"* only where
+  the rule holds — cell-level, drug-independent, supervised (CLAIMS 4.16).
 - **C6's centred wording rule (ask 2), fixed now:** P2's centred seed sd frozen at **s_c0 = 0.00194** (0.47337 / 0.47416 /
   0.47705); thr_c = max(0.003, 2·√(s_c0²/3 + s_cv²/3)) on C6's 3-seed mean centred Δ (Δ_c). Δ_c ≥ thr_c → *"improves the per-row
   score and its drug-specific (cell-centred) component"*; |Δ_c| < thr_c → *"improves the per-row score, with no detectable change

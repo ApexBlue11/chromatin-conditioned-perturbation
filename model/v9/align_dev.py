@@ -87,6 +87,28 @@ def loco_prior(D, M, cells):
     return out
 
 
+def rowwise_spearman(A, T):
+    """Per-row Spearman between A [rows, P] and T [rows, P] (vectorised form of interp_v9.pathway_alignment's inner loop)."""
+    ra = np.argsort(np.argsort(A, 1), 1).astype(np.float64)
+    rt = np.argsort(np.argsort(T, 1), 1).astype(np.float64)
+    ra -= ra.mean(1, keepdims=True)
+    rt -= rt.mean(1, keepdims=True)
+    d = np.sqrt((ra ** 2).sum(1) * (rt ** 2).sum(1))
+    return np.where(d > 0, (ra * rt).sum(1) / np.where(d > 0, d, 1), 0.0)
+
+
+def in_cell_increment(acts, delta, M, cells):
+    """Review 032 addendum: per row, rho(own readout) - rho(the same model's readout averaged over the OTHER dev cells' rows);
+    returns the per-cell mean increment {cell: value}."""
+    T = pathway_target(delta, M)
+    own = rowwise_spearman(acts, T)
+    ref = np.empty_like(acts, dtype=np.float64)
+    for c in np.unique(cells):
+        ref[cells == c] = acts[cells != c].mean(0)
+    inc = own - rowwise_spearman(ref, T)
+    return {str(c): float(inc[cells == c].mean()) for c in np.unique(cells)}
+
+
 def cell_shuffle_null(acts, delta, M, cells, n_perm=200, seed=0):
     """Review 032 C1(b): each dev cell's rows get readouts drawn from rows of ANOTHER dev cell (a random derangement of the
     cells per permutation; pathway columns intact). Returns (mean, sd) of the alignment."""
@@ -114,6 +136,7 @@ def main():
     ap.add_argument('--n_perm', type=int, default=200)
     ap.add_argument('--out', default=None)
     ap.add_argument('--readout', choices=['mean', 'aux'], default='mean')
+    ap.add_argument('--no_nulls', action='store_true', help='skip the permutation and cell-shuffle nulls (slow)')
     a = ap.parse_args()
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
     D, M, ppi, gv = None, None, None, None
@@ -138,20 +161,36 @@ def main():
         model.load_state_dict(ck['model'], strict=True)
         model = model.to(dev).eval()
         acts = activations(model, D, D.te, dev, a.readout)
-        obs, nm, ns = align_with_null(acts, delta, M, a.n_perm)
-        csm, css = cell_shuffle_null(acts, delta, M, cells, a.n_perm) if cells is not None else (None, None)
+        if a.no_nulls:
+            obs, nm, ns, csm, css = pathway_alignment(acts, delta, M), None, None, None, None
+        else:
+            obs, nm, ns = align_with_null(acts, delta, M, a.n_perm)
+            csm, css = cell_shuffle_null(acts, delta, M, cells, a.n_perm) if cells is not None else (None, None)
+        inc = in_cell_increment(acts, delta, M, cells) if cells is not None else None
         per.append({'ckpt': os.path.basename(p), 'ckpt_sha1': hashlib.sha1(open(p, 'rb').read()).hexdigest(),
                     'seed': ck.get('seed'), 'alignment': obs, 'null_mean': nm, 'null_sd': ns,
-                    'z': (obs - nm) / ns if ns > 0 else None,
-                    'cell_shuffle_mean': csm, 'cell_shuffle_sd': css})
-        print('%s alignment %.4f | null %.4f +/- %.4f | z %.1f' % (per[-1]['ckpt'], obs, nm, ns, per[-1]['z'] or 0), flush=True)
+                    'z': (obs - nm) / ns if ns else None,
+                    'cell_shuffle_mean': csm, 'cell_shuffle_sd': css, 'in_cell_increment': inc,
+                    'in_cell_increment_mean': float(np.mean(list(inc.values()))) if inc else None})
+        print('%s alignment %.4f | in-cell increment by cell %s mean %+.4f' % (
+            per[-1]['ckpt'], obs, {k: round(v, 4) for k, v in (inc or {}).items()}, per[-1]['in_cell_increment_mean'] or 0),
+            flush=True)
         del model
     res = {'label': a.label, 'readout': a.readout, 'n_rows': int(len(D.te)), 'n_perm': a.n_perm, 'references': ref,
            'per_checkpoint': per,
            'mean_alignment': float(np.mean([r['alignment'] for r in per])),
-           'mean_null_mean': float(np.mean([r['null_mean'] for r in per])),
-           'mean_null_sd': float(np.mean([r['null_sd'] for r in per])),
+           'mean_null_mean': None if a.no_nulls else float(np.mean([r['null_mean'] for r in per])),
+           'mean_null_sd': None if a.no_nulls else float(np.mean([r['null_sd'] for r in per])),
            'sd_alignment': float(np.std([r['alignment'] for r in per], ddof=1)) if len(per) > 1 else None}
+    if per and per[0]['in_cell_increment']:
+        # RESULTS 85.10 (review 032 addendum): "in this cell" licensed iff the 3-seed mean per-cell increment is > 0 in >= 5 of
+        # 6 dev cells AND the mean of the six per-cell increments is > 0 on every seed.
+        cs = sorted(per[0]['in_cell_increment'])
+        m3 = {c: float(np.mean([r['in_cell_increment'][c] for r in per])) for c in cs}
+        res['in_cell'] = {'per_cell_3seed_mean': m3, 'cells_positive': int(sum(v > 0 for v in m3.values())),
+                          'seed_means': [r['in_cell_increment_mean'] for r in per],
+                          'licensed': bool(sum(v > 0 for v in m3.values()) >= 5 and
+                                           all(r['in_cell_increment_mean'] > 0 for r in per))}
     out = a.out or os.path.join(HERE, '..', 'results', 'v9_dev_align_%s_%s.json' % (a.label, a.readout))
     json.dump(res, open(out, 'w'), indent=1)
     print(json.dumps({k: v for k, v in res.items() if k != 'per_checkpoint'}, indent=1))
