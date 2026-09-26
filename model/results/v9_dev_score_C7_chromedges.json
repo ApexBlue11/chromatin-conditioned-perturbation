@@ -1,0 +1,52 @@
+{
+ "label": "C7_chromedges",
+ "n_rows": 4043,
+ "cells": {
+  "HEK293T": 224,
+  "HL60": 309,
+  "LNCAP": 567,
+  "SKBR3": 1666,
+  "U937": 308,
+  "VCAP": 969
+ },
+ "seeds": [
+  {
+   "file": "v9dev_c7_dev6s0_seed0.npz",
+   "per_row_mean": 0.4410329759120941,
+   "mean_of_cell_means": 0.43919864296913147,
+   "per_cell_median": {
+    "HEK293T": 0.5289943814277649,
+    "HL60": 0.463476300239563,
+    "LNCAP": 0.5027816295623779,
+    "SKBR3": 0.45669886469841003,
+    "U937": 0.3515695333480835,
+    "VCAP": 0.4305931329727173
+   },
+   "per_row_mean_centred": 0.47939019535989785
+  }
+ ],
+ "mean": 0.4410329759120941,
+ "sd": null,
+ "vs_baseline": {
+  "delta_per_row_mean": 0.004099289576212584,
+  "delta_mean_of_cell_means": 0.0020591765642166138,
+  "per_cell_median_delta": {
+   "HEK293T": -0.023896336555480957,
+   "HL60": 0.019656658172607422,
+   "LNCAP": 0.0060634613037109375,
+   "SKBR3": 0.007813319563865662,
+   "U937": 0.0009539127349853516,
+   "VCAP": -0.0028602778911590576
+  },
+  "cells_favouring": 4,
+  "baseline_mean": 0.43693368633588153,
+  "baseline_sd": 0.0016892877169543108,
+  "n_seeds_variant": 1,
+  "n_seeds_baseline": 3,
+  "baseline_mean_centred": 0.47485901529051083,
+  "delta_centred": 0.00453118006938702,
+  "per_seed_paired_delta": null,
+  "per_seed_paired_delta_centred": null
+ },
+ "mean_centred": 0.47939019535989785
+}
