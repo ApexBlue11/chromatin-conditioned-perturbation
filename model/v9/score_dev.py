@@ -45,13 +45,24 @@ def load(paths):
     for p in paths:
         z = np.load(p, allow_pickle=True)
         runs.append({'path': os.path.basename(p), 'row_index': np.asarray(z['row_index']).astype(np.int64),
-                     'r': row_pearson(z['deg_pred'], z['y_true'] - z['ctl_true'])})
+                     'r': row_pearson(z['deg_pred'], z['y_true'] - z['ctl_true']),
+                     'pred': np.asarray(z['deg_pred'], np.float64), 'true': np.asarray(z['y_true'] - z['ctl_true'], np.float64)})
     ri = runs[0]['row_index']
     for r in runs[1:]:
         assert np.array_equal(r['row_index'], ri), 'row sets differ between runs'
     sha = hashlib.sha1(np.sort(ri).tobytes()).hexdigest()
     assert sha == DEV_SHA1, 'not the RESULTS 85.4 dev rows: %s' % sha
     return runs, ri
+
+
+def centred_r(run, cells):
+    """RESULTS 90.2: within each dev cell, subtract the cell-mean predicted delta and the cell-mean true delta (over that
+    cell's dev rows), then per-row Pearson. Invariant to a uniform pull toward the cell's average response."""
+    r = np.full(len(cells), np.nan)
+    for c in np.unique(cells):
+        m = cells == c
+        r[m] = row_pearson(run['pred'][m] - run['pred'][m].mean(0), run['true'][m] - run['true'][m].mean(0))
+    return r
 
 
 def summarise(runs, cells):
@@ -70,6 +81,7 @@ def main():
     ap.add_argument('--baseline', nargs='*', default=None)
     ap.add_argument('--label', required=True)
     ap.add_argument('--out', default=None)
+    ap.add_argument('--centred', action='store_true', help='also report the RESULTS 90.2 cell-centred score')
     a = ap.parse_args()
     runs, ri = load(a.preds)
     cells = cell_of_rows(ri)
@@ -92,6 +104,18 @@ def main():
             'per_cell_median_delta': per_cell, 'cells_favouring': int(sum(v > 0 for v in per_cell.values())),
             'baseline_mean': float(np.mean(b)), 'baseline_sd': float(np.std(b, ddof=1)) if len(b) > 1 else None,
             'n_seeds_variant': len(m), 'n_seeds_baseline': len(b)}
+    if a.centred:
+        mc = [float(np.nanmean(centred_r(r, cells))) for r in runs]
+        for s_, v in zip(res['seeds'], mc):
+            s_['per_row_mean_centred'] = v
+        res['mean_centred'] = float(np.mean(mc))
+        if a.baseline:
+            bc = [float(np.nanmean(centred_r(r, cells))) for r in bruns]
+            res['vs_baseline']['baseline_mean_centred'] = float(np.mean(bc))
+            res['vs_baseline']['delta_centred'] = float(np.mean(mc) - np.mean(bc))
+            res['vs_baseline']['per_seed_paired_delta'] = [float(x - y) for x, y in zip(m, b)] if len(m) == len(b) else None
+            res['vs_baseline']['per_seed_paired_delta_centred'] = ([float(x - y) for x, y in zip(mc, bc)]
+                                                                   if len(mc) == len(bc) else None)
     out = a.out or os.path.join(HERE, '..', 'results', 'v9_dev_score_%s.json' % a.label)
     json.dump(res, open(out, 'w'), indent=1)
     print(json.dumps({k: v for k, v in res.items() if k != 'seeds'}, indent=1))
