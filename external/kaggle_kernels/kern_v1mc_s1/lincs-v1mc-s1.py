@@ -25,5 +25,18 @@ for arm, extra in (('det', ['--identity_check', sv[0]]), ('drop', []), ('full', 
     print('arm', arm, 'exit', r.returncode, '%.0f s' % (time.time() - t0), flush=True)
     if r.returncode != 0:
         raise SystemExit('FATAL: arm %s failed (%d)' % (arm, r.returncode))
-    print(json.load(open(out.replace('.npz', '.json'))), flush=True)
+    meta = json.load(open(out.replace('.npz', '.json')))
+    print(meta, flush=True)
+    c = meta['switched_module_counts']
+    # review 030 C1(b): an MC arm that switched nothing would equal det and read as a silent null
+    if arm == 'drop' and not (c['Dropout'] > 0 and c['StochasticDepth'] == 0):
+        raise SystemExit('FATAL: drop arm switched %r' % c)
+    if arm == 'full' and not (c['Dropout'] > 0 and c['StochasticDepth'] > 0):
+        raise SystemExit('FATAL: full arm switched %r' % c)
+    if arm != 'det':
+        import numpy as np
+        dmax = float(np.abs(np.load(out)['deg_pred'] - np.load(out.replace(arm, 'det'))['deg_pred']).max())
+        print('arm', arm, 'max |deg_pred - det| = %.3e' % dmax, flush=True)
+        if not dmax > 0:
+            raise SystemExit('FATAL: arm %s equals det exactly' % arm)
 print(sorted(glob.glob('/kaggle/working/v1_*')))

@@ -157,8 +157,9 @@ def main():
         min_pearson = r.min()
         print(f"Minimum per-row Pearson between recomputed and saved deg_pred: {min_pearson}")
         
-        if min_pearson < 0.9999:
-            raise SystemExit(f"Identity check failed: min Pearson {min_pearson} < 0.9999")
+        if not np.isfinite(r).all() or min_pearson < 0.9999:      # review 030 C1(a): a NaN row must not pass
+            raise SystemExit(f"Identity check failed: min Pearson {min_pearson} < 0.9999 or {int((~np.isfinite(r)).sum())} "
+                             f"non-finite rows")
             
         def row_pearson(a_arr, b_arr):
             a_arr = a_arr - a_arr.mean(1, keepdims=True)
