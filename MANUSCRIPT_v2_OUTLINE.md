@@ -60,16 +60,24 @@ with test scores seen (bound: 0.0042 row-pooled).
 ### 5.2 The warm split [§43] — v9 +0.012 on 8/8 metrics on their released checkpoint's own fold; lockstep disclosure.
 ### 5.3 What does not transfer — Figure 3 (dissection; to be built)
 chromatin (gene tokens) +0.0004 [§55]; STRING MP ~0 [§37]; pathway layer ~0 for accuracy [§37]; atom tokens: the
-inference-vs-training reversal [§37 vs §85.8 C1]; the dev screens [§85.8, F3] — C1, C2, C4 dropped; [C3, C6, C7, C8b pending].
+inference-vs-training reversal [§37 vs §85.8 C1]; the dev screens [§85.8, F3] — C1, C2, C3, C4 dropped; C8b not accepted
+(*"indistinguishable from the baseline"*, review 027); C6 advanced at seed 0 with no detectable cell-centred gain (wording
+fixed by §85.10); [C6 3-seed, C7 pending]. **Variance, not architecture:** a 3-seed prediction average gains +0.029 (≈ 3.4× the
+largest candidate effect; survives cell-centring, +0.027) [§85.9]; V1/V2 pre-registered [§90]; no v9-ensemble row beside a
+single XPert run [§90.6].
 ### 5.4 Interpretability — Figure 4 (F4)
 atom→gene attention does not recover targets (median rank percentile 0.560) [CLAIMS 4.1a]; the pathway layer's alignment
-is cell-level by construction [CLAIMS 4.16]; the gradient readout is NULL on 1 of 3 seeds, and untrained models reach the
+is cell-level by construction [CLAIMS 4.16] and, stated honestly, modest: the aux readout ranks which pathways move in held-out
+cells at ρ 0.273, **+0.044 above a cell-agnostic training-row prior (0.229)**, far above another cell's readout (≈ 0.10)
+[§85.10]; §37's "8–12 sd" is caveated (channel mean sign not reproduced; its null did not control for a generic ranking); the gradient readout is NULL on 1 of 3 seeds, and untrained models reach the
 floor on 2 of 3 inits — the within-model permutation p is not calibrated across initialisations [§86.4].
 [C8b §88 — pending: SIGNAL / SEEN-ONLY / NULL, worded by §88.3's qualifiers.]
 ### 5.5 [Pending] the dev-selected v9 (P7), the registered second comparison, reported alongside 5.1 [§85.2 rule 10].
 
 ## 6. Methods lessons (short, each with its measurement)
-0.5 is not chance for pathway alignment (0.218 vs 0.229 null) [CLAIMS 4.15]; calibrate against untrained inits [§86.4];
+0.5 is not chance for pathway alignment (0.218 vs 0.229 null) [CLAIMS 4.15]; **a column-permutation null is not enough either —
+test against a cell-agnostic prior** (0.229 of 0.273) [§85.10, review 032]; **score the drug-specific component** (cell-centred)
+beside the raw score [§90.2]; calibrate against untrained inits [§86.4];
 DataParallel with shared seeds duplicates dropout masks [§85.6, CLAIMS 6.13]; a row-bootstrap CI on a cell-level
 question licenses trivial effects (the retracted chromatin claim: +0.0042 row-pooled vs +0.00036 cluster) [§51–55].
 
