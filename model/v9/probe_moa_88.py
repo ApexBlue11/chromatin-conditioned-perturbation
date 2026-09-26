@@ -130,6 +130,9 @@ def main():
     ck_name = f"untrained seed {a.seed}" if a.untrained else os.path.basename(a.ckpt)
 
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+    sha1_of = lambda f: hashlib.sha1(open(f, 'rb').read()).hexdigest() if f and os.path.exists(f) else None
+    prov = ({'init_seed': a.seed, 'cfg_from_sha1': sha1_of(a.cfg_from)} if a.untrained
+            else {'ckpt_sha1': sha1_of(a.ckpt)})         # review 028 C3: the chain reaches the JSON
 
     if a.untrained:
         if not a.cfg_from:
@@ -236,7 +239,8 @@ def main():
         atom_list.append(ds.atom_reprs[a0:a1])
         
     u_mean = torch.from_numpy(np.array(u_list).mean(0)).to(dev)
-    k_med = int(np.median([len(a) for a in atom_list]))
+    k_raw = float(np.median([len(a) for a in atom_list]))
+    k_med = int(round(k_raw))                      # RESULTS 88.2: int(round(median atom count)) (review 028 C2)
     atom_mean = torch.zeros(cfg.d_atom)
     atom_count = 0
     for a_rep in atom_list:
@@ -272,7 +276,7 @@ def main():
     if max_da <= 1e-12:
         out_dict = {'void': True, 'reason': 'degeneracy', 'checkpoint': ck_name, 'row_sha1': row_sha1, 'max_da': max_da,
                     'epoch': None if a.untrained else ck.get('epoch'), 'untrained': bool(a.untrained),
-                    'cfg_from': os.path.basename(a.cfg_from) if a.cfg_from else None}
+                    'cfg_from': os.path.basename(a.cfg_from) if a.cfg_from else None, **prov}
         with open(a.out, 'w') as f:
             json.dump(out_dict, f, indent=2)
         return
@@ -347,6 +351,8 @@ def main():
         'checkpoint': ck_name,
         'row_sha1': row_sha1,
         'k_med': k_med,
+        'k_median_raw': k_raw,
+        **prov,
         'n_compounds': len(scored_compounds),
         'flags': vars(cfg),
         'void': False,

@@ -15,6 +15,9 @@ import numpy as np
 
 FLOOR, PMAX, GATE = -0.02, 0.05, 0.95
 ROWS = '3e59a7ba7832775596f032dbab06c2c36a7723b4'
+N_COMPOUNDS, N_UNSEEN = 496, 156                   # identity with RESULTS 86 (review 028 C3)
+# sha1 of c8b_ckpt_v9_fold0_seed{0,1,2}.pt as printed by kern_moa88_t{0,1,2}; filled in BEFORE the probe kernels run.
+TRAINED_SHA1 = [None, None, None]
 
 
 def load(D, tag):
@@ -23,8 +26,11 @@ def load(D, tag):
     return json.load(open(f[0]))
 
 
-def read(T, U):
+def read(T, U, pins=None):
     """T: 3 trained probe dicts (seeds 0-2); U: 5 untrained. Returns the reading record."""
+    pins = TRAINED_SHA1 if pins is None else pins
+    if any(p is None for p in pins):
+        raise SystemExit('pin TRAINED_SHA1 from the kern_moa88_t* logs before reading')
     out = {'rules': {'floor': FLOOR, 'p': PMAX, 'gate_rho_post': GATE, 'sd_ddof': 1}, 'checks': {}, 'seeds': {}}
     allj = list(T) + list(U)
     # identity checks (88.6 items 1-4): rows, quintiles, compounds, epochs, provenance
@@ -34,13 +40,20 @@ def read(T, U):
     ok_n = len({j.get('n_compounds') for j in live}) == 1
     ok_epoch = all(j.get('epoch') == 11 and not j.get('untrained') for j in T)
     ok_u = all(j.get('untrained') and j.get('cfg_from') == 'c8b_ckpt_v9_fold0_seed0.pt' for j in U)
+    ok_sha = [j.get('ckpt_sha1') for j in T] == list(pins)
+    ok_u = ok_u and all(j.get('cfg_from_sha1') == pins[0] for j in U) and \
+        sorted(j.get('init_seed', -1) for j in U) == [0, 1, 2, 3, 4]
+    ok_ident = all(j.get('n_compounds') == N_COMPOUNDS and (j['strata']['unseen'] or {}).get('n') == N_UNSEEN
+                   for j in live)
+    ok_data = len({round(j['data_projection']['score']['S'], 12) for j in live}) == 1
     out['checks'] = {'rows_sha1': ok_rows, 'quintile_sha1_identical': ok_q, 'n_compounds_identical': ok_n,
                      'trained_epoch_11': ok_epoch, 'untrained_from_fold0_seed0': ok_u,
+                     'trained_sha1_pinned': ok_sha, 'n_identity_86': ok_ident, 'data_projection_S_identical': ok_data,
                      'untrained_void': [bool(j.get('void')) for j in U], 'trained_void': [bool(j.get('void')) for j in T]}
-    if not (ok_rows and ok_epoch and ok_u) or any(j.get('void') for j in U):
+    if not (ok_rows and ok_epoch and ok_u and ok_sha) or any(j.get('void') for j in U):
         out['reading'] = 'INVALID'
         return out
-    if not (ok_q and ok_n):
+    if not (ok_q and ok_n and ok_ident and ok_data):
         out['reading'] = 'INVALID'
         return out
 
@@ -92,14 +105,19 @@ def read(T, U):
         reading = 'NULL'
     out['reading'] = reading
     if reading == 'SIGNAL':
-        aligned = lambda key: any(t[key]['score']['diff'] <= FLOOR and t[key]['score']['p'] < PMAX for t in T)
-        data_al, out_al = aligned('data_projection'), aligned('output_projection')
+        k_al = lambda key: sum(t[key]['score']['diff'] <= FLOOR and t[key]['score']['p'] < PMAX for t in T)
+        data_al, k_out = k_al('data_projection') > 0, k_al('output_projection')
         q = ['a trained drug-dependent named pathway layer aligns with annotated mechanism, including for unseen compounds']
         if not data_al:
             q.append("beyond the data's own target alignment")
-        q.append("beyond the model's predicted signature" if not out_al
-                 else 'a named readout of a predicted signature that is itself target-aligned')
-        out['wording'] = {'data_projection_aligned': data_al, 'output_projection_aligned': out_al, 'sentence': q}
+        if k_out == 0:                              # review 028 C1: three-way, amended into 88.6 before any output
+            q.append("beyond the model's predicted signature")
+        elif k_out == 3:
+            q.append('a named readout of a predicted signature that is itself target-aligned')
+        else:
+            q.append("whether this goes beyond the model's predicted signature is not determined "
+                     '(output projection aligned on %d of 3 seeds)' % k_out)
+        out['wording'] = {'data_projection_aligned': data_al, 'output_projection_aligned_seeds': k_out, 'sentence': q}
     return out
 
 

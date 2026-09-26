@@ -6149,6 +6149,17 @@ screen runs **all three seeds regardless of rule 6**, and the MoA study (§88) e
 8. **Order (ask 4; validity-neutral):** fold-0 seed 0 launches as soon as W20 is verified and a GPU slot is free; seeds 1–2
    after C3/C6/C7's seed-0 screens are read, with any rule-6 follow-up seeds first if this week's quota cannot hold both.
    Expected cost ~18–20 GPU-h (review 027).
+9. **Wording amendment (review 028 C1), before any output:** the output-projection qualifier is three-way — aligned on
+   no seed → *"… beyond the model's predicted signature"*; on all three → *"… a named readout of a predicted signature
+   that is itself target-aligned"*; mixed → no qualifier plus *"whether this goes beyond the model's predicted signature is
+   not determined (output projection aligned on k of 3 seeds)"*. The data projection is model-free: "aligned on any seed"
+   is used for it, and its S is asserted identical across the 8 JSONs.
+10. **k̄ (review 028 C2):** `int(round(median))`, as §88.2 says; the raw median is recorded.
+11. **Provenance (review 028 C3):** each trained JSON carries its checkpoint sha1 and each untrained one its init seed and
+   `cfg_from` sha1; the reader asserts the three trained sha1s equal those printed by `kern_moa88_t{0,1,2}` (pinned in the
+   reader before the probe kernels run), every untrained `cfg_from` sha1 equals t0's, the init seeds are exactly {0,…,4},
+   n_compounds = 496 and unseen n = 156 (§86). t0's post-training architecture guard also verifies t1/t2 (same code and
+   argv but the seed).
 
 ## 89. 🔒 PRE-REGISTERED: C7, chromatin gating the union graph's edges — packet 026 as amended by review 026; C5 deferred (2026-09-25)
 Coverage and the C5 deferral as packet 026 (`model/results/cc1_input_coverage.json`): the local CCLE baseline is landmark-only
