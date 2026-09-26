@@ -1208,6 +1208,12 @@ expected to be catastrophic. Attributing +0.33 to the pretrained vectors specifi
 - ⇒ **This is the cleanest statement of the project's position.** The named pathway layer buys **nothing**
   in accuracy and carries **real, measurable mechanistic signal**. Those are not in tension; they are the
   reason the interpretability claim has to be made on its own null rather than on the accuracy number.
+- ⚠️ **CAVEAT (review 032, 2026-09-26) — do not cite this bullet without it.** (1) The channel mean scored here is not the
+  trained readout (the aux loss trains `aux_path`, a shared linear map of the channels). (2) Its sign did **not** reproduce in
+  the §85 dev-carve models (−0.0385, z −2.7 to −6.6; §85.10). (3) The column-permutation null does not control for a
+  generic pathway ranking: a cell-agnostic training-row prior scores 0.2292 on the dev rows. "Mechanistic signal" is
+  withdrawn; at most: *the named layer's channel mean aligned with pathway-level response magnitude above a column-permutation
+  null in one fold-0 model.* The current statement is §85.10's.
 
 **Correction to the probe itself.** The first version of this table reported `y.abs().mean()` — the change
 in prediction MAGNITUDE, which is what \|dY\|max already answers — as though it were a contribution. Worse,
@@ -5935,10 +5941,23 @@ No decision is taken from this; the variance-reduction batch is §90.
   | `aux['pathway_pred']` (the aux-supervised per-node readout) | 0.2783 / 0.2627 / 0.2785 | **0.2732 (0.0091)** | 0.0010 ± 0.0066 | 40.1 to 42.0 |
   (`model/results/v9_dev_align_P2_baseline_{mean,aux}.json`.) The channel mean has no fixed sign across trainings (positive
   8–12 sd in §37's fold-0 model, inverted here), so under it the baseline fails its own "≥ 5 sd" and rule 8 could pass no
-  candidate. **PROPOSED (packet 032), binding once review 032 returns and before any variant is scored:** rule 8 reads the
-  **aux readout**; a variant passes iff its 3-seed mean ≥ 0.2732 − 0.02 = **0.2532** and ≥ its mean null + 5 × its mean null sd.
-  The channel-mean readout is reported beside it, not read. As CLAIMS 4.16 says, this alignment is cell-level and partly
-  supervised on the target it is scored against; it is a non-inferiority gate, not a mechanism claim.
+  candidate. **AMENDED (review 032) — declared as a change of instrument, before any variant is measured** (a rule the baseline cannot
+  pass is broken; nothing constrains the shared aux direction `aux_path` = `nn.Linear(d_pathway, 1)` relative to the channel
+  mean). Rule 8 now reads the **aux readout**, whose scope is *"the auxiliary pathway head keeps its held-out-cell accuracy
+  (non-inferiority)"* — it is scored against its own training target (`aux_targets` = `M_norm·|Δ|`). A variant passes iff
+  **(i)** its 3-seed mean ≥ 0.2732 − 0.02 = **0.2532**, and **(ii)** its 3-seed mean > the **training-row prior**'s alignment on
+  the same rows, **0.2292** (data-only constant; implied by (i) at today's baseline, kept for P7 where the baseline changes).
+  The column-permutation null (0.0010 ± 0.0066) is reported, not read — a generic ranking beats it by > 20 sd.
+  **References on the dev rows (data only, `align_dev.py`):** training-row prior (the mean pathway target over the training
+  rows, the same vector for every dev row) **0.2292**; leave-one-cell-out prior (each dev cell gets the other five cells' mean
+  pathway target) **0.2143** (review 032's value reproduced). **Cell-shuffle null** (each dev cell's rows given readouts drawn
+  from another dev cell, 200 derangements): P2 seeds 0 / 1 / 2 **0.1021 ± 0.0183 / 0.0979 ± 0.0163 / 0.1221 ± 0.0090**.
+  P2's increment over the training-row prior: +0.0491 / +0.0335 / +0.0493 (mean **+0.044**).
+- **"In this cell" (review 032 C1), fixed now for any model's write-up:** licensed iff on each of its 3 seeds the aux readout's
+  alignment minus the training-row prior exceeds **2 ×** that seed's cell-shuffle sd. P2: 0.0491 > 0.0366, 0.0335 > 0.0326
+  (narrowly), 0.0493 > 0.0180 — passes. The licensed form: *"a shared linear readout of the named pathway nodes, trained to
+  predict each pathway's response magnitude, ranks which pathways move in held-out cells at ρ = x, y above a cell-agnostic
+  training-row prior"* — cell-level, drug-independent, supervised (CLAIMS 4.16).
 - **C6's centred wording rule (ask 2), fixed now:** P2's centred seed sd frozen at **s_c0 = 0.00194** (0.47337 / 0.47416 /
   0.47705); thr_c = max(0.003, 2·√(s_c0²/3 + s_cv²/3)) on C6's 3-seed mean centred Δ (Δ_c). Δ_c ≥ thr_c → *"improves the per-row
   score and its drug-specific (cell-centred) component"*; |Δ_c| < thr_c → *"improves the per-row score, with no detectable change

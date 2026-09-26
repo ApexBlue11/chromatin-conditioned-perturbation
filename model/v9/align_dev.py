@@ -66,6 +66,46 @@ def align_with_null(acts, delta, M, n_perm, seed=0):
     return float(obs), float(null.mean()), float(null.std())
 
 
+def pathway_target(delta, M):
+    Mn = np.asarray(M, np.float64)
+    Mn = Mn / np.maximum(Mn.sum(1, keepdims=True), 1)
+    return np.abs(np.asarray(delta, np.float64)) @ Mn.T                     # [rows, P]
+
+
+def training_prior(D, M):
+    """Review 032 C1(a): the cell-agnostic ranking a model could learn from training rows alone -- the mean pathway target
+    over the training rows, the same vector for every dev row."""
+    return pathway_target(D.X[D.tr] - D.C[D.tr], M).mean(0)
+
+
+def loco_prior(D, M, cells):
+    """Review 032's leave-one-cell-out proxy: per dev cell, the mean pathway target over the OTHER dev cells' rows."""
+    T = pathway_target(D.X[D.te] - D.C[D.te], M)
+    out = np.empty_like(T)
+    for c in np.unique(cells):
+        out[cells == c] = T[cells != c].mean(0)
+    return out
+
+
+def cell_shuffle_null(acts, delta, M, cells, n_perm=200, seed=0):
+    """Review 032 C1(b): each dev cell's rows get readouts drawn from rows of ANOTHER dev cell (a random derangement of the
+    cells per permutation; pathway columns intact). Returns (mean, sd) of the alignment."""
+    rng = np.random.default_rng(seed)
+    uc = np.unique(cells)
+    idx_by = {c: np.flatnonzero(cells == c) for c in uc}
+    vals = []
+    for _ in range(n_perm):
+        while True:
+            perm = rng.permutation(len(uc))
+            if not np.any(perm == np.arange(len(uc))):
+                break
+        A = np.empty_like(acts)
+        for c, c2 in zip(uc, uc[perm]):
+            A[idx_by[c]] = acts[rng.choice(idx_by[c2], size=len(idx_by[c]), replace=True)]
+        vals.append(pathway_alignment(A, delta, M))
+    return float(np.mean(vals)), float(np.std(vals))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--ckpts', nargs='+', required=True)
@@ -84,6 +124,12 @@ def main():
         if D is None:
             D, M, ppi, gv = load_dev(a.split, ablate_epi=ck.get('ablate_epi', False))
             delta = D.X[D.te] - D.C[D.te]
+            cells = np.asarray(D.cell[D.te]) if hasattr(D, 'cell') else None
+            prior_tr = training_prior(D, M)
+            ref = {'training_prior': pathway_alignment(np.tile(prior_tr, (len(D.te), 1)), delta, M)}
+            if cells is not None:
+                ref['loco_prior'] = pathway_alignment(loco_prior(D, M, cells), delta, M)
+            print('references (data only):', ref, flush=True)
         cfg = V9Config()
         for k, v in ck['cfg'].items():
             if hasattr(cfg, k):
@@ -93,12 +139,15 @@ def main():
         model = model.to(dev).eval()
         acts = activations(model, D, D.te, dev, a.readout)
         obs, nm, ns = align_with_null(acts, delta, M, a.n_perm)
+        csm, css = cell_shuffle_null(acts, delta, M, cells, a.n_perm) if cells is not None else (None, None)
         per.append({'ckpt': os.path.basename(p), 'ckpt_sha1': hashlib.sha1(open(p, 'rb').read()).hexdigest(),
                     'seed': ck.get('seed'), 'alignment': obs, 'null_mean': nm, 'null_sd': ns,
-                    'z': (obs - nm) / ns if ns > 0 else None})
+                    'z': (obs - nm) / ns if ns > 0 else None,
+                    'cell_shuffle_mean': csm, 'cell_shuffle_sd': css})
         print('%s alignment %.4f | null %.4f +/- %.4f | z %.1f' % (per[-1]['ckpt'], obs, nm, ns, per[-1]['z'] or 0), flush=True)
         del model
-    res = {'label': a.label, 'readout': a.readout, 'n_rows': int(len(D.te)), 'n_perm': a.n_perm, 'per_checkpoint': per,
+    res = {'label': a.label, 'readout': a.readout, 'n_rows': int(len(D.te)), 'n_perm': a.n_perm, 'references': ref,
+           'per_checkpoint': per,
            'mean_alignment': float(np.mean([r['alignment'] for r in per])),
            'mean_null_mean': float(np.mean([r['null_mean'] for r in per])),
            'mean_null_sd': float(np.mean([r['null_sd'] for r in per])),
