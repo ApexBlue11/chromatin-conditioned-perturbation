@@ -11,18 +11,22 @@ the adversarial review cited beside it and is not to be strengthened.*
 Predicting the transcriptional response of an **unseen cell line** to a drug is the hardest and most useful split of the LINCS L1000
 problem: published cold-cell correlations range from 0.195 to 0.383 [§46.2]. We report four things. **(i)** We trained a published
 state-of-the-art model, XPert (Nature Machine Intelligence 2025), to its published recipe on its own cold-cell split; it reproduces
-its published score (0.386 on the test rows against 0.383 ± 0.027) [§87]. **(ii)** Against it, on 21,151 identical test rows, our model
-v9 is higher on 5 of 8 held-out cell lines and row-pooled (0.473 against 0.387), but the pre-registered cell-level criterion was not
-met, so we make no claim that v9 generalises better [§87; C 1.11]. ⏳ *[P7: the registered second comparison with a dev-selected v9.]*
-**(iii)** A pre-registered development protocol on held-out training cells shows that components the field treats as load-bearing —
-chromatin features, protein-interaction message passing, a named pathway layer, atom-level drug tokens, ranking and reweighted losses —
-add nothing or harm, while one auxiliary objective (a per-gene direction head) is accepted with no detectable change in the
-drug-specific component; the largest lever we found is seed ensembling (+0.029), not architecture [§85.8, §85.9]. **(iv)** For
+scores 0.386 on the test rows, inside its published 0.383 ± 0.027 [§87]. **(ii)** Against it, on 21,151 identical test rows, our
+model v9 is higher on 5 of 8 held-out cell lines and lower on 3 (two beyond row-level noise); row-pooled it scores 0.473 against 0.387,
+a figure dominated by MCF7 (51 % of rows). The pre-registered cell-level criterion was not met, so we make no claim that v9 generalises
+better [§87; C 1.11]. ⏳ *[P7: the registered second comparison with a dev-selected v9.]*
+**(iii)** A dissection and a pre-registered development protocol on held-out training cells show that several components the field
+treats as load-bearing — chromatin features, protein-interaction message passing, a named pathway layer, and ranking and reweighted
+losses at their pre-registered weights — add nothing detectable or harm; atom-level drug tokens are the exception (a model trained
+without them is worse, −0.0086, although removing them from one trained model at inference helped). One auxiliary objective (a
+per-gene direction head) is accepted, with no detectable change in the drug-specific component. A seed-specific prediction component
+(+0.029 from averaging three seeds, at three times the training compute) is larger than any architectural effect we measured
+[§37, §55, §85.8, §85.9]. **(iv)** For
 interpretability, attention and gradient readouts do not recover annotated drug mechanism beyond calibrated nulls [C 4.1a, §86.4];
-a named pathway readout ranks which pathways move in held-out cells at ρ 0.273, of which only +0.044 exceeds a cell-agnostic prior
-[§85.10]. ⏳ *[§88: a drug-dependent pathway readout against annotated mechanism.]* We also document how the benchmark's own numbers
-are produced — a released checkpoint scored on folds it was trained on, and checkpoint selection on the test fold — and three
-methods lessons for interpretability claims, each with its measurement.
+a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which pathways move
+in held-out cells (ρ 0.273, +0.044 above a cell-agnostic prior; measured so far on six dev cells) [§85.10, C 4.16]. ⏳ *[§88: a drug-dependent pathway readout against annotated mechanism.]* We also document how the benchmark's own numbers
+are produced — a released checkpoint scored on folds it was trained on, and checkpoint selection on the test fold — and seven
+methods lessons, each with its measurement.
 
 ## 1. Introduction
 
@@ -33,9 +37,10 @@ and seven L1000 models were shown to ignore their own drug features (Bai et al. 
 controls: a like-for-like comparison with the competitor on the same rows, and a dissection showing which components carry it.
 
 Most comparisons quote a competitor's published number against a re-implementation. We instead **trained the competitor ourselves**,
-to its published recipe, on its own split, and compared per row under rules committed before training. Every reading in this paper
-was pre-registered in a public log before its data existed, and each was reviewed by a blinded adversarial reviewer (160 of 163
-challenges upheld at writing) [§4].
+to its published recipe, on its own split, and compared per row under rules committed before training. The head-to-head (§71, §87),
+the development protocol (§85, including P7) and the interpretability tests (§86, §88) were pre-registered in a public log and
+reviewed by a blinded adversarial reviewer; the dissection (§37), the warm split (§43), the benchmark forensics (§42, §46) and the EMA
+results (§21, §38.4) predate that protocol and are reported as exploratory [§4].
 
 ## 2. Data and benchmark
 
@@ -50,7 +55,7 @@ statement about one cell line; our estimand is per cell line, with a cluster boo
 
 **Benchmark forensics** *(reported as usage notes, not criticism).* Three properties of the benchmark shape any number measured on it.
 - *The released warm checkpoint belongs to one fold.* Scored on all five warm folds, it gives delta Pearson 0.694 on `split_2` and
-  0.738–0.744 on the other four, which cluster within 0.005 — the signature of one genuinely held-out fold and four whose test rows
+  0.738–0.744 on the other four, which cluster within ≈ 0.005 — the signature of one genuinely held-out fold and four whose test rows
   it largely trained on (each fold's training set is 80 % of the corpus) [§42]. Scores of that checkpoint on folds other than
   `split_2` are partly in-sample.
 - *The published recipe selects its checkpoint on the test fold.* No split in the released data has a validation level, so the code's
@@ -69,18 +74,23 @@ heads [§37, §85.7].
 
 **XPert as published**, run by us with the deviations needed to train it on Kaggle T4s, each proven equivalent where it touches
 numerics: a flash-attention shim, one tensor per drug instead of per row in their dataset (values proven identical), the Uni-Mol
-array rebuilt from their release, DataParallel over two GPUs (gradients equal to one GPU to 5e-16), the ten parameters their loss
-never uses frozen, and full-state checkpoint/resume across sessions (bitwise) [§87, run record]. Activation checkpointing was **not**
+array rebuilt from their release, DataParallel over two GPUs (gradients equal to one GPU to 5e-16; replica dropout masks were
+duplicated in epoch 0), the ten parameters their loss never uses frozen, and full-state checkpoint/resume across sessions (bitwise) [§87, run record]. Activation checkpointing was **not**
 applied in the final run [§87 corrected].
 
 ## 4. Pre-registration and statistics
 
-Every reading was committed before its data, with the git order as witness. A blinded adversarial reviewer — a separate model
-session given the objective, code and results but never the author's reasoning — reviewed every design and result; challenges it
-raised were adjudicated in the log (160 of 163 upheld at writing). The cell line is the unit for any claim about unseen cells: we
-report per-cell medians of row differences, their unweighted mean with a cluster bootstrap over cells, and a sign count [§71.2].
-Model development used a **dev carve** of six training cells, so the test cells were touched only by pre-registered comparisons
-[§85]. Interpretability readouts were calibrated against untrained models, not against 0.5 or a trained null alone [§86, §88].
+For the pre-registered parts (§71, §85–§90) every reading was committed before its data, with the git order as witness; amendments
+made after a baseline was measured but before any variant are marked as such (§85.10), and one reader was committed seconds after its
+outputs arrived (review 023). A blinded adversarial reviewer — a separate model session given the objective, code and results but never
+the author's reasoning — reviewed every pre-registered design and result: 161 challenges across 36 reviews at this draft, each adjudicated in the log
+(`orchestration/bus/adjudicated/`, counted as table rows). The dissection, warm split, forensics and EMA results predate the protocol
+and are exploratory. **The cold-cell test cells had been read before the protocol existed** (§44–§46.4); from the protocol on, model
+development used a **dev carve** of six training cells [§85], and the one later test-cell comparison (P7) is labelled *"dev-selected
+increments on a baseline partly chosen with test-cell knowledge"*. The cell line is the unit for any claim about unseen cells: we report
+per-cell medians of row differences, their unweighted mean with a cluster bootstrap over cells, and a sign count [§71.2].
+Interpretability readouts were calibrated against untrained initialisations (§86, §88) or against permutation and cell-agnostic
+references (§85.10); the exact trained permuted-drug null was not run.
 
 ## 5. Results
 
@@ -91,8 +101,9 @@ correlation on 5 of 8 cell lines, including the five with the most test rows, an
 BJAB tied). The pre-registered criterion — a cluster mean above zero with a cluster confidence interval excluding zero and at least
 7 of 8 cell lines favouring v9 — was not met, so we make no claim that v9 generalises to unseen cell lines better than XPert.
 Row-pooled, v9 scores 0.473 against 0.387, a figure dominated by MCF7 (51 % of rows)."** The cluster mean of per-cell differences is
-+0.0465 [0.0048, 0.0861]. Disclosures: XPert's checkpoint was selected on test loss (§2); v9 trained a fixed 12 epochs; the compared v9
-is one of two cold-cell variants whose test scores had been seen (bound 0.0042 row-pooled); the earlier v9 runs used identical dropout
++0.0465 [0.0048, 0.0861]. Disclosures: XPert's checkpoint was selected on test loss (§2), and its best checkpoint (epoch 40) came before
+the recipe's objective switch at epoch 70; v9 trained a fixed 12 epochs; the compared v9 is one of two cold-cell variants whose test
+scores had been seen (bound 0.0042 row-pooled, ≈ 0.0004 on the cluster estimand); the earlier v9 runs used identical dropout
 masks on both GPUs, a defect found and fixed during this work [C 6.13].
 
 ⏳ **5.1b P7 — the registered second comparison** (§85.12). The dev-selected v9 (P2 + C6 [+ V2]) on all 32 training cells, 3 seeds,
@@ -102,34 +113,38 @@ published"* (secondary, labelled *"dev-selected increments on a baseline partly 
 ensemble (never set beside XPert's single run), and a V2-last row if V2 is used [§90.6].
 
 ### 5.2 The warm split
-On the fold XPert's released checkpoint was trained on (`split_2`), v9 is higher by +0.012 on all 8 metrics [§43]; the earlier v9
-used the dropout-mask defect above [C 6.13].
+On the fold XPert's released checkpoint was trained on (`split_2`), v9 is ahead on all 8 metrics (delta Pearson +0.012 [0.011, 0.013],
+identical rows; gaps from +0.0007 to +0.023), three v9 seeds against XPert's released checkpoint [§43]; exploratory (it predates the
+protocol), and those v9 runs used the dropout-mask defect above [C 6.13].
 
 ### 5.3 What does not transfer (Figure 3)
-**Dissection of the committed v9** (ablations of a trained model to the mean) [§37, §55]: chromatin summed into gene tokens changes
-the cold-cell score by +0.0004 on the right (cluster) estimand — a clean null, after an earlier row-bootstrap +0.0042 was retracted
-[§51–55]; STRING message passing and the named pathway layer contribute ≈ 0 to accuracy [§37]. **The development screens** (dev
-carve, rules committed first; Figure 3) [§85.8]: removing atom tokens during training (−0.0086), removing the control encoder
-(+0.0016, below the advance threshold), a ListNet ranking loss (−0.0205), a DEG-reweighted loss (−0.0042), chromatin-gated union-graph
-edges (+0.0020 at three seeds, below its threshold 0.0042) and a post-drug pathway layer (+0.0026 at three seeds, *"indistinguishable
+**Dissection of the committed v9** (exploratory): STRING message passing and the named pathway layer contribute ≈ 0 to accuracy when
+ablated to the mean in a trained model [§37]. Chromatin was tested by retraining: an arm without cell-specific chromatin (one run
+each, scored on the cold-cell test cells, §45) differs by +0.0004 on the cluster estimand over the five covered cells, 0.57 σ of
+run-to-run noise — no detectable effect — after an earlier row-bootstrap +0.0042 was retracted [§51–55]. **The development screens** (dev
+carve, rules committed first; Figure 3) [§85.8]: removing atom tokens during training (−0.0086; one seed, dropped at the screen),
+removing the control encoder (+0.0016, below the advance threshold; one seed), a ListNet ranking loss and a DEG-reweighted loss at their
+pre-registered weights (−0.0205 and −0.0042; one seed each), chromatin-gated union-graph edges (+0.0020 at three seeds, below its threshold 0.0042) and a post-drug pathway layer (+0.0026 at three seeds, *"indistinguishable
 from the baseline"*, review 027) are not accepted. **One candidate is accepted:** a per-gene direction (sign) head, +0.0048 at three
 seeds, 4 of 6 dev cells, with the interpretability gate held (aux alignment 0.262 against a floor of 0.253; a decline of 0.011
 from the baseline, within the gate's margin) [§85.8, §85.11]. *Permitted wording (§85.10):* **"improves the per-row score, with
 no detectable change in the drug-specific (cell-centred) component (Δ_c = +0.0002)"** — it is never described as improving
-drug-specific prediction. Atom tokens show an **inference-versus-training reversal**: in the committed model, removing them at inference
-*helped* on unseen cells (the model lost 0.007 with them), but a model trained without them is 0.0086 worse [§37, §85.2 rule 9 vs
-§85.8].
+drug-specific prediction. For atom tokens an inference ablation (one fold-0 model, drug self-attention off: removing them helped, the model lost 0.007 with
+them on unseen cells) and a retraining ablation (one dev-carve seed: a model trained without them is 0.0086 worse) disagree in sign;
+they differ in split, estimand and seed count, so we report this as an observation, not a finding [§37, §85.2 rule 9, §85.8].
 
 **Variance, not architecture (Figure 6).** Averaging the predictions of three seeds raises the dev score from 0.4369 to 0.4662
-(+0.029), about 3.4× the largest candidate effect, and the gain survives cell-centring (+0.027) [§85.9]. Seed predictions correlate
-0.81 per row; an equicorrelated fit puts the infinite-ensemble ceiling at ≈ 0.48 (an explanation-level estimate, review 029). Weight averaging along one trajectory (EMA) was
-null twice [§21, §38.4], and averaging dropout masks at inference recovers ~3 % of the gain (+0.0009) [§90.3]. ⏳ *[V2 — a snapshot
+(+0.029), about 1.4× the largest candidate movement (C3, −0.0205) and 6× the largest gain (C6, +0.0048), and the gain survives
+cell-centring (+0.027) [§85.9]. Seed predictions correlate
+0.81 per row; an equicorrelated fit puts the infinite-ensemble ceiling at ≈ 0.48 (an explanation-level estimate, review 029). EMA was null twice [§21, §38.4], but under the WSD schedule its window lies in the annealed tail, so it does not test averaging along
+the trajectory (V2 does); averaging dropout masks at inference recovers ~3 % of the gain (+0.0009) [§90.3]. ⏳ *[V2 — a snapshot
 ensemble within one run — and V1 with stochastic depth, §90.]*
 
 ### 5.4 Interpretability (Figures 4, 7)
 - **Atom→gene attention does not recover drug targets** (median rank percentile 0.560) [C 4.1a].
-- **A gradient readout of the named pathway layer** is NULL: calibrated against untrained models, untrained inits reach the same floor
-  on 2 of 3 initialisations, so the within-model permutation p is not calibrated across initialisations [§86.4].
+- **A gradient readout of the named pathway layer** is NULL [§86.4]; untrained models' readouts (the output projection) cleared the
+  −0.02 floor with p < 0.05 on 2 of 3 initialisations, so the within-model permutation p is not calibrated across initialisations
+  (review 023).
 - **The named pathway readout ranks which pathways move in held-out cells** — stated with its controls (Figure 7; §85.10, C 4.16):
   *"a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which pathways move
   in held-out cells at ρ = 0.273, +0.044 above a cell-agnostic training-row prior (0.229)"*; its own readout beats the same model's
@@ -142,8 +157,8 @@ ensemble within one run — and V1 with stochastic depth, §90.]*
 ## 6. Methods lessons (each with its measurement)
 1. **Chance for pathway alignment is not 0.5**: an untrained model scores 0.218 against a label-permutation null of 0.229 [C 4.15].
 2. **A column-permutation null is not enough either**: a cell-agnostic prior reaches 0.229 of a readout's 0.273 [§85.10].
-3. **Calibrate interpretability against untrained initialisations**: untrained models reached the gradient readout's floor on 2 of 3
-   inits [§86.4].
+3. **Calibrate interpretability against untrained initialisations**: untrained models' output projections cleared the −0.02 floor
+   with p < 0.05 on 2 of 3 initialisations [§86.4, review 023].
 4. **Score the drug-specific component beside the raw score**: the accepted sign head moved the raw score +0.0048 and the cell-centred
    score +0.0002 [§85.10]; the seed ensemble moved both [§85.9].
 5. **DataParallel with a shared seed duplicates dropout masks** across replicas for a whole run [§85.5, C 6.13].
@@ -154,8 +169,9 @@ ensemble within one run — and V1 with stochastic depth, §90.]*
 ## 7. Limitations
 One cold-cell fold; one XPert run and, in §87, one v9 run, so the row-bootstrap intervals carry no run-to-run variance (P7 adds three
 v9 seeds, not XPert seeds). Three of eight test cells have no chromatin. Landmark genes only. Most L1000 signatures are close to inert
-(~75 %) [C 6.1], which bounds any per-row correlation. Every candidate was screened on six dev cells; with that few, ≥ 4 of 6 is a
-consistency filter, not a test.
+(~75 %) [C 6.1], which bounds any per-row correlation. Every §85 increment was measured on six dev cells, against a baseline whose own selection saw test scores; with that few cells,
+≥ 4 of 6 is a consistency filter, not a test. The pathway alignment is so far a dev-cell number; its test-cell measurement comes with
+P7 (§85.12 item 8).
 
 ## Figures
 F1 per-cell head-to-head · F2 XPert reproduction · F3 dev screens · F4 gradient MoA probe with untrained calibration · F5 input
