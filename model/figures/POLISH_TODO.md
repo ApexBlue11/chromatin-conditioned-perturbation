@@ -9,3 +9,7 @@ Presentation only:
   regenerate as screens complete.
 - F4: y label "S − label-permutation null (rank percentile; lower = better)"; annotate each bar with its p.
 - All: no claim-making titles; keep the reading as a small annotation, not a title.
+
+**Status 2026-09-30 (W24 + PI):** F1–F5 polish applied; F3 carries every screen (1- and 3-seed, decisions, rule 6/7 references
+named, centred panel); F6 (seed ensemble) and F7 (pathway alignment vs the cell-agnostic prior and the in-cell rule) added. Still to do:
+regenerate F3/F6 after V2/V1-full, add the P7 head-to-head (F8) after P7, and the dissection bar chart (§37/§55) and forensics figure.
