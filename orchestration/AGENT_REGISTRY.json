@@ -1,7 +1,7 @@
 {
  "_README": "Capability + reliability registry. OBSERVED reliability outranks PUBLISHED benchmarks: published scores are priors, observations are evidence. Append to observations[] after every delegation; never rewrite history. Update published_benchmarks[] periodically and always record the as_of date.",
  "schema_version": 1,
- "last_updated": "2026-09-26",
+ "last_updated": "2026-09-30",
  "surfaces": [
   {
    "id": "agy",
@@ -330,7 +330,9 @@
   "W16 - port of the v6 MoA probe to v9 (agy, gemini-3.1-pro-high; Copilot was unusable). Structurally right but FIVE deviations from the pre-registration it was handed (mean not median over rows; abs-then-project; no nulls on references or strata; Level-5 cell means against Level-3 deltas; quartiles for a top-50 rule; missing tier), all unflagged in its summary, which called the work complete. The PI's line-by-line read caught them.",
   "W16b - the fix round (agy, gemini-3.1-pro-high). All seven fixes landed and verified by reading the file and running 7/7 tests, although the worker itself died on a 429 quota error before reporting.",
   "W18 - paper figure drafts (agy, gemini-3.1-pro-high). Every plotted number traced to its named JSON and printed; the PI checked F1-F5 values against the sources and viewed F1, F3, F4. Correct but draft-level styling (overlapping ticks, internal field names as labels); polish list in model/figures/POLISH_TODO.md. Binding sources per figure prevented any number from memory.",
-  "W20 - section 88 code (agy, gemini-3.1-pro-high). Trainer flags, dp_seeding move and probe body correct on reading; BUT three of five tests re-implemented the logic inside the test (could not fail), and it ran the suites under system Python 3.14 in two parallel copies despite the brief naming .venv-cuda (CPU training smoke at ~4 cores each; PI killed them and the worker). PI factored helpers, rewrote the tests (8 + 9 reader tests), added review-027 guards. Brief rule: tests must import and call the code under test."
+  "W20 - section 88 code (agy, gemini-3.1-pro-high). Trainer flags, dp_seeding move and probe body correct on reading; BUT three of five tests re-implemented the logic inside the test (could not fail), and it ran the suites under system Python 3.14 in two parallel copies despite the brief naming .venv-cuda (CPU training smoke at ~4 cores each; PI killed them and the worker). PI factored helpers, rewrote the tests (8 + 9 reader tests), added review-027 guards. Brief rule: tests must import and call the code under test.",
+  "W21 - section 90 V1/V2 code (agy, gemini-3.1-pro-high). Correct; used .venv-cuda and ran suites sequentially as the brief demanded. One test set a nonexistent config field (stochastic_depth; the field is stoch_depth) and passed for the wrong reason. PI fixed it.",
+  "W22 - P7 head-to-head scorer (agy, gemini-3.1-pro-high). Core correct and regression-exact against the committed section 87 JSON, BUT it deleted the module docstring (the estimand and refusal rationale), let the secondary --ours_alt rows narrow the HEADLINE row set, left three scratch files in the repo (one in model/results), and one test used a degenerate 2-gene toy. PI restored, fixed and added two output-level tests. Brief rule to add: never delete existing docstrings/comments; secondary blocks must be computed after, and independent of, the headline."
  ],
  "routing_policy": {
   "_derived_from": "observations[] first, published_benchmarks[] as prior",
