@@ -6027,6 +6027,28 @@ No decision is taken from this; the variance-reduction batch is §90.
    0.035; a consistency filter) and the mean of per-cell increments is > 0 on every seed. `--rows test` is committed and reviewed
    before P7 and is never run on any checkpoint before then.
 
+### 85.13 P6 read (§85.11's rule, mechanically) — **CONFIRMED** → P7 stack `c6_v2` (2026-09-30)
+Kernel `lincs-v9dev-p6` (the P2 command + `--sign_head_w 0.492066 --snapshot_cycles 3`, seeds 0–2; `candidate_flags`
+confirm both), GUARD 4 (dev rows `51e7e4ab…`) and GUARD 5 (distinct, unequal on all 12 epochs) OK, 19,073 s. Scored by
+`score_dev.py --centred` against P2; rule 8 by `align_dev.py --readout aux --no_nulls` on the three final-snapshot checkpoints.
+
+| arm | seeds | mean (sd) | Δ vs μ0 | Δ cell means | cells | Δ_centred | aux alignment |
+|---|---|---|---|---|---|---|---|
+| **P6 = C6 + V2** (mean of 3 snapshots) | 0.45607 / 0.45284 / 0.45722 | 0.45537 (0.00227) | **+0.01844** | +0.02144 | 6 / 6 | **+0.01326** | **0.2650** |
+| P6-last (final snapshot alone) | 0.44606 / 0.44360 / 0.44737 | 0.44568 (0.00191) | +0.00874 | +0.00986 | 5 / 6 | +0.00344 | — |
+| V2 alone (§90.7) | 0.45196 / 0.45852 / 0.45039 | 0.45363 (0.00431) | +0.01669 | +0.01796 | 6 / 6 | +0.01697 | 0.2675 |
+| C6 alone (§85.8) | 0.44179 / 0.44007 / 0.44327 | 0.44171 (0.00160) | +0.00477 | +0.00746 | 4 / 6 | +0.00015 | 0.2624 |
+
+Conjuncts: rule 7: Δ ≥ 0.00327 OK; rule 7: Δ cell means > 0 OK; rule 7: ≥ 4 of 6 cells OK; rule 8: aux ≥ 0.2532 OK; rule 8: aux > 0.2292 OK; Δ(stack) ≥ 0.01369 OK; Δ_centred > 0 OK → **CONFIRMED**. Aux alignment per seed 0.2757 / 0.2646 / 0.2546; in-cell licensed (5 / 6 cells; HL60 −0.0001, V2 alone had 6 / 6; seed means +0.074 / +0.051 / +0.063).
+
+**Reported, not read.** (i) On the per-row score the stack adds **+0.00175** over V2 alone, less than C6's own **+0.00477** over P2;
+seed-paired (same seed → same initialisation and data order) P6 − V2 is +0.00411 / −0.00569 / +0.00682, mixed in sign, so the
+stack is not shown to beat V2 alone — §85.11 asks only that it not fall more than 0.003 below its best component.
+(ii) On the cell-centred co-criterion the stack is **0.00371 below V2 alone** (+0.01326 vs +0.01697; seed-paired −0.00287 / −0.00965 / +0.00138), and C6 alone moved it by only
++0.00015:
+the sign head's gain is in the per-cell mean profile, not in ranking drugs within a cell. The paper states this beside any
+C6 claim. (iii) Per-cell Δ (P6): HEK293T +0.0165, HL60 +0.0202, LNCAP +0.0086, SKBR3 +0.0096, U937 +0.0403, VCAP +0.0248.
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15

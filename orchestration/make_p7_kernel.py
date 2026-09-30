@@ -18,7 +18,7 @@ CODE = r'''# RESULTS 85.12 (pre-registered): P7, the final v9 -- stack __STACK__
 # seeds 0-2, BLINDED: no model-based score on the test rows is computed, printed or saved here. coldcell_h2h.py scores the
 # predictions once, locally. Every output is staged in /tmp and moved to /kaggle/working only after every guard passes.
 import sys, os, glob, re, json, shutil, hashlib, subprocess, torch, numpy as np
-# LOCAL SMOKE ONLY (env LINCS_P7_SMOKE_DIR): a 1-seed, 1-epoch, 300-row run on the DEV carve, to exercise this glue before the
+# LOCAL SMOKE ONLY (env LINCS_P7_SMOKE_DIR): a 1-seed, 1-epoch (3 with snapshots), 300-row run on the DEV carve, to exercise this glue before the
 # GPU spend. It never touches the test cells. On Kaggle the variable is unset and every line below takes the P7 path.
 SMOKE = os.environ.get('LINCS_P7_SMOKE_DIR')
 if SMOKE:
@@ -79,7 +79,9 @@ argv = ['--bundle', 'xpert_mdmt_splits.npz', '--split', 'split_cold_cell_1', '--
         '--seeds', '3', '--seed_start', '0', '--epochs', '12', '--d_model', '256'] + __FLAGS__ + [
         '--no_test_metrics', '--save_pred', STAGE + '/v9p7.npz', '--save_ckpt', STAGE + '/v9p7.pt']
 if SMOKE:
-    argv += ['--dev_cells', '6', '--limit_train', '300', '--epochs', '1', '--seeds', '1', '--batch', '2']   # last wins
+    # last wins; with --snapshot_cycles 3 the arm needs epochs % 3 == 0, so the smoke runs one epoch per cycle
+    argv += ['--dev_cells', '6', '--limit_train', '300', '--epochs', '3' if '--snapshot_cycles' in argv else '1',
+             '--seeds', '1', '--batch', '2']
 print('P7 argv:', ' '.join(argv), flush=True)
 LEAK = re.compile(r'pearson[^\n]{0,40}?[-+]?\d\.\d', re.I)
 
