@@ -20,8 +20,9 @@ treats as load-bearing — chromatin features, protein-interaction message passi
 losses at their pre-registered weights — add nothing detectable or harm; atom-level drug tokens are the exception (a model trained
 without them is worse, −0.0086, although removing them from one trained model at inference helped). One auxiliary objective (a
 per-gene direction head) is accepted, with no detectable change in the drug-specific component. A seed-specific prediction component
-(+0.029 from averaging three seeds, at three times the training compute) is larger than any architectural effect we measured
-[§37, §55, §85.8, §85.9]. **(iv)** For
+(+0.029 from averaging three seeds, at three times the training compute) is larger than any architectural effect we measured;
+a snapshot ensemble within one run recovers 0.57 of it (+0.017, accepted), inference-time dropout averaging 3–4 %
+[§37, §55, §85.8, §85.9, §90.7, §90.8]. **(iv)** For
 interpretability, attention and gradient readouts do not recover annotated drug mechanism beyond calibrated nulls [C 4.1a, §86.4];
 a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which pathways move
 in held-out cells (ρ 0.273, +0.044 above a cell-agnostic prior; measured so far on six dev cells) [§85.10, C 4.16]. ⏳ *[§88: a drug-dependent pathway readout against annotated mechanism.]* We also document how the benchmark's own numbers
@@ -137,8 +138,19 @@ they differ in split, estimand and seed count, so we report this as an observati
 (+0.029), about 1.4× the largest candidate movement (C3, −0.0205) and 6× the largest gain (C6, +0.0048), and the gain survives
 cell-centring (+0.027) [§85.9]. Seed predictions correlate
 0.81 per row; an equicorrelated fit puts the infinite-ensemble ceiling at ≈ 0.48 (an explanation-level estimate, review 029). EMA was null twice [§21, §38.4], but under the WSD schedule its window lies in the annealed tail, so it does not test averaging along
-the trajectory (V2 does); averaging dropout masks at inference recovers ~3 % of the gain (+0.0009) [§90.3]. ⏳ *[V2 — a snapshot
-ensemble within one run — and V1 with stochastic depth, §90.]*
+the trajectory. **A snapshot ensemble within one run** (V2: three 4-epoch annealed cycles in place of one 12-epoch schedule, the
+three end-of-cycle predictions averaged) scores +0.0167 over the baseline at three seeds, 6 of 6 dev cells, cell-centred +0.0170:
+0.57 of the three-seed gain at one run's cost, accepted [§90.7]. Part of it is the schedule, not the averaging: the final snapshot
+alone is +0.0077, and one 4-epoch annealed cycle already gives ≈ +0.005, so we claim no benefit from warm restarts (review 037).
+**Averaging at inference does not substitute:** eight passes with dropout (V1-drop, +0.0009) or dropout plus stochastic depth
+(V1-full, +0.0010), paired against the same checkpoint's deterministic pass, recover 3–4 % of the seed-ensemble gain and are not
+accepted [§90.8].
+
+**The final dev-selected model (P6).** The sign head and the snapshot ensemble together (three seeds) score +0.0184 over the
+baseline, 6 of 6 dev cells, cell-centred +0.0133, aux alignment 0.265; this passes the pre-registered stack rule, so its recipe,
+retrained on all training cells, is what the second comparison scores against XPert [§85.11, §85.13]. It is **not shown to beat the snapshot ensemble alone**: seed-paired
+differences are +0.004, −0.006 and +0.007, and on the cell-centred score the stack is 0.004 below V2 alone. The sign head's
+contribution is to per-cell mean profiles, consistent with its Δ_c of +0.0002 when added alone [§85.13].
 
 ### 5.4 Interpretability (Figures 4, 7)
 - **Atom→gene attention does not recover drug targets** (median rank percentile 0.560) [C 4.1a].
@@ -160,7 +172,8 @@ ensemble within one run — and V1 with stochastic depth, §90.]*
 3. **Calibrate interpretability against untrained initialisations**: untrained models' output projections cleared the −0.02 floor
    with p < 0.05 on 2 of 3 initialisations [§86.4, review 023].
 4. **Score the drug-specific component beside the raw score**: the accepted sign head moved the raw score +0.0048 and the cell-centred
-   score +0.0002 [§85.10]; the seed ensemble moved both [§85.9].
+   score +0.0002 [§85.10]; the seed ensemble moved both [§85.9]; adding the sign head to the snapshot ensemble left the raw
+   score within seed noise of V2 alone and lowered the centred one by 0.004 [§85.13].
 5. **DataParallel with a shared seed duplicates dropout masks** across replicas for a whole run [§85.5, C 6.13].
 6. **A row bootstrap on a cell-level question licenses trivial effects**: the retracted chromatin claim was +0.0042 row-pooled against
    +0.00036 by cluster [§51–55].
@@ -175,5 +188,5 @@ P7 (§85.12 item 8).
 
 ## Figures
 F1 per-cell head-to-head · F2 XPert reproduction · F3 dev screens · F4 gradient MoA probe with untrained calibration · F5 input
-coverage (supplement) · F6 seed ensemble · F7 pathway alignment against its references · ⏳ F8 P7 head-to-head · ⏳ dissection and
+coverage (supplement) · F6 variance: seed, snapshot and inference-time ensembles · F7 pathway alignment against its references · ⏳ F8 P7 head-to-head · ⏳ dissection and
 forensics figures.
