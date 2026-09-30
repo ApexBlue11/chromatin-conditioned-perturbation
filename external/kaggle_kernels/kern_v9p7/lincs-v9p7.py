@@ -50,7 +50,13 @@ if miss:
 _dp = glob.glob(os.path.join(SRC, 'dp_seeding.py'))
 if not _dp or 'def seed_devices' not in open(_dp[0], encoding='utf-8').read():
     raise SystemExit('FATAL: mounted dp_seeding.py missing or lacks seed_devices. Refusing.')
-print('mounted code verified', flush=True)
+# GUARD 2b (review 035 C3): the files that define the run are byte-identical to the reviewed upload (pinned at generation).
+PINS = {'xpert_arm.py': '75c58f52051296b326e57613feee7be8f7097d1b', 'model_v9.py': 'f53c8b6a88457de7badd8dc3c6563e17de43151e', 'modules_v9.py': '4140bf702be5b1a75d1f767a53d9290d8d905d22', 'config_v9.py': '4b4fccca684dec3346a1d9abf09728dc8f3fc997', 'dp_seeding.py': '69f1dad31500d48f111d9f05b0a13cd113d6562a', 'modules_v7.py': 'f169402ac7034d94c25671d4ce59cb4af224ce37'}
+for _f, _h in (PINS.items() if not SMOKE else []):     # the local smoke runs the repo tree (not flat), so pins are not checked
+    _got = hashlib.sha1(open(os.path.join(SRC, _f), 'rb').read()).hexdigest()
+    if _got != _h:
+        raise SystemExit('FATAL: mounted %s sha1 %s != pinned %s. Refusing.' % (_f, _got, _h))
+print('mounted code verified (strings + %d pinned sha1s)' % len(PINS), flush=True)
 
 shutil.rmtree(STAGE, ignore_errors=True); os.makedirs(STAGE)
 argv = ['--bundle', 'xpert_mdmt_splits.npz', '--split', 'split_cold_cell_1', '--dp_seed_mode', 'distinct',
@@ -119,8 +125,22 @@ for p in preds:
     if not SMOKE and (len(ri) != 21151 or got != WANT):
         fail('GUARD 6: %s is not 87\'s row set' % os.path.basename(p))
 
-for f in sorted(glob.glob(STAGE + '/*')):
-    shutil.move(f, os.path.join(WORKDIR, os.path.basename(f)))
-for f in sorted(f for f in glob.glob(os.path.join(WORKDIR, '*')) if os.path.isfile(f)):
-    print('%9.2f MB  %s  sha1 %s' % (os.path.getsize(f) / 1e6, f, hashlib.sha1(open(f, 'rb').read()).hexdigest()), flush=True)
-print('P7 complete: predictions staged out; score them once with coldcell_h2h.py (RESULTS 85.12 item 5)', flush=True)
+# review 035 C1: each file lands atomically (.part on the destination filesystem, then os.replace), and P7_COMPLETE.json is
+# written LAST with every file's sha1. The local scorer refuses to run without it, so an interrupted move is unscorable.
+sha = lambda f: hashlib.sha1(open(f, 'rb').read()).hexdigest()
+manifest = {}
+for f in sorted(g for g in glob.glob(STAGE + '/*') if os.path.isfile(g)):
+    dst = os.path.join(WORKDIR, os.path.basename(f))
+    shutil.copyfile(f, dst + '.part')
+    os.replace(dst + '.part', dst)
+    manifest[os.path.basename(f)] = sha(dst)
+if not SMOKE:
+    manifest[os.path.basename(js[0])] = sha(js[0])   # the arm JSON already sits in /kaggle/working
+for n, h in sorted(manifest.items()):
+    print('%9.2f MB  %s  sha1 %s' % (os.path.getsize(os.path.join(WORKDIR, n)) / 1e6, n, h), flush=True)
+done = os.path.join(WORKDIR, 'P7_COMPLETE.json')
+json.dump({'complete': True, 'stack': 'P2 + C6', 'argv': argv, 'n_seeds': N_SEEDS, 'files': manifest,
+           'guard6_rows_sha1': WANT, 'pins': PINS}, open(done + '.part', 'w'), indent=1)
+os.replace(done + '.part', done)
+print('P7 complete: %d files + P7_COMPLETE.json; score once with model/v9/score_p7.py (RESULTS 85.12 item 5)' % len(manifest),
+      flush=True)

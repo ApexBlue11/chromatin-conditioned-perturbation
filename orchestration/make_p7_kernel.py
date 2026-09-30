@@ -65,7 +65,13 @@ if miss:
 _dp = glob.glob(os.path.join(SRC, 'dp_seeding.py'))
 if not _dp or 'def seed_devices' not in open(_dp[0], encoding='utf-8').read():
     raise SystemExit('FATAL: mounted dp_seeding.py missing or lacks seed_devices. Refusing.')
-print('mounted code verified', flush=True)
+# GUARD 2b (review 035 C3): the files that define the run are byte-identical to the reviewed upload (pinned at generation).
+PINS = __PINS__
+for _f, _h in (PINS.items() if not SMOKE else []):     # the local smoke runs the repo tree (not flat), so pins are not checked
+    _got = hashlib.sha1(open(os.path.join(SRC, _f), 'rb').read()).hexdigest()
+    if _got != _h:
+        raise SystemExit('FATAL: mounted %s sha1 %s != pinned %s. Refusing.' % (_f, _got, _h))
+print('mounted code verified (strings + %d pinned sha1s)' % len(PINS), flush=True)
 
 shutil.rmtree(STAGE, ignore_errors=True); os.makedirs(STAGE)
 argv = ['--bundle', 'xpert_mdmt_splits.npz', '--split', 'split_cold_cell_1', '--dp_seed_mode', 'distinct',
@@ -134,19 +140,45 @@ for p in preds:
     if not SMOKE and (len(ri) != 21151 or got != WANT):
         fail('GUARD 6: %s is not 87\'s row set' % os.path.basename(p))
 
-for f in sorted(glob.glob(STAGE + '/*')):
-    shutil.move(f, os.path.join(WORKDIR, os.path.basename(f)))
-for f in sorted(f for f in glob.glob(os.path.join(WORKDIR, '*')) if os.path.isfile(f)):
-    print('%9.2f MB  %s  sha1 %s' % (os.path.getsize(f) / 1e6, f, hashlib.sha1(open(f, 'rb').read()).hexdigest()), flush=True)
-print('P7 complete: predictions staged out; score them once with coldcell_h2h.py (RESULTS 85.12 item 5)', flush=True)
+# review 035 C1: each file lands atomically (.part on the destination filesystem, then os.replace), and P7_COMPLETE.json is
+# written LAST with every file's sha1. The local scorer refuses to run without it, so an interrupted move is unscorable.
+sha = lambda f: hashlib.sha1(open(f, 'rb').read()).hexdigest()
+manifest = {}
+for f in sorted(g for g in glob.glob(STAGE + '/*') if os.path.isfile(g)):
+    dst = os.path.join(WORKDIR, os.path.basename(f))
+    shutil.copyfile(f, dst + '.part')
+    os.replace(dst + '.part', dst)
+    manifest[os.path.basename(f)] = sha(dst)
+if not SMOKE:
+    manifest[os.path.basename(js[0])] = sha(js[0])   # the arm JSON already sits in /kaggle/working
+for n, h in sorted(manifest.items()):
+    print('%9.2f MB  %s  sha1 %s' % (os.path.getsize(os.path.join(WORKDIR, n)) / 1e6, n, h), flush=True)
+done = os.path.join(WORKDIR, 'P7_COMPLETE.json')
+json.dump({'complete': True, 'stack': '__STACK__', 'argv': argv, 'n_seeds': N_SEEDS, 'files': manifest,
+           'guard6_rows_sha1': WANT, 'pins': PINS}, open(done + '.part', 'w'), indent=1)
+os.replace(done + '.part', done)
+print('P7 complete: %d files + P7_COMPLETE.json; score once with model/v9/score_p7.py (RESULTS 85.12 item 5)' % len(manifest),
+      flush=True)
 '''
 
 stack = sys.argv[1]
 flags = STACKS[stack]
+# review 035 C3: pin the uploaded bytes the kernel will load; each must equal the repo file up to line endings
+UP = r'C:\Projects\LINCS\external\kaggle_v9_src'
+REPO = {'xpert_arm.py': r'model\v9', 'model_v9.py': r'model\v9', 'modules_v9.py': r'model\v9', 'config_v9.py': r'model\v9',
+        'dp_seeding.py': r'model\v9', 'modules_v7.py': r'model\v7'}
+import hashlib
+pins = {}
+for f, sub in REPO.items():
+    up = open(os.path.join(UP, f), 'rb').read()
+    rp = open(os.path.join(r'C:\Projects\LINCS', sub, f), 'rb').read()
+    assert up.replace(b'\r\n', b'\n') == rp.replace(b'\r\n', b'\n'), 'upload of %s differs from the repo' % f
+    pins[f] = hashlib.sha1(up).hexdigest()
 d = os.path.join(ROOT, 'kern_v9p7')
 os.makedirs(d, exist_ok=True)
 slug = 'lincs-v9p7'
-code = CODE.replace('__STACK__', 'P2 + ' + stack.upper().replace('_', ' + ')).replace('__FLAGS__', repr(flags))
+code = (CODE.replace('__STACK__', 'P2 + ' + stack.upper().replace('_', ' + ')).replace('__FLAGS__', repr(flags))
+        .replace('__PINS__', repr(pins)))
 io.open(os.path.join(d, slug + '.py'), 'w', encoding='utf-8', newline='\n').write(code)
 meta = {'id': 'apexblue/' + slug, 'title': 'lincs v9p7', 'code_file': slug + '.py', 'language': 'python',
         'kernel_type': 'script', 'is_private': True, 'enable_gpu': True, 'enable_tpu': False, 'enable_internet': False,

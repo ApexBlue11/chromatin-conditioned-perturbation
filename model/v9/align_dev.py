@@ -31,6 +31,9 @@ from xpert_arm import XPertData, find
 from interp_v9 import pathway_alignment
 
 DEV_SHA1 = '51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980'
+# RESULTS 85.12 item 8 (review 035 C2): --rows test runs ONLY on P7's three checkpoints, whose sha1s are copied here from the
+# P7 kernel's P7_COMPLETE.json before it is run. While any pin is None, --rows test refuses.
+P7_SHA1 = [None, None, None]
 
 
 def load_dev(split, dev_cells=6, dev_seed=0, ablate_epi=False, rows_mode='dev'):
@@ -175,6 +178,12 @@ def main():
     ap.add_argument('--rows', choices=['dev', 'test'], default='dev')
     a = ap.parse_args()
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
+    if a.rows == 'test':
+        if any(h is None for h in P7_SHA1):
+            raise SystemExit('FATAL: --rows test refuses until P7_SHA1 is pinned from P7_COMPLETE.json (RESULTS 85.12 item 8)')
+        got = sorted(hashlib.sha1(open(p, 'rb').read()).hexdigest() for p in a.ckpts)
+        if got != sorted(P7_SHA1):
+            raise SystemExit('FATAL: --rows test runs only on the three pinned P7 checkpoints; got %r' % got)
     D, M, ppi, gv = None, None, None, None
     per = []
     for p in a.ckpts:

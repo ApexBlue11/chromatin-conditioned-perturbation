@@ -173,3 +173,11 @@ if __name__ == '__main__':
     test_d()
     test_a_b()
     print("All tests passed.")
+
+
+def test_pi_rows_test_refuses_unpinned():
+    """PI (review 035 C2): --rows test refuses while P7_SHA1 is unpinned, on any checkpoint (checked before any data loads)."""
+    ck = os.path.join(HERE, '..', '..', 'external', 'kaggle_out', 'v9dev_base2', 'v9dev_base_dev6s0_seed0.pt')
+    r = subprocess.run([sys.executable, os.path.join(HERE, 'align_dev.py'), '--rows', 'test', '--readout', 'aux',
+                        '--no_nulls', '--ckpts', ck, '--label', 'x'], capture_output=True, text=True)
+    assert r.returncode != 0 and 'P7_SHA1' in r.stderr, r.stderr[-300:]
