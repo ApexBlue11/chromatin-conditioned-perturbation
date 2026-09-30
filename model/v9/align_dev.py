@@ -33,17 +33,52 @@ from interp_v9 import pathway_alignment
 DEV_SHA1 = '51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980'
 
 
-def load_dev(split, dev_cells=6, dev_seed=0, ablate_epi=False):
+def load_dev(split, dev_cells=6, dev_seed=0, ablate_epi=False, rows_mode='dev'):
     roots = ['/kaggle/input', r'C:\Projects\LINCS', os.path.join(r'C:\Projects\LINCS', 'external')]
     npz = find('xpert_mdmt_splits.npz', roots)
-    dev_args = argparse.Namespace(dev_cells=dev_cells, dev_seed=dev_seed, dev_min_rows=200, dev_max_rows=2000)
+    if rows_mode == 'dev':
+        dev_args = argparse.Namespace(dev_cells=dev_cells, dev_seed=dev_seed, dev_min_rows=200, dev_max_rows=2000)
+    else:
+        dev_args = argparse.Namespace(dev_cells=0, dev_seed=dev_seed, dev_min_rows=200, dev_max_rows=2000)
     D = XPertData(npz, roots, split, ablate_epi=ablate_epi, dev_args=dev_args)
     sha = hashlib.sha1(np.sort(D.row_index[D.te].astype(np.int64)).tobytes()).hexdigest()
-    assert sha == DEV_SHA1, 'not the RESULTS 85.4 dev rows: %s' % sha
+    if rows_mode == 'dev':
+        assert sha == DEV_SHA1, 'not the RESULTS 85.4 dev rows: %s' % sha
+    else:
+        assert sha == 'be276e2385330240c2e6237e5b67eb32185d1dde', 'not the test rows: %s' % sha
     M = np.load(find('M_pathway_v9.npy', roots))
     ppi = np.load(find('STRING_adj_978_v9.npy', roots))
     gv = np.load(find('gene_vectors_978.npy', roots))
     return D, M, ppi, gv
+
+def licence(per_seed_cell_increments, per_seed_alignment, prior, min_cells):
+    beats_prior_every_seed = all(a > prior for a in per_seed_alignment)
+    
+    if not per_seed_cell_increments or not per_seed_cell_increments[0]:
+        return {
+            'beats_prior_every_seed': beats_prior_every_seed,
+            'cells_positive': 0,
+            'seed_means_positive': False,
+            'in_cell_licensed': False
+        }
+
+    cells = sorted(per_seed_cell_increments[0].keys())
+    m3 = {c: float(np.mean([r[c] for r in per_seed_cell_increments])) for c in cells}
+    cells_positive = int(sum(v > 0 for v in m3.values()))
+    
+    seed_means = [float(np.mean(list(r.values()))) for r in per_seed_cell_increments]
+    seed_means_positive = all(m > 0 for m in seed_means)
+    
+    in_cell_licensed = bool(cells_positive >= min_cells and seed_means_positive)
+    
+    return {
+        'beats_prior_every_seed': beats_prior_every_seed,
+        'cells_positive': cells_positive,
+        'seed_means_positive': seed_means_positive,
+        'in_cell_licensed': in_cell_licensed,
+        'per_cell_3seed_mean': m3,
+        'seed_means': seed_means
+    }
 
 
 def activations(model, D, idx, dev, readout='mean'):
@@ -137,6 +172,7 @@ def main():
     ap.add_argument('--out', default=None)
     ap.add_argument('--readout', choices=['mean', 'aux'], default='mean')
     ap.add_argument('--no_nulls', action='store_true', help='skip the permutation and cell-shuffle nulls (slow)')
+    ap.add_argument('--rows', choices=['dev', 'test'], default='dev')
     a = ap.parse_args()
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
     D, M, ppi, gv = None, None, None, None
@@ -145,7 +181,7 @@ def main():
         ck = torch.load(p, map_location='cpu', weights_only=False)
         assert ck['split'] == a.split
         if D is None:
-            D, M, ppi, gv = load_dev(a.split, ablate_epi=ck.get('ablate_epi', False))
+            D, M, ppi, gv = load_dev(a.split, ablate_epi=ck.get('ablate_epi', False), rows_mode=a.rows)
             delta = D.X[D.te] - D.C[D.te]
             cells = np.asarray(D.cell[D.te]) if hasattr(D, 'cell') else None
             prior_tr = training_prior(D, M)
@@ -184,14 +220,26 @@ def main():
            'sd_alignment': float(np.std([r['alignment'] for r in per], ddof=1)) if len(per) > 1 else None}
     if per and per[0]['in_cell_increment']:
         # RESULTS 85.10 (review 032 addendum): "in this cell" licensed iff the 3-seed mean per-cell increment is > 0 in >= 5 of
-        # 6 dev cells AND the mean of the six per-cell increments is > 0 on every seed.
-        cs = sorted(per[0]['in_cell_increment'])
-        m3 = {c: float(np.mean([r['in_cell_increment'][c] for r in per])) for c in cs}
-        res['in_cell'] = {'per_cell_3seed_mean': m3, 'cells_positive': int(sum(v > 0 for v in m3.values())),
-                          'seed_means': [r['in_cell_increment_mean'] for r in per],
-                          'licensed': bool(sum(v > 0 for v in m3.values()) >= 5 and
-                                           all(r['in_cell_increment_mean'] > 0 for r in per))}
-    out = a.out or os.path.join(HERE, '..', 'results', 'v9_dev_align_%s_%s.json' % (a.label, a.readout))
+        # 6 dev cells AND the mean of the six per-cell increments is > 0 on every seed. RESULTS 85.12 item 8 (review 034 C3): on the
+        # 8 test cells the threshold is >= 7 of 8, and "beats a cell-agnostic training-row prior" needs every seed above it.
+        min_cells = 5 if a.rows == 'dev' else 7
+        lic = licence(
+            [r['in_cell_increment'] for r in per],
+            [r['alignment'] for r in per],
+            ref['training_prior'],
+            min_cells=min_cells
+        )
+        res['in_cell'] = {
+            'per_cell_3seed_mean': lic['per_cell_3seed_mean'],
+            'cells_positive': lic['cells_positive'],
+            'seed_means': lic['seed_means'],
+            'licensed': lic['in_cell_licensed'],
+            'min_cells': min_cells,
+            'beats_training_prior_every_seed': lic['beats_prior_every_seed'],
+            'training_prior': ref['training_prior']
+        }
+    suffix = '_test' if a.rows == 'test' else ''
+    out = a.out or os.path.join(HERE, '..', 'results', f'v9_dev_align_{a.label}_{a.readout}{suffix}.json')
     json.dump(res, open(out, 'w'), indent=1)
     print(json.dumps({k: v for k, v in res.items() if k != 'per_checkpoint'}, indent=1))
 

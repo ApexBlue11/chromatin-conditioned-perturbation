@@ -323,6 +323,8 @@ def main():
                     help='C7: Chromatin-gated union-graph edges')
     ap.add_argument('--union_edges', action='store_true',
                     help='C7u: Ungated union-graph edges')
+    ap.add_argument('--no_test_metrics', action='store_true',
+                    help='RESULTS 85.12: compute and print no model-based score on the evaluated rows (P7 blinding)')
     a = ap.parse_args()
 
     roots = ['/kaggle/input', os.path.join(r'C:\Projects\LINCS'), os.path.join(r'C:\Projects\LINCS',
@@ -469,14 +471,16 @@ def main():
                 model.train()
                 
         pa, pd = np.mean(snapshots_pa, axis=0), np.mean(snapshots_pd, axis=0)
-        rec = {'seed': seed,
+        rec = {'seed': seed}
+        if not a.no_test_metrics:           # RESULTS 85.12 blinding: no model-based score on the evaluated rows
+            rec.update({
                'Pearson': round(their_pearson(pa, Xte), 4),                    # their convention: MEAN
                'Pearson_deg': round(their_pearson(pd, Xte - Cte), 4),
                'Pearson_median': round(float(np.nanmedian(pearson_rows(pa, Xte))), 4),
-               'Pearson_deg_median': round(float(np.nanmedian(pearson_rows(pd, Xte - Cte))), 4),
-               'seconds': round(time.time() - t0, 1),
-               'n_gpu': n_gpu, 'dp_seed_mode': a.dp_seed_mode, 'device_seeds': device_seeds,
-               'cuda_rng_states_equal_by_epoch': rng_equal_by_epoch}
+               'Pearson_deg_median': round(float(np.nanmedian(pearson_rows(pd, Xte - Cte))), 4)})
+        rec.update({'seconds': round(time.time() - t0, 1),
+                    'n_gpu': n_gpu, 'dp_seed_mode': a.dp_seed_mode, 'device_seeds': device_seeds,
+                    'cuda_rng_states_equal_by_epoch': rng_equal_by_epoch})
         if a.save_ckpt:
             ckpt_name = a.save_ckpt
             if getattr(a, 'dev_cells', 0) > 0:
@@ -506,8 +510,9 @@ def main():
                                 y_true=Xte.astype(np.float32), ctl_true=Cte.astype(np.float32),
                                 row_index=D.row_index[D.te] if hasattr(D, 'row_index') else D.te)
         runs.append(rec)
-        print(f'  [seed {seed}] Pearson {rec["Pearson"]:.4f}  Pearson_deg {rec["Pearson_deg"]:.4f}',
-              flush=True)
+        if not a.no_test_metrics:
+            print(f'  [seed {seed}] Pearson {rec["Pearson"]:.4f}  Pearson_deg {rec["Pearson_deg"]:.4f}',
+                  flush=True)
 
     def mmr(k):
         v = [r[k] for r in runs]
@@ -516,12 +521,15 @@ def main():
     print('\n' + '=' * 92)
     print(f'v9 ON XPERT\'S OWN BENCHMARK ({a.split}), mean [min, max] over {a.seeds} seeds')
     print('=' * 92)
-    print(f'  Pearson      (absolute) : {mmr("Pearson")}   | copy-the-control {nulls["copy_ctl_abs"]:.4f}')
-    print(f'  Pearson_deg  (delta)    : {mmr("Pearson_deg")}   | mean-drug {nulls["mean_drug_delta"]:.4f}')
-    print('  (mean of per-row Pearson, THEIR convention. Their published 0.9804 / 0.8440 is')
-    print('   the HDACi figure subset, NOT this benchmark, so it is not printed as a target --')
-    print('   the like-for-like number is their checkpoint run on these same rows by')
-    print('   model/v9/xpert_native_eval.py.)')
+    if a.no_test_metrics:
+        print('test metrics suppressed (--no_test_metrics): predictions only, scored once elsewhere (RESULTS 85.12)')
+    else:
+        print(f'  Pearson      (absolute) : {mmr("Pearson")}   | copy-the-control {nulls["copy_ctl_abs"]:.4f}')
+        print(f'  Pearson_deg  (delta)    : {mmr("Pearson_deg")}   | mean-drug {nulls["mean_drug_delta"]:.4f}')
+        print('  (mean of per-row Pearson, THEIR convention. Their published 0.9804 / 0.8440 is')
+        print('   the HDACi figure subset, NOT this benchmark, so it is not printed as a target --')
+        print('   the like-for-like number is their checkpoint run on these same rows by')
+        print('   model/v9/xpert_native_eval.py.)')
     print('')
     print(f'  {100 * (1 - D.known_cell_frac):.1f}% of rows use a cell line we have no chromatin or'
           f' lineage for; {D.n_dropped_test} test and {D.n_dropped_train} train rows were dropped'
@@ -573,16 +581,18 @@ def main():
         'chromatin_edges': a.chromatin_edges,
         'union_edges': a.union_edges,
     }
+    if a.no_test_metrics:
+        candidate_flags['no_test_metrics'] = True
 
     json_data = {'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
                'platform': platform,
                'n_dropped_test_unfeaturisable': int(getattr(D, 'n_dropped_test', 0)),
-               'ablate_epi': bool(a.ablate_epi),
-               'metric': 'mean of per-row Pearson (XPert metrics.py convention)',
-               'known_cell_frac': round(D.known_cell_frac, 4),
-               'n_train': int(len(D.tr)), 'n_test': int(len(D.te)),
-               'candidate_flags': candidate_flags}
-               
+               'ablate_epi': bool(a.ablate_epi)}
+    if not a.no_test_metrics:                                         # key order as before the flag existed
+        json_data['metric'] = 'mean of per-row Pearson (XPert metrics.py convention)'
+    json_data.update({'known_cell_frac': round(D.known_cell_frac, 4),
+                      'n_train': int(len(D.tr)), 'n_test': int(len(D.te)),
+                      'candidate_flags': candidate_flags})
     if getattr(a, 'dev_cells', 0) > 0:
         json_data['mode'] = 'dev'
         json_data['dev'] = D.dev_info

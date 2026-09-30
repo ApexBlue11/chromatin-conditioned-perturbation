@@ -478,7 +478,12 @@ def test_W21_smoke_run():
         '--bundle', 'xpert_mdmt_splits.npz',
         '--split', 'split_cold_cell_1'
     ]
+    # the arm writes its result JSON into model/results when run locally; remove it unless it existed before (PI fix)
+    stray = os.path.join(HERE, '..', 'results', 'v9_xpert_arm_split_cold_cell_1_seed0_dev6s0_snap3.json')
+    existed = os.path.exists(stray)
     res = subprocess.run(cmd, capture_output=True, text=True)
+    if not existed and os.path.exists(stray):
+        os.remove(stray)
     check('W21: xpert_arm.py smoke run passes', res.returncode == 0, f"rc={res.returncode}, stderr={res.stderr}")
     if res.returncode == 0:
         base = out_prefix.replace('.npz', '_dev6s0_seed0')
