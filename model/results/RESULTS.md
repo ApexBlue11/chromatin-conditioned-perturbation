@@ -5990,6 +5990,41 @@ No decision is taken from this; the variance-reduction batch is §90.
   upward bias of a max over selected components, so a stack whose true effect equals its best component will occasionally read
   "not confirmed"; the consequence is mild (P7 then uses the better single component).
 
+### 85.12 🔒 P7's execution, pre-registered — packet 034 as amended by review 034 (2026-09-30; before V2's data and before any P7 code runs)
+1. **The stack (§85.11):** P2 + **C6** (accepted); **+ V2** iff V2 is accepted and P6 confirms; **+ V1-full** iff it is accepted and
+   confirmed on C6's checkpoints — or, if V2 is also in the stack, confirmed on **P6's C6 + V2 checkpoints** under §85.11's rule
+   (review 034 C4); not confirmed there → V1 is dropped. If V1-full enters, the test-row MC inference script is written,
+   committed and **reviewed before P7**, with GUARD 6 on its outputs and the no-metrics rule below.
+2. **Command:** `xpert_arm.py --bundle xpert_mdmt_splits.npz --split split_cold_cell_1 --dp_seed_mode distinct --seeds 3
+   --seed_start 0 --epochs 12 --d_model 256 --sign_head_w 0.492066 [--snapshot_cycles 3] --no_test_metrics --save_pred …
+   --save_ckpt …` — §87's v9 command (`kern_cc1_epi_s0`) plus distinct seeding, the stack flags, 3 seeds and blinding; no
+   `--dev_cells` (all 32 training cells). ~1.9 GPU-h per seed. Runs after the quota reset.
+3. **Blinding (review 034 C1):** with `--no_test_metrics` the arm computes and prints **no model-based score on the test rows**
+   (the per-seed `Pearson*` fields, the per-seed print and the final aggregates are suppressed; the model-free nulls may stay).
+   The kernel stages every output in a scratch directory, moves the three seeds' files to `/kaggle/working` **only after the
+   last seed and every guard pass**, and deletes the staging directory on any failure; a guard greps the captured log and the
+   output JSON for any `Pearson` value and fails (deleting the outputs) if one is present.
+4. **Guards:** 1–3 as the dev kernels (dry-run locally against the staged upload before the push); GUARD 5 distinct; **GUARD 6:**
+   each seed's `row_index` has 21,151 rows with sorted sha1 `be276e2385330240c2e6237e5b67eb32185d1dde` (§87's scored v9 rows).
+5. **Touched once (ask 2):** `coldcell_h2h.py` is the only thing that ever scores P7's test predictions, once, locally:
+   `--theirs <O2 profile> --ours <3 seed files> [--ours_alt <3 V2-last files> --ours_alt_label "V2-last"] --h5ad … --split
+   split_cold_cell_1 --run_record <O2 run_record> --n_boot 20000 --seed 0`, preceded by an assert that the O2 profile's sha1
+   starts `69484323` (§87). A run that fails leaves no predictions (item 3); any test npz ever left by a failed run is deleted
+   before `coldcell_h2h.py` is run on it, with each file's sha1 and the deletion logged, and the rerun disclosed. A crash is not a
+   look and does not void P7.
+6. **Readings (§71.3's three rows applied to P7, review 034 C2; mechanical, by `coldcell_h2h.py`):** v9 wins → *"a dev-selected v9
+   generalises better than XPert as published"* (secondary, labelled *"dev-selected increments on a baseline partly chosen with
+   test-cell knowledge"*; §87 reported as no claim); XPert wins → *"uninterpretable as a model comparison — reported plainly"*;
+   otherwise → **no claim**. Width > 0.10 → uninformative. §71.7's admissibility unchanged (O2).
+7. **Secondary, never in the verdict:** per-seed blocks; the cell-centred score for **both** models (§85.10); `ensemble_own` (v9's
+   own row, no paired difference, §90.6); the **V2-last** row if V2 is stacked (§90.6 amended); C6's §85.10 wording.
+8. **Interpretability on the test cells (review 034 C3; reported beside P7, never in its verdict):** `align_dev.py --rows test` on
+   P7's three checkpoints, once, after P7: aux-readout alignment; the training-row prior recomputed from **P7's training rows (all
+   32 cells)**; licensed statements: *"beats a cell-agnostic training-row prior"* iff it does on **every seed**; *"in this cell"* iff
+   the 3-seed mean per-cell increment over the other-cells mean readout is **> 0 in ≥ 7 of 8 test cells** (one-sided sign p =
+   0.035; a consistency filter) and the mean of per-cell increments is > 0 on every seed. `--rows test` is committed and reviewed
+   before P7 and is never run on any checkpoint before then.
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
