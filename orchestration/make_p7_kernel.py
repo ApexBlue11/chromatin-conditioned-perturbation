@@ -11,7 +11,8 @@ import sys
 
 ROOT = r'C:\Projects\LINCS\external\kaggle_kernels'
 IMG = 'gcr.io/kaggle-private-byod/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461'
-STACKS = {'c6': ['--sign_head_w', '0.492066'], 'c6_v2': ['--sign_head_w', '0.492066', '--snapshot_cycles', '3']}
+STACKS = {'c6': ['--sign_head_w', '0.492066'], 'c6_v2': ['--sign_head_w', '0.492066', '--snapshot_cycles', '3'],
+          'v2': ['--snapshot_cycles', '3']}   # 'v2': P6 not confirmed -> the accepted component with the larger delta (85.11)
 
 CODE = r'''# RESULTS 85.12 (pre-registered): P7, the final v9 -- stack __STACK__ -- on all 32 training cells of split_cold_cell_1,
 # seeds 0-2, BLINDED: no model-based score on the test rows is computed, printed or saved here. coldcell_h2h.py scores the
