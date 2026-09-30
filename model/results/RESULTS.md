@@ -5985,7 +5985,9 @@ No decision is taken from this; the variance-reduction batch is §90.
   (inference only, 0 GPU-h); a same-sign paired Δ there doubles as §90.3's replication on another architecture.
 - **Confirmed iff** rule 7 against μ0, rule 8, **Δ(stack) ≥ max(Δ of its accepted components) − 0.003**, and — whenever the stack
   contains V1 or V2 — **Δ_centred(stack) > 0** (§90.2, review 033 C2). Confirmed → P7 uses the stack; not confirmed → P7 uses the
-  single accepted component with the larger Δ.
+  single accepted component with the larger Δ **that passes rule 8**; if that is V2 and V2 fails rule 8, P7 = P2 + C6 (review 037 C1, amended before P6 was read). **V2 passes rule 8**
+  (aux alignment 0.2743 / 0.2702 / 0.2580, mean 0.2675 ≥ 0.2532 and > 0.2292; in-cell licensed 6 / 6, seed means +0.073 /
+  +0.075 / +0.055; `v9_dev_align_V2_snap3_aux.json`; the final-snapshot weights).
 - **Operating characteristic (review 033 ask 2), stated:** the − 0.003 tolerance is ≈ 1.6–2.3 sd of Δ(stack) − Δ(best) before the
   upward bias of a max over selected components, so a stack whose true effect equals its best component will occasionally read
   "not confirmed"; the consequence is mild (P7 then uses the better single component).
@@ -6375,7 +6377,11 @@ Kernel `lincs-v9dev-v2` (the P2 command + `--snapshot_cycles 3`, seeds 0–2), G
 
 Rule 90.4: Δ ≥ threshold True, cell means > 0 True, ≥ 4 of 6 cells True, Δ_centred > 0 True → **ACCEPTED**. **Reported:** schedule effect
 (V2-last − P2) **+0.00773**; ensembling gain (V2 − V2-last) **+0.00896**; fraction of the 3-seed P2 ensemble recovered at one run's
-cost **0.57**. Per-cell Δ (V2): HEK293T +0.0155, HL60 +0.0176, LNCAP +0.0154, SKBR3 +0.0103, U937 +0.0178, VCAP +0.0206. §90.4's amendment to rule 10 now applies (a within-run snapshot average counts as that
+cost **0.57**. **The schedule effect is not attributable to warm restarts** (review 037 C2): a single 4-epoch annealed cycle (snapshot
+0: 0.4398 / 0.4468 / 0.4395) already gives ≈ +0.0051 over P2's 12-epoch run, consistent with 12 epochs over-fitting the training
+cells for cold-cell transfer; no restart benefit is claimed without a pre-registered 1 × 4 vs 3 × 4 test. V2 seed s and P2 seed
+s share initialisation, data order and mask stream, so V2 − P2 differs only in the schedule and the averaging (per-seed
+paired Δ +0.0169 / +0.0203 / +0.0129); rule 7's independent-samples threshold is conservative here. Per-cell Δ (V2): HEK293T +0.0155, HL60 +0.0176, LNCAP +0.0154, SKBR3 +0.0103, U937 +0.0178, VCAP +0.0206. §90.4's amendment to rule 10 now applies (a within-run snapshot average counts as that
 run's prediction), and §90.6 as amended governs its reporting beside XPert (a V2-last row is required). P6 (C6 + V2, §85.11)
 launched 15:10 IST in this week's remaining quota.
 

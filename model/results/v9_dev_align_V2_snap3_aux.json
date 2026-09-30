@@ -1,0 +1,96 @@
+{
+ "label": "V2_snap3",
+ "readout": "aux",
+ "n_rows": 4043,
+ "n_perm": 200,
+ "references": {
+  "training_prior": 0.22924682255205894,
+  "loco_prior": 0.2142509537381763
+ },
+ "per_checkpoint": [
+  {
+   "ckpt": "v9dev_v2_dev6s0_seed0.pt",
+   "ckpt_sha1": "995eaae65273f6160295455585dd8a131e246abd",
+   "seed": 0,
+   "alignment": 0.27429477979254063,
+   "null_mean": null,
+   "null_sd": null,
+   "z": null,
+   "cell_shuffle_mean": null,
+   "cell_shuffle_sd": null,
+   "in_cell_increment": {
+    "HEK293T": 0.04749713340093388,
+    "HL60": -0.004954526779676247,
+    "LNCAP": 0.17627497611582743,
+    "SKBR3": 0.036819329312352406,
+    "U937": 0.08092948651218469,
+    "VCAP": 0.10047811198447255
+   },
+   "in_cell_increment_mean": 0.07284075175768245
+  },
+  {
+   "ckpt": "v9dev_v2_dev6s0_seed1.pt",
+   "ckpt_sha1": "acb733b04f8c5f506cdeb3d48e85194c2129fd83",
+   "seed": 1,
+   "alignment": 0.2702236875828472,
+   "null_mean": null,
+   "null_sd": null,
+   "z": null,
+   "cell_shuffle_mean": null,
+   "cell_shuffle_sd": null,
+   "in_cell_increment": {
+    "HEK293T": 0.04015786080748341,
+    "HL60": 0.06463516652642828,
+    "LNCAP": 0.10395911419702863,
+    "SKBR3": 0.042051483430345316,
+    "U937": 0.05855682622515461,
+    "VCAP": 0.14016507265053438
+   },
+   "in_cell_increment_mean": 0.07492092063949578
+  },
+  {
+   "ckpt": "v9dev_v2_dev6s0_seed2.pt",
+   "ckpt_sha1": "39659381b2c66789b7ee24de1a113409c55439de",
+   "seed": 2,
+   "alignment": 0.25802474083640986,
+   "null_mean": null,
+   "null_sd": null,
+   "z": null,
+   "cell_shuffle_mean": null,
+   "cell_shuffle_sd": null,
+   "in_cell_increment": {
+    "HEK293T": 0.0103941190240141,
+    "HL60": 0.03470619538437689,
+    "LNCAP": 0.1584591247005173,
+    "SKBR3": 0.021199211301288667,
+    "U937": 0.021516733853257034,
+    "VCAP": 0.08246166145083518
+   },
+   "in_cell_increment_mean": 0.05478950761904819
+  }
+ ],
+ "mean_alignment": 0.26751440273726584,
+ "mean_null_mean": null,
+ "mean_null_sd": null,
+ "sd_alignment": 0.008466623305035817,
+ "in_cell": {
+  "per_cell_3seed_mean": {
+   "HEK293T": 0.0326830377441438,
+   "HL60": 0.03146227837704297,
+   "LNCAP": 0.14623107167112445,
+   "SKBR3": 0.033356674681328795,
+   "U937": 0.05366768219686544,
+   "VCAP": 0.10770161536194738
+  },
+  "cells_positive": 6,
+  "seed_means": [
+   0.07284075175768245,
+   0.07492092063949578,
+   0.05478950761904819
+  ],
+  "licensed": true,
+  "min_cells": 5,
+  "beats_training_prior_every_seed": true,
+  "training_prior": 0.22924682255205894
+ }
+}
