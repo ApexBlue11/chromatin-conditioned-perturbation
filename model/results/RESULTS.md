@@ -6364,6 +6364,21 @@ row appears only as v9's own labelled secondary; a "v9 ensemble vs XPert" row re
 runs, ~11.5 GPU-h each). V1 applied to XPert is a labelled sensitivity row, never the comparison. If V1 is accepted and stacked,
 it is part of v9's method, and the headline compares v9 (with V1) against XPert as published, disclosed as such.
 
+### 90.7 V2 read (§90.4's rule, mechanically) — **ACCEPTED** (2026-09-30)
+Kernel `lincs-v9dev-v2` (the P2 command + `--snapshot_cycles 3`, seeds 0–2), GUARD 4 (dev rows `51e7e4ab…`) and GUARD 5
+(distinct, unequal on all 12 epochs) OK, 18,040 s. Scored by `score_dev.py --centred` against P2.
+
+| arm | seeds | mean (sd) | Δ vs μ0 | threshold | Δ cell means | cells | Δ_centred |
+|---|---|---|---|---|---|---|---|
+| **V2** (mean of the 3 snapshots) | 0.45196 / 0.45852 / 0.45039 | 0.45363 (0.00431) | **+0.01669** | 0.00535 | +0.01796 | 6 / 6 | **+0.01697** |
+| V2-last (final snapshot alone) | 0.44113 / 0.45114 / 0.44172 | 0.44466 (0.00561) | +0.00773 | — | +0.00720 | 5 / 6 | +0.00717 |
+
+Rule 90.4: Δ ≥ threshold True, cell means > 0 True, ≥ 4 of 6 cells True, Δ_centred > 0 True → **ACCEPTED**. **Reported:** schedule effect
+(V2-last − P2) **+0.00773**; ensembling gain (V2 − V2-last) **+0.00896**; fraction of the 3-seed P2 ensemble recovered at one run's
+cost **0.57**. Per-cell Δ (V2): HEK293T +0.0155, HL60 +0.0176, LNCAP +0.0154, SKBR3 +0.0103, U937 +0.0178, VCAP +0.0206. §90.4's amendment to rule 10 now applies (a within-run snapshot average counts as that
+run's prediction), and §90.6 as amended governs its reporting beside XPert (a V2-last row is required). P6 (C6 + V2, §85.11)
+launched 15:10 IST in this week's remaining quota.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
