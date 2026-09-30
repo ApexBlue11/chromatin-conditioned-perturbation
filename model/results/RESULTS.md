@@ -6385,6 +6385,19 @@ paired Δ +0.0169 / +0.0203 / +0.0129); rule 7's independent-samples threshold i
 run's prediction), and §90.6 as amended governs its reporting beside XPert (a V2-last row is required). P6 (C6 + V2, §85.11)
 launched 15:10 IST in this week's remaining quota.
 
+### 90.8 V1 read (§90.3's rule, mechanically) — **neither arm accepted** (2026-09-30)
+Inference on the three C8b dev checkpoints (identity checks pass: min per-row r 0.9999998 on every checkpoint); K = 8; paired
+against the recomputed deterministic arm; seed 0's full arm from the rerun `lincs-v1mc-s0f` (the first kernel was cancelled at
+6.2 h), whose deterministic arm is bitwise identical to the original.
+
+| arm | paired Δ (3-seed mean) | per checkpoint | Δ cell means | cells | Δ_centred | §90.3 |
+|---|---|---|---|---|---|---|
+| V1-drop (dropout only) | +0.00092 | +0.00089 / +0.00099 / +0.00088 | +0.00118 | 4 / 6 | +0.00096 | **NOT ACCEPTED** |
+| V1-full (dropout + stochastic depth) | +0.00104 | +0.00100 / +0.00111 / +0.00100 | +0.00136 | 4 / 6 | +0.00107 | **NOT ACCEPTED** |
+
+Both fail the 0.003 floor; every other conjunct passes. MC averaging at inference recovers ≈ 3–4 % of the +0.029 a 3-seed
+ensemble gives. **V1 does not enter the stack; P7 uses no MC inference** (§85.11, §85.12 item 1).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
