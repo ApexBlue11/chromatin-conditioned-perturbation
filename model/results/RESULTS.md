@@ -5977,6 +5977,19 @@ No decision is taken from this; the variance-reduction batch is §90.
 - **P7 (review 031):** the cell-centred score is reported for **both** v9 and XPert (from its saved predictions) as a labelled
   secondary, whatever the stack contains.
 
+### 85.11 P6 (stack confirmation), defined before V2's data — packet 033 F as amended by review 033 (2026-09-30)
+- **Accepted so far: C6 only** (§85.8; rule 7 + rule 8; C6's aux alignment 0.2624 is **0.011 below P2's** 0.2732 — within
+  rule 8's 0.02 margin, a decline, not "keeps"). With C6 alone, P6 is C6's own 3-seed dev result and P7 = P2 + C6.
+- **If V2 is also accepted:** P6 = C6 + V2 (`--sign_head_w 0.492066 --snapshot_cycles 3`) at seeds 0–2 on the dev carve.
+- **If V1-full is accepted** (§90.3, including Δ_centred ≥ V1-drop's +0.00096): P6 applies it to **C6's three dev checkpoints**
+  (inference only, 0 GPU-h); a same-sign paired Δ there doubles as §90.3's replication on another architecture.
+- **Confirmed iff** rule 7 against μ0, rule 8, **Δ(stack) ≥ max(Δ of its accepted components) − 0.003**, and — whenever the stack
+  contains V1 or V2 — **Δ_centred(stack) > 0** (§90.2, review 033 C2). Confirmed → P7 uses the stack; not confirmed → P7 uses the
+  single accepted component with the larger Δ.
+- **Operating characteristic (review 033 ask 2), stated:** the − 0.003 tolerance is ≈ 1.6–2.3 sd of Δ(stack) − Δ(best) before the
+  upward bias of a max over selected components, so a stack whose true effect equals its best component will occasionally read
+  "not confirmed"; the consequence is mild (P7 then uses the better single component).
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
@@ -6306,6 +6319,11 @@ P2 at seeds 3 and 4 (2 × 1.7 GPU-h) to measure K = 1–5 against the equicorrel
 review 029). Run only if quota is spare after P6/P7.
 
 ### 90.6 Ensembles beside XPert (ask 4), binding for every table and sentence
+**AMENDED by review 033 C1 (before V2's data):** the ban below covers **seed ensembles** only. A **within-run snapshot
+average** (V2) costs one run, as P2 does, and is treated like V1: if accepted and stacked it is part of v9's method, the
+headline compares v9 (with V2) against XPert as published, disclosed as such, and **a labelled row with V2-last in place
+of the snapshot average is required beside the headline** so the ensembling contribution is visible. (As first written,
+"across seeds or snapshots" contradicted §90.4's rule-10 amendment.)
 No row or sentence sets a **v9 ensemble** (across seeds or snapshots) beside **XPert's single run** as a comparison. An ensemble
 row appears only as v9's own labelled secondary; a "v9 ensemble vs XPert" row requires XPert's matched ensemble (two more XPert
 runs, ~11.5 GPU-h each). V1 applied to XPert is a labelled sensitivity row, never the comparison. If V1 is accepted and stacked,
