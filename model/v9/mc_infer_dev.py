@@ -81,6 +81,9 @@ def main():
     ap.add_argument('--ablate_epi', action='store_true',
                     help='RESULTS 91 T4: mean-ablate chromatin at inference (XPertData ablate_epi: values and mask '
                          'replaced by their dev-train mean), to ask whether a trained model reads its chromatin')
+    ap.add_argument('--ablate_tracks', default=None,
+                    help='RESULTS 91.11 T4b: comma-separated CELL:mark (0 ATAC, 1 H3K27ac, 2 H3K27me3); only those cells mark '
+                         'values are replaced by the dev-train row mean of that mark, as ablate_epi does for all marks')
     a = ap.parse_args()
     
     t0 = time.time()
@@ -95,6 +98,14 @@ def main():
     dev_args = argparse.Namespace(dev_cells=a.dev_cells, dev_seed=a.dev_seed, dev_min_rows=200, dev_max_rows=2000)
     D = XPertData(npz, roots, a.split, ablate_epi=a.ablate_epi or ck.get('ablate_epi', False), dev_args=dev_args)
     
+    if a.ablate_tracks:
+        mean_tr = D.E[D.tr].mean(0)                                     # [G, 3]: the dev-train row mean, ablate_epi's convention
+        for spec in a.ablate_tracks.split(','):
+            cname, k = spec.split(':')
+            rows = np.flatnonzero(np.asarray(D.cell).astype(str) == cname)
+            assert len(rows) > 0, 'no rows for cell %s' % cname
+            D.E[rows, :, int(k)] = mean_tr[:, int(k)]
+            print('TRACK MEAN-ABLATED: %s mark %s on %d rows' % (cname, k, len(rows)), flush=True)
     dev_idx = D.te
     if a.limit > 0:
         dev_idx = dev_idx[:a.limit]
