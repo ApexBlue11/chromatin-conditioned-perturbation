@@ -6697,6 +6697,19 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
   HEK293T:2,VCAP:2`, which replaces those cells' mark-2 values with the dev-train row mean, as `ablate_epi` does for all marks.
   The comparison is against intact. Reported per cell and overall. If HEK293T's and VCAP's T4 gains reappear, the failed
   tracks carry them; if not, they do not.
+  **T4b result** (2026-10-02, code committed at 7a502c9 before the output was read):
+
+  | failed-track-only ablation − intact | value | T4 (all chromatin), for comparison |
+  |---|---|---|
+  | all dev rows | **+0.00317** (per seed +0.0051 / +0.0017 / +0.0027); centred +0.00247 | +0.00596 |
+  | **VCAP** (969 rows) | **+0.0133** (per seed +0.0213 / +0.0070 / +0.0116) | +0.0143 |
+  | **HEK293T** (224 rows) | **−0.0002** (per seed +0.0002 / +0.0010 / −0.0019) | +0.0225 |
+  | the other four cells | 0 exactly (untouched; a deterministic pass) | — |
+
+  **Reading.** **VCAP's harm is its failed H3K27me3 track**: ablating that track alone recovers 93 % of VCAP's T4 gain.
+  **HEK293T's is not**: its gain comes from its good marks (ATAC, H3K27ac). So the failed tracks explain one of the three
+  harmed cells. LNCAP's and HEK293T's harm needs another explanation, and none is offered. For S12, dropping failed tracks
+  is supported for VCAP-like cases (the test cell MDAMB231 carries one, §91.8 item 1), but it is not the whole fix.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
