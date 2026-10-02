@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "043_chromatin_result"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -67,12 +65,13 @@
     "039_review038_guard0",
     "040_chromatin_funnel_prereg",
     "041_chromatin_code_review",
-    "042_review041_t4"
+    "042_review041_t4",
+    "043_chromatin_result"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "Packet 043 (chromatin funnel result: nothing advances; T1 informative null) with the critic; next: S12 encoding fix and/or training-time chromatin ablation as dev screens (own packets). P7 + 88 t1 push at 05:40 IST by the detached loop; then t2.",
+  "pending_decision": "Next: pre-register E2 (training-time chromatin ablation, P2 recipe, dev carve) and E1 (S12 encoding fix) as dev screens. P7 + 88 t1 push at 05:40 IST (detached loop); then t2.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
-  "challenges_upheld": "181 challenge rows in 42 adjudicated reviews (table rows | n | SEVERITY |, counted 2026-10-02 incl. review 042); the older running tally (160 of 163) had drifted and is withdrawn",
+  "challenges_upheld": "185 challenge rows in 43 adjudicated reviews (counted 2026-10-03 incl. review 043); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",

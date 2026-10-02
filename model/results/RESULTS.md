@@ -6712,7 +6712,7 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
   harmed cells. LNCAP's and HEK293T's harm needs another explanation, and none is offered. For S12, dropping failed tracks
   is supported for VCAP-like cases (the test cell MDAMB231 carries one, §91.8 item 1), but it is not the whole fix.
 
-### 91.12 RESULT: the chromatin funnel, read once — **nothing advances; T1's null is informative**; chromatin's small gain is gene-generic (2026-10-03)
+### 91.12 RESULT: the chromatin funnel, read once — **nothing advances; T1's null is informative for the gain form (MDE ≤ 0.5 %), drug-specific shifts bounded at 5 %**; chromatin's small gain is gene-generic (2026-10-03; wording amended by review 043)
 **The run:**
 - **Where:** `kern_chromatin91` (Kaggle CPU, version 1). All 9 pinned inputs and the split bundle verified. Funnel 232 s;
   calibration 2,258 s (5 draws × 4 workers).
@@ -6725,7 +6725,7 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
 | test | rule | positive control | calibration (MDE, 5 draws) | verdict |
 |---|---|---|---|---|
 | **T1** drug-conditioned gene-local rule | **fails**: Δ +0.00144 (top +0.00255) against 0.004 / 0.008; centred +0.00101 against 0.002; cells 3 / 6; centred cells 3 / 6; vs N1 4 / 6 | passes (FB − B0 +0.00262, 6 / 6 cells) | **P1 gain ≤ 0.5 %** (5 / 5 at every π); P2 drug-specific shift **5 %**; P3 never passes; no pass at π = 0 | **does not advance; informative null** |
-| T2 retrieval by chromatin similarity | fails: Δ_T2 0.0000 (LOCO chose β = 0); s_C − uniform 0.0000 (LOCO chose τ = ∞) | passes on these rows (fails on all rows) | not calibrated | does not advance (little weight) |
+| T2 retrieval by chromatin similarity | fails: Δ_T2 0.0000 (LOCO chose β = 0); s_C − uniform 0.0000 (LOCO chose τ = ∞) | passes the cell count on these rows **with a negative mean (−0.0011)**; fails on all rows | not calibrated | does not advance; **its null is uninformative** (the 11-neighbour retrieval family scores below B0 over 26 cells, 0.125 against 0.142; review 043 C4) |
 | T3 which genes can move | fails: ρ_T3 ≤ 0.0016 in every cell | **fails** (basal adds nothing over the gene prior, r 0.42–0.73) | P4 5 %; no pass at π = 0 | **not interpreted** |
 
 **The informative negative** (§91.9 rule, wording of review 041 C2):
@@ -6739,20 +6739,26 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
   - Beyond basal expression it adds **+0.00144**.
   - **Nearly all of that is gene-generic:** N1, which gives every cell the same mean chromatin, scores within +0.0002 of FBC. Giving each
     dev cell another dev cell's chromatin (N2) costs only +0.0003.
-  - **This cell's own chromatin adds ≈ nothing transferable.**
+  - **The increment is real but gene-generic** (review 043 C3, PI-verified): the real FBC − FB (+0.00144) exceeds all five
+    π = 0 null draws (|Δ| ≤ 0.00025), and FBC − N1 (+0.00023) places it in the gene-generic component.
+  - **This cell's own chromatin adds ≈ nothing transferable in this form.** The gene-level content is something a per-gene
+    parameter (e.g. v9's gene embedding) could represent; that is not tested here.
   - The use question is T4: trained v9 reads chromatin, and on dev cells reading it costs +0.006 (§91.11).
 - **Variants** (FBC variant − FB):
   - FBC⊥ (residualised on basal) +0.0013;
   - global rule only +0.0011, so per-drug deviations add little;
-  - **additive-only −0.0011**, so a drug-independent chromatin offset transfers worse than none, as v9's additive head would;
+  - **additive-only −0.0011**, so a drug-independent chromatin offset transfers worse than none;
   - epigenetic drugs: 39 rows only, +0.0005 against +0.0015 for the rest, uninformative.
 - **Encoding (S12):** under v9's own encoding (z-scores, failed tracks kept) FBC − FB is +0.0003, against +0.0014 with the
   primary encoding, about 5× less.
-- **The room exists (M1, split pools):**
-  - The cell-specific residual is structured: adjacent doses agree at r = 0.255, and a cell's response is predictable from its own
-    responses to similar drugs at r = 0.282.
-  - So unseen cells do have systematic, cell-specific response tendencies; promoter chromatin at the landmark genes, used linearly
-    and gene-locally, captures almost none of them.
+- **The room exists, but is smaller than it first reads (M1, split pools; amended by review 043 C2, PI-verified):**
+  - **The control-profile confound:** 36 % of M1(a)'s dose-neighbour pairs share an identical `X_ctl` profile. Since y = X −
+    X_ctl, both residuals then carry the same control noise, which no cell feature can predict.
+  - **M1(a):** **0.167** on distinct-control pairs (n 20,074), **the room**, against 0.410 on shared-control pairs (n 11,262),
+    0.255 overall.
+  - **M1(b):** 0.282, likely inflated the same way; it is not split here.
+  - So unseen cells do have systematic, cell-specific response tendencies. Side by side, on different scales: the distinct-control
+    residual–residual agreement is 0.167; chromatin's FBC − FB is +0.0014 in total per-row Pearson.
 - **Caveat on transfer:** the closed-form base is weak. B0 scores 0.142 on these rows against v9's 0.437, because it lacks the
   row's own control profile. Increments over it need not transfer to v9.
 
