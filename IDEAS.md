@@ -251,7 +251,7 @@ ridge**. The same machinery admits TranSiGen, PRnet, DeepCE and CIGER.
 ## Settled, kept so they are not re-proposed
 | idea | outcome | where |
 |---|---|---|
-| Chromatin conditioning as the core contribution | **KILLED.** +0.000360, CI [−0.005433, +0.006153], 2/5 cells positive, sign test p=1.000 | §54, §55 |
+| Chromatin conditioning as the core contribution | **KILLED.** +0.000360, CI [−0.005433, +0.006153], 2/5 cells positive, sign test p=1.000. **2026-10-02 (§91.10):** that CI omits run-to-run variance; one run per arm could not detect effects below ≈ 0.006–0.016, so the kill covers large effects only | §54, §55, §91.10 |
 | Sparse-vs-dense attention as XPert's advantage | **KILLED** — dead code in their repo; the real difference is drug self-attention | §47.6 |
 | In-loop drug self-attention rescues the atom tokens | **KILLED.** Atoms still hurt at −0.01814 [−0.02635, −0.00916], 66 % of rows, with SA trained and present | §60.7, §61.7 |
 | The 2x2 interaction as evidence of mechanism | **RETRACTED** — the pre-committed estimand failed its own null key | §60.9, §61.1 |

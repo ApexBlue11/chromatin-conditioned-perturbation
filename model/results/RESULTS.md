@@ -6601,6 +6601,20 @@ checks, computed in the same run as T1–T3, each fixed now:
   smallest effect each could have detected, using the run-to-run noise §52 measured. A null then reads "no effect larger than X",
   never "no effect".
 
+### 91.10 M5 read: what the earlier chromatin nulls could have detected (desk work, §91.9; 2026-10-02)
+| measurement | design | what it could detect | found | restated |
+|---|---|---|---|---|
+| §44 ridge | closed form; chromatin as a 24-component **cell-level** block over 40 cells, additive | **no** gene-local or drug-conditioned effect is expressible in it | +0.0029 (0.2951 → 0.2980) | silent on §91's hypotheses |
+| §45 inference ablation (v6) | mean-ablate at inference in **one** trained model (the contrast has no seed noise) | whether that model **reads** chromatin, not whether chromatin carries information | −0.0001 (unseen cell) | "v6 did not read its chromatin" |
+| §45/§55 training ablation | **one run per arm**, 5 covered test cells, cluster bootstrap | the cluster CI (half-width 0.0058) resamples cells within one pair of runs and omits the run-to-run component common to all cells; with §52's single-seed sd_diff (0.0074, row-pooled) as an upper bound on that component, the 95 % half-width lies between **≈ 0.006 and ≈ 0.016** | +0.0004 | "no effect larger than ≈ 0.006–0.016"; §55's *"tight"* is withdrawn |
+| C7 (§89) | three seeds per arm, dev carve, rule 7 | ≈ 0.0042 (its threshold) | +0.0020 | "no gated-edge effect larger than ≈ 0.004 on dev" |
+
+**Reading.** The earlier work rules out **large** chromatin effects (≳ 0.016 by training ablation; ≳ 0.004 for C7's specific edge
+gating) and shows that the trained models did not **read** chromatin. It does not rule out an effect of +0.002 to +0.01, the range
+every accepted v9 component has fallen in (C6 +0.0048; V2 +0.0167), and it never tested a gene-local or drug-conditioned form. The
+principal's doubt about measurement is therefore well founded for the record so far. §91's funnel targets exactly this range, and
+§91.9 M2 calibrates whether it can see it.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
