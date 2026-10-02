@@ -6545,6 +6545,62 @@ files duplicated across cells were found in 2026-07); T1/T2 coverage (dev rows b
 5. **Asks 3–4.** Headroom reported against P2; T4 added as a reported diagnostic. The encoding itself (reliability weighting without
    z-score re-inflation) is recorded as strategy S12 in IDEAS A12.
 
+### 91.9 🔒 Measurement validity: can these tests detect a chromatin effect at all? (principal, 2026-10-02; before any reading)
+The principal's question: *"whether we are measuring chromatin's importance properly at all — we could also fail there"*. A null
+is evidence only if the instrument could have seen an effect of plausible size. The project has failed here before: chromatin's
+contribution read as zero or negative on all signatures and as +0.073 R² on reproducible ones (v3, in-distribution; 2026-07 project notes). Five
+checks, computed in the same run as T1–T3, each fixed now:
+
+- **M1 — how much cell-specific signal there is to find (descriptive).** The bundle has exactly one profile per (cell, pert, dose,
+  time) (`n_replicates` in XPert's h5ad shows 1–963 replicates in the source, but one survives here), so no split-half replicate
+  ceiling exists. Two substitutes, on **dev-train cells only**:
+  - (a) **dose-neighbour agreement:** per-row Pearson across genes of the cell-specific residual `e = y − μ^(−c)` between the same
+    (cell, pert, time) at adjacent doses;
+  - (b) **within-cell drug-neighbour predictability:** each row's `e` predicted by the mean `e` of the same cell's K = 10 other
+    conditions whose μ^(−c) profiles correlate most with its own. This bounds how structured, rather than noise, the cell-specific
+    component is.
+  Both are reported as the room any cell feature could fill. If (b) is near 0, no cell feature can be detected by any test here.
+- **M2 — power by planted effects (binding for the reading).**
+  - **A synthetic feature with real chromatin's redundancy and no link to the response:** per covered cell,
+    `f* = ρ·b̃ + √(1−ρ²)·ξ`. Here ξ is the cell's own primary-encoded chromatin track (H3K27ac where present, else ATAC, else
+    H3K27me3) with genes permuted by **one fixed permutation shared across cells**, which keeps between-cell structure and destroys the
+    gene link. ρ is the median within-cell Pearson(chromatin, `b̃`) over covered dev-train cells, a feature-feature statistic (T0).
+  - **Planted effects,** each scaled so its variance is π ∈ {0.5, 1, 2, 5, 10} % of Var(`e`) on covered dev-train rows, and added
+    to y on every covered row (dev and dev-train):
+    - **P1 gain**, drug-dependent through μ: `α·μ⊙f*`;
+    - **P2 drug-specific shift:** `α·w_d·f*`, with `w_d ~ N(0,1)` per drug;
+    - **P3 drug-independent shift:** `α·f*`, the case the centred conjunct (§91.8 item 2) must reject;
+    - **P4 responsiveness:** `e ← e⊙(1 + α·f*)`, T3's alternative.
+  - Each test is rerun with f* in place of chromatin (FB vs FB + f*; N1 built from f*), with **5 draws** of (permutation, `w_d`).
+    The **MDE** of a test for a planted form is the smallest π at which its advance rule passes in ≥ 4 of 5 draws.
+  - **Instrument faults (void the test until fixed):** a pass at π = 0 in any draw, or P3 passing T1's or T2's rule at any π.
+  - T2's power is not calibrated (no planted form fits a cell-level method cleanly); its null already carries little weight (§91.4).
+  - **Reported, not read:** T1 on the residual estimand `Δ_T1^e` = per-row Pearson(`ŷ − μ`, `y − μ`) for FBC − FB, with its own MDE.
+    The total-Pearson Δ_T1 stays the estimand of record (the model's metric and the GPU screen's).
+- **Reading rule (binding).** For T1 under P1 and P2, and T3 under P4:
+  - **MDE ≤ 2 %:** a null reads *"no drug-conditioned gene-local chromatin effect explaining ≥ MDE of the cell-specific residual
+    on these dev cells"*, an informative negative.
+  - **MDE > 5 %, or no pass up to 10 %:** a null reads **"not measurable with this design"**, and no sentence saying chromatin does
+    not matter may be written from it.
+  - **In between:** reported with its MDE.
+  The 2 % bar: the strongest chromatin association measured in this project, the partial correlation of H3K27ac with responses
+  beyond basal expression on cell-averaged data (|r| ≈ 0.10–0.14, 2026-07 project notes, not in RESULTS), is r² ≈ 1–2 %.
+- **M3 — positive controls (instrument checks).**
+  - **T1:** FB − B0, basal expression's gene-local, drug-conditioned increment. Basal expression helps on unseen cells (§45:
+    +0.0257 in v6's ablation). If FB − B0 ≤ 0 in ≥ 3 of 6 dev cells, T1 is flagged *"positive control failed"* and its chromatin
+    reading is not interpreted.
+  - **T2:** basal-similarity retrieval against uniform, the same way.
+  - **T3:** FB against the gene prior alone.
+- **M4 — information, unique information, use (reported).** Three quantities are reported side by side:
+  - S(FC) − S(B0): what chromatin carries alone;
+  - S(FBC) − S(FB): what it adds beyond basal expression;
+  - T4: whether trained v9 reads it.
+  If chromatin is informative but redundant (FC − B0 > 0, FBC − FB ≈ 0), it is reported as such: it then explains, rather than
+  adds to, what basal expression predicts. That is an interpretability statement, not a null.
+- **M5 — the power of the earlier chromatin nulls (desk work, reported).** §44, §45/§55 and C7 (§89) are restated with the
+  smallest effect each could have detected, using the run-to-run noise §52 measured. A null then reads "no effect larger than X",
+  never "no effect".
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
