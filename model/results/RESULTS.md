@@ -6712,6 +6712,58 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
   harmed cells. LNCAP's and HEK293T's harm needs another explanation, and none is offered. For S12, dropping failed tracks
   is supported for VCAP-like cases (the test cell MDAMB231 carries one, §91.8 item 1), but it is not the whole fix.
 
+### 91.12 RESULT: the chromatin funnel, read once — **nothing advances; T1's null is informative**; chromatin's small gain is gene-generic (2026-10-03)
+**The run:**
+- **Where:** `kern_chromatin91` (Kaggle CPU, version 1). All 9 pinned inputs and the split bundle verified. Funnel 232 s;
+  calibration 2,258 s (5 draws × 4 workers).
+- **Reading:** `CHROMATIN91_COMPLETE.json` verified (both outputs' sha1s), then read once by `model/v9/read_chromatin91.py`.
+  Outputs are `model/results/chromatin_funnel_91.json` and `chromatin_power_91.json`.
+- **Rows of record:** the 3,074 drug-known dev rows (review 041). All 4,043 rows reported, with the same conclusions.
+
+**Mechanical verdicts (§91.3–91.11):**
+
+| test | rule | positive control | calibration (MDE, 5 draws) | verdict |
+|---|---|---|---|---|
+| **T1** drug-conditioned gene-local rule | **fails**: Δ +0.00144 (top +0.00255) against 0.004 / 0.008; centred +0.00101 against 0.002; cells 3 / 6; centred cells 3 / 6; vs N1 4 / 6 | passes (FB − B0 +0.00262, 6 / 6 cells) | **P1 gain ≤ 0.5 %** (5 / 5 at every π); P2 drug-specific shift **5 %**; P3 never passes; no pass at π = 0 | **does not advance; informative null** |
+| T2 retrieval by chromatin similarity | fails: Δ_T2 0.0000 (LOCO chose β = 0); s_C − uniform 0.0000 (LOCO chose τ = ∞) | passes on these rows (fails on all rows) | not calibrated | does not advance (little weight) |
+| T3 which genes can move | fails: ρ_T3 ≤ 0.0016 in every cell | **fails** (basal adds nothing over the gene prior, r 0.42–0.73) | P4 5 %; no pass at π = 0 | **not interpreted** |
+
+**The informative negative** (§91.9 rule, wording of review 041 C2):
+- For the gain form: *"no drug-conditioned gene-local chromatin effect explaining ≥ 0.5 % of the cell-specific residual, of a form
+  linear in the encoded tracks, on these dev cells"*.
+- For drug-specific shifts: the bound is 5 %.
+
+**Reported, not read:**
+- **Information, unique information, use (M4).**
+  - Chromatin alone carries some information: S(FC) − S(B0) **+0.00208** (5 / 6 cells), about 80 % of basal expression's +0.00262.
+  - Beyond basal expression it adds **+0.00144**.
+  - **Nearly all of that is gene-generic:** N1, which gives every cell the same mean chromatin, scores within +0.0002 of FBC. Giving each
+    dev cell another dev cell's chromatin (N2) costs only +0.0003.
+  - **This cell's own chromatin adds ≈ nothing transferable.**
+  - The use question is T4: trained v9 reads chromatin, and on dev cells reading it costs +0.006 (§91.11).
+- **Variants** (FBC variant − FB):
+  - FBC⊥ (residualised on basal) +0.0013;
+  - global rule only +0.0011, so per-drug deviations add little;
+  - **additive-only −0.0011**, so a drug-independent chromatin offset transfers worse than none, as v9's additive head would;
+  - epigenetic drugs: 39 rows only, +0.0005 against +0.0015 for the rest, uninformative.
+- **Encoding (S12):** under v9's own encoding (z-scores, failed tracks kept) FBC − FB is +0.0003, against +0.0014 with the
+  primary encoding, about 5× less.
+- **The room exists (M1, split pools):**
+  - The cell-specific residual is structured: adjacent doses agree at r = 0.255, and a cell's response is predictable from its own
+    responses to similar drugs at r = 0.282.
+  - So unseen cells do have systematic, cell-specific response tendencies; promoter chromatin at the landmark genes, used linearly
+    and gene-locally, captures almost none of them.
+- **Caveat on transfer:** the closed-form base is weak. B0 scores 0.142 on these rows against v9's 0.437, because it lacks the
+  row's own control profile. Increments over it need not transfer to v9.
+
+**What this means for "make chromatin matter":**
+1. **No new chromatin mechanism earns a GPU screen** from this funnel: C9, C10 and C11 are not built.
+2. **The supported actions are about stopping harm** (T4, T4b, the 5× encoding gap). Each needs its own reviewed packet:
+   - **S12**, fix the encoding: drop failed tracks, rank-normal transform, reliability-weighted `r`;
+   - a **training-time chromatin ablation** on the dev carve.
+3. **Making cell-specific chromatin informative would need richer features** (S9: enhancer windows, TF-motif accessibility). That is
+   a data project, not a model change.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

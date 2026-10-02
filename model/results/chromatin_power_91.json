@@ -1,0 +1,6556 @@
+{
+ "records": [
+  {
+   "draw": 0,
+   "rho": 0.2381078944942016,
+   "null_T1": {
+    "kappa": {
+     "FB": [
+      0.0001,
+      0.01
+     ],
+     "FBC": [
+      0.0001,
+      0.01
+     ],
+     "N1": [
+      0.0001,
+      0.01
+     ]
+    },
+    "all": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": true
+     },
+     "delta_all": 0.00016714461662968583,
+     "delta_top": 0.0001658012664275954,
+     "centred_all": 0.0001387680927984608,
+     "cells_pos": 5,
+     "centred_cells_pos": 5,
+     "cells_vs_N1_pos": 4,
+     "resid": {
+      "all": -0.000181710125298792,
+      "per_cell": {
+       "HEK293T": -0.02008783821427237,
+       "HL60": 0.0008771974959651885,
+       "LNCAP": -0.0031891199888344477,
+       "SKBR3": 0.0003816189559768033,
+       "U937": 0.004305794691614891,
+       "VCAP": 0.0034470967855058238
+      }
+     }
+    },
+    "known": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": false,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": false
+     },
+     "delta_all": 0.0001511451966003663,
+     "delta_top": 0.0002282383569354729,
+     "centred_all": 0.00016247159338395045,
+     "cells_pos": 3,
+     "centred_cells_pos": 3,
+     "cells_vs_N1_pos": 3,
+     "resid": {
+      "all": -0.001346664365460533,
+      "per_cell": {
+       "HEK293T": -0.02008783821427237,
+       "HL60": -0.006592239522839357,
+       "LNCAP": -0.0031891199888344477,
+       "SKBR3": 0.0003816189559768033,
+       "U937": 0.000993438182857704,
+       "VCAP": 0.003857023613633975
+      }
+     }
+    }
+   },
+   "null_T3": {
+    "pass": false,
+    "conjuncts": {
+     "cells_rho_ge_0.02_ge_4": false,
+     "cells_FBC_gt_N1_ge_4": false
+    },
+    "rho_T3": {
+     "HEK293T": -0.0005979527883165359,
+     "HL60": -0.00023907567280806452,
+     "LNCAP": -0.0005932486744433252,
+     "SKBR3": -0.0012354772956066906,
+     "U937": 0.0006050826532283393,
+     "VCAP": -0.0001615339785645542
+    },
+    "FBC_minus_N1": {
+     "HEK293T": -0.0005387731518008421,
+     "HL60": -0.0007403812864930082,
+     "LNCAP": -2.209501667593816e-05,
+     "SKBR3": -0.00016817444493277822,
+     "U937": 0.0005217488475966481,
+     "VCAP": -0.000219845502533067
+    }
+   },
+   "T1": {
+    "P1_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.004936352565001564,
+      "delta_top": 0.003512347778667768,
+      "centred_all": 0.004884766718406541,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.002138583657778358,
+       "per_cell": {
+        "HEK293T": 0.06389515498613581,
+        "HL60": -0.0108460794397618,
+        "LNCAP": -0.03025870044041351,
+        "SKBR3": 0.007050711192673169,
+        "U937": 0.001445544304525404,
+        "VCAP": 0.002734972358428293
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.006239092353852227,
+      "delta_top": 0.004186291112847629,
+      "centred_all": 0.006277010968532032,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.0031473607733269724,
+       "per_cell": {
+        "HEK293T": 0.06389515498613581,
+        "HL60": -0.001334941140192326,
+        "LNCAP": -0.03025870044041351,
+        "SKBR3": 0.007050711192673169,
+        "U937": -0.006662840613643925,
+        "VCAP": 0.0026568019987013632
+       }
+      }
+     },
+     "alpha": 0.11593481733801252
+    },
+    "P1_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.010292154519844818,
+      "delta_top": 0.007416200752716179,
+      "centred_all": 0.010122469576012177,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.009121029040370876,
+       "per_cell": {
+        "HEK293T": 0.0940609556447799,
+        "HL60": -0.005305634980959335,
+        "LNCAP": -0.030182922319713774,
+        "SKBR3": 0.013612790432806702,
+        "U937": 0.0009374636138388355,
+        "VCAP": 0.011963030811212146
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.012858530056811868,
+      "delta_top": 0.008824596765130532,
+      "centred_all": 0.012952438662575533,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.011060611003138343,
+       "per_cell": {
+        "HEK293T": 0.0940609556447799,
+        "HL60": 0.012859218666239684,
+        "LNCAP": -0.030182922319713774,
+        "SKBR3": 0.013612790432806702,
+        "U937": -0.006960722592316122,
+        "VCAP": 0.014374486001143586
+       }
+      }
+     },
+     "alpha": 0.16395659103066476
+    },
+    "P1_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.020552875015030656,
+      "delta_top": 0.015211225948045776,
+      "centred_all": 0.020109973217990768,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.022742195590115564,
+       "per_cell": {
+        "HEK293T": 0.13273672480382556,
+        "HL60": 0.006470803177434844,
+        "LNCAP": -0.01873751259652866,
+        "SKBR3": 0.02703935748374493,
+        "U937": 0.0014449268170728103,
+        "VCAP": 0.026156609749852622
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.025449390064165273,
+      "delta_top": 0.018025169149219644,
+      "centred_all": 0.02564951642550159,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.026871333592197264,
+       "per_cell": {
+        "HEK293T": 0.13273672480382556,
+        "HL60": 0.03658867682675134,
+        "LNCAP": -0.01873751259652866,
+        "SKBR3": 0.02703935748374493,
+        "U937": -0.003634074776806952,
+        "VCAP": 0.03356724482756985
+       }
+      }
+     },
+     "alpha": 0.23186963467602503
+    },
+    "P1_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.04673675910225743,
+      "delta_top": 0.036638328369160617,
+      "centred_all": 0.04543814626688816,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.0536004047895264,
+       "per_cell": {
+        "HEK293T": 0.2003562899079308,
+        "HL60": 0.03291113622426057,
+        "LNCAP": 0.017480120295512058,
+        "SKBR3": 0.0581718879731352,
+        "U937": 0.00805685797492634,
+        "VCAP": 0.054024747888861
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0572866048392362,
+      "delta_top": 0.042558247359075096,
+      "centred_all": 0.057736178815390726,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.06306178601133805,
+       "per_cell": {
+        "HEK293T": 0.2003562899079308,
+        "HL60": 0.08515375347739904,
+        "LNCAP": 0.017480120295512058,
+        "SKBR3": 0.0581718879731352,
+        "U937": 0.01826808525921102,
+        "VCAP": 0.07290194178789756
+       }
+      }
+     },
+     "alpha": 0.3666180829036987
+    },
+    "P1_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.07829070300975163,
+      "delta_top": 0.06718500638670172,
+      "centred_all": 0.07569609622927753,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.08791819475679437,
+       "per_cell": {
+        "HEK293T": 0.2644546426479537,
+        "HL60": 0.061534100833607934,
+        "LNCAP": 0.061759758698991536,
+        "SKBR3": 0.09241950239845702,
+        "U937": 0.0257918405376122,
+        "VCAP": 0.08283676287642006
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0951468052600396,
+      "delta_top": 0.07768654285667825,
+      "centred_all": 0.09585619285535907,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.10307683339931639,
+       "per_cell": {
+        "HEK293T": 0.2644546426479537,
+        "HL60": 0.13506381428343586,
+        "LNCAP": 0.061759758698991536,
+        "SKBR3": 0.09241950239845702,
+        "U937": 0.06836284260361991,
+        "VCAP": 0.11395636030021304
+       }
+      }
+     },
+     "alpha": 0.5184762650536344
+    },
+    "P2_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0006394230288472719,
+      "delta_top": 0.0003871707182365458,
+      "centred_all": 0.000603240725090548,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.0036688982228825153,
+       "per_cell": {
+        "HEK293T": -0.01913017650510216,
+        "HL60": 0.0017159568983097905,
+        "LNCAP": -0.0005345595806322712,
+        "SKBR3": 0.006916362909558455,
+        "U937": 0.004710548189353418,
+        "VCAP": 0.006107193192210966
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": false,
+       "cells_FBC_gt_N1_ge_4": false,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.0007545475462171769,
+      "delta_top": 0.0005025082805611425,
+      "centred_all": 0.0007581885067847738,
+      "cells_pos": 3,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 3,
+      "resid": {
+       "all": 0.0035451309879624493,
+       "per_cell": {
+        "HEK293T": -0.01913017650510216,
+        "HL60": -0.004562027103300196,
+        "LNCAP": -0.0005345595806322712,
+        "SKBR3": 0.006916362909558455,
+        "U937": 0.0006215205810453004,
+        "VCAP": 0.00862646356186985
+       }
+      }
+     },
+     "alpha": 0.04879200965878104
+    },
+    "P2_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0010757691412179304,
+      "delta_top": 0.0006014754770990172,
+      "centred_all": 0.0010468013746582905,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.006967670043412483,
+       "per_cell": {
+        "HEK293T": -0.01842529806666665,
+        "HL60": 0.002109902452030444,
+        "LNCAP": 0.0018589086453948455,
+        "SKBR3": 0.012563054463192619,
+        "U937": 0.004903555553457364,
+        "VCAP": 0.00841202460958715
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": false,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0013215438379788613,
+      "delta_top": 0.0007780311991006372,
+      "centred_all": 0.0013278813828374314,
+      "cells_pos": 4,
+      "centred_cells_pos": 4,
+      "cells_vs_N1_pos": 3,
+      "resid": {
+       "all": 0.007813761284272407,
+       "per_cell": {
+        "HEK293T": -0.01842529806666665,
+        "HL60": -0.001926648218008632,
+        "LNCAP": 0.0018589086453948455,
+        "SKBR3": 0.012563054463192619,
+        "U937": 0.00022748194413345474,
+        "VCAP": 0.012846483702030044
+       }
+      }
+     },
+     "alpha": 0.0690023217948872
+    },
+    "P2_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0018761013506778668,
+      "delta_top": 0.001016376467789848,
+      "centred_all": 0.0018700122683725229,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.012664907383836162,
+       "per_cell": {
+        "HEK293T": -0.017154691415798087,
+        "HL60": 0.002694821357120535,
+        "LNCAP": 0.0063107766652563705,
+        "SKBR3": 0.02219317361888814,
+        "U937": 0.005194016461459176,
+        "VCAP": 0.012448273418205064
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.002364890955778992,
+      "delta_top": 0.0013141741794173156,
+      "centred_all": 0.0023856361814776628,
+      "cells_pos": 4,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 4,
+      "resid": {
+       "all": 0.015210435309139556,
+       "per_cell": {
+        "HEK293T": -0.017154691415798087,
+        "HL60": 0.003420603201475246,
+        "LNCAP": 0.0063107766652563705,
+        "SKBR3": 0.02219317361888814,
+        "U937": -0.0005473058174652267,
+        "VCAP": 0.020221548322593305
+       }
+      }
+     },
+     "alpha": 0.09758401931756208
+    },
+    "P2_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0038762064951318453,
+      "delta_top": 0.002216752613876133,
+      "centred_all": 0.003955027381435244,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.025912746418976323,
+       "per_cell": {
+        "HEK293T": -0.013874119416836155,
+        "HL60": 0.0037527093385345085,
+        "LNCAP": 0.01787412612652605,
+        "SKBR3": 0.044101289130048814,
+        "U937": 0.00580637544500766,
+        "VCAP": 0.02199969916844319
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0049787468664540535,
+      "delta_top": 0.002859093692094361,
+      "centred_all": 0.005066904122178972,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 4,
+      "resid": {
+       "all": 0.03245538718172739,
+       "per_cell": {
+        "HEK293T": -0.013874119416836155,
+        "HL60": 0.01819246700489216,
+        "LNCAP": 0.01787412612652605,
+        "SKBR3": 0.044101289130048814,
+        "U937": -0.00270490062777651,
+        "VCAP": 0.037501401151075336
+       }
+      }
+     },
+     "alpha": 0.15429388213868309
+    },
+    "P2_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.006415230282683704,
+      "delta_top": 0.004415058907123626,
+      "centred_all": 0.006625699714803368,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.041801587455909665,
+       "per_cell": {
+        "HEK293T": -0.00939233590068059,
+        "HL60": 0.004286806602259522,
+        "LNCAP": 0.03344139982828517,
+        "SKBR3": 0.0697620397397024,
+        "U937": 0.006518950280350629,
+        "VCAP": 0.03363303352999708
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.008301596868650285,
+      "delta_top": 0.005791290000969007,
+      "centred_all": 0.008506127645429323,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 4,
+      "resid": {
+       "all": 0.053178791764412425,
+       "per_cell": {
+        "HEK293T": -0.00939233590068059,
+        "HL60": 0.037958849750141396,
+        "LNCAP": 0.03344139982828517,
+        "SKBR3": 0.0697620397397024,
+        "U937": -0.005782623513666572,
+        "VCAP": 0.05815758777503576
+       }
+      }
+     },
+     "alpha": 0.21820450071172148
+    },
+    "P3_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.011762118635013336,
+      "delta_top": 0.007105367891780484,
+      "centred_all": 0.00014057447017383484,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.03383085036363754,
+       "per_cell": {
+        "HEK293T": 0.05662216853453682,
+        "HL60": 0.07215139234971236,
+        "LNCAP": 0.004259867548940424,
+        "SKBR3": 0.017415167537662066,
+        "U937": 0.013627443777268761,
+        "VCAP": 0.0682907278957649
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.008981987869254415,
+      "delta_top": 0.004801212426472357,
+      "centred_all": 0.00016692025034900637,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.02107547449028491,
+       "per_cell": {
+        "HEK293T": 0.05662216853453682,
+        "HL60": 0.020366988559361657,
+        "LNCAP": 0.004259867548940424,
+        "SKBR3": 0.017415167537662066,
+        "U937": 0.014248388591560947,
+        "VCAP": 0.037807612473611765
+       }
+      }
+     },
+     "alpha": 0.047426239415069266
+    },
+    "P3_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.021494123727233208,
+      "delta_top": 0.012673365438430534,
+      "centred_all": 0.0001407815526741213,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.052729439113829185,
+       "per_cell": {
+        "HEK293T": 0.09298226566293565,
+        "HL60": 0.12872515252873604,
+        "LNCAP": 0.022360723602366576,
+        "SKBR3": 0.03314762740655225,
+        "U937": 0.012526533211794928,
+        "VCAP": 0.08340595761222254
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.016577924879365824,
+      "delta_top": 0.008584341611995006,
+      "centred_all": 0.00016848955733639315,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.038711994371111925,
+       "per_cell": {
+        "HEK293T": 0.09298226566293565,
+        "HL60": 0.04469300200865278,
+        "LNCAP": 0.022360723602366576,
+        "SKBR3": 0.03314762740655225,
+        "U937": 0.021071108489526636,
+        "VCAP": 0.05340945360571457
+       }
+      }
+     },
+     "alpha": 0.0670708309931444
+    },
+    "P3_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0384059202337593,
+      "delta_top": 0.02237207580524489,
+      "centred_all": 0.00014061460259603975,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.08012055639876962,
+       "per_cell": {
+        "HEK293T": 0.1416866732226442,
+        "HL60": 0.18706153664725828,
+        "LNCAP": 0.06069252606324451,
+        "SKBR3": 0.06028525212000381,
+        "U937": 0.005325199888166069,
+        "VCAP": 0.10103150259959685
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.030363424442699016,
+      "delta_top": 0.0155725923188903,
+      "centred_all": 0.00017024816903896123,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.06868463563267241,
+       "per_cell": {
+        "HEK293T": 0.1416866732226442,
+        "HL60": 0.08250112112614814,
+        "LNCAP": 0.06069252606324451,
+        "SKBR3": 0.06028525212000381,
+        "U937": 0.03152468978985236,
+        "VCAP": 0.07637840710266217
+       }
+      }
+     },
+     "alpha": 0.09485247883013853
+    },
+    "P3_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.07697767211855222,
+      "delta_top": 0.04525987783677313,
+      "centred_all": 0.000138702797611287,
+      "cells_pos": 6,
+      "centred_cells_pos": 4,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.13640816598875397,
+       "per_cell": {
+        "HEK293T": 0.22411684545120472,
+        "HL60": 0.2586670892604395,
+        "LNCAP": 0.15020178907323883,
+        "SKBR3": 0.11973284196458488,
+        "U937": -0.006323283858141505,
+        "VCAP": 0.14311264544971047
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.0644928499532122,
+      "delta_top": 0.03399922859398874,
+      "centred_all": 0.00017109092488890032,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.13271335231989823,
+       "per_cell": {
+        "HEK293T": 0.22411684545120472,
+        "HL60": 0.1543488947818303,
+        "LNCAP": 0.15020178907323883,
+        "SKBR3": 0.11973284196458488,
+        "U937": 0.05173008092060712,
+        "VCAP": 0.12291224758351865
+       }
+      }
+     },
+     "alpha": 0.1499749374080706
+    },
+    "P3_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.12038446945587508,
+      "delta_top": 0.07330375747118165,
+      "centred_all": 0.0001332755866739893,
+      "cells_pos": 5,
+      "centred_cells_pos": 4,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.19772366599913355,
+       "per_cell": {
+        "HEK293T": 0.29570436062928984,
+        "HL60": 0.3255926573161386,
+        "LNCAP": 0.24540410424356313,
+        "SKBR3": 0.18619732412017112,
+        "U937": -0.014400710617196914,
+        "VCAP": 0.19364027195318928
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.10676362615626878,
+      "delta_top": 0.05941892316370567,
+      "centred_all": 0.0001651674834276251,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.20137289896787927,
+       "per_cell": {
+        "HEK293T": 0.29570436062928984,
+        "HL60": 0.2252739334204487,
+        "LNCAP": 0.24540410424356313,
+        "SKBR3": 0.18619732412017112,
+        "U937": 0.0706103947898737,
+        "VCAP": 0.1733219297015873
+       }
+      }
+     },
+     "alpha": 0.21209659049854948
+    }
+   },
+   "T3": {
+    "P4_0.005": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.007052314582556951,
+      "HL60": 0.014390117711109984,
+      "LNCAP": 0.0020466094529233425,
+      "SKBR3": 0.003896301767062127,
+      "U937": -0.004714900723973625,
+      "VCAP": 0.015089595578200554
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.00741866577620609,
+      "HL60": 0.013735859059852473,
+      "LNCAP": 0.0025308651774674784,
+      "SKBR3": 0.004892498839489834,
+      "U937": -0.004254086891796627,
+      "VCAP": 0.015198508300387492
+     },
+     "alpha": 0.07008280930306002
+    },
+    "P4_0.01": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.011113219714567635,
+      "HL60": 0.027487229721053663,
+      "LNCAP": 0.004623808761099801,
+      "SKBR3": 0.00932970311542991,
+      "U937": -0.004744574011574687,
+      "VCAP": 0.028793865428168863
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.011759913837354419,
+      "HL60": 0.026667327545933817,
+      "LNCAP": 0.005079274180347149,
+      "SKBR3": 0.010226470080150318,
+      "U937": -0.004067113721612781,
+      "VCAP": 0.028952313527576767
+     },
+     "alpha": 0.0991120594055948
+    },
+    "P4_0.02": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.01779272357151218,
+      "HL60": 0.04967671761284925,
+      "LNCAP": 0.01027838566265904,
+      "SKBR3": 0.019874850580682946,
+      "U937": -0.0035735271573764105,
+      "VCAP": 0.05252501697446965
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.01895260615397082,
+      "HL60": 0.04855136539617311,
+      "LNCAP": 0.010683021440413554,
+      "SKBR3": 0.02056245753467667,
+      "U937": -0.00261517859565652,
+      "VCAP": 0.05273993413344458
+     },
+     "alpha": 0.14016561860612003
+    },
+    "P4_0.05": {
+     "pass": true,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.03378925738184574,
+      "HL60": 0.09786402284787138,
+      "LNCAP": 0.02774648070982466,
+      "SKBR3": 0.046853406651138574,
+      "U937": 0.0026699492988740414,
+      "VCAP": 0.10428644633742157
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.036212959953023205,
+      "HL60": 0.09599377255983677,
+      "LNCAP": 0.027965755723844632,
+      "SKBR3": 0.046945920770582794,
+      "U937": 0.004059945244233587,
+      "VCAP": 0.104582415483923
+     },
+     "alpha": 0.22162130222090737
+    },
+    "P4_0.1": {
+     "pass": true,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0540846815988153,
+      "HL60": 0.14622205105810437,
+      "LNCAP": 0.053402503678559365,
+      "SKBR3": 0.07878182547229762,
+      "U937": 0.013546550611565233,
+      "VCAP": 0.15491326250000437
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.057870920088141375,
+      "HL60": 0.14398444405299826,
+      "LNCAP": 0.05294689989827239,
+      "SKBR3": 0.07798620176163318,
+      "U937": 0.015812966774836734,
+      "VCAP": 0.15557797936663964
+     },
+     "alpha": 0.3134198513115937
+    }
+   }
+  },
+  {
+   "draw": 1,
+   "rho": 0.2381078944942016,
+   "null_T1": {
+    "kappa": {
+     "FB": [
+      0.0001,
+      0.01
+     ],
+     "FBC": [
+      0.0001,
+      0.01
+     ],
+     "N1": [
+      0.0001,
+      0.01
+     ]
+    },
+    "all": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": true
+     },
+     "delta_all": 0.000200699648510147,
+     "delta_top": 0.00014443452384413358,
+     "centred_all": 0.00019960518222833512,
+     "cells_pos": 4,
+     "centred_cells_pos": 6,
+     "cells_vs_N1_pos": 4,
+     "resid": {
+      "all": -0.0033723071209893507,
+      "per_cell": {
+       "HEK293T": 0.007359034303743621,
+       "HL60": -0.0046959582540805995,
+       "LNCAP": -0.03348868761732775,
+       "SKBR3": 0.002167222270836696,
+       "U937": 0.0028820377741176433,
+       "VCAP": 0.0006792731348762163
+      }
+     }
+    },
+    "known": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": false,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": true
+     },
+     "delta_all": 0.00024647666714983085,
+     "delta_top": 0.00018803257189997646,
+     "centred_all": 0.00022294385925572535,
+     "cells_pos": 3,
+     "centred_cells_pos": 5,
+     "cells_vs_N1_pos": 3,
+     "resid": {
+      "all": -0.004818384628114296,
+      "per_cell": {
+       "HEK293T": 0.007359034303743621,
+       "HL60": -0.013005428578473555,
+       "LNCAP": -0.03348868761732775,
+       "SKBR3": 0.002167222270836696,
+       "U937": -0.012133771107070855,
+       "VCAP": 0.0011014886034006
+      }
+     }
+    }
+   },
+   "null_T3": {
+    "pass": false,
+    "conjuncts": {
+     "cells_rho_ge_0.02_ge_4": false,
+     "cells_FBC_gt_N1_ge_4": false
+    },
+    "rho_T3": {
+     "HEK293T": -0.0004973525234565068,
+     "HL60": -0.00034086613857592374,
+     "LNCAP": 0.0003210505729744906,
+     "SKBR3": -0.0004627663652666536,
+     "U937": 0.0004569929230594516,
+     "VCAP": 5.931260383418291e-05
+    },
+    "FBC_minus_N1": {
+     "HEK293T": -0.0006784687496049768,
+     "HL60": -4.6472409433562234e-05,
+     "LNCAP": -6.625621753431066e-05,
+     "SKBR3": -0.0005883680125567947,
+     "U937": 0.0006392261353292406,
+     "VCAP": 6.701147236798377e-05
+    }
+   },
+   "T1": {
+    "P1_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.007320216498428261,
+      "delta_top": 0.005465877595147467,
+      "centred_all": 0.006920930032201886,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.010854836984060392,
+       "per_cell": {
+        "HEK293T": 0.057039335093982166,
+        "HL60": 0.008302331900587174,
+        "LNCAP": -0.008874055443336795,
+        "SKBR3": 0.002150378449250457,
+        "U937": -0.00594519164763736,
+        "VCAP": 0.032842159211161744
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.009011551115848726,
+      "delta_top": 0.006448604748312381,
+      "centred_all": 0.00869676108123743,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.00892918110554028,
+       "per_cell": {
+        "HEK293T": 0.057039335093982166,
+        "HL60": 0.013550812351340731,
+        "LNCAP": -0.008874055443336795,
+        "SKBR3": 0.002150378449250457,
+        "U937": -0.0355756739025287,
+        "VCAP": 0.03609599159166383
+       }
+      }
+     },
+     "alpha": 0.11768452524991847
+    },
+    "P1_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.01373688107037524,
+      "delta_top": 0.010110295890660898,
+      "centred_all": 0.013068246787351065,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.01962201895036941,
+       "per_cell": {
+        "HEK293T": 0.08182728789140857,
+        "HL60": 0.01656067049320891,
+        "LNCAP": -0.00013082666528836185,
+        "SKBR3": 0.008843460643232154,
+        "U937": -0.009253805044146749,
+        "VCAP": 0.04548648935754117
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.01682884068251042,
+      "delta_top": 0.011969297555629366,
+      "centred_all": 0.016435024193505926,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.018347222316357683,
+       "per_cell": {
+        "HEK293T": 0.08182728789140857,
+        "HL60": 0.02798292021191087,
+        "LNCAP": -0.00013082666528836185,
+        "SKBR3": 0.008843460643232154,
+        "U937": -0.04359803781835169,
+        "VCAP": 0.0502573129570954
+       }
+      }
+     },
+     "alpha": 0.16643105168987365
+    },
+    "P1_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.025470398850767045,
+      "delta_top": 0.01894965336852475,
+      "centred_all": 0.02434270963431706,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.0334771072885944,
+       "per_cell": {
+        "HEK293T": 0.11610876860086458,
+        "HL60": 0.0297698068571223,
+        "LNCAP": 0.015234621601965733,
+        "SKBR3": 0.021146246428785286,
+        "U937": -0.013405390825906202,
+        "VCAP": 0.06233425558106392
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.031053592278562553,
+      "delta_top": 0.022292948946918634,
+      "centred_all": 0.030604916490986123,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.03375253411713615,
+       "per_cell": {
+        "HEK293T": 0.11610876860086458,
+        "HL60": 0.049599800304549836,
+        "LNCAP": 0.015234621601965733,
+        "SKBR3": 0.021146246428785286,
+        "U937": -0.05319029204883991,
+        "VCAP": 0.07021520607960824
+       }
+      }
+     },
+     "alpha": 0.23536905049983695
+    },
+    "P1_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.05405061900796905,
+      "delta_top": 0.04289864931882598,
+      "centred_all": 0.05184911669135256,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.06159963996910349,
+       "per_cell": {
+        "HEK293T": 0.1792330222965251,
+        "HL60": 0.05649993131555742,
+        "LNCAP": 0.048055625971621344,
+        "SKBR3": 0.048149792635505805,
+        "U937": -0.019893099752438123,
+        "VCAP": 0.09298518977424718
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.06537819744999845,
+      "delta_top": 0.04907241151668956,
+      "centred_all": 0.06504395135939256,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.06556283762321836,
+       "per_cell": {
+        "HEK293T": 0.1792330222965251,
+        "HL60": 0.09154898481450975,
+        "LNCAP": 0.048055625971621344,
+        "SKBR3": 0.048149792635505805,
+        "U937": -0.06714354074781619,
+        "VCAP": 0.10776794887035131
+       }
+      }
+     },
+     "alpha": 0.37215114514533876
+    },
+    "P1_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0868933887809211,
+      "delta_top": 0.07657432517596632,
+      "centred_all": 0.0833998221340605,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.09054323652984284,
+       "per_cell": {
+        "HEK293T": 0.2409221161702397,
+        "HL60": 0.08437536602541743,
+        "LNCAP": 0.0817290229238993,
+        "SKBR3": 0.07671813452202991,
+        "U937": -0.025647335572474783,
+        "VCAP": 0.12360616554276195
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.1041502341927642,
+      "delta_top": 0.08689057229089586,
+      "centred_all": 0.10424656917286795,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.09826448478431431,
+       "per_cell": {
+        "HEK293T": 0.2409221161702397,
+        "HL60": 0.13359045520961807,
+        "LNCAP": 0.0817290229238993,
+        "SKBR3": 0.07671813452202991,
+        "U937": -0.0788962236523326,
+        "VCAP": 0.14495216429537655
+       }
+      }
+     },
+     "alpha": 0.5263011967172163
+    },
+    "P2_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.000891971441796896,
+      "delta_top": 0.0005333166597763783,
+      "centred_all": 0.0008807226669161616,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.0014809736318396056,
+       "per_cell": {
+        "HEK293T": 0.012222502754664796,
+        "HL60": -0.0011314262111877013,
+        "LNCAP": -0.0303151679408604,
+        "SKBR3": 0.009366815873755045,
+        "U937": -0.0003167657701740494,
+        "VCAP": 0.005449427564236492
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0011563231071182178,
+      "delta_top": 0.000703601603901649,
+      "centred_all": 0.0011077277092883808,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.0016926878754418588,
+       "per_cell": {
+        "HEK293T": 0.012222502754664796,
+        "HL60": -0.00750151327215588,
+        "LNCAP": -0.0303151679408604,
+        "SKBR3": 0.009366815873755045,
+        "U937": -0.014997893412012553,
+        "VCAP": 0.011294104897938428
+       }
+      }
+     },
+     "alpha": 0.04726369615914907
+    },
+    "P2_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0014955225139576533,
+      "delta_top": 0.0008835360167494255,
+      "centred_all": 0.001511954273285654,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.005253524873280503,
+       "per_cell": {
+        "HEK293T": 0.01612333528896408,
+        "HL60": -0.0012029739630298678,
+        "LNCAP": -0.02729579346476292,
+        "SKBR3": 0.015483343002853114,
+        "U937": -0.001784285462060213,
+        "VCAP": 0.008494446116205553
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.001976491527789226,
+      "delta_top": 0.001230562894202647,
+      "centred_all": 0.0019286938807815401,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.007027770817145412,
+       "per_cell": {
+        "HEK293T": 0.01612333528896408,
+        "HL60": -0.0035581936414019284,
+        "LNCAP": -0.02729579346476292,
+        "SKBR3": 0.015483343002853114,
+        "U937": -0.016453684207878003,
+        "VCAP": 0.01840843277883728
+       }
+      }
+     },
+     "alpha": 0.06684096011614978
+    },
+    "P2_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0025571934756512538,
+      "delta_top": 0.0015763388517832377,
+      "centred_all": 0.0026470342293162252,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.011402674517507675,
+       "per_cell": {
+        "HEK293T": 0.022363951550871484,
+        "HL60": -0.0027553632684767793,
+        "LNCAP": -0.02193773174872493,
+        "SKBR3": 0.025832525836887898,
+        "U937": -0.003987935648382293,
+        "VCAP": 0.012975113739753545
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0034350315613717597,
+      "delta_top": 0.0022281790348109842,
+      "centred_all": 0.0034079150266724534,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.01589455452315773,
+       "per_cell": {
+        "HEK293T": 0.022363951550871484,
+        "HL60": 0.0030615990199581336,
+        "LNCAP": -0.02193773174872493,
+        "SKBR3": 0.025832525836887898,
+        "U937": -0.018730372085595727,
+        "VCAP": 0.029293781011179094
+       }
+      }
+     },
+     "alpha": 0.09452739231829814
+    },
+    "P2_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.005020228420561518,
+      "delta_top": 0.0038048110488627107,
+      "centred_all": 0.005363266789588039,
+      "cells_pos": 4,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.024611297110481916,
+       "per_cell": {
+        "HEK293T": 0.03519500287127666,
+        "HL60": -0.009895792552349831,
+        "LNCAP": -0.009034279126405656,
+        "SKBR3": 0.04908800396034599,
+        "U937": -0.008744184533440374,
+        "VCAP": 0.02137525694140734
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.006875986638095577,
+      "delta_top": 0.005452552485875839,
+      "centred_all": 0.006960079766793026,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.03537989413712079,
+       "per_cell": {
+        "HEK293T": 0.03519500287127666,
+        "HL60": 0.017335577129574373,
+        "LNCAP": -0.009034279126405656,
+        "SKBR3": 0.04908800396034599,
+        "U937": -0.02374872784327731,
+        "VCAP": 0.05059674237617219
+       }
+      }
+     },
+     "alpha": 0.14946093050106316
+    },
+    "P2_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.007849267374015728,
+      "delta_top": 0.007536814267401742,
+      "centred_all": 0.008611475592398277,
+      "cells_pos": 4,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 4,
+      "resid": {
+       "all": 0.03920921066581216,
+       "per_cell": {
+        "HEK293T": 0.048304075590146045,
+        "HL60": -0.021821232898442233,
+        "LNCAP": 0.006961338134807537,
+        "SKBR3": 0.07587089355478457,
+        "U937": -0.014593855880736058,
+        "VCAP": 0.029507127948260253
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.010925871222528999,
+      "delta_top": 0.01107182583474936,
+      "centred_all": 0.011227819170413628,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.05731192099123368,
+       "per_cell": {
+        "HEK293T": 0.048304075590146045,
+        "HL60": 0.0316751480455441,
+        "LNCAP": 0.006961338134807537,
+        "SKBR3": 0.07587089355478457,
+        "U937": -0.029629540640574287,
+        "VCAP": 0.07165729542123205
+       }
+      }
+     },
+     "alpha": 0.2113696749595061
+    },
+    "P3_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.009585900124520194,
+      "delta_top": 0.0051712736984934615,
+      "centred_all": 0.0001982439058723362,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.02067852020516352,
+       "per_cell": {
+        "HEK293T": 0.049432360984629255,
+        "HL60": 0.046459130038345245,
+        "LNCAP": -0.03602308979026897,
+        "SKBR3": 0.015060806704221635,
+        "U937": 0.004012609225168118,
+        "VCAP": 0.05394472801606599
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.007397250569335934,
+      "delta_top": 0.0034364845077280437,
+      "centred_all": 0.00021610631377588785,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.007793408898507445,
+       "per_cell": {
+        "HEK293T": 0.049432360984629255,
+        "HL60": -0.01803656294016725,
+        "LNCAP": -0.03602308979026897,
+        "SKBR3": 0.015060806704221635,
+        "U937": -0.0033516666790886275,
+        "VCAP": 0.019621703896218406
+       }
+      }
+     },
+     "alpha": 0.04749157198575375
+    },
+    "P3_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.018677795235840164,
+      "delta_top": 0.010090354771762067,
+      "centred_all": 0.00019737170905549661,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.03913768384511379,
+       "per_cell": {
+        "HEK293T": 0.07947064451444717,
+        "HL60": 0.10193787782999719,
+        "LNCAP": -0.016920496527780514,
+        "SKBR3": 0.03000190921457504,
+        "U937": 0.0020217945878473853,
+        "VCAP": 0.0700943810235318
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.014476225770090861,
+      "delta_top": 0.006733893897762244,
+      "centred_all": 0.0002132746859595802,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.024586325257462245,
+       "per_cell": {
+        "HEK293T": 0.07947064451444717,
+        "HL60": 0.0037569204185931714,
+        "LNCAP": -0.016920496527780514,
+        "SKBR3": 0.03000190921457504,
+        "U937": 0.0016174791701581725,
+        "VCAP": 0.03492672261961165
+       }
+      }
+     },
+     "alpha": 0.0671632252006711
+    },
+    "P3_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.03497925303831642,
+      "delta_top": 0.01901826699912615,
+      "centred_all": 0.00019566880399779496,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.06577367441474712,
+       "per_cell": {
+        "HEK293T": 0.12236043274768058,
+        "HL60": 0.16149530851929508,
+        "LNCAP": 0.022232633470102434,
+        "SKBR3": 0.05522883887432818,
+        "U937": -0.005334435082514268,
+        "VCAP": 0.08837774577308101
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0277195816344335,
+      "delta_top": 0.01311094736732571,
+      "centred_all": 0.00020909094392945748,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.05322819686048073,
+       "per_cell": {
+        "HEK293T": 0.12236043274768058,
+        "HL60": 0.03965424070460936,
+        "LNCAP": 0.022232633470102434,
+        "SKBR3": 0.05522883887432818,
+        "U937": 0.009431117949181096,
+        "VCAP": 0.05835434533283218
+       }
+      }
+     },
+     "alpha": 0.0949831439715075
+    },
+    "P3_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.07308801898484704,
+      "delta_top": 0.04094630651460779,
+      "centred_all": 0.0001899432806924256,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.11961815030325197,
+       "per_cell": {
+        "HEK293T": 0.1970800317554177,
+        "HL60": 0.23559943700679215,
+        "LNCAP": 0.11040367272675593,
+        "SKBR3": 0.10922489160330526,
+        "U937": -0.015558411191131886,
+        "VCAP": 0.13095404264956328
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.06128157726925243,
+      "delta_top": 0.030623224539827798,
+      "centred_all": 0.0001991596013070085,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.11357159549760303,
+       "per_cell": {
+        "HEK293T": 0.1970800317554177,
+        "HL60": 0.10918860970565414,
+        "LNCAP": 0.11040367272675593,
+        "SKBR3": 0.10922489160330526,
+        "U937": 0.02488292896209228,
+        "VCAP": 0.10632059400878412
+       }
+      }
+     },
+     "alpha": 0.15018153713682755
+    },
+    "P3_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.11653139320051173,
+      "delta_top": 0.06801649589466077,
+      "centred_all": 0.0001779724718564829,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.17786265158062164,
+       "per_cell": {
+        "HEK293T": 0.26236650181221594,
+        "HL60": 0.3044700370843654,
+        "LNCAP": 0.2016467831919673,
+        "SKBR3": 0.16870333214569977,
+        "U937": -0.01933004332675937,
+        "VCAP": 0.18246391991280564
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.10329526531548636,
+      "delta_top": 0.05522559973027796,
+      "centred_all": 0.0001827484021050818,
+      "cells_pos": 6,
+      "centred_cells_pos": 4,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.17738304080528264,
+       "per_cell": {
+        "HEK293T": 0.26236650181221594,
+        "HL60": 0.17783203756509683,
+        "LNCAP": 0.2016467831919673,
+        "SKBR3": 0.16870333214569977,
+        "U937": 0.03970621727193407,
+        "VCAP": 0.15837677233273045
+       }
+      }
+     },
+     "alpha": 0.21238876663694015
+    }
+   },
+   "T3": {
+    "P4_0.005": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0021264720767342205,
+      "HL60": 0.010180167706657861,
+      "LNCAP": -0.0010922965572661703,
+      "SKBR3": 0.00409185076928964,
+      "U937": -0.003716552231857073,
+      "VCAP": 0.011556257380647583
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.0024205909634570366,
+      "HL60": 0.01052219229039486,
+      "LNCAP": -0.001095159929292544,
+      "SKBR3": 0.003810032907259675,
+      "U937": -0.002896718566972656,
+      "VCAP": 0.011884106035561448
+     },
+     "alpha": 0.07037280857766902
+    },
+    "P4_0.01": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.004195196216971064,
+      "HL60": 0.02294246440824349,
+      "LNCAP": 0.00015132194220646156,
+      "SKBR3": 0.008791979980290465,
+      "U937": -0.0033497712759170684,
+      "VCAP": 0.024206368206242446
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.004882534827494234,
+      "HL60": 0.0231665004461743,
+      "LNCAP": 0.0003166013043665039,
+      "SKBR3": 0.008446461480301592,
+      "U937": -0.0022846862106435384,
+      "VCAP": 0.024627079708422817
+     },
+     "alpha": 0.09952218031282521
+    },
+    "P4_0.02": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.008067925097451467,
+      "HL60": 0.04627522367986375,
+      "LNCAP": 0.004123124939142575,
+      "SKBR3": 0.017252313213014236,
+      "U937": -0.0016449388400519016,
+      "VCAP": 0.04763620348088948
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.009476437519922887,
+      "HL60": 0.0462057237515523,
+      "LNCAP": 0.004519859846285557,
+      "SKBR3": 0.01684194534808714,
+      "U937": -0.0002699141621173018,
+      "VCAP": 0.04813697397140537
+     },
+     "alpha": 0.14074561715533804
+    },
+    "P4_0.05": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0189508283104044,
+      "HL60": 0.10117184053064032,
+      "LNCAP": 0.018546329745094625,
+      "SKBR3": 0.03649136205946879,
+      "U937": 0.005445212058918902,
+      "VCAP": 0.10280414572248064
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.022182253422124987,
+      "HL60": 0.10017493048699039,
+      "LNCAP": 0.019321843128882743,
+      "SKBR3": 0.03609662834624572,
+      "U937": 0.007267006854774938,
+      "VCAP": 0.10329295247666614
+     },
+     "alpha": 0.22253836044846845
+    },
+    "P4_0.1": {
+     "pass": true,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0349521349260824,
+      "HL60": 0.1592133703325449,
+      "LNCAP": 0.04062196275007679,
+      "SKBR3": 0.05628215771187561,
+      "U937": 0.016676520923387117,
+      "VCAP": 0.16069414032740137
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.04032393712998639,
+      "HL60": 0.15749141534181843,
+      "LNCAP": 0.04141726154192793,
+      "SKBR3": 0.05612660421013449,
+      "U937": 0.019381333225153397,
+      "VCAP": 0.16128447866841034
+     },
+     "alpha": 0.31471676749449645
+    }
+   }
+  },
+  {
+   "draw": 2,
+   "rho": 0.2381078944942016,
+   "null_T1": {
+    "kappa": {
+     "FB": [
+      0.0001,
+      0.01
+     ],
+     "FBC": [
+      0.0001,
+      0.01
+     ],
+     "N1": [
+      0.0001,
+      0.01
+     ]
+    },
+    "all": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": false,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": false
+     },
+     "delta_all": -0.0001652436702770238,
+     "delta_top": -0.00015359530925732057,
+     "centred_all": -0.00020809161342449922,
+     "cells_pos": 2,
+     "centred_cells_pos": 3,
+     "cells_vs_N1_pos": 2,
+     "resid": {
+      "all": -0.013468521209712486,
+      "per_cell": {
+       "HEK293T": -0.008725643058067528,
+       "HL60": -0.0042435536948135615,
+       "LNCAP": -0.03887134824596248,
+       "SKBR3": -0.01994755978965271,
+       "U937": -0.001763728790957249,
+       "VCAP": 0.004776561835370396
+      }
+     }
+    },
+    "known": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": false,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": false
+     },
+     "delta_all": -0.00022106385055484234,
+     "delta_top": -0.0001763459185007421,
+     "centred_all": -0.00030969443523720663,
+     "cells_pos": 3,
+     "centred_cells_pos": 3,
+     "cells_vs_N1_pos": 3,
+     "resid": {
+      "all": -0.017004326800496097,
+      "per_cell": {
+       "HEK293T": -0.008725643058067528,
+       "HL60": 0.01239757861040601,
+       "LNCAP": -0.03887134824596248,
+       "SKBR3": -0.01994755978965271,
+       "U937": -0.0019425496147333654,
+       "VCAP": 0.008817814236518623
+      }
+     }
+    }
+   },
+   "null_T3": {
+    "pass": false,
+    "conjuncts": {
+     "cells_rho_ge_0.02_ge_4": false,
+     "cells_FBC_gt_N1_ge_4": false
+    },
+    "rho_T3": {
+     "HEK293T": 6.336394768324816e-06,
+     "HL60": 8.48857547184334e-05,
+     "LNCAP": 0.00010302073562029612,
+     "SKBR3": -5.8389266138325624e-05,
+     "U937": -2.4167655961304657e-05,
+     "VCAP": 5.523660798756325e-06
+    },
+    "FBC_minus_N1": {
+     "HEK293T": 6.620432221737804e-05,
+     "HL60": -3.496420778237308e-06,
+     "LNCAP": 6.929171297087588e-05,
+     "SKBR3": -8.447712178050182e-05,
+     "U937": -0.00019624673301549267,
+     "VCAP": 3.803461103202288e-05
+    }
+   },
+   "T1": {
+    "P1_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.00452306795074614,
+      "delta_top": 0.0031608761361107407,
+      "centred_all": 0.004462093878765477,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.005154045995263709,
+       "per_cell": {
+        "HEK293T": 0.04459461583966937,
+        "HL60": 0.013968102119394274,
+        "LNCAP": -0.010274816867516468,
+        "SKBR3": -0.0005875085908277113,
+        "U937": 0.004962331511220815,
+        "VCAP": 0.012186463185363464
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.005520140717922617,
+      "delta_top": 0.0038064905709360164,
+      "centred_all": 0.0056511258012543475,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.002226260025395508,
+       "per_cell": {
+        "HEK293T": 0.04459461583966937,
+        "HL60": -0.003618747575317763,
+        "LNCAP": -0.010274816867516468,
+        "SKBR3": -0.0005875085908277113,
+        "U937": 0.010550327244676132,
+        "VCAP": 0.006538113412452972
+       }
+      }
+     },
+     "alpha": 0.11722650646661906
+    },
+    "P1_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.010005799624518058,
+      "delta_top": 0.007030050005843169,
+      "centred_all": 0.009816289232497777,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.012788099332802273,
+       "per_cell": {
+        "HEK293T": 0.07294743082152567,
+        "HL60": 0.021150057229295395,
+        "LNCAP": -0.01190296086224795,
+        "SKBR3": 0.005750122391475202,
+        "U937": 0.008240859374047452,
+        "VCAP": 0.02420823904245185
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0121971872881933,
+      "delta_top": 0.008456286832414672,
+      "centred_all": 0.012428181776907049,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.009637214332101704,
+       "per_cell": {
+        "HEK293T": 0.07294743082152567,
+        "HL60": 0.003944022456443642,
+        "LNCAP": -0.01190296086224795,
+        "SKBR3": 0.005750122391475202,
+        "U937": 0.01772317256349171,
+        "VCAP": 0.01851566486395367
+       }
+      }
+     },
+     "alpha": 0.16578331531471
+    },
+    "P1_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.020519381868234918,
+      "delta_top": 0.01472263555986425,
+      "centred_all": 0.020038587665178936,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.026422334522346696,
+       "per_cell": {
+        "HEK293T": 0.11002525156746255,
+        "HL60": 0.03385621790810633,
+        "LNCAP": -0.005183478871203426,
+        "SKBR3": 0.018095044395589104,
+        "U937": 0.013527682977682576,
+        "VCAP": 0.0416351217635974
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.024951734551557497,
+      "delta_top": 0.017533832813265093,
+      "centred_all": 0.025334512016279592,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.024158107592924718,
+       "per_cell": {
+        "HEK293T": 0.11002525156746255,
+        "HL60": 0.02259201536236108,
+        "LNCAP": -0.005183478871203426,
+        "SKBR3": 0.018095044395589104,
+        "U937": 0.029927061405535766,
+        "VCAP": 0.038956090012019974
+       }
+      }
+     },
+     "alpha": 0.23445301293323811
+    },
+    "P1_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.04713419527241937,
+      "delta_top": 0.03703521432343271,
+      "centred_all": 0.04578621584530168,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.05647458071771551,
+       "per_cell": {
+        "HEK293T": 0.17572692932517336,
+        "HL60": 0.06197201635220957,
+        "LNCAP": 0.020315141089245547,
+        "SKBR3": 0.04658421251850812,
+        "U937": 0.026648173396216526,
+        "VCAP": 0.07479765135250853
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.056963788938403453,
+      "delta_top": 0.04331971337828455,
+      "centred_all": 0.05770200416934071,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.057479288150961545,
+       "per_cell": {
+        "HEK293T": 0.17572692932517336,
+        "HL60": 0.06650426292067078,
+        "LNCAP": 0.020315141089245547,
+        "SKBR3": 0.04658421251850812,
+        "U937": 0.06155521464665678,
+        "VCAP": 0.08186086848995616
+       }
+      }
+     },
+     "alpha": 0.3707027625789735
+    },
+    "P1_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.07865772492223891,
+      "delta_top": 0.06838074708787242,
+      "centred_all": 0.07607897427159152,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.08923036477040272,
+       "per_cell": {
+        "HEK293T": 0.23875551955946747,
+        "HL60": 0.093007136847869,
+        "LNCAP": 0.051784856675679336,
+        "SKBR3": 0.07776316173097061,
+        "U937": 0.04598664348705633,
+        "VCAP": 0.10883240013055255
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.09426373183396866,
+      "delta_top": 0.07913689242872773,
+      "centred_all": 0.09548593367496777,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.09397293896294927,
+       "per_cell": {
+        "HEK293T": 0.23875551955946747,
+        "HL60": 0.11441862816318714,
+        "LNCAP": 0.051784856675679336,
+        "SKBR3": 0.07776316173097061,
+        "U937": 0.10917637228240926,
+        "VCAP": 0.1271764808749146
+       }
+      }
+     },
+     "alpha": 0.5242528744483578
+    },
+    "P2_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.00033588965786464364,
+      "delta_top": 0.00023319586702294504,
+      "centred_all": 0.0003340608771654624,
+      "cells_pos": 4,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 4,
+      "resid": {
+       "all": -0.009396088938757818,
+       "per_cell": {
+        "HEK293T": -0.006186839530688402,
+        "HL60": -0.0027131223310821067,
+        "LNCAP": -0.033997061069387866,
+        "SKBR3": -0.013837627776161382,
+        "U937": -0.003034699259378603,
+        "VCAP": 0.007740276727654393
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.00045216745467904773,
+      "delta_top": 0.0003413476201988841,
+      "centred_all": 0.00040417721219843106,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": -0.011511143694677723,
+       "per_cell": {
+        "HEK293T": -0.006186839530688402,
+        "HL60": 0.021573112428100085,
+        "LNCAP": -0.033997061069387866,
+        "SKBR3": -0.013837627776161382,
+        "U937": -0.003407696467145578,
+        "VCAP": 0.014746351890827786
+       }
+      }
+     },
+     "alpha": 0.04742802123463202
+    },
+    "P2_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0008026724384383038,
+      "delta_top": 0.0006023446691998391,
+      "centred_all": 0.000834027167539636,
+      "cells_pos": 4,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 4,
+      "resid": {
+       "all": -0.005871940820856206,
+       "per_cell": {
+        "HEK293T": -0.004123804385249229,
+        "HL60": -0.0014155840754856727,
+        "LNCAP": -0.029810329609588484,
+        "SKBR3": -0.00870295154556333,
+        "U937": -0.0035408334898872637,
+        "VCAP": 0.010436575646367099
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0010727319174232697,
+      "delta_top": 0.0008230813821038518,
+      "centred_all": 0.0010547447550157962,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": -0.006810269499464183,
+       "per_cell": {
+        "HEK293T": -0.004123804385249229,
+        "HL60": 0.02916563956171085,
+        "LNCAP": -0.029810329609588484,
+        "SKBR3": -0.00870295154556333,
+        "U937": -0.0038512690654773155,
+        "VCAP": 0.02009689830004472
+       }
+      }
+     },
+     "alpha": 0.06707335086653575
+    },
+    "P2_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0016612146126085414,
+      "delta_top": 0.001342141374029937,
+      "centred_all": 0.0017520241909142475,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.00022724000242030818,
+       "per_cell": {
+        "HEK293T": -0.0005071788982031215,
+        "HL60": 0.0007565706263860412,
+        "LNCAP": -0.022409793462950474,
+        "SKBR3": 8.715148126620742e-05,
+        "U937": -0.004217109931437776,
+        "VCAP": 0.015127541242534336
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0022118098743607872,
+      "delta_top": 0.0017805073099812496,
+      "centred_all": 0.002246937427295065,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.0013115067019859828,
+       "per_cell": {
+        "HEK293T": -0.0005071788982031215,
+        "HL60": 0.042050274383010684,
+        "LNCAP": -0.022409793462950474,
+        "SKBR3": 8.715148126620742e-05,
+        "U937": -0.004290668596226727,
+        "VCAP": 0.029385973446776882
+       }
+      }
+     },
+     "alpha": 0.09485604246926405
+    },
+    "P2_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.003823069176846161,
+      "delta_top": 0.0038403525326335397,
+      "centred_all": 0.004064206272823251,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.014461474866511177,
+       "per_cell": {
+        "HEK293T": 0.008175874293791813,
+        "HL60": 0.005419812544857772,
+        "LNCAP": -0.0046123666501195005,
+        "SKBR3": 0.020513692283797534,
+        "U937": -0.005370282991588185,
+        "VCAP": 0.02585662814690866
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.005075555279072191,
+      "delta_top": 0.005070504615722282,
+      "centred_all": 0.005244506016698042,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.020247046744211926,
+       "per_cell": {
+        "HEK293T": 0.008175874293791813,
+        "HL60": 0.07083860559409261,
+        "LNCAP": -0.0046123666501195005,
+        "SKBR3": 0.020513692283797534,
+        "U937": -0.0044500308078519206,
+        "VCAP": 0.05057027925532696
+       }
+      }
+     },
+     "alpha": 0.14998057201626835
+    },
+    "P2_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.006605646502370194,
+      "delta_top": 0.006984612895306164,
+      "centred_all": 0.007047675047604618,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.03163627069233453,
+       "per_cell": {
+        "HEK293T": 0.01889408076269764,
+        "HL60": 0.010395313669818483,
+        "LNCAP": 0.017563842671775843,
+        "SKBR3": 0.045250122854320854,
+        "U937": -0.006315113607431704,
+        "VCAP": 0.03824630331804319
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.008757799122313753,
+      "delta_top": 0.009209627006323051,
+      "centred_all": 0.009102285362916379,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.04308831381561434,
+       "per_cell": {
+        "HEK293T": 0.01889408076269764,
+        "HL60": 0.10374411891752615,
+        "LNCAP": 0.017563842671775843,
+        "SKBR3": 0.045250122854320854,
+        "U937": -0.00346800184954062,
+        "VCAP": 0.07493608143119738
+       }
+      }
+     },
+     "alpha": 0.21210455903788142
+    },
+    "P3_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.010713571078479464,
+      "delta_top": 0.005595281959146603,
+      "centred_all": -0.0002107980169304552,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.02055613328050283,
+       "per_cell": {
+        "HEK293T": 0.027877069997131722,
+        "HL60": 0.07019289513877978,
+        "LNCAP": -0.031296518169663126,
+        "SKBR3": 0.00974536873119365,
+        "U937": 0.004788545474598507,
+        "VCAP": 0.05697507540318527
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.008440421756626598,
+      "delta_top": 0.003947340924389586,
+      "centred_all": -0.00030132526338916277,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.006889878368424951,
+       "per_cell": {
+        "HEK293T": 0.027877069997131722,
+        "HL60": 0.014181801081782625,
+        "LNCAP": -0.031296518169663126,
+        "SKBR3": 0.00974536873119365,
+        "U937": 0.006784559266558496,
+        "VCAP": 0.030949035945627045
+       }
+      }
+     },
+     "alpha": 0.047906203007813807
+    },
+    "P3_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.020499568359359843,
+      "delta_top": 0.010901968226672304,
+      "centred_all": -0.00020827517874881518,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.04059114675773059,
+       "per_cell": {
+        "HEK293T": 0.05627908746398512,
+        "HL60": 0.122613094430842,
+        "LNCAP": -0.013271589903508798,
+        "SKBR3": 0.028259696981676692,
+        "U937": 0.0048781944308331346,
+        "VCAP": 0.07487915066002211
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.01614328625110842,
+      "delta_top": 0.007631211706146057,
+      "centred_all": -0.0002926725593318247,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.025064363807389623,
+       "per_cell": {
+        "HEK293T": 0.05627908746398512,
+        "HL60": 0.031874080859200744,
+        "LNCAP": -0.013271589903508798,
+        "SKBR3": 0.028259696981676692,
+        "U937": 0.011869951149716144,
+        "VCAP": 0.045274981938090646
+       }
+      }
+     },
+     "alpha": 0.06774960201544905
+    },
+    "P3_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.037828683903050345,
+      "delta_top": 0.020421355673941682,
+      "centred_all": -0.0002010298926780757,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.06957168451157597,
+       "per_cell": {
+        "HEK293T": 0.0971391356456833,
+        "HL60": 0.18997473787968375,
+        "LNCAP": 0.02331382015566347,
+        "SKBR3": 0.05671183444411796,
+        "U937": -0.00016603443933517823,
+        "VCAP": 0.09614782919091831
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.030209280791284626,
+      "delta_top": 0.014515873184444639,
+      "centred_all": -0.0002757335689246021,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.054650263203651836,
+       "per_cell": {
+        "HEK293T": 0.0971391356456833,
+        "HL60": 0.06420840414766016,
+        "LNCAP": 0.02331382015566347,
+        "SKBR3": 0.05671183444411796,
+        "U937": 0.020223763732812122,
+        "VCAP": 0.06794055865484179
+       }
+      }
+     },
+     "alpha": 0.09581240601562761
+    },
+    "P3_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.0779296818850213,
+      "delta_top": 0.04331532960205886,
+      "centred_all": -0.00017476869460790467,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.12629563317829717,
+       "per_cell": {
+        "HEK293T": 0.17124607639382727,
+        "HL60": 0.2742980335935975,
+        "LNCAP": 0.10864656372548682,
+        "SKBR3": 0.11420401282597833,
+        "U937": -0.007000650468581822,
+        "VCAP": 0.14219375107441565
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.06509274053951208,
+      "delta_top": 0.03288691548419159,
+      "centred_all": -0.0002287675784442833,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.11649013144109817,
+       "per_cell": {
+        "HEK293T": 0.17124607639382727,
+        "HL60": 0.13289687986114704,
+        "LNCAP": 0.10864656372548682,
+        "SKBR3": 0.11420401282597833,
+        "U937": 0.03908444212573584,
+        "VCAP": 0.1166249576347062
+       }
+      }
+     },
+     "alpha": 0.15149271555510083
+    },
+    "P3_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.12324945421282676,
+      "delta_top": 0.0714567534793043,
+      "centred_all": -0.00013056763448590636,
+      "cells_pos": 5,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.18728600329758419,
+       "per_cell": {
+        "HEK293T": 0.23962642849430685,
+        "HL60": 0.34530543329837704,
+        "LNCAP": 0.19993600083647853,
+        "SKBR3": 0.17564036499821034,
+        "U937": -0.004828075158767268,
+        "VCAP": 0.19848101036925514
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.10807794770034673,
+      "delta_top": 0.058312528024648924,
+      "centred_all": -0.00016283259233099145,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.18223994728134452,
+       "per_cell": {
+        "HEK293T": 0.23962642849430685,
+        "HL60": 0.2043845840814384,
+        "LNCAP": 0.19993600083647853,
+        "SKBR3": 0.17564036499821034,
+        "U937": 0.060836896393638824,
+        "VCAP": 0.17142879803220448
+       }
+      }
+     },
+     "alpha": 0.21424305293875312
+    }
+   },
+   "T3": {
+    "P4_0.005": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0033790761348231335,
+      "HL60": 0.012360438060995571,
+      "LNCAP": 0.0021221924561125594,
+      "SKBR3": 0.004556493122005678,
+      "U937": -0.004004485109674494,
+      "VCAP": 0.01454170904818508
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.0035905065929351387,
+      "HL60": 0.012477500412450326,
+      "LNCAP": 0.0021527955889373285,
+      "SKBR3": 0.004585684476271168,
+      "U937": -0.0036593461128254234,
+      "VCAP": 0.014475151774554162
+     },
+     "alpha": 0.06975616673498204
+    },
+    "P4_0.01": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0054224517259371385,
+      "HL60": 0.024806408802062918,
+      "LNCAP": 0.0040056386529603305,
+      "SKBR3": 0.009864434344031392,
+      "U937": -0.0035419104244545085,
+      "VCAP": 0.02702954186405393
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.005885010746245256,
+      "HL60": 0.024867225817575223,
+      "LNCAP": 0.004071344143076416,
+      "SKBR3": 0.009862721118120255,
+      "U937": -0.003000012049782619,
+      "VCAP": 0.026934789963135253
+     },
+     "alpha": 0.09865011705577055
+    },
+    "P4_0.02": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.008862166961084772,
+      "HL60": 0.046904941123186994,
+      "LNCAP": 0.00806822750784475,
+      "SKBR3": 0.019855746961858878,
+      "U937": -0.0017233520976494,
+      "VCAP": 0.048504367279945226
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.009843560534892104,
+      "HL60": 0.046755106440030614,
+      "LNCAP": 0.008181117113451597,
+      "SKBR3": 0.019771393404346305,
+      "U937": -0.0009332807442788416,
+      "VCAP": 0.0483948328987549
+     },
+     "alpha": 0.13951233346996408
+    },
+    "P4_0.05": {
+     "pass": true,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0175374189258255,
+      "HL60": 0.09801795427328885,
+      "LNCAP": 0.02054251982479216,
+      "SKBR3": 0.043750955145187675,
+      "U937": 0.005389651117458372,
+      "VCAP": 0.0955983959490414
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.01996793503653449,
+      "HL60": 0.09707913405428958,
+      "LNCAP": 0.020701356255605985,
+      "SKBR3": 0.04344293165654811,
+      "U937": 0.0065465722629682865,
+      "VCAP": 0.09555719623652759
+     },
+     "alpha": 0.22058836772501436
+    },
+    "P4_0.1": {
+     "pass": true,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.02973269793530192,
+      "HL60": 0.15266420211817794,
+      "LNCAP": 0.039030949670377235,
+      "SKBR3": 0.06908496389793772,
+      "U937": 0.016379234481907978,
+      "VCAP": 0.14336469696497034
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.034002405803427505,
+      "HL60": 0.15094646975204595,
+      "LNCAP": 0.038924706892915384,
+      "SKBR3": 0.06857276852258098,
+      "U937": 0.018331459921519522,
+      "VCAP": 0.14361777186825253
+     },
+     "alpha": 0.3119590613384588
+    }
+   }
+  },
+  {
+   "draw": 3,
+   "rho": 0.2381078944942016,
+   "null_T1": {
+    "kappa": {
+     "FB": [
+      0.0001,
+      0.01
+     ],
+     "FBC": [
+      0.0001,
+      0.01
+     ],
+     "N1": [
+      0.01,
+      0.01
+     ]
+    },
+    "all": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": false,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": false
+     },
+     "delta_all": -9.095826704952348e-05,
+     "delta_top": -0.0002514899055078845,
+     "centred_all": -0.00011131503124024722,
+     "cells_pos": 4,
+     "centred_cells_pos": 3,
+     "cells_vs_N1_pos": 2,
+     "resid": {
+      "all": -0.012276519524392748,
+      "per_cell": {
+       "HEK293T": 0.007896275661212319,
+       "HL60": -0.00528219736198055,
+       "LNCAP": -0.03619100460170705,
+       "SKBR3": -0.01834876983721203,
+       "U937": 0.005548355186092827,
+       "VCAP": -0.00040255772934251694
+      }
+     }
+    },
+    "known": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": false
+     },
+     "delta_all": -0.00022753283652837686,
+     "delta_top": -0.00033545666362705395,
+     "centred_all": -0.00016084774845936956,
+     "cells_pos": 3,
+     "centred_cells_pos": 2,
+     "cells_vs_N1_pos": 4,
+     "resid": {
+      "all": -0.016478019424766167,
+      "per_cell": {
+       "HEK293T": 0.007896275661212319,
+       "HL60": -0.013323077936539298,
+       "LNCAP": -0.03619100460170705,
+       "SKBR3": -0.01834876983721203,
+       "U937": -0.0035474221514375137,
+       "VCAP": -0.000531482643202412
+      }
+     }
+    }
+   },
+   "null_T3": {
+    "pass": false,
+    "conjuncts": {
+     "cells_rho_ge_0.02_ge_4": false,
+     "cells_FBC_gt_N1_ge_4": false
+    },
+    "rho_T3": {
+     "HEK293T": -0.0001152478507082666,
+     "HL60": 0.0009575295995948863,
+     "LNCAP": 0.00014414445336508042,
+     "SKBR3": -0.0002207650488875723,
+     "U937": -0.0014360043252918953,
+     "VCAP": 0.00010976430483433663
+    },
+    "FBC_minus_N1": {
+     "HEK293T": -0.0001565083673533696,
+     "HL60": 0.0014148640167857551,
+     "LNCAP": -4.853145531669156e-05,
+     "SKBR3": -0.0004290907185648951,
+     "U937": -0.0013551565950343236,
+     "VCAP": 0.0001341539344321685
+    }
+   },
+   "T1": {
+    "P1_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.005109987007156827,
+      "delta_top": 0.0032017865713122873,
+      "centred_all": 0.005170631537767534,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.0010848123056263282,
+       "per_cell": {
+        "HEK293T": 0.0787849914409607,
+        "HL60": -0.006517320654308178,
+        "LNCAP": -0.03622003701337945,
+        "SKBR3": -0.010058595400828369,
+        "U937": 0.02293433112974566,
+        "VCAP": 0.019589800915849137
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.006340277332271604,
+      "delta_top": 0.003904705920995566,
+      "centred_all": 0.006435310028653579,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": -0.0026531255213987077,
+       "per_cell": {
+        "HEK293T": 0.0787849914409607,
+        "HL60": 0.0028685891364963766,
+        "LNCAP": -0.03622003701337945,
+        "SKBR3": -0.010058595400828369,
+        "U937": 0.03113116485377317,
+        "VCAP": 0.01896610039521123
+       }
+      }
+     },
+     "alpha": 0.11670278956251873
+    },
+    "P1_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.010705314818437645,
+      "delta_top": 0.007054277172080181,
+      "centred_all": 0.01066978235863715,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.011041100683207678,
+       "per_cell": {
+        "HEK293T": 0.10448706145593585,
+        "HL60": -0.000278832319189955,
+        "LNCAP": -0.029983827454548112,
+        "SKBR3": -0.0007634133933842525,
+        "U937": 0.03030566849100013,
+        "VCAP": 0.031226788924239024
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.01323082237167264,
+      "delta_top": 0.008580683950473011,
+      "centred_all": 0.01335354090699134,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.00809877945215192,
+       "per_cell": {
+        "HEK293T": 0.10448706145593585,
+        "HL60": 0.015388413739011753,
+        "LNCAP": -0.029983827454548112,
+        "SKBR3": -0.0007634133933842525,
+        "U937": 0.04629689457038878,
+        "VCAP": 0.032250323857969096
+       }
+      }
+     },
+     "alpha": 0.16504266776608725
+    },
+    "P1_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.02130023914505977,
+      "delta_top": 0.014725232693295426,
+      "centred_all": 0.02101569309671167,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.026981530312575948,
+       "per_cell": {
+        "HEK293T": 0.13901500109693912,
+        "HL60": 0.011336460681985364,
+        "LNCAP": -0.01601853710739558,
+        "SKBR3": 0.014893505647109844,
+        "U937": 0.04112366189143206,
+        "VCAP": 0.04752099352584513
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.026184352970029467,
+      "delta_top": 0.017643059703569886,
+      "centred_all": 0.026369716759251205,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.02576608969497693,
+       "per_cell": {
+        "HEK293T": 0.13901500109693912,
+        "HL60": 0.035061555452181405,
+        "LNCAP": -0.01601853710739558,
+        "SKBR3": 0.014893505647109844,
+        "U937": 0.06859666179442017,
+        "VCAP": 0.05245752446011034
+       }
+      }
+     },
+     "alpha": 0.23340557912503745
+    },
+    "P1_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.04789674419115822,
+      "delta_top": 0.035559628323108244,
+      "centred_all": 0.04682881152974927,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.05975471418696338,
+       "per_cell": {
+        "HEK293T": 0.20144542790067096,
+        "HL60": 0.03661099875128155,
+        "LNCAP": 0.016940063989472006,
+        "SKBR3": 0.04799448508847848,
+        "U937": 0.06423755393654203,
+        "VCAP": 0.07822780179783893
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.05834354753226262,
+      "delta_top": 0.041563955187520096,
+      "centred_all": 0.05876266219192863,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.06252753922229176,
+       "per_cell": {
+        "HEK293T": 0.20144542790067096,
+        "HL60": 0.07458125812948076,
+        "LNCAP": 0.016940063989472006,
+        "SKBR3": 0.04799448508847848,
+        "U937": 0.11532893136154908,
+        "VCAP": 0.09264697243467068
+       }
+      }
+     },
+     "alpha": 0.3690466243128845
+    },
+    "P1_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.07922578630110033,
+      "delta_top": 0.06487415088296056,
+      "centred_all": 0.07702975382277766,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.09417078844908494,
+       "per_cell": {
+        "HEK293T": 0.26133611949319124,
+        "HL60": 0.06398589216522381,
+        "LNCAP": 0.05215584434703838,
+        "SKBR3": 0.08283926176984778,
+        "U937": 0.09255565925376075,
+        "VCAP": 0.10973359066112069
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0955475476573669,
+      "delta_top": 0.07409544310091665,
+      "centred_all": 0.09640377320661767,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.1008793616711282,
+       "per_cell": {
+        "HEK293T": 0.26133611949319124,
+        "HL60": 0.11546574388327403,
+        "LNCAP": 0.05215584434703838,
+        "SKBR3": 0.08283926176984778,
+        "U937": 0.16952962177590886,
+        "VCAP": 0.13425818904790945
+       }
+      }
+     },
+     "alpha": 0.5219107412512896
+    },
+    "P2_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.00047179381514303453,
+      "delta_top": 1.9741499721476208e-05,
+      "centred_all": 0.00043189887678136973,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 4,
+      "resid": {
+       "all": -0.008190574743732922,
+       "per_cell": {
+        "HEK293T": 0.009130473901595802,
+        "HL60": -0.006333695122425668,
+        "LNCAP": -0.03255026390892891,
+        "SKBR3": -0.011291098489795554,
+        "U937": 0.0054083845615725875,
+        "VCAP": 0.002475313958057376
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0005069883050964064,
+      "delta_top": 7.3791354868180115e-06,
+      "centred_all": 0.0005533154596408518,
+      "cells_pos": 4,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": -0.01089702638920363,
+       "per_cell": {
+        "HEK293T": 0.009130473901595802,
+        "HL60": -0.009358869472418634,
+        "LNCAP": -0.03255026390892891,
+        "SKBR3": -0.011291098489795554,
+        "U937": -0.0019335554263488527,
+        "VCAP": 0.005003089919864891
+       }
+      }
+     },
+     "alpha": 0.04755274741160078
+    },
+    "P2_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0009814570689812147,
+      "delta_top": 0.00026207850603060523,
+      "centred_all": 0.0009340910887748466,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 4,
+      "resid": {
+       "all": -0.004637343375318787,
+       "per_cell": {
+        "HEK293T": 0.009854844655609025,
+        "HL60": -0.0053944409391736,
+        "LNCAP": -0.02933603888618764,
+        "SKBR3": -0.005314876480836414,
+        "U937": 0.005370036529652165,
+        "VCAP": 0.004690159747516364
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.001164614129898045,
+      "delta_top": 0.0003385733436005456,
+      "centred_all": 0.0012059995309245675,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": -0.006250623994999048,
+       "per_cell": {
+        "HEK293T": 0.009854844655609025,
+        "HL60": -0.006211443203997251,
+        "LNCAP": -0.02933603888618764,
+        "SKBR3": -0.005314876480836414,
+        "U937": -0.0009068010259758635,
+        "VCAP": 0.009256935843493033
+       }
+      }
+     },
+     "alpha": 0.06724974031758792
+    },
+    "P2_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0018992197323203508,
+      "delta_top": 0.0008480461330350741,
+      "centred_all": 0.0018520599472786337,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 4,
+      "resid": {
+       "all": 0.001494966083504844,
+       "per_cell": {
+        "HEK293T": 0.011007659359965309,
+        "HL60": -0.002904475965190734,
+        "LNCAP": -0.02346229658551953,
+        "SKBR3": 0.00489617852189838,
+        "U937": 0.00533826530622917,
+        "VCAP": 0.008233042605170361
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.002344357636867467,
+      "delta_top": 0.0011013203498603241,
+      "centred_all": 0.0023975931178566723,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.0016753949146568728,
+       "per_cell": {
+        "HEK293T": 0.011007659359965309,
+        "HL60": -0.0006657753466868296,
+        "LNCAP": -0.02346229658551953,
+        "SKBR3": 0.00489617852189838,
+        "U937": 0.0008500658352003361,
+        "VCAP": 0.016017164998458854
+       }
+      }
+     },
+     "alpha": 0.09510549482320156
+    },
+    "P2_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.004133000983027824,
+      "delta_top": 0.002584033277452269,
+      "centred_all": 0.004132285055246598,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.0156746258944483,
+       "per_cell": {
+        "HEK293T": 0.01349354669581636,
+        "HL60": 0.005128153063103145,
+        "LNCAP": -0.008569549539186996,
+        "SKBR3": 0.028052268735075592,
+        "U937": 0.005342060692719233,
+        "VCAP": 0.015731536550689696
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.005199614787994994,
+      "delta_top": 0.0032404088640640705,
+      "centred_all": 0.005357013983687792,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.01975444526743777,
+       "per_cell": {
+        "HEK293T": 0.01349354669581636,
+        "HL60": 0.012462043163033657,
+        "LNCAP": -0.008569549539186996,
+        "SKBR3": 0.028052268735075592,
+        "U937": 0.005139024880228896,
+        "VCAP": 0.030127419686388743
+       }
+      }
+     },
+     "alpha": 0.15037499081933486
+    },
+    "P2_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.006901753801652283,
+      "delta_top": 0.005051986965842387,
+      "centred_all": 0.00700262086758463,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.03249864655199404,
+       "per_cell": {
+        "HEK293T": 0.016254566534641517,
+        "HL60": 0.017340156748964657,
+        "LNCAP": 0.01098690247730364,
+        "SKBR3": 0.054709446521291526,
+        "U937": 0.005397453060789489,
+        "VCAP": 0.024102135726208604
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.00871054036265348,
+      "delta_top": 0.006541675715638295,
+      "centred_all": 0.009083975286461682,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.04090227664577366,
+       "per_cell": {
+        "HEK293T": 0.016254566534641517,
+        "HL60": 0.028094663264780793,
+        "LNCAP": 0.01098690247730364,
+        "SKBR3": 0.054709446521291526,
+        "U937": 0.0106809621505807,
+        "VCAP": 0.04557818977177492
+       }
+      }
+     },
+     "alpha": 0.21266235145843304
+    },
+    "P3_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.010411853715596484,
+      "delta_top": 0.005329177183064332,
+      "centred_all": -0.00012063896323591394,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.01844539041310047,
+       "per_cell": {
+        "HEK293T": 0.030810219165147843,
+        "HL60": 0.08770832387907213,
+        "LNCAP": -0.04077897225206758,
+        "SKBR3": 0.0042836747849226255,
+        "U937": 0.01865401441057293,
+        "VCAP": 0.05243652312210893
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.007468168525598562,
+      "delta_top": 0.003272049756699924,
+      "centred_all": -0.00017142306598647017,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.0011957995607524276,
+       "per_cell": {
+        "HEK293T": 0.030810219165147843,
+        "HL60": 0.008010244376273236,
+        "LNCAP": -0.04077897225206758,
+        "SKBR3": 0.0042836747849226255,
+        "U937": 0.011888791390500019,
+        "VCAP": 0.02350444304205503
+       }
+      }
+     },
+     "alpha": 0.047639835157819894
+    },
+    "P3_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.01993805657070366,
+      "delta_top": 0.010446921877594523,
+      "centred_all": -0.00012772835899717283,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.038138909532236795,
+       "per_cell": {
+        "HEK293T": 0.05647893322016051,
+        "HL60": 0.14270143790317427,
+        "LNCAP": -0.02336131231405514,
+        "SKBR3": 0.022242462152140735,
+        "U937": 0.022300871259843848,
+        "VCAP": 0.06890695528793336
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.014732478519030145,
+      "delta_top": 0.0067068682865804585,
+      "centred_all": -0.00018022474744544548,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.019102429399856548,
+       "per_cell": {
+        "HEK293T": 0.05647893322016051,
+        "HL60": 0.031003365721819613,
+        "LNCAP": -0.02336131231405514,
+        "SKBR3": 0.022242462152140735,
+        "U937": 0.02095653358289379,
+        "VCAP": 0.03877697912602508
+       }
+      }
+     },
+     "alpha": 0.06737290098940749
+    },
+    "P3_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.036778573132539155,
+      "delta_top": 0.0196093566277743,
+      "centred_all": -0.00014090971210788117,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.0661454833596335,
+       "per_cell": {
+        "HEK293T": 0.09511697154699698,
+        "HL60": 0.2022422992251163,
+        "LNCAP": 0.013381408806269706,
+        "SKBR3": 0.05019613995691604,
+        "U937": 0.02222731605524768,
+        "VCAP": 0.08830451581993455
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.0281696566266752,
+      "delta_top": 0.013276005427616089,
+      "centred_all": -0.0001971031847393112,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.04857290713628369,
+       "per_cell": {
+        "HEK293T": 0.09511697154699698,
+        "HL60": 0.06761880466324269,
+        "LNCAP": 0.013381408806269706,
+        "SKBR3": 0.05019613995691604,
+        "U937": 0.03548206564717896,
+        "VCAP": 0.06186697934945407
+       }
+      }
+     },
+     "alpha": 0.09527967031563979
+    },
+    "P3_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.07561418473470444,
+      "delta_top": 0.041677625788068856,
+      "centred_all": -0.00017777513192650252,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.12143661597610354,
+       "per_cell": {
+        "HEK293T": 0.166005519798155,
+        "HL60": 0.2735230084692481,
+        "LNCAP": 0.09759923388251122,
+        "SKBR3": 0.10675225812996716,
+        "U937": 0.024183851512391028,
+        "VCAP": 0.13274276410513577
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.06187344698798264,
+      "delta_top": 0.030846645001920137,
+      "centred_all": -0.00024596648984773206,
+      "cells_pos": 6,
+      "centred_cells_pos": 1,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.10952597429480077,
+       "per_cell": {
+        "HEK293T": 0.166005519798155,
+        "HL60": 0.13829803040683458,
+        "LNCAP": 0.09759923388251122,
+        "SKBR3": 0.10675225812996716,
+        "U937": 0.06574838716450375,
+        "VCAP": 0.10913403980129888
+       }
+      }
+     },
+     "alpha": 0.15065038645367798
+    },
+    "P3_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.11938652318474127,
+      "delta_top": 0.06893825426875447,
+      "centred_all": -0.00023596138289472268,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.1805432789332973,
+       "per_cell": {
+        "HEK293T": 0.2314234767263792,
+        "HL60": 0.3378145295829648,
+        "LNCAP": 0.18532916476233935,
+        "SKBR3": 0.16706520338220546,
+        "U937": 0.03271897114634293,
+        "VCAP": 0.18598887505820585
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.10376624596594297,
+      "delta_top": 0.055236147469928276,
+      "centred_all": -0.00032516731787984865,
+      "cells_pos": 6,
+      "centred_cells_pos": 1,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.1734174666444987,
+       "per_cell": {
+        "HEK293T": 0.2314234767263792,
+        "HL60": 0.20774471880518278,
+        "LNCAP": 0.18532916476233935,
+        "SKBR3": 0.16706520338220546,
+        "U937": 0.09738633589055176,
+        "VCAP": 0.16048924788929592
+       }
+      }
+     },
+     "alpha": 0.2130518196995394
+    }
+   },
+   "T3": {
+    "P4_0.005": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.001573721645563464,
+      "HL60": 0.02945087067277835,
+      "LNCAP": 0.0030357189417768993,
+      "SKBR3": 0.004497611476010577,
+      "U937": -0.008420560939984001,
+      "VCAP": 0.01641206676772078
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.0017668762602413013,
+      "HL60": 0.029313558644205207,
+      "LNCAP": 0.00292447256194861,
+      "SKBR3": 0.0042546894260390156,
+      "U937": -0.007814977546643231,
+      "VCAP": 0.01642257365413924
+     },
+     "alpha": 0.06980564504713493
+    },
+    "P4_0.01": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0027028151650740906,
+      "HL60": 0.04736257590054793,
+      "LNCAP": 0.005608523345750349,
+      "SKBR3": 0.009664016178851709,
+      "U937": -0.008773093481839855,
+      "VCAP": 0.02997393108299673
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.003188107886829994,
+      "HL60": 0.04693489459114003,
+      "LNCAP": 0.005462753094098716,
+      "SKBR3": 0.00934759874153468,
+      "U937": -0.007897697163535722,
+      "VCAP": 0.029979254558820667
+     },
+     "alpha": 0.0987200899558605
+    },
+    "P4_0.02": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.004710877864129603,
+      "HL60": 0.07517000948512792,
+      "LNCAP": 0.010838277406322483,
+      "SKBR3": 0.01937489860232422,
+      "U937": -0.007972443956744568,
+      "VCAP": 0.05340338532946742
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.005784034245591929,
+      "HL60": 0.07425642069794314,
+      "LNCAP": 0.01063269119362198,
+      "SKBR3": 0.018934774758699757,
+      "U937": -0.006759598295974445,
+      "VCAP": 0.05338961717197688
+     },
+     "alpha": 0.13961129009426987
+    },
+    "P4_0.05": {
+     "pass": true,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.010630652193066636,
+      "HL60": 0.13028806585448122,
+      "LNCAP": 0.02553957333701551,
+      "SKBR3": 0.042832599250469894,
+      "U937": -0.002356272606622356,
+      "VCAP": 0.10539109252612466
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.01332855673049066,
+      "HL60": 0.12825104260287018,
+      "LNCAP": 0.0251685490455984,
+      "SKBR3": 0.04213261817883596,
+      "U937": -0.0006471091969577625,
+      "VCAP": 0.10529394065019715
+     },
+     "alpha": 0.22074483188619828
+    },
+    "P4_0.1": {
+     "pass": true,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.020705921934337734,
+      "HL60": 0.18136678853158983,
+      "LNCAP": 0.045253780337489946,
+      "SKBR3": 0.06866597632103788,
+      "U937": 0.0076793220689684305,
+      "VCAP": 0.158467634500004
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.025443459217633746,
+      "HL60": 0.17855879421030957,
+      "LNCAP": 0.04444152125217826,
+      "SKBR3": 0.06774374374988612,
+      "U937": 0.010317980276658922,
+      "VCAP": 0.15844401437614364
+     },
+     "alpha": 0.3121803350772304
+    }
+   }
+  },
+  {
+   "draw": 4,
+   "rho": 0.2381078944942016,
+   "null_T1": {
+    "kappa": {
+     "FB": [
+      0.0001,
+      0.01
+     ],
+     "FBC": [
+      0.0001,
+      0.01
+     ],
+     "N1": [
+      0.0001,
+      0.01
+     ]
+    },
+    "all": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": false,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": true
+     },
+     "delta_all": -4.163927627549857e-05,
+     "delta_top": -2.8141736553383145e-05,
+     "centred_all": 2.7962720551305553e-05,
+     "cells_pos": 1,
+     "centred_cells_pos": 4,
+     "cells_vs_N1_pos": 2,
+     "resid": {
+      "all": -0.0017508951598358047,
+      "per_cell": {
+       "HEK293T": 0.0029966888992016033,
+       "HL60": -0.005176293283671518,
+       "LNCAP": 0.0011414031565572273,
+       "SKBR3": -0.004170898833968685,
+       "U937": -0.0009675767909225785,
+       "VCAP": 0.00046326387951002693
+      }
+     }
+    },
+    "known": {
+     "pass": false,
+     "conjuncts": {
+      "delta_all_or_top_ge_bar": false,
+      "cells_delta_pos_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": false,
+      "centred_all_ge_bar": false,
+      "cells_centred_pos_ge_4": true
+     },
+     "delta_all": -1.5326124834152965e-05,
+     "delta_top": 7.402476980000738e-06,
+     "centred_all": 4.0533226269678924e-05,
+     "cells_pos": 2,
+     "centred_cells_pos": 4,
+     "cells_vs_N1_pos": 3,
+     "resid": {
+      "all": -0.002022482211111829,
+      "per_cell": {
+       "HEK293T": 0.0029966888992016033,
+       "HL60": -0.0023652483589827245,
+       "LNCAP": 0.0011414031565572273,
+       "SKBR3": -0.004170898833968685,
+       "U937": -0.005368432101718497,
+       "VCAP": -0.00017110573242972986
+      }
+     }
+    }
+   },
+   "null_T3": {
+    "pass": false,
+    "conjuncts": {
+     "cells_rho_ge_0.02_ge_4": false,
+     "cells_FBC_gt_N1_ge_4": false
+    },
+    "rho_T3": {
+     "HEK293T": -0.00014947587025260223,
+     "HL60": 9.916476322957557e-05,
+     "LNCAP": -0.00017108269230281525,
+     "SKBR3": -1.4627201218919694e-05,
+     "U937": -0.0005111357059666699,
+     "VCAP": -7.5811847269458e-05
+    },
+    "FBC_minus_N1": {
+     "HEK293T": -0.0001703851608285678,
+     "HL60": 0.0002009461300039872,
+     "LNCAP": -0.0004024812787553067,
+     "SKBR3": 0.00014393137706536496,
+     "U937": 6.669305538498094e-06,
+     "VCAP": -7.365936669767592e-05
+    }
+   },
+   "T1": {
+    "P1_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0067790671216839266,
+      "delta_top": 0.004338448128578337,
+      "centred_all": 0.006821125273966666,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": -0.00899566054049217,
+       "per_cell": {
+        "HEK293T": 0.06714217875575819,
+        "HL60": -0.006493809125844068,
+        "LNCAP": -0.0634419142783896,
+        "SKBR3": -0.011827850140656262,
+        "U937": -0.00050919207324038,
+        "VCAP": 0.006636613314885883
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.008281558008945283,
+      "delta_top": 0.005552713084048422,
+      "centred_all": 0.008685185979986437,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": -0.0126262469439407,
+       "per_cell": {
+        "HEK293T": 0.06714217875575819,
+        "HL60": 0.00636500878186705,
+        "LNCAP": -0.0634419142783896,
+        "SKBR3": -0.011827850140656262,
+        "U937": -0.005437451097489497,
+        "VCAP": 0.00365104262785528
+       }
+      }
+     },
+     "alpha": 0.11710160688227056
+    },
+    "P1_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.01301064049443966,
+      "delta_top": 0.008559465572884645,
+      "centred_all": 0.012931579294382795,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": -0.000736368918474232,
+       "per_cell": {
+        "HEK293T": 0.09457929607792341,
+        "HL60": 0.0005939347266446043,
+        "LNCAP": -0.06305333766714595,
+        "SKBR3": -0.00341107516730363,
+        "U937": 0.0007200532019707132,
+        "VCAP": 0.017405458834275828
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.01585273820645522,
+      "delta_top": 0.010695783626700595,
+      "centred_all": 0.016436961082940765,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": -0.0035070728082682327,
+       "per_cell": {
+        "HEK293T": 0.09457929607792341,
+        "HL60": 0.01897773406775964,
+        "LNCAP": -0.06305333766714595,
+        "SKBR3": -0.00341107516730363,
+        "U937": -0.0022304588242065,
+        "VCAP": 0.017252464319788913
+       }
+      }
+     },
+     "alpha": 0.16560668062858958
+    },
+    "P1_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.024413029566919126,
+      "delta_top": 0.0167606337783118,
+      "centred_all": 0.02405830627697572,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.014367784712508512,
+       "per_cell": {
+        "HEK293T": 0.131886499382656,
+        "HL60": 0.013521174189322735,
+        "LNCAP": -0.05207294691011778,
+        "SKBR3": 0.012217477573201803,
+        "U937": 0.0037380877858879166,
+        "VCAP": 0.033424197244050914
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.029674102321039952,
+      "delta_top": 0.020441282160400698,
+      "centred_all": 0.030531313637098656,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.013693498989064372,
+       "per_cell": {
+        "HEK293T": 0.131886499382656,
+        "HL60": 0.03957571136835673,
+        "LNCAP": -0.05207294691011778,
+        "SKBR3": 0.012217477573201803,
+        "U937": 0.005835147686041317,
+        "VCAP": 0.03861453632841458
+       }
+      }
+     },
+     "alpha": 0.23420321376454112
+    },
+    "P1_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.05224556046925399,
+      "delta_top": 0.038365613685029026,
+      "centred_all": 0.0510434683557468,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.04735424593573857,
+       "per_cell": {
+        "HEK293T": 0.19983740740582676,
+        "HL60": 0.04141551528284583,
+        "LNCAP": -0.01871508961903157,
+        "SKBR3": 0.046407525596831666,
+        "U937": 0.014637676268412588,
+        "VCAP": 0.0646856106459079
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.06319916510524926,
+      "delta_top": 0.04573312902904242,
+      "centred_all": 0.06460829794744585,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.05165973747527232,
+       "per_cell": {
+        "HEK293T": 0.19983740740582676,
+        "HL60": 0.08154882242859982,
+        "LNCAP": -0.01871508961903157,
+        "SKBR3": 0.046407525596831666,
+        "U937": 0.0342435298470165,
+        "VCAP": 0.08183877689927534
+       }
+      }
+     },
+     "alpha": 0.3703077954136239
+    },
+    "P1_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.08451935522398282,
+      "delta_top": 0.06784931789585866,
+      "centred_all": 0.08204609543982055,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.083135421272057,
+       "per_cell": {
+        "HEK293T": 0.26556653990374246,
+        "HL60": 0.07143908071426039,
+        "LNCAP": 0.021020105003143757,
+        "SKBR3": 0.08270153820300374,
+        "U937": 0.03458788195194301,
+        "VCAP": 0.09721640608833487
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.10156094046800476,
+      "delta_top": 0.07929293784265684,
+      "centred_all": 0.10352615171213603,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.09256322517332484,
+       "per_cell": {
+        "HEK293T": 0.26556653990374246,
+        "HL60": 0.1248270932343147,
+        "LNCAP": 0.021020105003143757,
+        "SKBR3": 0.08270153820300374,
+        "U937": 0.0831563803706469,
+        "VCAP": 0.12705094074416182
+       }
+      }
+     },
+     "alpha": 0.5236943065264283
+    },
+    "P2_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.00047269148138273653,
+      "delta_top": 0.0002312282166190005,
+      "centred_all": 0.0005548626157386577,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.003151592611515762,
+       "per_cell": {
+        "HEK293T": 0.007965409804279044,
+        "HL60": -0.004306953544750531,
+        "LNCAP": 0.004187199434026542,
+        "SKBR3": 0.0033245101436893904,
+        "U937": -0.0010381513349862139,
+        "VCAP": 0.004845676377939953
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0006658228972961922,
+      "delta_top": 0.0003556373764695975,
+      "centred_all": 0.0007260462692017522,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.004410423095990734,
+       "per_cell": {
+        "HEK293T": 0.007965409804279044,
+        "HL60": 0.002954986696668363,
+        "LNCAP": 0.004187199434026542,
+        "SKBR3": 0.0033245101436893904,
+        "U937": -0.005239007680073057,
+        "VCAP": 0.008238162228344573
+       }
+      }
+     },
+     "alpha": 0.04867274160518292
+    },
+    "P2_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.000955359457656485,
+      "delta_top": 0.0004955701630117715,
+      "centred_all": 0.001045901465878532,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.007395550352575418,
+       "per_cell": {
+        "HEK293T": 0.011955243275067275,
+        "HL60": -0.0034460558395769314,
+        "LNCAP": 0.006761560245609805,
+        "SKBR3": 0.009912498947270343,
+        "U937": -0.000974497415814724,
+        "VCAP": 0.008502770005092267
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.001302251040044139,
+      "delta_top": 0.000699513394397111,
+      "centred_all": 0.0013657258873219225,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.009976270267730979,
+       "per_cell": {
+        "HEK293T": 0.011955243275067275,
+        "HL60": 0.007469535826826645,
+        "LNCAP": 0.006761560245609805,
+        "SKBR3": 0.009912498947270343,
+        "U937": -0.004829912670709772,
+        "VCAP": 0.015346815334331097
+       }
+      }
+     },
+     "alpha": 0.0688336512959309
+    },
+    "P2_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.001836543707129823,
+      "delta_top": 0.001030494310538782,
+      "centred_all": 0.001944627753429684,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.014542908769785414,
+       "per_cell": {
+        "HEK293T": 0.01854536164658068,
+        "HL60": -0.0019206573777587174,
+        "LNCAP": 0.011426098501187424,
+        "SKBR3": 0.021000590733563352,
+        "U937": -0.0008133635146209857,
+        "VCAP": 0.014469800028224206
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": false,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0024632876621562827,
+      "delta_top": 0.0014044609544168196,
+      "centred_all": 0.002538387434786127,
+      "cells_pos": 5,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.019346845235049655,
+       "per_cell": {
+        "HEK293T": 0.01854536164658068,
+        "HL60": 0.015295609795515556,
+        "LNCAP": 0.011426098501187424,
+        "SKBR3": 0.021000590733563352,
+        "U937": -0.003980415364557507,
+        "VCAP": 0.026949883664676384
+       }
+      }
+     },
+     "alpha": 0.09734548321036585
+    },
+    "P2_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.004001148981360919,
+      "delta_top": 0.0026003692658956856,
+      "centred_all": 0.0041651285675116945,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.030151838924991344,
+       "per_cell": {
+        "HEK293T": 0.03250841182577975,
+        "HL60": 0.0014864800196639708,
+        "LNCAP": 0.02309533222971458,
+        "SKBR3": 0.045057501399391284,
+        "U937": -0.0003236622602819695,
+        "VCAP": 0.026936548471849293
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.0053141686485149164,
+      "delta_top": 0.003447893629944354,
+      "centred_all": 0.00544276312625494,
+      "cells_pos": 6,
+      "centred_cells_pos": 5,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.039801870629455775,
+       "per_cell": {
+        "HEK293T": 0.03250841182577975,
+        "HL60": 0.03265182764459478,
+        "LNCAP": 0.02309533222971458,
+        "SKBR3": 0.045057501399391284,
+        "U937": -0.0016493451275617788,
+        "VCAP": 0.05114755532202453
+       }
+      }
+     },
+     "alpha": 0.153916723437218
+    },
+    "P2_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.00666385157256269,
+      "delta_top": 0.005792117591771062,
+      "centred_all": 0.0069099403099767975,
+      "cells_pos": 5,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 5,
+      "resid": {
+       "all": 0.047388322217929504,
+       "per_cell": {
+        "HEK293T": 0.04738913147835194,
+        "HL60": 0.00512458496480162,
+        "LNCAP": 0.03811407228219366,
+        "SKBR3": 0.07135049250168159,
+        "U937": 0.000375945999750503,
+        "VCAP": 0.04003708324260678
+       }
+      }
+     },
+     "known": {
+      "pass": true,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": true,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.008821242385136069,
+      "delta_top": 0.00752894928597958,
+      "centred_all": 0.009041517475935068,
+      "cells_pos": 6,
+      "centred_cells_pos": 6,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.06238495153295212,
+       "per_cell": {
+        "HEK293T": 0.04738913147835194,
+        "HL60": 0.05137658588954047,
+        "LNCAP": 0.03811407228219366,
+        "SKBR3": 0.07135049250168159,
+        "U937": 0.0015167697116318173,
+        "VCAP": 0.07651382040436454
+       }
+      }
+     },
+     "alpha": 0.2176711177609425
+    },
+    "P3_0.005": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": true
+      },
+      "delta_all": 0.010672091146635976,
+      "delta_top": 0.006271153546931002,
+      "centred_all": 2.2151306500114987e-05,
+      "cells_pos": 6,
+      "centred_cells_pos": 4,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.02820913555466591,
+       "per_cell": {
+        "HEK293T": 0.036338724688323984,
+        "HL60": 0.07083812025047333,
+        "LNCAP": -0.017668243932445028,
+        "SKBR3": 0.020419076053175438,
+        "U937": 0.010867669186972092,
+        "VCAP": 0.05848622606341804
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.00803041865570317,
+      "delta_top": 0.003897508366180469,
+      "centred_all": 2.9925001732516998e-05,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.015677476901733316,
+       "per_cell": {
+        "HEK293T": 0.036338724688323984,
+        "HL60": 0.016156164935376322,
+        "LNCAP": -0.017668243932445028,
+        "SKBR3": 0.020419076053175438,
+        "U937": 0.007588271175757385,
+        "VCAP": 0.029782252012952867
+       }
+      }
+     },
+     "alpha": 0.047907773699274236
+    },
+    "P3_0.01": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.020234170307559973,
+      "delta_top": 0.011595012225686069,
+      "centred_all": 1.7820536124243946e-05,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.046975013962839304,
+       "per_cell": {
+        "HEK293T": 0.06451342217620816,
+        "HL60": 0.12409689723008395,
+        "LNCAP": -0.005926997712955005,
+        "SKBR3": 0.036477376005290676,
+        "U937": 0.013398210178420916,
+        "VCAP": 0.07800380204713135
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.01552281839941863,
+      "delta_top": 0.007493648161859545,
+      "centred_all": 2.2689362192379603e-05,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.031736971261925796,
+       "per_cell": {
+        "HEK293T": 0.06451342217620816,
+        "HL60": 0.037495481155836854,
+        "LNCAP": -0.005926997712955005,
+        "SKBR3": 0.036477376005290676,
+        "U937": 0.015193240208988486,
+        "VCAP": 0.04576387951538836
+       }
+      }
+     },
+     "alpha": 0.06775182330861469
+    },
+    "P3_0.02": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.037079602238779735,
+      "delta_top": 0.021055295727610362,
+      "centred_all": 9.450476184405532e-06,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.07431695419750095,
+       "per_cell": {
+        "HEK293T": 0.1050905318402309,
+        "HL60": 0.18544858473365414,
+        "LNCAP": 0.0255003144300752,
+        "SKBR3": 0.0625298328325329,
+        "U937": 0.012037136634774204,
+        "VCAP": 0.10039085257092117
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.02936090876508443,
+      "delta_top": 0.01430156353233597,
+      "centred_all": 9.321439280757238e-06,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.059433842298152795,
+       "per_cell": {
+        "HEK293T": 0.1050905318402309,
+        "HL60": 0.07190452770429441,
+        "LNCAP": 0.0255003144300752,
+        "SKBR3": 0.0625298328325329,
+        "U937": 0.027324247164062412,
+        "VCAP": 0.0700667761337272
+       }
+      }
+     },
+     "alpha": 0.09581554739854847
+    },
+    "P3_0.05": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.07599902168937114,
+      "delta_top": 0.04345900671962563,
+      "centred_all": -1.6109636402916738e-05,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.12854006429509351,
+       "per_cell": {
+        "HEK293T": 0.17784049363256174,
+        "HL60": 0.2597933215986163,
+        "LNCAP": 0.10343936061708768,
+        "SKBR3": 0.11699601143146748,
+        "U937": 0.012134817810361662,
+        "VCAP": 0.14682360845933112
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.06403887598454933,
+      "delta_top": 0.032450135459654805,
+      "centred_all": -2.9162155630896303e-05,
+      "cells_pos": 6,
+      "centred_cells_pos": 3,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.1184609384006211,
+       "per_cell": {
+        "HEK293T": 0.17784049363256174,
+        "HL60": 0.13858963918522166,
+        "LNCAP": 0.10343936061708768,
+        "SKBR3": 0.11699601143146748,
+        "U937": 0.052746745085123795,
+        "VCAP": 0.1199482563746204
+       }
+      }
+     },
+     "alpha": 0.15149768251761717
+    },
+    "P3_0.1": {
+     "kappa": {
+      "FB": [
+       0.0001,
+       0.01
+      ],
+      "FBC": [
+       0.0001,
+       0.01
+      ],
+      "N1": [
+       0.0001,
+       0.01
+      ]
+     },
+     "all": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.12020329729183332,
+      "delta_top": 0.07103610112241932,
+      "centred_all": -6.134827063691839e-05,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.18701023777399028,
+       "per_cell": {
+        "HEK293T": 0.2442254840497981,
+        "HL60": 0.32447575591414984,
+        "LNCAP": 0.18673547989424255,
+        "SKBR3": 0.17609970754170307,
+        "U937": 0.020020208698402646,
+        "VCAP": 0.20194584125076853
+       }
+      }
+     },
+     "known": {
+      "pass": false,
+      "conjuncts": {
+       "delta_all_or_top_ge_bar": true,
+       "cells_delta_pos_ge_4": true,
+       "cells_FBC_gt_N1_ge_4": true,
+       "centred_all_ge_bar": false,
+       "cells_centred_pos_ge_4": false
+      },
+      "delta_all": 0.10710101152101337,
+      "delta_top": 0.057739309560626395,
+      "centred_all": -9.354766502273071e-05,
+      "cells_pos": 6,
+      "centred_cells_pos": 2,
+      "cells_vs_N1_pos": 6,
+      "resid": {
+       "all": 0.18119645642866292,
+       "per_cell": {
+        "HEK293T": 0.2442254840497981,
+        "HL60": 0.20386561548771953,
+        "LNCAP": 0.18673547989424255,
+        "SKBR3": 0.17609970754170307,
+        "U937": 0.07981321551005137,
+        "VCAP": 0.1740144728906814
+       }
+      }
+     },
+     "alpha": 0.21425007728450754
+    }
+   },
+   "T3": {
+    "P4_0.005": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0008459500390685104,
+      "HL60": 0.011884257837361523,
+      "LNCAP": 0.0034170359520425686,
+      "SKBR3": 0.006705747324221245,
+      "U937": -0.005821978821452023,
+      "VCAP": 0.013619438884046153
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.001414066215936205,
+      "HL60": 0.01160182816206945,
+      "LNCAP": 0.0032350684271480468,
+      "SKBR3": 0.006842666166654965,
+      "U937": -0.004496079480462156,
+      "VCAP": 0.01353498207066084
+     },
+     "alpha": 0.07090684613998735
+    },
+    "P4_0.01": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.0027863439908711873,
+      "HL60": 0.02417475207106723,
+      "LNCAP": 0.0071553051619270835,
+      "SKBR3": 0.013208523085233126,
+      "U937": -0.0056924280033421315,
+      "VCAP": 0.026794361934994848
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.0037610603867468395,
+      "HL60": 0.023605516228227597,
+      "LNCAP": 0.006961042342387702,
+      "SKBR3": 0.01329896957065324,
+      "U937": -0.004046696471471489,
+      "VCAP": 0.02664934437974753
+     },
+     "alpha": 0.10027742347627244
+    },
+    "P4_0.02": {
+     "pass": false,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": false,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.006935226790945492,
+      "HL60": 0.04567969591874682,
+      "LNCAP": 0.014720203344377514,
+      "SKBR3": 0.02494697888227526,
+      "U937": -0.0041257927595154675,
+      "VCAP": 0.05019573762013474
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.008621382132839583,
+      "HL60": 0.044611517342466656,
+      "LNCAP": 0.014477958808499336,
+      "SKBR3": 0.024956643819198154,
+      "U937": -0.0020620004523190794,
+      "VCAP": 0.0499512543929711
+     },
+     "alpha": 0.1418136922799747
+    },
+    "P4_0.05": {
+     "pass": true,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.018592587788250903,
+      "HL60": 0.09387018397091274,
+      "LNCAP": 0.03527685374508793,
+      "SKBR3": 0.05187085765507271,
+      "U937": 0.0033003797667493506,
+      "VCAP": 0.10321861485817407
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.022051722276289487,
+      "HL60": 0.09161913874632649,
+      "LNCAP": 0.03485182923390595,
+      "SKBR3": 0.05174571497150193,
+      "U937": 0.006035510547836687,
+      "VCAP": 0.10275424343614592
+     },
+     "alpha": 0.22422713550147846
+    },
+    "P4_0.1": {
+     "pass": true,
+     "conjuncts": {
+      "cells_rho_ge_0.02_ge_4": true,
+      "cells_FBC_gt_N1_ge_4": true
+     },
+     "rho_T3": {
+      "HEK293T": 0.03376200145747166,
+      "HL60": 0.1436540112595035,
+      "LNCAP": 0.061114781023234976,
+      "SKBR3": 0.07949593677046674,
+      "U937": 0.016229498868735814,
+      "VCAP": 0.15806193053656237
+     },
+     "FBC_minus_N1": {
+      "HEK293T": 0.03946313594480938,
+      "HL60": 0.14006106865569812,
+      "LNCAP": 0.060377056280531805,
+      "SKBR3": 0.07935272874772958,
+      "U937": 0.019513601946551495,
+      "VCAP": 0.1573928010662644
+     },
+     "alpha": 0.31710505607826056
+    }
+   }
+  }
+ ],
+ "summary": {
+  "all": {
+   "pass_counts": {
+    "T1_P1": {
+     "0.005": 5,
+     "0.01": 5,
+     "0.02": 5,
+     "0.05": 5,
+     "0.1": 5
+    },
+    "T1_P2": {
+     "0.005": 0,
+     "0.01": 0,
+     "0.02": 0,
+     "0.05": 5,
+     "0.1": 5
+    },
+    "T1_P3": {
+     "0.005": 0,
+     "0.01": 0,
+     "0.02": 0,
+     "0.05": 0,
+     "0.1": 0
+    },
+    "T3_P4": {
+     "0.005": 0,
+     "0.01": 0,
+     "0.02": 0,
+     "0.05": 4,
+     "0.1": 5
+    }
+   },
+   "MDE": {
+    "T1_P1": 0.005,
+    "T1_P2": 0.05,
+    "T1_P3": null,
+    "T3_P4": 0.05
+   },
+   "reading": {
+    "T1_P1": "informative null (MDE <= 2 %; linear in the encoded tracks)",
+    "T1_P2": "reported with its MDE",
+    "T3_P4": "reported with its MDE"
+   },
+   "instrument_faults": {
+    "T1_pass_at_pi_0_draws": 0,
+    "T1_passes_P3_anywhere": false,
+    "T1_void": false,
+    "T3_pass_at_pi_0_draws": 0,
+    "T3_void": false
+   },
+   "residual_estimand_null_max_abs": 0.013468521209712486
+  },
+  "known": {
+   "pass_counts": {
+    "T1_P1": {
+     "0.005": 5,
+     "0.01": 5,
+     "0.02": 5,
+     "0.05": 5,
+     "0.1": 5
+    },
+    "T1_P2": {
+     "0.005": 0,
+     "0.01": 0,
+     "0.02": 0,
+     "0.05": 5,
+     "0.1": 5
+    },
+    "T1_P3": {
+     "0.005": 0,
+     "0.01": 0,
+     "0.02": 0,
+     "0.05": 0,
+     "0.1": 0
+    },
+    "T3_P4": {
+     "0.005": 0,
+     "0.01": 0,
+     "0.02": 0,
+     "0.05": 4,
+     "0.1": 5
+    }
+   },
+   "MDE": {
+    "T1_P1": 0.005,
+    "T1_P2": 0.05,
+    "T1_P3": null,
+    "T3_P4": 0.05
+   },
+   "reading": {
+    "T1_P1": "informative null (MDE <= 2 %; linear in the encoded tracks)",
+    "T1_P2": "reported with its MDE",
+    "T3_P4": "reported with its MDE"
+   },
+   "instrument_faults": {
+    "T1_pass_at_pi_0_draws": 0,
+    "T1_passes_P3_anywhere": false,
+    "T1_void": false,
+    "T3_pass_at_pi_0_draws": 0,
+    "T3_void": false
+   },
+   "residual_estimand_null_max_abs": 0.017004326800496097
+  },
+  "row_set_of_record": "known"
+ },
+ "pis": [
+  0.005,
+  0.01,
+  0.02,
+  0.05,
+  0.1
+ ],
+ "draws": 5,
+ "inputs": {
+  "xpert_mdmt_splits.npz": "1444b253d48c5adf066bf7a3cc0ba8ea5fb71464",
+  "E_final.npy": "20e9a3e4ce56f0d8a938c185dc5ca9e016590aac",
+  "E_final_mask.npy": "6186bbdd9edae48d0382b5f269c600ff455fdb2f",
+  "lincs_cell_index.json": "5f7bc6b42fe45c56f62a27d06c1925a077056e6d",
+  "cell_lineage.npy": "1efd3dea686816db00b10ca426ed2e54d533c75d",
+  "E_final_provenance.json": "22c249d1e6c8208809e6fa088664d93b1de18c8f"
+ },
+ "seconds": 2257.4369552135468
+}
