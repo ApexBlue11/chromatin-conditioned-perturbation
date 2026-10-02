@@ -22,7 +22,7 @@
   },
   "loop_state": "RUNNING",
   "open_packets": [
-    "040_chromatin_funnel_prereg"
+    "041_chromatin_code_review"
   ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
@@ -64,7 +64,8 @@
     "036_manuscript_wording",
     "037_v2_result_p6",
     "038_p6_result_p7_kernel",
-    "039_review038_guard0"
+    "039_review038_guard0",
+    "040_chromatin_funnel_prereg"
   ],
   "gpu_hours_spent_this_session": 18.71,
   "pending_decision": "P7 (kern_v9p7 at 1cd614c, CLEARED by review 039) and 88 t1 push at the quota reset (Sat 2026-10-03 00:00 UTC = 05:30 IST); t2 when a slot frees. After P7: score_p7 --dry_check, pin P7_SHA1, score once, align_dev --rows test once.",
