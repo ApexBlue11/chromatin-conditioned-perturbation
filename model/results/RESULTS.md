@@ -6770,6 +6770,59 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
 3. **Making cell-specific chromatin informative would need richer features** (S9: enhancer windows, TF-motif accessibility). That is
    a data project, not a model change.
 
+## 92. 🔒 PRE-REGISTERED: two chromatin screens from the §91 funnel — E2 (no chromatin) and E1 (cleaned chromatin) on the dev carve (packet 044) (2026-10-03)
+### 92.1 Why these two, and nothing else
+- **The funnel's verdict (§91.12):** no new chromatin mechanism earns a screen. The cell-specific content of promoter chromatin,
+  in a linear gene-local form, transfers ≈ nothing; T1's null is informative for the gain form (MDE ≤ 0.5 %).
+- **The diagnostics:**
+  - trained v9 reads its chromatin, and on dev cells that costs +0.006 (T4, mean-ablated at inference, every seed; the cost is
+    drug-specific);
+  - VCAP's cost is its failed H3K27me3 track (T4b);
+  - v9's encoding extracts 5× less than the cleaned encoding in the closed form (§91.12).
+- **Both arms test, on the training distribution, the step those results support: stop chromatin from doing harm.** The
+  inference-time ablation was explicitly not a candidate (§91.11).
+
+### 92.2 Arms (the P2 recipe, the §85 dev command: `--dev_cells 6 --dev_seed 0 --dp_seed_mode distinct --epochs 12 --d_model 256`)
+- **E2** adds `--ablate_epi`: training-time mean ablation. Every row's chromatin values and track mask carry the dev-train mean, so
+  the architecture is unchanged and the cell-specific chromatin information is gone. It runs on the current `lincs-v9-src` upload.
+- **E1** adds `--chromatin_encoding clean` (`xpert_arm.py` 3495ada): failed-ChIP H3K27me3 tracks are missing (mask and values),
+  and each present (cell, mark) gets a rank-based inverse-normal transform across genes.
+  - Its default path is verified byte-identical on the real bundle.
+  - It needs a new `lincs-v9-src` upload (that `xpert_arm.py` plus `E_final_provenance.json`), made **only after P7, §88 t1 and t2
+    have started**, since their kernels mount the current version.
+  - Its kernel refuses the current upload. Guard dry-runs: E2 passes on the current upload; E1 refuses it, and passes on the staged
+    new upload.
+
+### 92.3 Rules (§85.2 as written; baseline P2: μ0 0.43693, s0 0.00169)
+- **Seed 0 first (rule 6):**
+  - Δ ≥ 0.0034: seeds 1–2;
+  - Δ < s0: dropped;
+  - otherwise: seed 1, then re-read.
+- **Accept (three seeds), all of:**
+  - rule 7: Δ ≥ max(0.003, 2√(s0²/3 + s_v²/3)), cell means > 0, ≥ 4 of 6 cells;
+  - Δ_centred > 0 (§90.2);
+  - rule 8: aux alignment ≥ 0.2532 and > 0.2292;
+  - the in-cell rule (§85.10).
+- **E1's comparator (review 043):** if E2 is accepted, E1 is adopted only if it also beats E2. That means a seed-paired Δ(E1 − E2)
+  ≥ max(0.003, 2√(s_E1²/3 + s_E2²/3)) and ≥ 4 of 6 cells. Otherwise the reading is *"cleaned chromatin does not beat no
+  chromatin"*.
+
+### 92.4 Reported, not read
+- Per-cell Δ, with the T4 harm cells (HEK293T, LNCAP, VCAP) beside the rest.
+- The centred Δ, and rule 8's values.
+- For E1: whether VCAP's T4b harm is gone. For E2: whether the trained-without-chromatin model shows T4's dev-cell gain on the
+  training distribution.
+
+### 92.5 Cost and timing
+- **One seed per arm, ≈ 1.8 GPU-h each.**
+- **This week:** P7 (≈ 6.5 h) + §88 t1 and t2 (≈ 14.4 h) + E2 s0 + E1 s0 (≈ 3.6 h) ≈ 24.5 h of 30.
+- **Seeds 1–2** for an arm that advances (+ ≈ 3.6 h) only if quota remains; otherwise next week.
+- **Order:** E2 s0 takes the slot P7 frees; E1 s0 follows once the new upload exists.
+
+### 92.6 Scope
+Both arms are development after P7. An adopted change needs its own test-cell registration (a P8) before any test-cell statement,
+and P7 is unchanged.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
