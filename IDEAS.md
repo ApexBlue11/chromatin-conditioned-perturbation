@@ -181,8 +181,10 @@ warm split.** A test must commit its prediction first; nothing in §74 is read u
 - **C8b's MoA test must pre-register (review 023 ask 3):** (1) ONE primary readout — the node's activation difference Δa = a(d) − a(mean drug), fixed mean drug; (2) whether the nodes are aux-supervised (then bounded near the data projection, which shows no alignment) or unsupervised; (3) calibration against ≥ 5 untrained inits — every trained seed's diff below the untrained minimum (or mean − 2 sd fixed from those inits), since −0.02 is inside the observed spread; (4) readouts compared by diff only; (5) a responsiveness split with usable sizes on both sides (the top-50 rule gave 483 vs 13); (6) the unseen-compound stratum licenses a mechanism claim, with its null sd stated; (7) run on v9 fold-0 test rows, trained separately from §85's cc1 dev work, and the MoA reading never influences C8b's accuracy acceptance or vice versa.
 
 ### A12. 🔵 Make chromatin matter — the brainstorm behind the §91 funnel (principal, 2026-10-02)
-**Diagnosis** (§91.1): v9's chromatin terms are drug-independent per-(cell, gene) offsets, and §44's ridge used chromatin as a
-cell-level block over ~40 cells. Neither can express "this drug's response at this gene depends on this gene's chromatin in this cell".
+**Diagnosis** (§91.1 as amended by review 040 C3): v9's only **explicit** chromatin terms are drug-independent per-(cell, gene)
+offsets; a drug × chromatin interaction is expressible only implicitly (gene tokens cross-attend to the drug) and §55 shows it is
+not used; §44's ridge used chromatin as a cell-level block over ~40 cells. None of them makes "this drug's response at this gene
+depends on this gene's chromatin in this cell" an explicit term.
 
 | # | strategy | what it changes | cheapest test | status |
 |---|---|---|---|---|
@@ -197,6 +199,7 @@ cell-level block over ~40 cells. Neither can express "this drug's response at th
 | S9 | **richer features**: enhancer windows (±50 kb), TF-motif accessibility (chromVAR), enhancer–gene links | promoter peaks may be the wrong granularity | needs peak-level data (not on disk; bigWig access intractable here, 2026-07) | only if T1 shows a promoter-level signal worth extending |
 | S10 | impute chromatin for uncovered cells from expression | harmonises inputs | — | rejected: adds no information beyond `x_ctl` |
 | S11 | drop `x_ctl` at random in training so the model must use chromatin | forces a chromatin pathway | — | only if T1 shows non-redundant information |
+| S12 | **fix the encoding**: failed-ChIP H3K27me3 tracks are z-scored back to full weight and `r` ignores `E_reliability.tsv` (§91.8) | v9 may be reading noise at |z| 10–28 | T1 primary (rank-normal, failed tracks missing) vs its v9-encoding secondary | inside T1 |
 
 ### A7. 🔵 "New startup mechanisms" — raised by the principal, no recorded source
 The principal listed this alongside new loss functions on 2026-09-21. **There is no item in RESULTS it maps

@@ -6438,9 +6438,11 @@ ensemble gives. **V1 does not enter the stack; P7 uses no MC inference** (§85.1
 tests, keeping GPU for the survivors. The brainstorm is IDEAS A12. Nothing here touches a test row or changes P7 (§85.12).
 
 ### 91.1 The diagnosis the strategies answer
-- **v9's chromatin is drug-independent.** It enters as a per-gene embedding summed into the gene token and as the signed additive
-  head `MLP(E[c,g])·r` (`modules_v9.py` `GeneRepresentation`, `SignedChromatinHead`): a fixed per-(cell, gene) offset, the same
-  for every drug. Nothing lets the chromatin effect depend on the drug.
+- **v9's only explicit chromatin terms are drug-independent** (amended, review 040 C3): the per-gene embedding summed into the gene
+  token and the signed additive head `MLP(E[c,g])·r` (`modules_v9.py` `GeneRepresentation`, `SignedChromatinHead`), a fixed
+  per-(cell, gene) offset. Drug × chromatin interactions are expressible only **implicitly**, through the gene tokens'
+  cross-attention to the drug (`model_v9.py` perturb blocks), and §55 shows they are not used. A pass here therefore means "an
+  explicit term may be learned where the implicit one was not", not "v9 cannot express it". (Not for the paper in this form.)
 - **§44's ridge could not express a gene-local or a drug-dependent rule either.** It gave each cell's chromatin as a 24-component
   cell-level block over 40 cell lines, additively. A cell-level block learns from tens of cells; a gene-local rule (each gene's own
   chromatin, one rule shared across genes) learns from hundreds of thousands of (cell, gene) points and transfers to a new cell by
@@ -6458,7 +6460,10 @@ tests, keeping GPU for the survivors. The brainstorm is IDEAS A12. Nothing here 
   the mean over cells of within-cell means (each cell counts once). For a dev row, μ uses all dev-train cells. **For a dev-train
   row used as a fitting target, μ excludes that row's own cell** (μ^(−c)), so a cell is never fitted against its own response.
 - **Gene-local features of (cell c, gene g):** `b̃` = basal expression (mean `X_ctl` over c's rows) z-scored across genes within c;
-  `Ẽ_m` = `E_final` z-scored per (cell, mark) across genes exactly as `xpert_arm.py` 190–194, 0 where mark m is missing.
+  `Ẽ_m` = `E_final` per (cell, mark) by a **rank-based inverse-normal transform across genes** (ties at mid-rank), 0 where mark m is
+  missing; **H3K27me3 tracks flagged as failed ChIP (`E_final_provenance.json`; reliability 0.30) are missing** (amended, review 040
+  C1; §91.8 item 1). v9's exact encoding (per-(cell, mark) z-score, `xpert_arm.py` 190–194, failed tracks at full weight) is a
+  reported secondary.
 - **Score S:** `score_dev.row_pearson` per dev row (imported, not re-implemented); headline = mean over dev rows; also
   `score_dev.centred_r`, per cell, and the top tercile of `‖y‖₂` (terciles over dev rows; the project's rule: never judge a biological
   feature on a set dominated by inert signatures).
@@ -6473,11 +6478,15 @@ own response at a gene; the additive term shifts it. Fitted on covered dev-train
 - Feature sets: **FB** = {`b̃`}; **FBC** = {`b̃`, `Ẽ_A`, `Ẽ_K`, `Ẽ_M`}; FBC⊥ = FBC with each `Ẽ_m` residualised on `b̃` within cell;
   FC = chromatin only.
 - Nulls: **N1** = FBC with every cell's `Ẽ` replaced by the mean `Ẽ` over covered dev-train cells (a gene property, identical in every
-  cell); N2 = FBC with each dev cell given another dev cell's chromatin (fixed derangement HEK293T→HL60→LNCAP→SKBR3→U937→VCAP→HEK293T).
+  cell), **refitted** (same features and capacity as FBC), replacing **only the marks a cell has** with the mean over covered
+  dev-train cells **that have that mark**, and inside LOCO **excluding the held-out cell** (review 040 C4); N2 = FBC with each dev cell given another dev cell's chromatin (fixed derangement HEK293T→HL60→LNCAP→SKBR3→U937→VCAP→HEK293T).
 - **Estimand of record: Δ_T1 = S(FBC) − S(FB)**, paired per dev row.
 - **Advance** (→ a GPU screen of a drug-conditioned chromatin interaction head, "C9"): Δ_T1 ≥ +0.003 on all dev rows **or** ≥ +0.006
   on the top tercile; positive in ≥ 4 of 6 dev cells; **and** S(FBC) − S(N1) > 0 in ≥ 4 of 6 dev cells (the gain must come from
-  this cell's chromatin, not from a gene prior the gene embedding already holds).
+  this cell's chromatin, not from a gene prior the gene embedding already holds); **and Δ_centred(FBC − FB) > 0 in ≥ 4 of 6 dev
+  cells** (`score_dev.centred_r`; a pass cannot rest on a per-cell constant offset, the drug-independent part v9's additive head
+  already provides; review 040 C2). Reported beside it: the additive-only rule (v = δ = ε = 0). The δ_d floor of 3 covered cells
+  is counted **within each LOCO fold**, excluding the held-out cell.
 - Reported, not read: S(B0), S(FB), S(FC), FBC⊥, N2, the global rule alone (δ = ε = 0), cell-centred versions, and an
   **epigenetic-drug stratum** (S6: drugs whose ChEMBL targets include HDAC*, BRD2/3/4, EZH2/EED/SUZ12, DNMT*, KDM*, EP300/CREBBP,
   DOT1L or SIRT*) against the rest.
@@ -6485,18 +6494,22 @@ own response at a gene; the additive term shifts it. Fitted on covered dev-train
 ### 91.4 T2 — retrieval by chromatin similarity (strategy S2)
 `ŷ_r = Σ_c' α(c,c')·ȳ[k(r),c']` over covered dev-train cells c' that have the condition (back-off as μ), `α = softmax(s(c,c')/τ)`.
 `s_C` = mean over shared marks of Pearson(`Ẽ_c,m`, `Ẽ_c',m`) across genes; `s_B` = Pearson(`b̃_c`, `b̃_c'`); `s_BC = s_B + β·s_C`;
-uniform = τ → ∞. All variants use the same neighbour set.
+uniform = τ → ∞. All variants use the same neighbour set. **A neighbour sharing no mark with the target takes the target's median
+s_C over its other neighbours** (review 040 C4).
 - **Estimand of record: Δ_T2 = S(s_BC) − S(s_B).**
 - **Advance** (→ a GPU screen of a neighbour-response input token, "C10"): Δ_T2 ≥ +0.002 on all dev rows **and**
-  S(s_C) − S(uniform) ≥ +0.003, both positive in ≥ 4 of 6 dev cells.
-- Reported: lineage-match weighting; B0 over all 26 dev-train cells; strata.
+  S(s_C) − S(uniform) ≥ +0.003, both positive in ≥ 4 of 6 dev cells; **and Δ_centred(s_BC − s_B) > 0 in ≥ 4 of 6 dev cells**
+  (review 040 C2).
+- Reported: lineage-match weighting; B0 over all 26 dev-train cells; strata. T2 is a cell-level method over 11
+  neighbours (the small-n regime §91.1 holds against §44): its null carries little weight.
 
 ### 91.5 T3 — which genes can move in this cell (strategy S5)
 `v[c,g]` = SD over c's rows of `y[r,g]`, z-scored across genes within c. Gene-local ridge `v̂[c,g] = a·v̄_g + β·f[c,g]`
 (`v̄_g` = mean over covered dev-train cells; coefficients shared across genes and cells), fitted on covered dev-train cells.
 - **Estimand of record, per dev cell: ρ_T3 = Pearson_g(v̂_FBC, v) − Pearson_g(v̂_FB, v).**
-- **Advance** (→ a GPU screen of a chromatin-conditioned per-gene response scale, "C11"): ρ_T3 ≥ +0.02 in ≥ 4 of 6 dev cells.
-- Reported: the gene prior alone; N1.
+- **Advance** (→ a GPU screen of a chromatin-conditioned per-gene response scale, "C11"): ρ_T3 ≥ +0.02 in ≥ 4 of 6 dev cells,
+  **and ρ(FBC) − ρ(N1) > 0 in ≥ 4 of 6 dev cells** (review 040 C4).
+- Reported: the gene prior alone.
 
 ### 91.6 T0 — sanity (reported, never a gate)
 Per covered cell, within-cell Pearson(`Ẽ_m`, `b̃`); pairwise between-cell chromatin correlations, flagging any pair > 0.99 (ATAC
@@ -6510,6 +6523,27 @@ files duplicated across cells were found in 2026-07); T1/T2 coverage (dev rows b
 - **If nothing passes:** chromatin is reported as a measured negative in three new forms (drug-conditioned gene-local rules, cell
   retrieval, responsiveness), beyond §44/§55.
 - Any chromatin model adopted later is development after P7 and needs its own test-cell registration; P7 is unchanged.
+- **Reported beside every test:** S(B0) and S(FB) next to P2's 0.43693, so the headroom is visible (review 040 ask 3).
+- **T4 (reported, never a gate; review 040 ask 4):** P2's three dev checkpoints scored with chromatin **mean-ablated at inference**
+  (`XPertData`'s `ablate_epi`, through a new `mc_infer_dev.py --ablate_epi` flag; local GPU inference, 4,043 rows) against their
+  intact deterministic pass. It separates "the information is absent" (T1–T3) from "v9 does not read it".
+
+### 91.8 AMENDED by review 040 — all four challenges upheld, before any funnel code or data (2026-10-02)
+1. **C1 (MAJOR), PI-verified and extended.** `E_final_provenance.json` lists H3K27me3 as failed ChIP (raw peaks < 10; reliability
+   0.30 in `E_reliability.tsv`) for nine cells, four of them here: HEK293T and VCAP (dev), HELA and PHH (dev-train). Their
+   per-(cell, mark) z-scores reach max |z| 11.4 / 10.1 / 20.7 / 28.5, against 2.1–3.1 for good tracks. **They are missing in every
+   test**, so PHH is uncovered (**11 covered dev-train cells**), HEK293T keeps ATAC + H3K27ac and VCAP H3K27ac only. **The heavy tails
+   are not confined to flagged tracks** (SKBR3 H3K27me3, reliability 1.00, max |z| 20.9; HEK293T ATAC 7.8), and a gene-local linear
+   rule is leverage-sensitive, so the **primary encoding is a rank-based inverse-normal transform within (cell, mark)**; v9's exact
+   encoding is a reported secondary. **v9's own input has both properties** (z-scored, failed tracks at full weight, `r` from the
+   mask only), so §55's null was measured with them; P7 is unchanged. The mask is authoritative for availability: the reliability
+   table lists marks the final tensor does not hold (A375 and VCAP ATAC; U937 H3K27ac) and is used only for the failed-ChIP flag.
+2. **C2 (MAJOR).** T1 and T2 gain the centred conjunct (above): their additive terms are constant across a cell's rows, so the raw
+   score alone would reward a drug-independent cell-mean offset, as C6 did (raw +0.0048, centred +0.0002; §85.13).
+3. **C3 (MINOR).** §91.1's first bullet corrected (above), and IDEAS A12 with it.
+4. **C4 (MINOR).** N1 refitted, per available mark, LOCO-excluding; T2's no-shared-mark rule; T3's N1 gate; the δ_d floor per fold.
+5. **Asks 3–4.** Headroom reported against P2; T4 added as a reported diagnostic. The encoding itself (reliability weighting without
+   z-score re-inflation) is recorded as strategy S12 in IDEAS A12.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
