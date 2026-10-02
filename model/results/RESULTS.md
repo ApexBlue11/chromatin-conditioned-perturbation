@@ -6783,15 +6783,19 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
   inference-time ablation was explicitly not a candidate (§91.11).
 
 ### 92.2 Arms (the P2 recipe, the §85 dev command: `--dev_cells 6 --dev_seed 0 --dp_seed_mode distinct --epochs 12 --d_model 256`)
-- **E2** adds `--ablate_epi`: training-time mean ablation. Every row's chromatin values and track mask carry the dev-train mean, so
-  the architecture is unchanged and the cell-specific chromatin information is gone. It runs on the current `lincs-v9-src` upload.
+- **E2** adds `--ablate_epi`: **without cell-specific chromatin** (training-time mean ablation; amended, review 044 C2b). Every
+  row's chromatin values and track mask carry the dev-train mean, a gene-generic constant the gene embedding could represent
+  anyway, so the architecture is unchanged and only the cell-specific chromatin information is gone. It is not "no chromatin at
+  all". It runs on the current `lincs-v9-src` upload or the new one, since their default paths are identical.
 - **E1** adds `--chromatin_encoding clean` (`xpert_arm.py` 3495ada): failed-ChIP H3K27me3 tracks are missing (mask and values),
   and each present (cell, mark) gets a rank-based inverse-normal transform across genes.
   - Its default path is verified byte-identical on the real bundle.
-  - It needs a new `lincs-v9-src` upload (that `xpert_arm.py` plus `E_final_provenance.json`), made **only after P7, §88 t1 and t2
-    have started**, since their kernels mount the current version.
-  - Its kernel refuses the current upload. Guard dry-runs: E2 passes on the current upload; E1 refuses it, and passes on the staged
-    new upload.
+  - It needs a new `lincs-v9-src` upload (that `xpert_arm.py` plus `E_final_provenance.json`), made **only after P7's
+    `P7_COMPLETE.json` exists and §88 t1 and t2 have started** (amended, review 044 C1). P7's GUARD 2b pins `xpert_arm.py`, so a P7
+    rerun after the upload would refuse. If P7 failed, the work is re-planned before any upload.
+  - **Code identity is pinned** (review 044 C2a): E1's kernel accepts only `xpert_arm.py` sha1 `60bdcd48…` (3495ada). E2's accepts
+    `75c58f52…` (the current upload, which P7 pins) or `60bdcd48…`.
+  - **Guard dry-runs, pins included:** E2 passes on both uploads; E1 refuses the current upload and passes on the staged new one.
 
 ### 92.3 Rules (§85.2 as written; baseline P2: μ0 0.43693, s0 0.00169)
 - **Seed 0 first (rule 6):**

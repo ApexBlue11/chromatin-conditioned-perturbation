@@ -4,7 +4,8 @@
     python orchestration/make_e_kernels.py e2 [--seed_start 0 --seeds 1]
     python orchestration/make_e_kernels.py e1 [--seed_start 0 --seeds 1]
 
-E2 = + --ablate_epi (training-time mean-ablated chromatin; runs on the current lincs-v9-src upload).
+E2 = + --ablate_epi: WITHOUT CELL-SPECIFIC chromatin (training-time mean ablation: every row carries the same per-gene
+     dev-train mean, a gene-generic constant; review 044 C2b). Runs on the current lincs-v9-src upload or the new one.
 E1 = + --chromatin_encoding clean (failed H3K27me3 missing, rank-normal per (cell, mark); needs the upload of xpert_arm.py
 3495ada + E_final_provenance.json, made only after P7, 88 t1 and t2 have started). Guards as the V2 dev kernel, plus one per arm.
 """
@@ -15,9 +16,12 @@ import os
 
 ROOT = r'C:\Projects\LINCS\external\kaggle_kernels'
 IMG = 'gcr.io/kaggle-private-byod/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461'
-ARMS = {'e2': {'flags': ['--ablate_epi'], 'tag': '_noepi', 'suffix': '', 'needs': ['ablate_epi']},
+UPLOAD_NOW = '75c58f52051296b326e57613feee7be8f7097d1b'     # xpert_arm.py in the current lincs-v9-src (P7 pins it)
+UPLOAD_E1 = '60bdcd48039a1ae3be4ebbfdce087c142f5d8f44'      # xpert_arm.py at 3495ada (the --chromatin_encoding flag)
+ARMS = {'e2': {'flags': ['--ablate_epi'], 'tag': '_noepi', 'suffix': '', 'needs': ['ablate_epi'],
+               'xpert_arm_sha1': [UPLOAD_NOW, UPLOAD_E1]},
         'e1': {'flags': ['--chromatin_encoding', 'clean'], 'tag': '', 'suffix': '_chromclean',
-               'needs': ['chromatin_encoding', "E_final_provenance.json", 'rankdata']}}
+               'needs': ['chromatin_encoding', "E_final_provenance.json", 'rankdata'], 'xpert_arm_sha1': [UPLOAD_E1]}}
 
 CODE = r'''# RESULTS 92 (pre-registered): __ARM__ on the P2 recipe, dev carve, seeds __SEEDS__. Guards as the V2 dev kernel, plus the arm's.
 import sys, os, glob, torch, numpy as np
@@ -57,7 +61,12 @@ ARM_NEEDS = __NEEDS__
 _miss = [k for k in ARM_NEEDS if k not in _src and not glob.glob('/kaggle/input/**/' + k, recursive=True)]
 if _miss:
     raise SystemExit('FATAL: the mounted code cannot run this arm, missing %r. Refusing.' % _miss)
-print('mounted code verified for __ARM__', flush=True)
+# GUARD PIN (review 044 C2a): the arm's code identity, not just strings.
+import hashlib
+_h = hashlib.sha1(open(os.path.join(SRC, 'xpert_arm.py'), 'rb').read()).hexdigest()
+if _h not in __PINS__:
+    raise SystemExit('FATAL: mounted xpert_arm.py sha1 %s is not an allowed version %r. Refusing.' % (_h, __PINS__))
+print('mounted code verified for __ARM__ (xpert_arm.py %s)' % _h[:12], flush=True)
 sys.argv = ['xpert_arm.py', '--bundle', 'xpert_mdmt_splits.npz', '--split', 'split_cold_cell_1',
             '--dev_cells', '6', '--dev_seed', '0', '--dp_seed_mode', 'distinct',
             '--seeds', '__NSEEDS__', '--seed_start', '__SEED0__', '--epochs', '12', '--d_model', '256',
@@ -98,7 +107,7 @@ def main():
     tag = ('' if (a.seeds == 3 and a.seed_start == 0) else '_seed%d' % a.seed_start) + arm['tag']
     code = (CODE.replace('__ARM__', a.arm).replace('__SEEDS__', str(seeds)).replace('__NEEDS__', repr(arm['needs']))
             .replace('__NSEEDS__', str(a.seeds)).replace('__SEED0__', str(a.seed_start)).replace('__FLAGS__', repr(arm['flags']))
-            .replace('__TAG__', tag).replace('__SUFFIX__', arm['suffix']))
+            .replace('__TAG__', tag).replace('__SUFFIX__', arm['suffix']).replace('__PINS__', repr(arm['xpert_arm_sha1'])))
     slug = 'lincs-v9dev-%s-s%d' % (a.arm, a.seed_start)
     d = os.path.join(ROOT, 'kern_v9dev_%s_s%d' % (a.arm, a.seed_start))
     os.makedirs(d, exist_ok=True)

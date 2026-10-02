@@ -36,7 +36,12 @@ ARM_NEEDS = ['ablate_epi']
 _miss = [k for k in ARM_NEEDS if k not in _src and not glob.glob('/kaggle/input/**/' + k, recursive=True)]
 if _miss:
     raise SystemExit('FATAL: the mounted code cannot run this arm, missing %r. Refusing.' % _miss)
-print('mounted code verified for e2', flush=True)
+# GUARD PIN (review 044 C2a): the arm's code identity, not just strings.
+import hashlib
+_h = hashlib.sha1(open(os.path.join(SRC, 'xpert_arm.py'), 'rb').read()).hexdigest()
+if _h not in ['75c58f52051296b326e57613feee7be8f7097d1b', '60bdcd48039a1ae3be4ebbfdce087c142f5d8f44']:
+    raise SystemExit('FATAL: mounted xpert_arm.py sha1 %s is not an allowed version %r. Refusing.' % (_h, ['75c58f52051296b326e57613feee7be8f7097d1b', '60bdcd48039a1ae3be4ebbfdce087c142f5d8f44']))
+print('mounted code verified for e2 (xpert_arm.py %s)' % _h[:12], flush=True)
 sys.argv = ['xpert_arm.py', '--bundle', 'xpert_mdmt_splits.npz', '--split', 'split_cold_cell_1',
             '--dev_cells', '6', '--dev_seed', '0', '--dp_seed_mode', 'distinct',
             '--seeds', '1', '--seed_start', '0', '--epochs', '12', '--d_model', '256',
