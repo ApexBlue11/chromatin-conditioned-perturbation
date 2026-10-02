@@ -1,6 +1,6 @@
 # RESULTS 91 (pre-registered; 91.8, 91.9): the chromatin funnel and its planted-effect power calibration, run once. CPU only.
 import glob, hashlib, json, os, shutil, subprocess, sys, time
-PINS = {'chromatin_funnel.py': '81bb6c17dcf3d8b5d26eeba906e901eeae4dccbe', 'chromatin_power.py': '153c270271f9d54d8b492ff0eefbf178ad932d0d', 'score_dev.py': 'a9002bceff97ab5552790caf12b6819e7949965e', 'E_final.npy': '20e9a3e4ce56f0d8a938c185dc5ca9e016590aac', 'E_final_mask.npy': '6186bbdd9edae48d0382b5f269c600ff455fdb2f', 'lincs_cell_index.json': '5f7bc6b42fe45c56f62a27d06c1925a077056e6d', 'cell_lineage.npy': '1efd3dea686816db00b10ca426ed2e54d533c75d', 'E_final_provenance.json': '22c249d1e6c8208809e6fa088664d93b1de18c8f', 'chembl_dti_edges.tsv': '28b9e02f6a7f23fac27fd452cb0c745e4838c15d'}
+PINS = {'chromatin_funnel.py': '3de8a1a3ac5bd189d71c241be141fb37220999a5', 'chromatin_power.py': 'eb209adc5bc390b4e98b82b29776f1bf77589d55', 'score_dev.py': 'a9002bceff97ab5552790caf12b6819e7949965e', 'E_final.npy': '20e9a3e4ce56f0d8a938c185dc5ca9e016590aac', 'E_final_mask.npy': '6186bbdd9edae48d0382b5f269c600ff455fdb2f', 'lincs_cell_index.json': '5f7bc6b42fe45c56f62a27d06c1925a077056e6d', 'cell_lineage.npy': '1efd3dea686816db00b10ca426ed2e54d533c75d', 'E_final_provenance.json': '22c249d1e6c8208809e6fa088664d93b1de18c8f', 'chembl_dti_edges.tsv': '28b9e02f6a7f23fac27fd452cb0c745e4838c15d'}
 SPLITS_SHA1 = '1444b253d48c5adf066bf7a3cc0ba8ea5fb71464'
 hit = glob.glob('/kaggle/input/**/chromatin_funnel.py', recursive=True)
 spl = glob.glob('/kaggle/input/**/xpert_mdmt_splits.npz', recursive=True)
@@ -36,5 +36,7 @@ r = subprocess.run([sys.executable, '-u', os.path.join(SRC, 'chromatin_power.py'
 print('power exit %d after %.0f s' % (r.returncode, time.time() - t), flush=True)
 if r.returncode != 0:
     raise SystemExit('FATAL: the power calibration failed')
-json.dump({'pins': PINS, 'splits_sha1': SPLITS_SHA1, 'complete': True}, open('/kaggle/working/CHROMATIN91_COMPLETE.json', 'w'))
+outs = {f: sha(os.path.join('/kaggle/working', f)) for f in ('chromatin_funnel_91.json', 'chromatin_power_91.json')}
+json.dump({'pins': PINS, 'splits_sha1': SPLITS_SHA1, 'outputs': outs, 'complete': True},   # review 041 C5: the reader verifies these
+          open('/kaggle/working/CHROMATIN91_COMPLETE.json', 'w'))
 print('done', flush=True)

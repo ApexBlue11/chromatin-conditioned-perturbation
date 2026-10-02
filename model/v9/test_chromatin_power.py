@@ -4,6 +4,7 @@ import os
 import sys
 
 import numpy as np
+import pytest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
@@ -56,7 +57,7 @@ def test_a_large_planted_gain_passes_t1_and_nothing_planted_does_not():
     assert not null['all']['pass'] and not null['known']['pass']
 
 
-def test_a_large_drug_independent_shift_is_stopped_by_the_centred_conjunct():
+def test_a_large_drug_independent_shift_is_stopped_by_the_centred_magnitude():
     ctx = world(n_perts=40, noise=0.3)
     fit = ctx.enc['rank_normal']['cov_dt']
     f, _ = cp.synthetic_feature(ctx, draw=0)
@@ -64,8 +65,10 @@ def test_a_large_drug_independent_shift_is_stopped_by_the_centred_conjunct():
     mu_e, _ = cf.condition_means(ctx, ctx.y, ctx.fit_mask)
     yp, _ = cp.plant(ctx, ctx.y, mu_e, f, 'P3', 0.10, draw=0)
     r = cp.t1_case(ctx, yp, B, fit)
-    assert r['all']['delta_all'] > 0               # the raw score rewards the cell-constant offset ...
-    assert not r['all']['conjuncts']['cells_centred_pos_ge_4'] and not r['all']['pass']   # ... the centred conjunct does not
+    for rs in ('all', 'known'):
+        assert r[rs]['delta_all'] > 0              # the raw score rewards the cell-constant offset ...
+        # ... the centred MAGNITUDE does not (review 041 C1: the sign count alone can pass on numerical dust)
+        assert not r[rs]['conjuncts']['centred_all_ge_bar'] and not r[rs]['pass']
 
 
 def test_mde_and_summary_logic():
@@ -80,6 +83,58 @@ def test_mde_and_summary_logic():
     assert cp.mde(recs, 'T1', 'P2') is None
     s = cp.summarise(recs)
     for rs in cp.ROW_SETS:
-        assert s[rs]['reading']['T1_P1'] == 'informative null (MDE <= 2 %)'
+        assert s[rs]['reading']['T1_P1'] == 'informative null (MDE <= 2 %; linear in the encoded tracks)'
         assert s[rs]['reading']['T1_P2'] == 'not measurable with this design'
         assert not s[rs]['instrument_faults']['T1_void']
+
+
+def test_calibration_tracks_have_the_real_tests_shape():
+    """Review 041 C2: FBC* = real 4-column set, primary mark -> f*, other marks gene-permuted copies, availability unchanged."""
+    ctx = world(n_perts=4)
+    e = ctx.enc['rank_normal']
+    f, _ = cp.synthetic_feature(ctx, draw=2)
+    cal = cp.install_calibration_tracks(ctx, f, draw=2)
+    assert np.array_equal(cal['has'], e['has'])
+    for i, c in enumerate(ctx.cells):
+        if c not in f:
+            assert not cal['Ez'][i].any()
+            continue
+        k0 = 1 if e['has'][i, 1] else (0 if e['has'][i, 0] else 2)
+        np.testing.assert_allclose(cal['Ez'][i, :, k0], f[c], rtol=1e-5)
+        for k in range(3):
+            if k != k0 and e['has'][i, k]:
+                assert np.allclose(np.sort(cal['Ez'][i, :, k]), np.sort(e['Ez'][i, :, k]))       # same values ...
+                assert abs(np.corrcoef(cal['Ez'][i, :, k], e['Ez'][i, :, k])[0, 1]) < 0.15     # ... gene link destroyed
+            if not e['has'][i, k]:
+                assert not cal['Ez'][i, :, k].any()
+    B = cp.builders(ctx, f, e['cov_dt'], draw=2)
+    assert B['FBC'](None)[e['cov_dt'][0]].shape == (cf.G, 4)
+
+
+def test_p3_fails_t1_across_ten_world_and_pi_cases():
+    """Review 041 C1: a drug-independent shift must not pass T1's full rule on either row set (10 world x pi cases)."""
+    n_pass = 0
+    for seed in range(5):
+        ctx = world(seed=seed, n_perts=30, noise=0.3)
+        fit = ctx.enc['rank_normal']['cov_dt']
+        f, _ = cp.synthetic_feature(ctx, draw=seed)
+        B = cp.builders(ctx, f, fit, draw=seed)
+        mu_e, _ = cf.condition_means(ctx, ctx.y, ctx.fit_mask)
+        for pi in (0.05, 0.10):
+            yp, _ = cp.plant(ctx, ctx.y, mu_e, f, 'P3', pi, draw=seed)
+            r = cp.t1_case(ctx, yp, B, fit)
+            n_pass += int(r['all']['pass']) + int(r['known']['pass'])
+    assert n_pass == 0
+
+
+def test_the_reader_refuses_without_the_marker_or_on_a_hash_mismatch(tmp_path):
+    import json
+    import read_chromatin91 as rd
+    with pytest.raises(SystemExit, match='COMPLETE'):
+        rd.read(str(tmp_path))
+    for f in ('chromatin_funnel_91.json', 'chromatin_power_91.json'):
+        (tmp_path / f).write_text('{}')
+    json.dump({'outputs': {'chromatin_funnel_91.json': 'deadbeef', 'chromatin_power_91.json': 'deadbeef'}},
+              open(tmp_path / 'CHROMATIN91_COMPLETE.json', 'w'))
+    with pytest.raises(SystemExit, match='not the file'):
+        rd.read(str(tmp_path))

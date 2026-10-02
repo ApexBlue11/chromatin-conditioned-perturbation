@@ -219,3 +219,26 @@ def test_load_refuses_a_bundle_that_is_not_the_split(tmp_path):
 
 def test_scores_use_the_scorer_of_record():
     assert cf.row_pearson is cf.score_dev.row_pearson and cf.centred_r is cf.score_dev.centred_r
+
+
+def test_m1_split_pools_read_about_zero_on_random_y():
+    """Review 041 C4: with split pools the two sides of every M1 comparison share no condition-mean noise, so pure noise reads ~0."""
+    ctx = world(n_perts=30)
+    y = np.random.default_rng(5).normal(size=ctx.y.shape).astype(np.float32)
+    (a, b) = cf.m1(ctx, y, K=5)
+    assert abs(a['mean']) < 0.02 and abs(b['mean']) < 0.02, (a['mean'], b['mean'])
+
+
+def test_t1_reading_requires_a_centred_magnitude_not_just_signs():
+    """Review 041 C1: six positive centred cell signs of numerical-dust size must not pass."""
+    def s(all_, top, cells, centred, centred_cells):
+        return {'all': all_, 'top': top, 'per_cell': dict(zip(cf.DEV_CELLS, cells)), 'centred_all': centred,
+                'centred_per_cell': dict(zip(cf.DEV_CELLS, centred_cells))}
+    base = s(0.40, 0.50, [0.4] * 6, 0.30, [0.3] * 6)
+    dust = s(0.41, 0.51, [0.41] * 6, 0.30 + 1e-6, [0.3 + 1e-6] * 6)          # raw +0.01, centred +1e-6 on 6/6 cells
+    real = s(0.41, 0.51, [0.41] * 6, 0.305, [0.305] * 6)
+    n1 = s(0.40, 0.50, [0.40] * 6, 0.30, [0.30] * 6)
+    for rs in ('all', 'known'):
+        assert not cf.t1_reading(dust, base, n1, cf.BARS[rs])['pass']
+        assert cf.t1_reading(real, base, n1, cf.BARS[rs])['pass']
+    assert cf.ROW_SET_OF_RECORD == 'known' and cf.BARS['known']['t1'] == 0.004

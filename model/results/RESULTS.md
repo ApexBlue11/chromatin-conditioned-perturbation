@@ -6615,6 +6615,73 @@ every accepted v9 component has fallen in (C6 +0.0048; V2 +0.0167), and it never
 principal's doubt about measurement is therefore well founded for the record so far. §91's funnel targets exactly this range, and
 §91.9 M2 calibrates whether it can see it.
 
+### 91.11 AMENDED by review 041 (5 of 5 upheld; before any real reading) and the T4 read (2026-10-02)
+**Amendments (binding for the one run):**
+1. **C1 (MAJOR), centred magnitude.**
+   - **The rule:** T1's and T2's centred conjunct becomes **Δ_centred ≥ half the raw bar** on the rows of record, **and** > 0 in
+     ≥ 4 of 6 dev cells.
+   - **Why:** the critic showed that a drug-independent planted shift (P3) passed T1's full rule in 10 of 36 synthetic cases. Its
+     centred Δ was ≈ 0 to five decimals, with per-cell signs that were numerical dust. This was review 040 C2's settle, conceded
+     incomplete.
+   - **Now:** a test of 10 world × π cases gives **0 passes**. The P3 instrument fault is now appropriate.
+2. **C2 (MAJOR), calibrate the test as it will be run.**
+   - **FBC\*** is each covered cell's real 4-column feature set, with its primary mark replaced by f\* and every other mark it has
+     replaced by a gene-permuted copy (one permutation per mark, shared across cells); mark availability is unchanged.
+   - N1\* is built from FBC\*, and T3 is calibrated the same way.
+   - **The negative reads:** *"no drug-conditioned gene-local chromatin effect explaining ≥ MDE of the cell-specific residual, of a
+     form linear in the encoded tracks, on these dev cells."*
+3. **C3 / A1, rows of record.** The **3,074 drug-known dev rows** (back-off level ≤ 2) are of record; all 4,043 rows are
+   reported. Bars × 4,043 / 3,074, with the cell counts unchanged:
+
+   | test | conjunct | drug-known rows (of record) | all rows (reported) |
+   |---|---|---|---|
+   | T1 | Δ | ≥ +0.004 | ≥ +0.003 |
+   | T1 | top tercile | ≥ +0.008 | ≥ +0.006 |
+   | T1 | centred | ≥ +0.002 | ≥ +0.0015 |
+   | T2 | Δ_T2 | ≥ +0.0026 | ≥ +0.002 |
+   | T2 | s_C − uniform | ≥ +0.004 | ≥ +0.003 |
+   | T2 | centred | ≥ +0.0013 | ≥ +0.001 |
+
+   The funnel and the calibration read through the same `BARS`.
+4. **C4, replacing A2.** M1 uses **split pools**. The dev-train cells are divided into fixed halves A and B; neighbours are chosen
+   by μ^A, and every residual is formed with μ^B (M1(a) pairs: μ^A for one side, μ^B for the other). The shared −μ term is
+   absent by construction, and on random y both read ≈ 0 The real-structure random-value smoke gives M1(a) −0.0004 and M1(b) +0.0005, against
+   0.009 / 0.069 with one pool.
+5. **C5, completion marker.** `CHROMATIN91_COMPLETE.json` carries both outputs' sha1s. `model/v9/read_chromatin91.py` is the
+   only reader and refuses otherwise.
+6. **A3 accepted.** Planting is through μ^(−c), the drug mean T1 fits.
+7. **Disclosure** (critic's ask 4, verbatim from packet 041 B):
+   - **Origin:** W27's brief allowed a real-data smoke, and its output, which the PI read, came from a defective implementation
+     (wrong fit set, LOCO leaks, T2 comparators tuned with s_BC's τ).
+   - **Coverage:** 37 of 1,849 drugs, 39 of 4,043 dev rows.
+   - **Numbers:** T1 Δ +0.0003 (top −0.0001); cells 2 / N1 1 / centred 1; T2 Δ 0.000; s_C − uniform −0.0032; no pass.
+   - **Handling:** §91 was committed before it, and nothing was changed because of it. The critic ruled it adequate and requires
+     no exclusion.
+
+**8. T4 read** (§91.7: reported, never a gate). P2's three dev checkpoints were scored with chromatin **mean-ablated at inference**
+(`mc_infer_dev.py --ablate_epi`, local GPU), against their saved intact predictions. The identity check passes: the local intact
+pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and per-row mean 0.435036 on both.
+
+| ablated − intact | value |
+|---|---|
+| **all dev rows** | **+0.00596** (0.43693 → 0.44289); per seed +0.0087 / +0.0042 / +0.0050 |
+| cell-centred | **+0.00563**; per seed +0.0072 / +0.0062 / +0.0035 |
+| drug-known rows / drug-unknown rows | +0.0071 / +0.0024 |
+| top tercile of ‖y‖ | **+0.0122** |
+| per cell (each the same sign on all 3 seeds except U937) | HEK293T **+0.0225**, LNCAP **+0.0272**, VCAP **+0.0143**, U937 +0.0003, SKBR3 −0.0038, HL60 **−0.0133** |
+
+**Reading:**
+- **v9 does read its chromatin, and on unseen cells the reading costs it.** Mean-ablating chromatin improves the dev score on
+  every seed, by more on strong signatures, and on the cell-centred score as well.
+- **Where the harm sits:** the cost is concentrated in HEK293T and VCAP, the two dev cells whose H3K27me3 is a failed-ChIP track
+  that v9 reads at full weight (§91.8 item 1), and in LNCAP. HL60, whose three tracks are all good, is helped by its chromatin.
+- **What it is consistent with:** chromatin acting as a noisy cell fingerprint on new cells. It does not establish that.
+- **What it is not:** a mean-ablation at inference puts the model off its training distribution. It is **not a method and not a
+  candidate**, and it is not evidence that a *training-time* ablation would help.
+- **P7 is unchanged** (§85.12; its recipe was fixed and cleared before this).
+- **The candidates it makes concrete,** each needing its own reviewed dev-screen packet after the funnel: **S12** (fix the
+  encoding: drop failed tracks, robust transform, reliability-weighted `r`) and a training-time chromatin ablation on the dev carve.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

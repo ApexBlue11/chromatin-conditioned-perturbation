@@ -563,29 +563,46 @@ def t0(ctx):
     return out
 
 
-def m1(ctx, y, mu, K=10, chunk=512):
-    """(a) dose-neighbour agreement and (b) within-cell drug-neighbour predictability of e = y - mu^(-c), dev-train rows only."""
+def m1_halves(ctx):
+    """A fixed split of the dev-train cells into halves A / B (sorted, alternating) for M1's split pools (review 041 C4)."""
+    dt_cells = sorted(set(ctx.rows['cell'][ctx.fit_mask]))
+    return dt_cells[0::2], dt_cells[1::2]
+
+
+def m1(ctx, y, K=10, chunk=512):
+    """M1 ceilings on dev-train rows, with SPLIT POOLS so the two sides of every comparison share no condition-mean noise
+    (review 041 C4: with one pool, e = y - mu shares mu's own noise and the selection by mu-similarity manufactures agreement).
+    mu_A / mu_B are condition means over halves A / B of the dev-train cells (the row's own cell excluded where it is a member).
+    (a) dose-neighbour agreement: adjacent doses (r1, r2) of one (cell, pert, time): r(y1 - mu_A[r1], y2 - mu_B[r2]).
+    (b) within-cell drug-neighbour predictability: neighbours = the K rows of the same cell, different pert, with the most similar
+        mu_A profile; e = y - mu_B for the row and for its neighbours; score r(mean of neighbours' e, row's e).
+    On random y both are ~0 by construction."""
+    A, Bh = m1_halves(ctx)
+    muA, _ = condition_means(ctx, y, ctx.fit_mask & np.isin(ctx.rows['cell'], A))
+    muB, _ = condition_means(ctx, y, ctx.fit_mask & np.isin(ctx.rows['cell'], Bh))
     dt = np.flatnonzero(ctx.fit_mask)
-    e = (y[dt] - mu[dt]).astype(np.float64)
+    eA = (y[dt] - muA[dt]).astype(np.float64)
+    eB = (y[dt] - muB[dt]).astype(np.float64)
     df = pd.DataFrame({'c': ctx.cell_id[dt], 'p': ctx.pert_id[dt], 't': ctx.rows['time'][dt], 'd': ctx.rows['dose'][dt],
                        'i': np.arange(len(dt))}).sort_values(['c', 'p', 't', 'd'])
     a_ = df['i'].values
     same = (df['c'].values[1:] == df['c'].values[:-1]) & (df['p'].values[1:] == df['p'].values[:-1]) & \
            (df['t'].values[1:] == df['t'].values[:-1])
     i1, i2 = a_[:-1][same], a_[1:][same]
-    ra = row_pearson(e[i1], e[i2])
+    ra = row_pearson(eA[i1], eB[i2])
     ca = ctx.cell_id[dt][i1]
     out_a = {'mean': float(np.nanmean(ra)), 'median': float(np.nanmedian(ra)), 'n_pairs': int(len(ra)),
-             'per_cell': {ctx.cells[c]: float(np.nanmean(ra[ca == c])) for c in np.unique(ca)}}
+             'per_cell': {ctx.cells[c]: float(np.nanmean(ra[ca == c])) for c in np.unique(ca)}, 'halves': [A, Bh]}
     rb, cb = [], []
     for c in np.unique(ctx.cell_id[dt]):
         idx = np.flatnonzero(ctx.cell_id[dt] == c)
         if len(idx) <= K:
             continue
-        m = mu[dt][idx].astype(np.float64)
+        m = muA[dt][idx].astype(np.float64)
         m = m - m.mean(1, keepdims=True)
         m /= np.linalg.norm(m, axis=1, keepdims=True) + 1e-12
         p = ctx.pert_id[dt][idx]
+        ec = eB[idx]
         for s in range(0, len(idx), chunk):
             sim = m[s:s + chunk] @ m.T
             sim[p[s:s + chunk][:, None] == p[None, :]] = -np.inf
@@ -593,9 +610,8 @@ def m1(ctx, y, mu, K=10, chunk=512):
             if kk == 0:
                 continue
             top = np.argpartition(-sim, kk - 1, axis=1)[:, :kk]
-            eh = e[idx][top].mean(1)
-            rb.append(row_pearson(eh, e[idx[s:s + chunk]]))
-            cb.append(np.full(len(eh), c))
+            rb.append(row_pearson(ec[top].mean(1), ec[s:s + chunk]))
+            cb.append(np.full(len(top), c))
     rb, cb = np.concatenate(rb), np.concatenate(cb)
     out_b = {'mean': float(np.nanmean(rb)), 'per_cell': {ctx.cells[c]: float(np.nanmean(rb[cb == c])) for c in np.unique(cb)}}
     return out_a, out_b
@@ -632,20 +648,30 @@ def paired(a, b):
             'centred_cells_pos': int(sum(v > 0 for v in dc.values()))}
 
 
-def t1_reading(s_fbc, s_fb, s_n1):
+# Advance bars per row set (91.3 / 91.4 as amended by review 041 C1 + C3): the drug-known rows are of record and their bars are
+# the all-row bars x 4,043 / 3,074; the centred conjunct carries a MAGNITUDE (half the raw bar) as well as the cell count, so a
+# drug-independent shift (centred delta ~ 0, cell signs random) cannot pass.
+BARS = {'all': {'t1': 0.003, 't1_top': 0.006, 't1_centred': 0.0015, 't2': 0.002, 't2_sc': 0.003, 't2_centred': 0.001},
+        'known': {'t1': 0.004, 't1_top': 0.008, 't1_centred': 0.002, 't2': 0.0026, 't2_sc': 0.004, 't2_centred': 0.0013}}
+ROW_SET_OF_RECORD = 'known'
+
+
+def t1_reading(s_fbc, s_fb, s_n1, bars):
     d, dn = paired(s_fbc, s_fb), paired(s_fbc, s_n1)
-    conj = {'delta_all_ge_0.003_or_top_ge_0.006': bool(d['all'] >= 0.003 or d['top'] >= 0.006),
+    conj = {'delta_all_or_top_ge_bar': bool(d['all'] >= bars['t1'] or d['top'] >= bars['t1_top']),
             'cells_delta_pos_ge_4': bool(d['cells_pos'] >= 4), 'cells_FBC_gt_N1_ge_4': bool(dn['cells_pos'] >= 4),
+            'centred_all_ge_bar': bool(d['centred_all'] >= bars['t1_centred']),
             'cells_centred_pos_ge_4': bool(d['centred_cells_pos'] >= 4)}
-    return {'delta': d, 'vs_N1': dn, 'conjuncts': conj, 'pass': bool(all(conj.values()))}
+    return {'delta': d, 'vs_N1': dn, 'conjuncts': conj, 'bars': bars, 'pass': bool(all(conj.values()))}
 
 
-def t2_reading(s_bc, s_b, s_c, s_u):
+def t2_reading(s_bc, s_b, s_c, s_u, bars):
     d, du = paired(s_bc, s_b), paired(s_c, s_u)
-    conj = {'delta_T2_all_ge_0.002': bool(d['all'] >= 0.002), 'sC_minus_uniform_all_ge_0.003': bool(du['all'] >= 0.003),
+    conj = {'delta_T2_all_ge_bar': bool(d['all'] >= bars['t2']), 'sC_minus_uniform_all_ge_bar': bool(du['all'] >= bars['t2_sc']),
             'cells_delta_T2_pos_ge_4': bool(d['cells_pos'] >= 4), 'cells_sC_minus_uniform_pos_ge_4': bool(du['cells_pos'] >= 4),
+            'centred_all_ge_bar': bool(d['centred_all'] >= bars['t2_centred']),
             'cells_centred_pos_ge_4': bool(d['centred_cells_pos'] >= 4)}
-    return {'delta': d, 'sC_vs_uniform': du, 'conjuncts': conj, 'pass': bool(all(conj.values()))}
+    return {'delta': d, 'sC_vs_uniform': du, 'conjuncts': conj, 'bars': bars, 'pass': bool(all(conj.values()))}
 
 
 def t3_reading(r_fbc, r_fb, r_n1):
@@ -662,18 +688,18 @@ def strip(d):
 
 
 # ----------------------------------------------------------------------------------------------------------------- main
-def readings_on(ctx, y, pred, sub, t3r):
-    """T1 / T2 readings, M3, M4 and every score on one row set (sub=None: all dev rows)."""
+def readings_on(ctx, y, pred, sub, t3r, bars):
+    """T1 / T2 readings, M3, M4 and every score on one row set (sub=None: all dev rows), with that row set's bars."""
     sc = {k: score(ctx, y, v, sub) for k, v in pred.items()}
-    t1r = t1_reading(sc['FBC'], sc['FB'], sc['N1'])
+    t1r = t1_reading(sc['FBC'], sc['FB'], sc['N1'], bars)
     t1r['vs_N2'] = paired(sc['FBC'], sc['N2'])
     t1r['reported'] = {k: paired(sc[a], sc[b]) for k, (a, b) in
                        {'FB_minus_B0': ('FB', 'B0'), 'FC_minus_B0': ('FC', 'B0'), 'FBC_perp_minus_FB': ('FBC_perp', 'FB'),
                         'FBC_global_minus_FB': ('FBC_global', 'FB'), 'FBC_additive_minus_FB': ('FBC_additive', 'FB')}.items()}
     t1r['epi_stratum'] = {'FBC_minus_FB_epi': (sc['FBC']['epi'] - sc['FB']['epi']) if sc['FBC']['epi'] is not None else None,
                           'FBC_minus_FB_rest': sc['FBC']['rest'] - sc['FB']['rest'], 'n_epi_rows': sc['FBC']['n_epi_rows']}
-    t1r['v9_encoding'] = t1_reading(sc['FBC_v9'], sc['FB_v9'], sc['N1_v9'])
-    t2r = t2_reading(sc['T2_s_BC'], sc['T2_s_B'], sc['T2_s_C'], sc['T2_uniform'])
+    t1r['v9_encoding'] = t1_reading(sc['FBC_v9'], sc['FB_v9'], sc['N1_v9'], bars)
+    t2r = t2_reading(sc['T2_s_BC'], sc['T2_s_B'], sc['T2_s_C'], sc['T2_uniform'], bars)
     t2r['reported'] = {'s_B_minus_uniform': paired(sc['T2_s_B'], sc['T2_uniform']),
                        'lineage_minus_uniform': paired(sc['T2_lineage'], sc['T2_uniform']),
                        'uniform11_minus_B0_26': paired(sc['T2_uniform'], sc['T2_B0_26'])}
@@ -734,13 +760,14 @@ def run_funnel(ctx):
     res['T3'] = t3r
     res['T3_seconds'] = time.time() - t
     t = time.time()
-    res['M1'] = dict(zip(('a_dose_neighbour', 'b_within_cell_drug_neighbour'), m1(ctx, y, mu)))
+    res['M1'] = dict(zip(('a_dose_neighbour', 'b_within_cell_drug_neighbour'), m1(ctx, y)))
     res['M1_seconds'] = time.time() - t
-    # Row sets: all dev rows (as registered, 91.2) and the drug-known rows (back-off level <= 2: the drug has a response in
-    # >= 1 dev-train cell), proposed in packet 041 before any real reading; the critic's ruling fixes which is of record.
+    # Row sets: all dev rows (registered, 91.2; reported) and the drug-known rows (back-off level <= 2: the drug has a response in
+    # >= 1 dev-train cell) -- of record by review 041 (A1 accepted with C3's scaled bars).
     known = level[dev_rows] <= 2
-    res['row_sets'] = {'all_dev_rows': readings_on(ctx, y, pred, None, t3r),
-                       'drug_known_rows': readings_on(ctx, y, pred, known, t3r)}
+    res['row_sets'] = {'all': readings_on(ctx, y, pred, None, t3r, BARS['all']),
+                       'known': readings_on(ctx, y, pred, known, t3r, BARS['known'])}
+    res['row_set_of_record'] = ROW_SET_OF_RECORD                    # review 041 ruling on A1
     return res
 
 

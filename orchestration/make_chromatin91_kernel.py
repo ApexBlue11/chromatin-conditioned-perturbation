@@ -16,7 +16,7 @@ SRC = os.path.join(ROOT, 'external', 'kaggle_chromatin_src')
 KDIR = os.path.join(ROOT, 'external', 'kaggle_kernels', 'kern_chromatin91')
 SPLITS_SHA1 = '1444b253d48c5adf066bf7a3cc0ba8ea5fb71464'      # == external/lightning/v9payload/data/xpert_mdmt_splits.npz
 FILES = ('chromatin_funnel.py', 'chromatin_power.py', 'score_dev.py', 'E_final.npy', 'E_final_mask.npy', 'lincs_cell_index.json',
-         'cell_lineage.npy', 'E_final_provenance.json', 'chembl_dti_edges.tsv')
+         'cell_lineage.npy', 'E_final_provenance.json', 'chembl_dti_edges.tsv')   # read_chromatin91.py runs locally, not here
 REPO = {'chromatin_funnel.py': r'model\v9', 'chromatin_power.py': r'model\v9', 'score_dev.py': r'model\v9'}
 
 CODE = r'''# RESULTS 91 (pre-registered; 91.8, 91.9): the chromatin funnel and its planted-effect power calibration, run once. CPU only.
@@ -57,7 +57,9 @@ r = subprocess.run([sys.executable, '-u', os.path.join(SRC, 'chromatin_power.py'
 print('power exit %d after %.0f s' % (r.returncode, time.time() - t), flush=True)
 if r.returncode != 0:
     raise SystemExit('FATAL: the power calibration failed')
-json.dump({'pins': PINS, 'splits_sha1': SPLITS_SHA1, 'complete': True}, open('/kaggle/working/CHROMATIN91_COMPLETE.json', 'w'))
+outs = {f: sha(os.path.join('/kaggle/working', f)) for f in ('chromatin_funnel_91.json', 'chromatin_power_91.json')}
+json.dump({'pins': PINS, 'splits_sha1': SPLITS_SHA1, 'outputs': outs, 'complete': True},   # review 041 C5: the reader verifies these
+          open('/kaggle/working/CHROMATIN91_COMPLETE.json', 'w'))
 print('done', flush=True)
 '''
 

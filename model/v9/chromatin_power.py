@@ -8,8 +8,10 @@ A synthetic feature f* carries real chromatin's redundancy with basal expression
 xi_c = the cell's own primary-encoded chromatin track (H3K27ac, else ATAC, else H3K27me3) with genes reordered by ONE permutation
 shared across cells (between-cell structure kept, gene link destroyed); rho = median within-cell r(track, b) over covered dev-train
 cells (a feature-feature statistic). Effects of known size are planted through f* on every covered row (dev and dev-train) and
-T1 (P1 gain, P2 drug-specific shift, P3 drug-independent shift) and T3 (P4 responsiveness) are rerun with f* in place of chromatin.
-The real chromatin never enters as a feature here, so this calibration reveals nothing about the real reading.
+T1 (P1 gain, P2 drug-specific shift, P3 drug-independent shift) and T3 (P4 responsiveness) are rerun on the test AS IT WILL BE RUN
+(review 041 C2): FBC* = the real 4-column feature set with the primary mark replaced by f* and every other mark a gene-permuted copy
+(availability unchanged), N1* built from it, the rows of record and their bars (cf.BARS, cf.ROW_SET_OF_RECORD). Real chromatin
+enters only through rho and through gene-permuted copies, so this calibration reveals nothing about the real reading.
 
 Planting uses mu^(-c) from the original y (pool = all dev-train cells, own cell excluded; dev rows: all dev-train cells), the
 same drug mean T1 fits against, so the planted gain has exactly the form T1 can express. Each effect is scaled so its variance is
@@ -56,20 +58,34 @@ def synthetic_feature(ctx, draw):
     return f, rho
 
 
-def builders(ctx, fstar, fit):
-    """FB = [b]; FBf = [b, f*]; N1f = [b, mean f* over fit cells (LOCO: excluding the held-out cell)] for covered cells."""
-    b = ctx.enc['rank_normal']['b']
+CALIB = 'calibration'                            # ctx.enc key for the shape-matched synthetic feature set FBC* (per draw)
 
-    def fb(h):
-        return {c: b[i][:, None].astype(np.float32) for i, c in enumerate(ctx.cells)}
 
-    def fbf(h):
-        return {c: np.column_stack([b[i], fstar.get(c, np.zeros(G))]).astype(np.float32) for i, c in enumerate(ctx.cells)}
+def install_calibration_tracks(ctx, fstar, draw):
+    """Review 041 C2: calibrate the test AS IT WILL BE RUN. FBC* = each covered cell's real 4-column feature set with its primary
+    mark (K, else A, else M) replaced by f* and every other mark it has replaced by a gene-permuted copy of itself (one
+    permutation per mark, shared across cells); mark availability unchanged. Installed as ctx.enc[CALIB] so the funnel's own
+    feature_builder builds FBC* and N1* exactly as it builds FBC and N1."""
+    e = ctx.enc['rank_normal']
+    Ez = np.zeros_like(e['Ez'])
+    perms = [np.random.default_rng(3000 + 10 * draw + k).permutation(G) for k in range(3)]
+    for i, c in enumerate(ctx.cells):
+        if c not in fstar:
+            continue
+        k0 = 1 if e['has'][i, 1] else (0 if e['has'][i, 0] else 2)
+        for k in range(3):
+            if e['has'][i, k]:
+                Ez[i, :, k] = fstar[c] if k == k0 else e['Ez'][i, perms[k], k]
+    ctx.enc[CALIB] = {'b': e['b'], 'Ez': Ez.astype(np.float32), 'has': e['has'].copy(), 'cov_dt': list(e['cov_dt']),
+                      'cov_dev': list(e['cov_dev'])}
+    return ctx.enc[CALIB]
 
-    def n1f(h):
-        m = np.mean([fstar[c] for c in fit if c != h], 0)
-        return {c: np.column_stack([b[i], m if c in fstar else np.zeros(G)]).astype(np.float32) for i, c in enumerate(ctx.cells)}
-    return {'FB': fb, 'FBf': fbf, 'N1f': n1f}
+
+def builders(ctx, fstar, fit, draw=0):
+    """FB = [b]; FBC* and N1* from the shape-matched calibration tracks (same builders the real test uses)."""
+    install_calibration_tracks(ctx, fstar, draw)
+    return {'FB': cf.feature_builder(ctx, 'rank_normal', 'FB', fit), 'FBC': cf.feature_builder(ctx, CALIB, 'FBC', fit),
+            'N1': cf.feature_builder(ctx, CALIB, 'N1', fit)}
 
 
 def plant(ctx, y, mu_e, fstar, form, pi, draw):
@@ -112,32 +128,32 @@ ROW_SETS = ('all', 'known')                      # all dev rows (91.2); drug-kno
 
 
 def t1_case(ctx, y, B, fit):
-    specs = {k: (B[k], ['full']) for k in ('FB', 'FBf', 'N1f')}
+    specs = {k: (B[k], ['full']) for k in ('FB', 'FBC', 'N1')}
     out, mu, level = cf.run_t1(ctx, y, specs, fit)
     known = level[ctx.dev_mask] <= 2
-    rec = {'kappa': {k: [out[(k, 'full')]['kappa'], out[(k, 'full')]['kappa_d']] for k in ('FB', 'FBf', 'N1f')}}
+    rec = {'kappa': {k: [out[(k, 'full')]['kappa'], out[(k, 'full')]['kappa_d']] for k in ('FB', 'FBC', 'N1')}}
     for name, sub in (('all', None), ('known', known)):
-        s = {k: cf.score(ctx, y, out[(k, 'full')]['y_hat_dev'], sub) for k in ('FB', 'FBf', 'N1f')}
-        rd = cf.t1_reading(s['FBf'], s['FB'], s['N1f'])
+        s = {k: cf.score(ctx, y, out[(k, 'full')]['y_hat_dev'], sub) for k in ('FB', 'FBC', 'N1')}
+        rd = cf.t1_reading(s['FBC'], s['FB'], s['N1'], cf.BARS[name])
         rec[name] = {'pass': rd['pass'], 'conjuncts': rd['conjuncts'], 'delta_all': rd['delta']['all'],
-                     'delta_top': rd['delta']['top'], 'cells_pos': rd['delta']['cells_pos'],
+                     'delta_top': rd['delta']['top'], 'centred_all': rd['delta']['centred_all'], 'cells_pos': rd['delta']['cells_pos'],
                      'centred_cells_pos': rd['delta']['centred_cells_pos'], 'cells_vs_N1_pos': rd['vs_N1']['cells_pos'],
-                     'resid': residual_delta(ctx, y, mu[ctx.dev_mask], out[('FBf', 'full')]['y_hat_dev'],
+                     'resid': residual_delta(ctx, y, mu[ctx.dev_mask], out[('FBC', 'full')]['y_hat_dev'],
                                              out[('FB', 'full')]['y_hat_dev'], sub)}
     return rec
 
 
 def t3_case(ctx, y, B, fit):
-    o, _ = cf.run_t3(ctx, y, {'FB': B['FB'], 'FBf': B['FBf'], 'N1f': B['N1f']}, fit, ctx.enc['rank_normal']['cov_dev'])
-    rd = cf.t3_reading(o['FBf']['rho'], o['FB']['rho'], o['N1f']['rho'])
-    return {'pass': rd['pass'], 'conjuncts': rd['conjuncts'], 'rho_T3': rd['rho_T3'], 'FBf_minus_N1f': rd['FBC_minus_N1']}
+    o, _ = cf.run_t3(ctx, y, {'FB': B['FB'], 'FBC': B['FBC'], 'N1': B['N1']}, fit, ctx.enc['rank_normal']['cov_dev'])
+    rd = cf.t3_reading(o['FBC']['rho'], o['FB']['rho'], o['N1']['rho'])
+    return {'pass': rd['pass'], 'conjuncts': rd['conjuncts'], 'rho_T3': rd['rho_T3'], 'FBC_minus_N1': rd['FBC_minus_N1']}
 
 
 def one_draw(draw):
     ctx = _CTX
     fit = ctx.enc['rank_normal']['cov_dt']
     fstar, rho = synthetic_feature(ctx, draw)
-    B = builders(ctx, fstar, fit)
+    B = builders(ctx, fstar, fit, draw)
     mu_e, _ = cf.condition_means(ctx, ctx.y, ctx.fit_mask)
     rec = {'draw': draw, 'rho': rho, 'null_T1': t1_case(ctx, ctx.y, B, fit), 'T1': {}, 'T3': {}}
     for form in FORMS_T1:
@@ -169,7 +185,7 @@ def mde(records, test, form, rowset='all'):
 
 
 def label(m):
-    return ('informative null (MDE <= 2 %)' if m is not None and m <= 0.02 else
+    return ('informative null (MDE <= 2 %; linear in the encoded tracks)' if m is not None and m <= 0.02 else
             'not measurable with this design' if m is None or m > 0.05 else 'reported with its MDE')
 
 
@@ -190,6 +206,7 @@ def summarise(records):
             o['reading'][key] = label(o['MDE'][key])
         o['residual_estimand_null_max_abs'] = float(max(abs(r['null_T1'][rs]['resid']['all']) for r in records))
         out[rs] = o
+    out['row_set_of_record'] = cf.ROW_SET_OF_RECORD
     return out
 
 
