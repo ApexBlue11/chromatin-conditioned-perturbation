@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "039_review038_guard0"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -63,12 +61,13 @@
     "035_p7_blinding_code",
     "036_manuscript_wording",
     "037_v2_result_p6",
-    "038_p6_result_p7_kernel"
+    "038_p6_result_p7_kernel",
+    "039_review038_guard0"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "Packet 039 (review 038 adjudicated; P7 kernel gains GUARD 0, score_p7 gains the snapshot identities) with the critic. P7 pushes at the quota reset (Sat 2026-10-03 00:00 UTC = 05:30 IST) if review 039 clears it; then 88 t1/t2.",
+  "pending_decision": "P7 (kern_v9p7 at 1cd614c, CLEARED by review 039) and 88 t1 push at the quota reset (Sat 2026-10-03 00:00 UTC = 05:30 IST); t2 when a slot frees. After P7: score_p7 --dry_check, pin P7_SHA1, score once, align_dev --rows test once.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
-  "challenges_upheld": "167 challenge rows in 38 adjudicated reviews (table rows | n | SEVERITY |, counted 2026-10-02 incl. review 038: 5 BLOCKING, 56 MAJOR, 106 MINOR); the older running tally (160 of 163) had drifted and is withdrawn",
+  "challenges_upheld": "168 challenge rows in 39 adjudicated reviews (table rows | n | SEVERITY |, counted 2026-10-02 incl. review 039); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",

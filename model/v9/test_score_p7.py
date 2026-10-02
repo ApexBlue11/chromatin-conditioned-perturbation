@@ -112,3 +112,13 @@ def test_dry_check_without_v2_skips_the_snapshot_guard(tmp_path):
     r = _dry(d)
     assert r.returncode == 0, r.stdout + r.stderr
     assert 'snapshot identities' not in r.stdout
+
+
+def test_nan_prediction_is_named_as_the_cause(tmp_path):
+    """Review 039: a NaN must be refused with its own message, not blamed on _last or the snapshot mean."""
+    d = make_p7(str(tmp_path))
+    z = dict(np.load(os.path.join(d, 'v9p7_seed1_snap0.npz')))
+    z['y_pred'][2, 3] = np.nan
+    np.savez_compressed(os.path.join(d, 'v9p7_seed1_snap0.npz'), **z)
+    with pytest.raises(SystemExit, match='_snap0 y_pred has non-finite values'):
+        score_p7.check_snapshot_identities(d, SEEDS)

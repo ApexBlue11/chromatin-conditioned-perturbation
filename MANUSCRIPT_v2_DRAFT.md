@@ -25,7 +25,8 @@ a snapshot ensemble within one run recovers 0.57 of it (+0.017, accepted), infer
 [§37, §55, §85.8, §85.9, §90.7, §90.8]. **(iv)** For
 interpretability, attention and gradient readouts do not recover annotated drug mechanism beyond calibrated nulls [C 4.1a, §86.4];
 a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which pathways move
-in held-out cells (ρ 0.273, +0.044 above a cell-agnostic prior; measured so far on six dev cells) [§85.10, C 4.16]. ⏳ *[§88: a drug-dependent pathway readout against annotated mechanism.]* We also document how the benchmark's own numbers
+in held-out cells (dev baseline: ρ 0.273, +0.044 above a cell-agnostic prior; the final model's final-snapshot weights: 0.265,
+"in this cell" on 5 of 6; dev cells only so far) [§85.10, §85.13, C 4.16]. ⏳ *[§88: a drug-dependent pathway readout against annotated mechanism.]* We also document how the benchmark's own numbers
 are produced — a released checkpoint scored on folds it was trained on, and checkpoint selection on the test fold — and seven
 methods lessons, each with its measurement.
 
@@ -162,7 +163,9 @@ head is in the final model by the pre-registered rule, not because it was shown 
 - **The named pathway readout ranks which pathways move in held-out cells** — stated with its controls (Figure 7; §85.10, C 4.16):
   *"a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which pathways move
   in held-out cells at ρ = 0.273, +0.044 above a cell-agnostic training-row prior (0.229)"*; its own readout beats the same model's
-  readout for other cells in all 6 dev cells (licensed "in this cell"). It is cell-level, drug-independent and supervised on the target
+  readout for other cells in all 6 dev cells (licensed "in this cell"). These are the **dev baseline's** numbers (P2, §85.10);
+  the final model, read on its final-snapshot weights, gives 0.265 and 5 of 6 dev cells (HL60 −0.0001) [§85.13], until P7's
+  test-cell reading replaces both. It is cell-level, drug-independent and supervised on the target
   it is scored against. An earlier "8–12 sd over a permutation null" for a channel-mean readout [§37] does not reproduce in these models
   (its sign is arbitrary) and its null did not control for a generic ranking; it is withdrawn as evidence of mechanism.
 - ⏳ **A drug-dependent pathway readout** (C8b's post-drug layer, trained on fold 0, 3 seeds, 5 untrained calibrations) against

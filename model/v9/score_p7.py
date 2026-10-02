@@ -45,6 +45,10 @@ def check_snapshot_identities(p7_dir, seeds, n_snap=3, tol=1e-5):
                 for z in snaps + [last]:
                     if not np.array_equal(z['row_index'], m['row_index']):
                         raise SystemExit('FATAL: %s: a snapshot file has a different row_index' % name)
+                for z, tag in [(m, 'main'), (last, '_last')] + [(z, '_snap%d' % k) for k, z in enumerate(snaps)]:
+                    for key in ('y_pred', 'deg_pred'):
+                        if not np.isfinite(z[key]).all():   # review 039: a NaN gets its own message, not a false identity blame
+                            raise SystemExit('FATAL: %s: %s %s has non-finite values' % (name, tag, key))
                 for key in ('y_pred', 'deg_pred'):
                     if not np.array_equal(last[key], snaps[-1][key]):
                         raise SystemExit('FATAL: %s: _last %s differs from _snap%d' % (name, key, n_snap - 1))
