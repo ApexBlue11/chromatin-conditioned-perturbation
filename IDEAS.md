@@ -180,6 +180,24 @@ warm split.** A test must commit its prediction first; nothing in §74 is read u
   **C8b is now the route**: a trained post-perturbation named readout, with its own MoA test pre-registered.
 - **C8b's MoA test must pre-register (review 023 ask 3):** (1) ONE primary readout — the node's activation difference Δa = a(d) − a(mean drug), fixed mean drug; (2) whether the nodes are aux-supervised (then bounded near the data projection, which shows no alignment) or unsupervised; (3) calibration against ≥ 5 untrained inits — every trained seed's diff below the untrained minimum (or mean − 2 sd fixed from those inits), since −0.02 is inside the observed spread; (4) readouts compared by diff only; (5) a responsiveness split with usable sizes on both sides (the top-50 rule gave 483 vs 13); (6) the unseen-compound stratum licenses a mechanism claim, with its null sd stated; (7) run on v9 fold-0 test rows, trained separately from §85's cc1 dev work, and the MoA reading never influences C8b's accuracy acceptance or vice versa.
 
+### A12. 🔵 Make chromatin matter — the brainstorm behind the §91 funnel (principal, 2026-10-02)
+**Diagnosis** (§91.1): v9's chromatin terms are drug-independent per-(cell, gene) offsets, and §44's ridge used chromatin as a
+cell-level block over ~40 cells. Neither can express "this drug's response at this gene depends on this gene's chromatin in this cell".
+
+| # | strategy | what it changes | cheapest test | status |
+|---|---|---|---|---|
+| S1 | **drug-conditioned chromatin interaction** — gain and shift on the drug's own response, `μ·(1 + v_d·f) + w_d·f`, f = this gene's chromatin | chromatin's effect depends on the drug; gene-local, so it transfers to new cells | T1 (closed form) | funnel |
+| S2 | **retrieval by chromatin similarity** — an unseen cell borrows the responses of chromatin-similar training cells | chromatin as a cell-similarity metric, the way lineage helped | T2 | funnel |
+| S3 | train on the **cell-specific component** (response minus the drug's mean in other cells) | the only variance cell features can explain gets its own loss | T1's cell-centred score | inside T1 |
+| S4 | **residualised chromatin** — the part basal expression does not carry | removes the redundant part the model gets from `x_ctl` | T1 FBC⊥ | inside T1 |
+| S5 | **which genes can move here** — chromatin predicts a gene's response spread in this cell | a per-gene response scale (not the rejected output gate) | T3 | funnel |
+| S6 | **epigenetic drugs** (HDAC, BET, EZH2, DNMT, KDM inhibitors) | chromatin should matter most where the drug acts on chromatin | T1 stratum | reported |
+| S7 | direction head conditioned on chromatin (A3) | sign, not magnitude, on extreme responders | T1's top tercile; A3 if T1 passes | deferred |
+| S8 | chromatin-gated edges | — | C7, §89 | not accepted (+0.0020) |
+| S9 | **richer features**: enhancer windows (±50 kb), TF-motif accessibility (chromVAR), enhancer–gene links | promoter peaks may be the wrong granularity | needs peak-level data (not on disk; bigWig access intractable here, 2026-07) | only if T1 shows a promoter-level signal worth extending |
+| S10 | impute chromatin for uncovered cells from expression | harmonises inputs | — | rejected: adds no information beyond `x_ctl` |
+| S11 | drop `x_ctl` at random in training so the model must use chromatin | forces a chromatin pathway | — | only if T1 shows non-redundant information |
+
 ### A7. 🔵 "New startup mechanisms" — raised by the principal, no recorded source
 The principal listed this alongside new loss functions on 2026-09-21. **There is no item in RESULTS it maps
 onto**, so it is recorded here unattributed rather than invented. v9 currently uses a **WSD schedule** with

@@ -6432,6 +6432,85 @@ against the recomputed deterministic arm; seed 0's full arm from the rerun `linc
 Both fail the 0.003 floor; every other conjunct passes. MC averaging at inference recovers ≈ 3–4 % of the +0.029 a 3-seed
 ensemble gives. **V1 does not enter the stack; P7 uses no MC inference** (§85.11, §85.12 item 1).
 
+## 91. 🔒 PRE-REGISTERED: the chromatin funnel — three closed-form CPU tests on the dev carve decide which chromatin strategies earn a GPU screen (packet 040) (2026-10-02)
+
+**Principal's request (2026-10-02):** make the chromatin information matter; brainstorm several strategies and funnel them with cheap
+tests, keeping GPU for the survivors. The brainstorm is IDEAS A12. Nothing here touches a test row or changes P7 (§85.12).
+
+### 91.1 The diagnosis the strategies answer
+- **v9's chromatin is drug-independent.** It enters as a per-gene embedding summed into the gene token and as the signed additive
+  head `MLP(E[c,g])·r` (`modules_v9.py` `GeneRepresentation`, `SignedChromatinHead`): a fixed per-(cell, gene) offset, the same
+  for every drug. Nothing lets the chromatin effect depend on the drug.
+- **§44's ridge could not express a gene-local or a drug-dependent rule either.** It gave each cell's chromatin as a 24-component
+  cell-level block over 40 cell lines, additively. A cell-level block learns from tens of cells; a gene-local rule (each gene's own
+  chromatin, one rule shared across genes) learns from hundreds of thousands of (cell, gene) points and transfers to a new cell by
+  construction.
+- **Coverage on this split:** 18 of 32 training cells have chromatin; **all 6 dev cells do** (HEK293T, HL60, LNCAP, SKBR3 all three
+  marks; VCAP H3K27ac + H3K27me3; U937 ATAC only); 12 of the 26 dev-training cells do.
+- Measured so far: chromatin ≈ 0 on unseen cells (§45 table, §55: +0.0004); lineage beat it on unseen compounds (§45).
+
+### 91.2 Common definitions (binding for T0–T3)
+- **Rows:** `split_cold_cell_1` **train** rows only (47,509; test rows never loaded). **Dev rows** = the §85 dev cells, 4,043 rows,
+  sorted `row_index` sha1 `51e7e4ab…`. **Dev-train rows** = the other 43,466 (26 cells). Nothing about a dev row (its truth, its
+  cell's response) enters any fit, mean, or hyper-parameter choice.
+- **Truth:** `y = X − X_ctl` over 978 genes (score_dev's convention).
+- **Condition mean μ:** condition key (pert, dose, time), backing off to (pert, time), then pert, then the global mean; at each level
+  the mean over cells of within-cell means (each cell counts once). For a dev row, μ uses all dev-train cells. **For a dev-train
+  row used as a fitting target, μ excludes that row's own cell** (μ^(−c)), so a cell is never fitted against its own response.
+- **Gene-local features of (cell c, gene g):** `b̃` = basal expression (mean `X_ctl` over c's rows) z-scored across genes within c;
+  `Ẽ_m` = `E_final` z-scored per (cell, mark) across genes exactly as `xpert_arm.py` 190–194, 0 where mark m is missing.
+- **Score S:** `score_dev.row_pearson` per dev row (imported, not re-implemented); headline = mean over dev rows; also
+  `score_dev.centred_r`, per cell, and the top tercile of `‖y‖₂` (terciles over dev rows; the project's rule: never judge a biological
+  feature on a set dominated by inert signatures).
+- **B0** = μ (the drug's mean response in other cells; no cell information).
+- Ridge penalties, temperatures and mixing weights are chosen by **leave-one-cell-out over the 12 chromatin-covered dev-train cells**,
+  never on dev cells. Every test is closed-form and deterministic.
+
+### 91.3 T1 — a drug-conditioned, gene-local chromatin rule (strategies S1, S3, S4, S6)
+`ŷ[r,g] = μ[k(r),g]·(1 + v_d·f[c,g]) + w_d·f[c,g]` with `w_d = w + δ_d`, `v_d = v + ε_d`: a global rule plus a per-drug deviation
+(separate ridge penalties; δ = ε = 0 for a drug seen in < 3 covered dev-train cells). The gain term lets chromatin scale the drug's
+own response at a gene; the additive term shifts it. Fitted on covered dev-train rows against `y − μ^(−c)`.
+- Feature sets: **FB** = {`b̃`}; **FBC** = {`b̃`, `Ẽ_A`, `Ẽ_K`, `Ẽ_M`}; FBC⊥ = FBC with each `Ẽ_m` residualised on `b̃` within cell;
+  FC = chromatin only.
+- Nulls: **N1** = FBC with every cell's `Ẽ` replaced by the mean `Ẽ` over covered dev-train cells (a gene property, identical in every
+  cell); N2 = FBC with each dev cell given another dev cell's chromatin (fixed derangement HEK293T→HL60→LNCAP→SKBR3→U937→VCAP→HEK293T).
+- **Estimand of record: Δ_T1 = S(FBC) − S(FB)**, paired per dev row.
+- **Advance** (→ a GPU screen of a drug-conditioned chromatin interaction head, "C9"): Δ_T1 ≥ +0.003 on all dev rows **or** ≥ +0.006
+  on the top tercile; positive in ≥ 4 of 6 dev cells; **and** S(FBC) − S(N1) > 0 in ≥ 4 of 6 dev cells (the gain must come from
+  this cell's chromatin, not from a gene prior the gene embedding already holds).
+- Reported, not read: S(B0), S(FB), S(FC), FBC⊥, N2, the global rule alone (δ = ε = 0), cell-centred versions, and an
+  **epigenetic-drug stratum** (S6: drugs whose ChEMBL targets include HDAC*, BRD2/3/4, EZH2/EED/SUZ12, DNMT*, KDM*, EP300/CREBBP,
+  DOT1L or SIRT*) against the rest.
+
+### 91.4 T2 — retrieval by chromatin similarity (strategy S2)
+`ŷ_r = Σ_c' α(c,c')·ȳ[k(r),c']` over covered dev-train cells c' that have the condition (back-off as μ), `α = softmax(s(c,c')/τ)`.
+`s_C` = mean over shared marks of Pearson(`Ẽ_c,m`, `Ẽ_c',m`) across genes; `s_B` = Pearson(`b̃_c`, `b̃_c'`); `s_BC = s_B + β·s_C`;
+uniform = τ → ∞. All variants use the same neighbour set.
+- **Estimand of record: Δ_T2 = S(s_BC) − S(s_B).**
+- **Advance** (→ a GPU screen of a neighbour-response input token, "C10"): Δ_T2 ≥ +0.002 on all dev rows **and**
+  S(s_C) − S(uniform) ≥ +0.003, both positive in ≥ 4 of 6 dev cells.
+- Reported: lineage-match weighting; B0 over all 26 dev-train cells; strata.
+
+### 91.5 T3 — which genes can move in this cell (strategy S5)
+`v[c,g]` = SD over c's rows of `y[r,g]`, z-scored across genes within c. Gene-local ridge `v̂[c,g] = a·v̄_g + β·f[c,g]`
+(`v̄_g` = mean over covered dev-train cells; coefficients shared across genes and cells), fitted on covered dev-train cells.
+- **Estimand of record, per dev cell: ρ_T3 = Pearson_g(v̂_FBC, v) − Pearson_g(v̂_FB, v).**
+- **Advance** (→ a GPU screen of a chromatin-conditioned per-gene response scale, "C11"): ρ_T3 ≥ +0.02 in ≥ 4 of 6 dev cells.
+- Reported: the gene prior alone; N1.
+
+### 91.6 T0 — sanity (reported, never a gate)
+Per covered cell, within-cell Pearson(`Ẽ_m`, `b̃`); pairwise between-cell chromatin correlations, flagging any pair > 0.99 (ATAC
+files duplicated across cells were found in 2026-07); T1/T2 coverage (dev rows by back-off level; drugs with ≥ 3 covered dev-train cells).
+
+### 91.7 From the funnel to the GPU
+- **Cost of the funnel: CPU only**, one script (`model/v9/chromatin_funnel.py`, worker-written to a PI contract, tests calling the code),
+  run once; a full run longer than ~2 min goes to a free Kaggle CPU session.
+- Each passing test advances **one** strategy to a one-seed dev screen. Its base recipe, baseline and price are fixed in its own
+  reviewed packet before any spend (≈ 1.8 GPU-h per seed at P6's rate).
+- **If nothing passes:** chromatin is reported as a measured negative in three new forms (drug-conditioned gene-local rules, cell
+  retrieval, responsiveness), beyond §44/§55.
+- Any chromatin model adopted later is development after P7 and needs its own test-cell registration; P7 is unchanged.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
