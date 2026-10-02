@@ -74,7 +74,7 @@ def test_a_large_drug_independent_shift_is_stopped_by_the_centred_magnitude():
 def test_mde_and_summary_logic():
     def rec(passes):
         nul = {'pass': False, 'resid': {'all': 0.0}}
-        return {'null_T1': {'all': nul, 'known': nul},
+        return {'null_T1': {'all': nul, 'known': nul}, 'null_T3': {'pass': False},
                 'T1': {'%s_%g' % (fm, pi): {rs: {'pass': passes.get((fm, pi), False)} for rs in cp.ROW_SETS}
                        for fm in cp.FORMS_T1 for pi in cp.PIS},
                 'T3': {'P4_%g' % pi: {'pass': passes.get(('P4', pi), False)} for pi in cp.PIS}}
@@ -138,3 +138,19 @@ def test_the_reader_refuses_without_the_marker_or_on_a_hash_mismatch(tmp_path):
               open(tmp_path / 'CHROMATIN91_COMPLETE.json', 'w'))
     with pytest.raises(SystemExit, match='not the file'):
         rd.read(str(tmp_path))
+
+
+def test_unplanted_world_gives_no_t3_pass_and_the_reader_voids_t3_on_one():
+    """Review 042 C3: T3's pi = 0 fault check runs in the calibration, and a pass there voids T3's reading."""
+    ctx = world(n_perts=30, noise=0.3)
+    fit = ctx.enc['rank_normal']['cov_dt']
+    f, _ = cp.synthetic_feature(ctx, draw=0)
+    B = cp.builders(ctx, f, fit, draw=0)
+    assert not cp.t3_case(ctx, ctx.y, B, fit)['pass']
+    def rec(t3_null):
+        nul = {'pass': False, 'resid': {'all': 0.0}}
+        return {'null_T1': {'all': nul, 'known': nul}, 'null_T3': {'pass': t3_null},
+                'T1': {'%s_%g' % (fm, pi): {rs: {'pass': False} for rs in cp.ROW_SETS} for fm in cp.FORMS_T1 for pi in cp.PIS},
+                'T3': {'P4_%g' % pi: {'pass': False} for pi in cp.PIS}}
+    s = cp.summarise([rec(False)] * 4 + [rec(True)])
+    assert s['known']['instrument_faults']['T3_void'] and not s['known']['instrument_faults']['T1_void']

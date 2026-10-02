@@ -6610,7 +6610,8 @@ checks, computed in the same run as T1–T3, each fixed now:
 | C7 (§89) | three seeds per arm, dev carve, rule 7 | ≈ 0.0042 (its threshold) | +0.0020 | "no gated-edge effect larger than ≈ 0.004 on dev" |
 
 **Reading.** The earlier work rules out **large** chromatin effects (≳ 0.016 by training ablation; ≳ 0.004 for C7's specific edge
-gating) and shows that the trained models did not **read** chromatin. It does not rule out an effect of +0.002 to +0.01, the range
+gating). §45 showed that **v6** did not read its chromatin; **v9 does**, and on dev cells reading it costs +0.006 (T4,
+§91.11; amended, review 042 C4). It does not rule out an effect of +0.002 to +0.01, the range
 every accepted v9 component has fallen in (C6 +0.0048; V2 +0.0167), and it never tested a gene-local or drug-conditioned form. The
 principal's doubt about measurement is therefore well founded for the record so far. §91's funnel targets exactly this range, and
 §91.9 M2 calibrates whether it can see it.
@@ -6673,14 +6674,29 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
 **Reading:**
 - **v9 does read its chromatin, and on unseen cells the reading costs it.** Mean-ablating chromatin improves the dev score on
   every seed, by more on strong signatures, and on the cell-centred score as well.
-- **Where the harm sits:** the cost is concentrated in HEK293T and VCAP, the two dev cells whose H3K27me3 is a failed-ChIP track
-  that v9 reads at full weight (§91.8 item 1), and in LNCAP. HL60, whose three tracks are all good, is helped by its chromatin.
+- **Where the harm sits** (amended, review 042 C1): two of the three cells harmed (HEK293T, VCAP) carry a failed H3K27me3 track
+  read at full weight. But the most harmed, **LNCAP, has three good tracks**, and SKBR3, whose good H3K27me3 has the heaviest tail
+  (max |z| 20.9), is slightly *helped* by its chromatin, as is HL60 (three good tracks). With six cells the pattern singles out
+  no cause; T4b (below) is the direct check. The per-cell values above are means over each cell's rows of the seed-averaged
+  paired difference. The critic's medians differ slightly: LNCAP +0.0252, HEK293T +0.0225, VCAP +0.0161, U937 +0.0012,
+  SKBR3 −0.0029, HL60 −0.0130.
+- **Centred ≈ raw** (+0.0056 against +0.0060; review 042): the cost sits almost entirely in the **drug-specific** component,
+  not in a per-cell offset. v9 uses chromatin through the drug-interacting gene-token path, which is direct evidence for review
+  040 C3's correction of §91.1.
 - **What it is consistent with:** chromatin acting as a noisy cell fingerprint on new cells. It does not establish that.
 - **What it is not:** a mean-ablation at inference puts the model off its training distribution. It is **not a method and not a
   candidate**, and it is not evidence that a *training-time* ablation would help.
-- **P7 is unchanged** (§85.12; its recipe was fixed and cleared before this).
+- **P7 is unchanged** (§85.12; its recipe was fixed and cleared before this). **The paper** reports T4 beside P7's chromatin
+  description and makes no claim that chromatin contributes to P7's accuracy. **Any test-cell use of T4** (e.g. P7 with
+  chromatin ablated, as a reported row) must be registered and reviewed **before** `score_p7.py` runs; otherwise no test-cell
+  T4 statement is made (review 042).
 - **The candidates it makes concrete,** each needing its own reviewed dev-screen packet after the funnel: **S12** (fix the
   encoding: drop failed tracks, robust transform, reliability-weighted `r`) and a training-time chromatin ablation on the dev carve.
+- **🔒 T4b, pre-registered (reported, never a gate; review 042 C1's direct check).** The same three checkpoints are scored with
+  **only the two failed H3K27me3 tracks** (HEK293T, VCAP) mean-ablated at inference: `mc_infer_dev.py --ablate_tracks
+  HEK293T:2,VCAP:2`, which replaces those cells' mark-2 values with the dev-train row mean, as `ablate_epi` does for all marks.
+  The comparison is against intact. Reported per cell and overall. If HEK293T's and VCAP's T4 gains reappear, the failed
+  tracks carry them; if not, they do not.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

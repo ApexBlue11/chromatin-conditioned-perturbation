@@ -32,13 +32,13 @@ def read(d):
     assert rs == pw['summary']['row_set_of_record'], 'funnel and calibration disagree on the row set of record'
     R, P = fun['row_sets'][rs], pw['summary'][rs]
     out = {'row_set_of_record': rs, 'n_rows': R['n_rows'], 'tests': {}}
-    void_t1 = P['instrument_faults']['T1_void']
+    void = {'T1': P['instrument_faults']['T1_void'], 'T3': P['instrument_faults'].get('T3_void', False)}
     for t, form, pc in (('T1', 'T1_P1', 'T1_positive_control_failed'), ('T2', None, 'T2_positive_control_failed'),
                         ('T3', 'T3_P4', 'T3_positive_control_failed')):
         rule = R['advance'][t]
         pcf = R['M3'][pc]
         mde = P['MDE'].get(form) if form else None
-        if t == 'T1' and void_t1:
+        if void.get(t, False):
             verdict = 'VOID (instrument fault in the calibration)'
         elif pcf:
             verdict = 'NOT INTERPRETED (positive control failed)'

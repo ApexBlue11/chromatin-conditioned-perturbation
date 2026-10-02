@@ -32,7 +32,8 @@ import chromatin_funnel as cf  # noqa: E402
 PIS = (0.005, 0.01, 0.02, 0.05, 0.10)
 FORMS_T1 = ('P1', 'P2', 'P3')
 G = cf.G
-_CTX = None                                      # set before forking workers (Linux); never mutated after
+_CTX = None                                      # set before forking workers (Linux); each worker installs its own
+                                                 # ctx.enc['calibration'] per draw (copy-on-write, never shared)
 
 
 def base_track(ctx):
@@ -155,7 +156,8 @@ def one_draw(draw):
     fstar, rho = synthetic_feature(ctx, draw)
     B = builders(ctx, fstar, fit, draw)
     mu_e, _ = cf.condition_means(ctx, ctx.y, ctx.fit_mask)
-    rec = {'draw': draw, 'rho': rho, 'null_T1': t1_case(ctx, ctx.y, B, fit), 'T1': {}, 'T3': {}}
+    rec = {'draw': draw, 'rho': rho, 'null_T1': t1_case(ctx, ctx.y, B, fit),
+           'null_T3': t3_case(ctx, ctx.y, B, fit), 'T1': {}, 'T3': {}}   # review 042 C3: T3's pi = 0 fault check
     for form in FORMS_T1:
         for pi in PIS:
             yp, alpha = plant(ctx, ctx.y, mu_e, fstar, form, pi, draw)
@@ -200,8 +202,10 @@ def summarise(records):
                 o['MDE']['%s_%s' % (test, form)] = mde(records, test, form, rs)
         false_pass = int(sum(r['null_T1'][rs]['pass'] for r in records))
         p3_any = any(r['T1']['P3_%g' % pi][rs]['pass'] for r in records for pi in PIS)
+        t3_false = int(sum(r['null_T3']['pass'] for r in records))
         o['instrument_faults'] = {'T1_pass_at_pi_0_draws': false_pass, 'T1_passes_P3_anywhere': bool(p3_any),
-                                  'T1_void': bool(false_pass > 0 or p3_any)}
+                                  'T1_void': bool(false_pass > 0 or p3_any),
+                                  'T3_pass_at_pi_0_draws': t3_false, 'T3_void': bool(t3_false > 0)}
         for key in ('T1_P1', 'T1_P2', 'T3_P4'):
             o['reading'][key] = label(o['MDE'][key])
         o['residual_estimand_null_max_abs'] = float(max(abs(r['null_T1'][rs]['resid']['all']) for r in records))

@@ -575,7 +575,9 @@ def m1(ctx, y, K=10, chunk=512):
     mu_A / mu_B are condition means over halves A / B of the dev-train cells (the row's own cell excluded where it is a member).
     (a) dose-neighbour agreement: adjacent doses (r1, r2) of one (cell, pert, time): r(y1 - mu_A[r1], y2 - mu_B[r2]).
     (b) within-cell drug-neighbour predictability: neighbours = the K rows of the same cell, different pert, with the most similar
-        mu_A profile; e = y - mu_B for the row and for its neighbours; score r(mean of neighbours' e, row's e).
+        mu_A profile; the NEIGHBOURS' e = y - mu_A, the ROW's e = y - mu_B (review 042 C2: with mu_B on both sides they would share
+        the B half's drug-independent cell offsets); score r(mean of neighbours' e, row's e). Only the row's own cell offset is
+        shared, which is the cell-specific signal M1(b) is meant to measure.
     On random y both are ~0 by construction."""
     A, Bh = m1_halves(ctx)
     muA, _ = condition_means(ctx, y, ctx.fit_mask & np.isin(ctx.rows['cell'], A))
@@ -602,7 +604,7 @@ def m1(ctx, y, K=10, chunk=512):
         m = m - m.mean(1, keepdims=True)
         m /= np.linalg.norm(m, axis=1, keepdims=True) + 1e-12
         p = ctx.pert_id[dt][idx]
-        ec = eB[idx]
+        e_nb, e_row = eA[idx], eB[idx]
         for s in range(0, len(idx), chunk):
             sim = m[s:s + chunk] @ m.T
             sim[p[s:s + chunk][:, None] == p[None, :]] = -np.inf
@@ -610,7 +612,7 @@ def m1(ctx, y, K=10, chunk=512):
             if kk == 0:
                 continue
             top = np.argpartition(-sim, kk - 1, axis=1)[:, :kk]
-            rb.append(row_pearson(ec[top].mean(1), ec[s:s + chunk]))
+            rb.append(row_pearson(e_nb[top].mean(1), e_row[s:s + chunk]))
             cb.append(np.full(len(top), c))
     rb, cb = np.concatenate(rb), np.concatenate(cb)
     out_b = {'mean': float(np.nanmean(rb)), 'per_cell': {ctx.cells[c]: float(np.nanmean(rb[cb == c])) for c in np.unique(cb)}}
