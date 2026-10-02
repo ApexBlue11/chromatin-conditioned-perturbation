@@ -78,7 +78,7 @@ def carve_dev(rows_per_cell, K, seed, min_rows=200, max_rows=2000):
 class XPertData:
     """Their rows, presented in the v9 batch format."""
 
-    def __init__(self, npz, roots, split, ablate_epi=False, dev_args=None):
+    def __init__(self, npz, roots, split, ablate_epi=False, dev_args=None, chromatin_encoding='v9'):
         z = np.load(npz, allow_pickle=True)
         lab = z[f'split_{split}']
         self.tr = np.flatnonzero(lab == 'train')
@@ -187,11 +187,29 @@ class XPertData:
         cidx = cidx.get('cell_id_to_row', cidx)
         E = np.load(find('E_final.npy', roots)).astype(np.float32)
         Em = np.load(find('E_final_mask.npy', roots))
-        for k in range(E.shape[2]):
-            has = Em[:, :, k].any(1)
-            for c in np.where(has)[0]:
-                v = E[c, :, k]
-                E[c, :, k] = (v - v.mean()) / (v.std() + 1e-6)
+        if chromatin_encoding == 'clean':
+            # RESULTS 92 E1 (S12, from 91.8 / 91.11 / 91.12): failed-ChIP H3K27me3 tracks become MISSING (mask and values), and
+            # every present (cell, mark) is a rank-based inverse-normal transform across genes (bounded; no z-score re-inflation).
+            from scipy.stats import norm, rankdata
+            failed = set(json.load(open(find('E_final_provenance.json', roots)))['h3k27me3_failed_chip_downweighted'])
+            Em = Em.copy()
+            for cname, j in cidx.items():
+                if cname in failed:
+                    Em[j, :, 2] = False
+                    E[j, :, 2] = 0.0
+            for k in range(E.shape[2]):
+                for c in np.where(Em[:, :, k].any(1))[0]:
+                    E[c, :, k] = norm.ppf((rankdata(E[c, :, k], method='average') - 0.5) / E.shape[1]).astype(np.float32)
+            print('CHROMATIN ENCODING clean: failed H3K27me3 tracks missing for %s; rank-normal per (cell, mark)'
+                  % sorted(c for c in failed if c in cidx), flush=True)
+        elif chromatin_encoding == 'v9':
+            for k in range(E.shape[2]):
+                has = Em[:, :, k].any(1)
+                for c in np.where(has)[0]:
+                    v = E[c, :, k]
+                    E[c, :, k] = (v - v.mean()) / (v.std() + 1e-6)
+        else:
+            raise ValueError(chromatin_encoding)
         lin = np.load(find('cell_lineage.npy', roots)).astype(np.float32)
         G = self.X.shape[1]
         self.E = np.zeros((len(self.X), G, E.shape[2]), np.float32)
@@ -282,6 +300,9 @@ def main():
                          'architecture, parameter count and reliability channel are unchanged and only '
                          'the CELL-SPECIFIC chromatin information is removed. This is the '
                          'ablate-to-the-mean convention of this project, applied at training time.')
+    ap.add_argument('--chromatin_encoding', choices=['v9', 'clean'], default='v9',
+                    help='RESULTS 92 E1: clean = failed-ChIP H3K27me3 tracks missing + rank-normal per (cell, mark); '
+                         'v9 (default) = per-(cell, mark) z-score as before')
     ap.add_argument('--save_ckpt', default=None,
                     help='write the trained weights, so an inference-time ablation can be run later')
     ap.add_argument('--save_pred', default=None,
@@ -352,7 +373,7 @@ def main():
     if dev == 'cuda' and any('P100' in torch.cuda.get_device_name(i)
                              for i in range(torch.cuda.device_count())):
         raise SystemExit('FATAL: P100 assigned; Kaggle torch has no sm_60 kernels.')
-    D = XPertData(npz, roots, a.split, ablate_epi=a.ablate_epi, dev_args=a)
+    D = XPertData(npz, roots, a.split, ablate_epi=a.ablate_epi, dev_args=a, chromatin_encoding=a.chromatin_encoding)
     if a.limit_train:
         D.tr = D.tr[:a.limit_train]
         D.te = D.te[:min(len(D.te), 400)]
@@ -549,6 +570,8 @@ def main():
     
     # §85.7: output-name tags appended only when non-default
     cand_suffix = ''
+    if a.chromatin_encoding != 'v9':
+        cand_suffix += '_chrom' + a.chromatin_encoding
     if a.snapshot_cycles > 1:
         cand_suffix += f'_snap{a.snapshot_cycles}'
     if a.no_atoms:
@@ -583,6 +606,8 @@ def main():
     }
     if a.no_test_metrics:
         candidate_flags['no_test_metrics'] = True
+    if a.chromatin_encoding != 'v9':                                  # default-path JSON unchanged
+        candidate_flags['chromatin_encoding'] = a.chromatin_encoding
 
     json_data = {'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
                'platform': platform,
