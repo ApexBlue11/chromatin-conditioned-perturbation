@@ -78,7 +78,9 @@ def test_make_figures():
         ("C4_degk50", "v9_dev_score_C4_degk50.json"),
         ("C6_signhead_3seed", "v9_dev_score_C6_signhead_3seed.json"),
         ("C7_chromedges_3seed", "v9_dev_score_C7_chromedges_3seed.json"),
-        ("C8b_postpath", "v9_dev_score_C8b_postpath.json")
+        ("C8b_postpath", "v9_dev_score_C8b_postpath.json"),
+        ("V2_snap3", "v9_dev_score_V2_snap3.json"),
+        ("P6_c6_v2", "v9_dev_score_P6_c6_v2.json")
     ]
     import numpy as np
     for key, fname in rows:
@@ -120,6 +122,18 @@ def test_make_figures():
     # Verify F6
     assert abs(printed["F6_P2_raw_K3_0"] - 0.4662) <= 5e-5
     assert abs(printed["F6_P2_centred_K3_0"] - 0.5018) <= 5e-5
+    
+    with open("model/results/v9_dev_score_V1_full.json", "r") as f:
+        v1_data = json.load(f)
+    with open("model/results/v9_dev_score_V2_snap3.json", "r") as f:
+        v2_snap3_data = json.load(f)
+        
+    assert abs(printed["F6_gain_mc"] - v1_data["vs_baseline"]["delta_per_row_mean"]) < 1e-9
+    assert abs(printed["F6_gain_snapshot"] - v2_snap3_data["vs_baseline"]["delta_per_row_mean"]) < 1e-9
+    assert abs(printed["F6_gain_seed3"] - (0.4662 - 0.43693)) <= 5e-5
+    
+    v2_k1_mean = np.mean([printed[f"F6_V2_raw_K1_{i}"] for i in range(3)])
+    assert abs(v2_k1_mean - v2_snap3_data["mean"]) <= 1e-6
     
     # Verify F7
     with open("model/results/v9_dev_align_P2_baseline_aux.json", "r") as f:

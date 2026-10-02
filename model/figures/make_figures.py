@@ -154,7 +154,9 @@ def make_f3():
         ("C4_degk50", "C4 DEG-reweighted loss (1 seed)", "dropped", "v9_dev_score_C4_degk50.json"),
         ("C6_signhead_3seed", "C6 sign head (3 seeds)", "accepted", "v9_dev_score_C6_signhead_3seed.json"),
         ("C7_chromedges_3seed", "C7 chromatin-gated edges (3 seeds)", "not accepted", "v9_dev_score_C7_chromedges_3seed.json"),
-        ("C8b_postpath", "C8b post-drug pathway layer (3 seeds)", "not accepted", "v9_dev_score_C8b_postpath.json")
+        ("C8b_postpath", "C8b post-drug pathway layer (3 seeds)", "not accepted", "v9_dev_score_C8b_postpath.json"),
+        ("V2_snap3", "V2 snapshot ensemble, 3 cycles (3 seeds)", "accepted", "v9_dev_score_V2_snap3.json"),
+        ("P6_c6_v2", "P6 stack: C6 + V2 (3 seeds)", "confirmed (stack)", "v9_dev_score_P6_c6_v2.json")
     ]
     
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 5), sharey=True)
@@ -179,6 +181,12 @@ def make_f3():
     ax2.axvline(0, color=COLOR_TEXT, linestyle='-', linewidth=1.5, zorder=2)
     
     labels = []
+    decision_texts = []
+    
+    c8b_y = None
+    v2_y = None
+    c1_y = None
+    
     for i, (key, label, decision, fname) in enumerate(rows):
         labels.append(label)
         with open(os.path.join("model/results", fname), "r") as f:
@@ -188,8 +196,15 @@ def make_f3():
         delta = vb["delta_per_row_mean"]
         sd = data.get("sd", 0.0)
         
-        color = COLOR_V9 if decision == "accepted" else COLOR_GRAY
+        color = COLOR_V9 if decision in ["accepted", "confirmed (stack)"] else COLOR_GRAY
         y = y_pos[i]
+        
+        if key == "C8b_postpath":
+            c8b_y = y
+        elif key == "V2_snap3":
+            v2_y = y
+        elif key == "C1_noatoms":
+            c1_y = y
         
         if vb.get("n_seeds_variant", 1) == 3:
             err = 2 * np.sqrt((s0**2)/3 + (sd**2)/3)
@@ -200,19 +215,35 @@ def make_f3():
             
         p_val("F3", f"{key}_delta_per_row_mean", delta)
         
-        ax1.text(ax1.get_xlim()[1], y, f"  {decision}", va='center', ha='left', color=color, fontsize=9)
+        decision_texts.append((y, decision, color))
         
         if "delta_centred" in vb:
             dc = vb["delta_centred"]
             ax2.plot(dc, y, 'o', color=color, zorder=3)
             p_val("F3", f"{key}_delta_centred", dc)
         else:
-            ax2.text(0, y, "n/a", va='center', ha='center', color=COLOR_GRAY, fontsize=9)
+            ax2.text(0, y, "n/a", va='center', ha='center', color=COLOR_GRAY, fontsize=9, zorder=4,
+                     bbox=dict(boxstyle='square,pad=0.15', fc='white', ec='none'))
             
+    # Draw separator between C8b and V2
+    sep_y = (c8b_y + v2_y) / 2
+    ax1.axhline(sep_y, color=COLOR_GRID, linewidth=1, zorder=1)
+    ax2.axhline(sep_y, color=COLOR_GRID, linewidth=1, zorder=1)
+    
+    # Draw group labels
+    ax1.text(ax1.get_xlim()[0], c1_y + 0.5, "architecture / loss screens", va='bottom', ha='left', color=COLOR_SEC_TEXT, fontsize=8)
+    ax1.text(ax1.get_xlim()[0], sep_y - 0.06, "  variance and stack", va='top', ha='left', color=COLOR_SEC_TEXT, fontsize=8)
+    
+    # Draw decision texts after loop using final xlim
+    final_xlim = ax1.get_xlim()[1]
+    for y, decision, color in decision_texts:
+        ax1.text(final_xlim, y, f"  {decision}", va='center', ha='left', color=COLOR_SEC_TEXT, fontsize=9)
+        
     ax1.set_yticks(y_pos)
     ax1.set_yticklabels(labels)
     ax1.set_xlabel("Δ vs baseline, per-row delta Pearson (dev cells)")
     ax2.set_xlabel("Δ vs baseline, per-row delta Pearson (dev cells)\ncell-centred")
+    ax2.xaxis.set_major_locator(ticker.MaxNLocator(5))
     
     p_val("F3", "s0", s0)
     plt.tight_layout()
@@ -324,6 +355,7 @@ def make_f6():
     from v9.score_dev import row_pearson, centred_r, cell_of_rows
     
     p2_files = [f'external/kaggle_out/v9dev_base2/v9dev_base_dev6s0_seed{i}.npz' for i in range(3)]
+    v2_files = [f'external/kaggle_out/v9dev_v2/v9dev_v2_dev6s0_seed{i}.npz' for i in range(3)]
     c8b_files = [f'external/kaggle_out/v9dev_c8b/v9dev_c8b_dev6s0_seed{i}.npz' for i in range(3)]
     
     def evaluate_ensemble(files):
@@ -350,20 +382,53 @@ def make_f6():
         return raw_scores, centred_scores
 
     p2_raw, p2_centred = evaluate_ensemble(p2_files)
+    v2_raw, v2_centred = evaluate_ensemble(v2_files)
     c8b_raw, c8b_centred = evaluate_ensemble(c8b_files)
     
     assert abs(p2_raw[3][0] - 0.4662) <= 5e-5, f"P2 K=3 raw mismatch: {p2_raw[3][0]}"
     assert abs(p2_centred[3][0] - 0.5018) <= 5e-5, f"P2 K=3 centred mismatch: {p2_centred[3][0]}"
     
+    with open("model/results/v9_dev_score_V2_snap3.json", "r") as f:
+        v2_snap3_data = json.load(f)
+        
+    v2_k1_raw_mean = np.mean(v2_raw[1])
+    v2_k1_centred_mean = np.mean(v2_centred[1])
+    
+    assert abs(v2_k1_raw_mean - v2_snap3_data["mean"]) <= 1e-6, f"V2 K=1 raw mean mismatch: {v2_k1_raw_mean} vs {v2_snap3_data['mean']}"
+    assert abs(v2_k1_centred_mean - v2_snap3_data["mean_centred"]) <= 1e-6, f"V2 K=1 centred mean mismatch: {v2_k1_centred_mean} vs {v2_snap3_data['mean_centred']}"
+    
+    with open("model/results/v9_dev_score_V1_full.json", "r") as f:
+        v1_data = json.load(f)
+        
+    gain_mc = v1_data["vs_baseline"]["delta_per_row_mean"]
+    gain_snapshot = v2_snap3_data["vs_baseline"]["delta_per_row_mean"]
+    gain_seed3 = p2_raw[3][0] - v2_snap3_data["vs_baseline"]["baseline_mean"]
+    
+    assert abs(gain_seed3 - (0.4662 - 0.43693)) <= 5e-5, f"gain_seed3 mismatch: {gain_seed3}"
+
     for k in [1, 2, 3]:
         for i, val in enumerate(p2_raw[k]): p_val("F6", f"P2_raw_K{k}_{i}", val)
         for i, val in enumerate(p2_centred[k]): p_val("F6", f"P2_centred_K{k}_{i}", val)
+        for i, val in enumerate(v2_raw[k]): p_val("F6", f"V2_raw_K{k}_{i}", val)
+        for i, val in enumerate(v2_centred[k]): p_val("F6", f"V2_centred_K{k}_{i}", val)
         for i, val in enumerate(c8b_raw[k]): p_val("F6", f"C8b_raw_K{k}_{i}", val)
         for i, val in enumerate(c8b_centred[k]): p_val("F6", f"C8b_centred_K{k}_{i}", val)
+
+    p_val("F6", "gain_mc", gain_mc)
+    p_val("F6", "gain_snapshot", gain_snapshot)
+    p_val("F6", "gain_seed3", gain_seed3)
         
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5), sharey=False)
+    fig = plt.figure(figsize=(7.2, 3.4))
+    import matplotlib.gridspec as gridspec
+    gs = gridspec.GridSpec(2, 2, figure=fig, height_ratios=[1.5, 1], hspace=0.8, wspace=0.42)
+    
+    ax1 = fig.add_subplot(gs[0, 0])
+    ax2 = fig.add_subplot(gs[0, 1])
+    ax3 = fig.add_subplot(gs[1, :])
+    
     setup_axes(ax1)
     setup_axes(ax2)
+    setup_axes(ax3)
     
     def plot_ensemble(ax, raw_dict, color, label):
         ks = [1, 2, 3]
@@ -374,25 +439,52 @@ def make_f6():
             means.append(np.mean(vals))
         ax.plot(ks, means, color=color, label=label, zorder=2)
         
-    plot_ensemble(ax1, p2_raw, COLOR_V9, "P2 baseline")
-    plot_ensemble(ax1, c8b_raw, COLOR_COMP, "C8b")
+    plot_ensemble(ax1, p2_raw, COLOR_V9, "P2 (one 12-epoch model per seed)")
+    plot_ensemble(ax1, v2_raw, COLOR_COMP, "V2 (each seed = mean of 3 snapshots)")
     
-    plot_ensemble(ax2, p2_centred, COLOR_V9, "P2 baseline")
-    plot_ensemble(ax2, c8b_centred, COLOR_COMP, "C8b")
+    plot_ensemble(ax2, p2_centred, COLOR_V9, "P2 (one 12-epoch model per seed)")
+    plot_ensemble(ax2, v2_centred, COLOR_COMP, "V2 (each seed = mean of 3 snapshots)")
     
     ax1.set_xticks([1, 2, 3])
-    ax1.set_xlabel("Ensemble size (K)")
-    ax1.set_ylabel("Mean per-row delta Pearson")
-    ax1.legend(frameon=False)
+    ax1.set_xlabel("seeds averaged (K)", fontsize=8)
+    ax1.set_ylabel("per-row delta Pearson", fontsize=8)
+    ax1.tick_params(axis='both', which='major', labelsize=8)
     
     ax2.set_xticks([1, 2, 3])
-    ax2.set_xlabel("Ensemble size (K)")
-    ax2.set_ylabel("Cell-centred mean per-row delta Pearson")
-    ax2.legend(frameon=False)
+    ax2.set_xlabel("seeds averaged (K)", fontsize=8)
+    ax2.set_ylabel("cell-centred per-row delta Pearson", fontsize=8)
+    ax2.tick_params(axis='both', which='major', labelsize=8)
     
-    plt.tight_layout()
-    plt.savefig(os.path.join(OUT_DIR, "f6_seed_ensemble.png"), dpi=300)
-    plt.savefig(os.path.join(OUT_DIR, "f6_seed_ensemble.svg"))
+    fig.legend(*ax1.get_legend_handles_labels(), loc='lower center', bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False,
+               fontsize=7)
+
+    # Panel C
+    c_labels = [
+        "MC dropout + stoch. depth × 8 (1 run)",
+        "snapshots × 3 (1 run)",
+        "seeds × 3 (3 runs)"
+    ]
+    c_vals = [gain_mc, gain_snapshot, gain_seed3]
+    y_pos = np.arange(len(c_labels))[::-1]
+    
+    ax3.plot(c_vals, y_pos, 'o', color=COLOR_V9, zorder=3)
+    ax3.axvline(0, color=COLOR_TEXT, linestyle='-', linewidth=1.5, zorder=2)
+    ax3.set_yticks(y_pos)
+    ax3.set_yticklabels(c_labels, fontsize=8)
+    for i, val in enumerate(c_vals):
+        ax3.annotate(f"{val:+.4f}", (val, y_pos[i]), xytext=(6, 0), textcoords='offset points', va='center', ha='left',
+                     color=COLOR_SEC_TEXT, fontsize=8)
+    ax3.set_xlim(0, max(c_vals) * 1.22)
+    ax3.set_ylim(-0.6, len(c_labels) - 0.4)
+        
+    ax3.set_xlabel("Δ per-row delta Pearson over a single model (dev cells)", fontsize=8)
+    ax3.tick_params(axis='x', which='major', labelsize=8)
+    
+    # Note under panel C
+    ax3.text(0, -0.62, "MC row: paired vs the same checkpoint's deterministic pass; other rows: vs P2's single-model mean", transform=ax3.transAxes, fontsize=7, color=COLOR_SEC_TEXT, va='top')
+    
+    plt.savefig(os.path.join(OUT_DIR, "f6_seed_ensemble.png"), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(OUT_DIR, "f6_seed_ensemble.svg"), bbox_inches='tight')
     plt.close()
 
 # F7
