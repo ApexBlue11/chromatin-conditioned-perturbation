@@ -6704,7 +6704,8 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
   | all dev rows | **+0.00317** (per seed +0.0051 / +0.0017 / +0.0027); centred +0.00247 | +0.00596 |
   | **VCAP** (969 rows) | **+0.0133** (per seed +0.0213 / +0.0070 / +0.0116) | +0.0143 |
   | **HEK293T** (224 rows) | **−0.0002** (per seed +0.0002 / +0.0010 / −0.0019) | +0.0225 |
-  | the other four cells | 0 exactly (untouched; a deterministic pass) | — |
+  | the other four cells | ≈ 0 (untouched; predictions within 4e-5 of the saved ones, from GPU / cross-machine
+  non-determinism; score differences round to 0.0000) | — |
 
   **Reading.** **VCAP's harm is its failed H3K27me3 track**: ablating that track alone recovers 93 % of VCAP's T4 gain.
   **HEK293T's is not**: its gain comes from its good marks (ATAC, H3K27ac). So the failed tracks explain one of the three
