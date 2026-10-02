@@ -74,6 +74,15 @@ for _f, _h in (PINS.items() if not SMOKE else []):     # the local smoke runs th
         raise SystemExit('FATAL: mounted %s sha1 %s != pinned %s. Refusing.' % (_f, _got, _h))
 print('mounted code verified (strings + %d pinned sha1s)' % len(PINS), flush=True)
 
+# GUARD 0 (review 038): room for the staged outputs (~3.7 GB: 15 prediction files of ~250 MB + 3 checkpoints) and for their
+# copy to WORKDIR, checked before any training. A Kaggle CPU probe (lincs-diskprobe) showed /tmp on the root overlay (~1.2 TB
+# free) and /kaggle/working a separate 21 GB device; the GPU machine is not guaranteed to match, hence the check.
+_stage_fs = os.path.dirname(STAGE.rstrip('/\\')) or '.'
+_free = {_p: shutil.disk_usage(_p).free for _p in (_stage_fs, WORKDIR)}
+_same = os.stat(_stage_fs).st_dev == os.stat(WORKDIR).st_dev
+print('GUARD 0 free space: %s (same device: %s)' % ({k: '%.1f GB' % (v / 1e9) for k, v in _free.items()}, _same), flush=True)
+if not SMOKE and (min(_free.values()) < 5e9 or (_same and _free[WORKDIR] < 9e9)):
+    raise SystemExit('FATAL: GUARD 0: not enough free disk for the staged outputs and their copy: %r' % _free)
 shutil.rmtree(STAGE, ignore_errors=True); os.makedirs(STAGE)
 argv = ['--bundle', 'xpert_mdmt_splits.npz', '--split', 'split_cold_cell_1', '--dp_seed_mode', 'distinct',
         '--seeds', '3', '--seed_start', '0', '--epochs', '12', '--d_model', '256'] + __FLAGS__ + [

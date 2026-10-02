@@ -6009,7 +6009,7 @@ No decision is taken from this; the variance-reduction batch is §90.
 4. **Guards:** 1–3 as the dev kernels (dry-run locally against the staged upload before the push); GUARD 5 distinct; **GUARD 6:**
    each seed's `row_index` has 21,151 rows with sorted sha1 `be276e2385330240c2e6237e5b67eb32185d1dde` (§87's scored v9 rows).
 5. **Touched once (ask 2):** `coldcell_h2h.py` is the only thing that ever scores P7's test predictions, once, locally:
-   `--theirs <O2 profile> --ours <3 seed files> [--ours_alt <3 V2-last files> --ours_alt_label "V2-last"] --h5ad … --split
+   `--theirs <O2 profile> --ours <3 seed files> [--ours_alt <3 _last files> --ours_alt_label "P7-last (final snapshot, no snapshot averaging)"] --h5ad … --split
    split_cold_cell_1 --run_record <O2 run_record> --n_boot 20000 --seed 0`, preceded by an assert that the O2 profile's sha1
    starts `69484323` (§87). A run that fails leaves no predictions (item 3); any test npz ever left by a failed run is deleted
    before `coldcell_h2h.py` is run on it, with each file's sha1 and the deletion logged, and the rerun disclosed. A crash is not a
@@ -6019,13 +6019,15 @@ No decision is taken from this; the variance-reduction batch is §90.
    test-cell knowledge"*; §87 reported as no claim); XPert wins → *"uninterpretable as a model comparison — reported plainly"*;
    otherwise → **no claim**. Width > 0.10 → uninformative. §71.7's admissibility unchanged (O2).
 7. **Secondary, never in the verdict:** per-seed blocks; the cell-centred score for **both** models (§85.10); `ensemble_own` (v9's
-   own row, no paired difference, §90.6); the **V2-last** row if V2 is stacked (§90.6 amended); C6's §85.10 wording.
+   own row, no paired difference, §90.6); the **P7-last** row if V2 is stacked (the stack's final snapshot, not the V2-only model; §90.6 amended, review 038 C4); C6's §85.10 wording.
 8. **Interpretability on the test cells (review 034 C3; reported beside P7, never in its verdict):** `align_dev.py --rows test` on
    P7's three checkpoints, once, after P7: aux-readout alignment; the training-row prior recomputed from **P7's training rows (all
    32 cells)**; licensed statements: *"beats a cell-agnostic training-row prior"* iff it does on **every seed**; *"in this cell"* iff
    the 3-seed mean per-cell increment over the other-cells mean readout is **> 0 in ≥ 7 of 8 test cells** (one-sided sign p =
    0.035; a consistency filter) and the mean of per-cell increments is > 0 on every seed. `--rows test` is committed and reviewed
-   before P7 and is never run on any checkpoint before then.
+   before P7 and is never run on any checkpoint before then. **The pathway readout is read on the final-snapshot weights; the
+   reported accuracy is that of the three-snapshot prediction average; the final snapshot alone scores the P7-last row** (review
+   038 C3).
 
 ### 85.13 P6 read (§85.11's rule, mechanically) — **CONFIRMED** → P7 stack `c6_v2` (2026-09-30)
 Kernel `lincs-v9dev-p6` (the P2 command + `--sign_head_w 0.492066 --snapshot_cycles 3`, seeds 0–2; `candidate_flags`
@@ -6044,10 +6046,18 @@ Conjuncts: rule 7: Δ ≥ 0.00327 OK; rule 7: Δ cell means > 0 OK; rule 7: ≥ 
 **Reported, not read.** (i) On the per-row score the stack adds **+0.00175** over V2 alone, less than C6's own **+0.00477** over P2;
 seed-paired (same seed → same initialisation and data order) P6 − V2 is +0.00411 / −0.00569 / +0.00682, mixed in sign, so the
 stack is not shown to beat V2 alone — §85.11 asks only that it not fall more than 0.003 below its best component.
+**The +0.00175 is carried by one dev cell** (review 038 C2, PI-verified): U937 (308 rows: mean +0.0223, median +0.0230) contributes
++0.00170 per row; the other five cells together +0.00005 (LNCAP −0.0067); within U937 mainly seed 0 (+0.051 vs +0.005 / +0.011).
+No sentence credits C6 with a broad gain in the final model.
 (ii) On the cell-centred co-criterion the stack is **0.00371 below V2 alone** (+0.01326 vs +0.01697; seed-paired −0.00287 / −0.00965 / +0.00138), and C6 alone moved it by only
-+0.00015:
-the sign head's gain is in the per-cell mean profile, not in ranking drugs within a cell. The paper states this beside any
-C6 claim. (iii) Per-cell Δ (P6): HEK293T +0.0165, HL60 +0.0202, LNCAP +0.0086, SKBR3 +0.0096, U937 +0.0403, VCAP +0.0248.
++0.00015 — consistent with the sign head's gain lying in the cell-mean delta profile rather than in each row's departure
+from it (review 038 C1: the cell-centred score is the per-row Pearson across the 978 genes after subtracting each cell's mean
+predicted and true delta profiles; it ranks no drugs). The paper states this beside any C6 claim; **C6 is in P7 by §85.11's rule,
+not because it was shown to help on top of V2.** (iii) Per-cell Δ (P6): HEK293T +0.0165, HL60 +0.0202, LNCAP +0.0086, SKBR3 +0.0096, U937 +0.0403, VCAP +0.0248.
+(iv) **Which weights (review 038 C3):** `--save_ckpt` saves the final-snapshot weights (`xpert_arm.py` 484–490), so rule 8's
+0.2650, the in-cell licence and P7's test-row alignment are read on the final snapshot, whose own dev accuracy is P6-last's
+(+0.00874); the reported accuracy (+0.01844) is that of the three-snapshot prediction average. Every table and sentence keeps the
+two numbers attached to their own objects.
 
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
@@ -6381,7 +6391,9 @@ review 029). Run only if quota is spare after P6/P7.
 **AMENDED by review 033 C1 (before V2's data):** the ban below covers **seed ensembles** only. A **within-run snapshot
 average** (V2) costs one run, as P2 does, and is treated like V1: if accepted and stacked it is part of v9's method, the
 headline compares v9 (with V2) against XPert as published, disclosed as such, and **a labelled row with V2-last in place
-of the snapshot average is required beside the headline** so the ensembling contribution is visible. (As first written,
+of the snapshot average is required beside the headline** so the ensembling contribution is visible. For P7 that row is the
+stack's final snapshot, labelled *"P7-last (final snapshot, no snapshot averaging)"* — never "V2-last", which names the V2-only
+dev model (review 038 C4). (As first written,
 "across seeds or snapshots" contradicted §90.4's rule-10 amendment.)
 No row or sentence sets a **v9 ensemble** (across seeds or snapshots) beside **XPert's single run** as a comparison. An ensemble
 row appears only as v9's own labelled secondary; a "v9 ensemble vs XPert" row requires XPert's matched ensemble (two more XPert

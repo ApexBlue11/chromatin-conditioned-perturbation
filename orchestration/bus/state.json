@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "038_p6_result_p7_kernel"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -62,12 +60,13 @@
     "034_p7_prereg",
     "035_p7_blinding_code",
     "036_manuscript_wording",
-    "037_v2_result_p6"
+    "037_v2_result_p6",
+    "038_p6_result_p7_kernel"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "Packet 038 (V1 not accepted; P6 CONFIRMED -> P7 c6_v2; P7 kernel smoke) with the critic. P7 pushes at the quota reset (Sat 00:00 UTC) if review 038 clears it; then 88 t1/t2.",
+  "pending_decision": "Packet 039 (review 038 adjudicated; P7 kernel gains GUARD 0, score_p7 gains the snapshot identities) with the critic. P7 pushes at the quota reset (Sat 2026-10-03 00:00 UTC = 05:30 IST) if review 039 clears it; then 88 t1/t2.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
-  "challenges_upheld": "161 challenge rows in 36 adjudicated reviews (table rows | n | SEVERITY |, counted 2026-09-30 incl. review 036); the older running tally (160 of 163) had drifted and is withdrawn",
+  "challenges_upheld": "167 challenge rows in 38 adjudicated reviews (table rows | n | SEVERITY |, counted 2026-10-02 incl. review 038: 5 BLOCKING, 56 MAJOR, 106 MINOR); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",

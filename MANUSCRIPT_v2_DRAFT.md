@@ -147,10 +147,12 @@ alone is +0.0077, and one 4-epoch annealed cycle already gives ≈ +0.005, so we
 accepted [§90.8].
 
 **The final dev-selected model (P6).** The sign head and the snapshot ensemble together (three seeds) score +0.0184 over the
-baseline, 6 of 6 dev cells, cell-centred +0.0133, aux alignment 0.265; this passes the pre-registered stack rule, so its recipe,
+baseline, 6 of 6 dev cells, cell-centred +0.0133; pathway alignment 0.265, read on the final-snapshot weights (whose own accuracy is +0.0087); this passes the pre-registered stack rule, so its recipe,
 retrained on all training cells, is what the second comparison scores against XPert [§85.11, §85.13]. It is **not shown to beat the snapshot ensemble alone**: seed-paired
-differences are +0.004, −0.006 and +0.007, and on the cell-centred score the stack is 0.004 below V2 alone. The sign head's
-contribution is to per-cell mean profiles, consistent with its Δ_c of +0.0002 when added alone [§85.13].
+differences are +0.004, −0.006 and +0.007, and on the cell-centred score the stack is 0.004 below V2 alone. The stack's per-row
+edge over V2 (+0.0018) comes almost entirely from one dev cell (U937). With the sign head's Δ_c of +0.0002 when added alone,
+this is consistent with its gain lying in each cell's mean delta profile rather than in each row's departure from it; the sign
+head is in the final model by the pre-registered rule, not because it was shown to help on top of the snapshot ensemble [§85.13].
 
 ### 5.4 Interpretability (Figures 4, 7)
 - **Atom→gene attention does not recover drug targets** (median rank percentile 0.560) [C 4.1a].
