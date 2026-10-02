@@ -78,6 +78,9 @@ def main():
     ap.add_argument('--dev_seed', type=int, default=0)
     ap.add_argument('--identity_check', default=None)
     ap.add_argument('--limit', type=int, default=0)
+    ap.add_argument('--ablate_epi', action='store_true',
+                    help='RESULTS 91 T4: mean-ablate chromatin at inference (XPertData ablate_epi: values and mask '
+                         'replaced by their dev-train mean), to ask whether a trained model reads its chromatin')
     a = ap.parse_args()
     
     t0 = time.time()
@@ -90,7 +93,7 @@ def main():
     npz = find(a.bundle, roots)
     
     dev_args = argparse.Namespace(dev_cells=a.dev_cells, dev_seed=a.dev_seed, dev_min_rows=200, dev_max_rows=2000)
-    D = XPertData(npz, roots, a.split, ablate_epi=ck.get('ablate_epi', False), dev_args=dev_args)
+    D = XPertData(npz, roots, a.split, ablate_epi=a.ablate_epi or ck.get('ablate_epi', False), dev_args=dev_args)
     
     dev_idx = D.te
     if a.limit > 0:
