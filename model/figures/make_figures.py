@@ -33,6 +33,8 @@ def setup_axes(ax):
 
 OUT_DIR = "model/figures/out"
 os.makedirs(OUT_DIR, exist_ok=True)
+P7_JSON = "model/results/coldcell_h2h_split_cold_cell_1_P7.json"
+O2_JSON = "model/results/coldcell_h2h_split_cold_cell_1_O2.json"
 
 def p_val(fig, name, val):
     print(f"{fig} | {name}: {val}")
@@ -576,6 +578,151 @@ def make_f7():
     plt.savefig(os.path.join(OUT_DIR, "f7_pathway_alignment.svg"))
     plt.close()
 
+# F8
+def make_f8(src=P7_JSON, ref=O2_JSON, out_dir=OUT_DIR, stem="f8_p7_h2h"):
+    if not os.path.exists(src):
+        p_val("F8", "skipped", src)
+        return
+
+    with open(src, "r") as f:
+        src_data = json.load(f)
+    with open(ref, "r") as f:
+        ref_data = json.load(f)
+
+    src_cells = {c["cell"]: c for c in src_data["per_cell"]}
+    ref_cells = {c["cell"]: c for c in ref_data["per_cell"]}
+    assert all(c["cell"] in ref_cells for c in src_data["per_cell"])
+    assert src_data["split"] == ref_data["split"]
+
+    cells = sorted(src_data["per_cell"], key=lambda x: x["n_scored"])
+
+    # PI polish: stacked (side by side was 11 in wide, set by panel B's long row labels), column width 7.2 in
+    import textwrap
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7.2, 6.0), gridspec_kw={'height_ratios': [3, 1.25]})
+    setup_axes(ax1)
+    setup_axes(ax2)
+
+    # PANEL A
+    y_pos = np.arange(len(cells))
+    labels = [f"{c['cell']} (n={c['n_scored']})" for c in cells]
+
+    d_c_medians = [c["d_c_median"] for c in cells]
+    d_c_err_low = [c["d_c_median"] - c["d_c_median_ci95"][0] for c in cells]
+    d_c_err_high = [c["d_c_median_ci95"][1] - c["d_c_median"] for c in cells]
+
+    ax1.errorbar(d_c_medians, y_pos, xerr=[d_c_err_low, d_c_err_high], fmt='o', color=COLOR_V9, capsize=2, zorder=3, label="v9 (3 seeds, snapshot average)")
+
+    ref_d_c_medians = [ref_cells[c["cell"]]["d_c_median"] for c in cells]
+    ax1.plot(ref_d_c_medians, y_pos, 'o', color='none', markeredgecolor=COLOR_GRAY, markeredgewidth=1.5, zorder=4, label="§87: one v9 run")
+
+    ax1.set_yticks(y_pos)
+    ax1.set_yticklabels(labels, fontsize=8)
+    ax1.axvline(0, color=COLOR_REF, linestyle='-', zorder=1)
+
+    cluster_mean = src_data["cluster"]["mean_of_d_c"]
+    cluster_ci = src_data["cluster"]["cluster_ci95"]
+
+    ax1.axvspan(cluster_ci[0], cluster_ci[1], alpha=0.2, color=COLOR_THIRD, zorder=1, label="cluster mean 95 % CI")
+    ax1.axvline(cluster_mean, color=COLOR_V9, linestyle=':', zorder=2, label="cluster mean")
+    ax1.set_xlabel("v9 − XPert: per-row Δ Pearson, median per cell", fontsize=9)
+    ax1.xaxis.set_major_locator(ticker.MaxNLocator(nbins=6))
+    ax1.tick_params(axis='x', labelsize=8)
+    ax1.legend(loc='lower center', bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False, fontsize=8)
+
+    for i, c in enumerate(cells):
+        p_val("F8", f"cell_{c['cell']}_d_c_median", d_c_medians[i])
+        p_val("F8", f"cell_{c['cell']}_ci95_0", c["d_c_median_ci95"][0])
+        p_val("F8", f"cell_{c['cell']}_ci95_1", c["d_c_median_ci95"][1])
+        p_val("F8", f"cell_{c['cell']}_ref_d_c_median", ref_d_c_medians[i])
+
+    p_val("F8", "cluster_mean", cluster_mean)
+    p_val("F8", "cluster_ci95_0", cluster_ci[0])
+    p_val("F8", "cluster_ci95_1", cluster_ci[1])
+    p_val("F8", "cells_favouring_ours", src_data["cluster"]["cells_favouring_ours"])
+    p_val("F8", "n_cells", src_data["cluster"]["n_cells"])
+
+    # PANEL B
+    has_alt = "alt" in src_data
+    y_b = [2, 1, 0] if has_alt else [2, 0]
+    
+    b_means = []
+    b_ci_low = []
+    b_ci_high = []
+    b_labels = []
+    b_colors = []
+    b_fmts = []
+    b_mfc = []
+    b_mec = []
+    b_texts = []
+
+    # Row 1 (y=2)
+    b_means.append(cluster_mean)
+    b_ci_low.append(cluster_mean - cluster_ci[0])
+    b_ci_high.append(cluster_ci[1] - cluster_mean)
+    b_labels.append("v9, snapshot average (3 seeds)")
+    b_colors.append(COLOR_V9)
+    b_fmts.append('o')
+    b_mfc.append(COLOR_V9)
+    b_mec.append(COLOR_V9)
+    b_texts.append(f"{src_data['cluster']['cells_favouring_ours']} / {src_data['cluster']['n_cells']} cells")
+
+    if has_alt:
+        alt_mean = src_data["alt"]["cluster"]["mean_of_d_c"]
+        alt_ci = src_data["alt"]["cluster"]["cluster_ci95"]
+        b_means.append(alt_mean)
+        b_ci_low.append(alt_mean - alt_ci[0])
+        b_ci_high.append(alt_ci[1] - alt_mean)
+        b_labels.append(src_data["alt"]["label"])
+        b_colors.append(COLOR_GRAY)
+        b_fmts.append('o')
+        b_mfc.append(COLOR_GRAY)
+        b_mec.append(COLOR_GRAY)
+        b_texts.append(f"{src_data['alt']['cluster']['cells_favouring_ours']} / {src_data['alt']['cluster']['n_cells']} cells")
+
+        p_val("F8", "alt_cluster_mean", alt_mean)
+        p_val("F8", "alt_cluster_ci95_0", alt_ci[0])
+        p_val("F8", "alt_cluster_ci95_1", alt_ci[1])
+        p_val("F8", "alt_cells_favouring_ours", src_data["alt"]["cluster"]["cells_favouring_ours"])
+        p_val("F8", "alt_n_cells", src_data["alt"]["cluster"]["n_cells"])
+
+    ref_mean = ref_data["cluster"]["mean_of_d_c"]
+    ref_ci = ref_data["cluster"]["cluster_ci95"]
+    b_means.append(ref_mean)
+    b_ci_low.append(ref_mean - ref_ci[0])
+    b_ci_high.append(ref_ci[1] - ref_mean)
+    b_labels.append("§87: one v9 run")
+    b_colors.append(COLOR_GRAY)
+    b_fmts.append('o')
+    b_mfc.append('none')
+    b_mec.append(COLOR_GRAY)
+    b_texts.append(f"{ref_data['cluster']['cells_favouring_ours']} / {ref_data['cluster']['n_cells']} cells")
+
+    p_val("F8", "ref_cluster_mean", ref_mean)
+    p_val("F8", "ref_cluster_ci95_0", ref_ci[0])
+    p_val("F8", "ref_cluster_ci95_1", ref_ci[1])
+    p_val("F8", "ref_cells_favouring_ours", ref_data["cluster"]["cells_favouring_ours"])
+    p_val("F8", "ref_n_cells", ref_data["cluster"]["n_cells"])
+
+    for i in range(len(b_means)):
+        ax2.errorbar(b_means[i], y_b[i], xerr=[[b_ci_low[i]], [b_ci_high[i]]], fmt=b_fmts[i], color=b_colors[i], mfc=b_mfc[i], mec=b_mec[i], capsize=2, zorder=3)
+        ax2.annotate(b_texts[i], (b_means[i] + b_ci_high[i], y_b[i]), xytext=(6, 0), textcoords='offset points', va='center', ha='left', color=COLOR_SEC_TEXT, fontsize=8)
+
+    ax2.set_yticks(y_b)
+    ax2.set_yticklabels([textwrap.fill(l, 30) for l in b_labels], fontsize=8)
+    ax2.axvline(0, color=COLOR_REF, linestyle='-', zorder=1)
+    ax2.set_xlabel("v9 − XPert: cluster mean of per-cell medians (95 % CI)", fontsize=9)
+    ax2.tick_params(axis='x', labelsize=8)
+    
+    # ensure space for text
+    ax2.set_xlim(right=ax2.get_xlim()[1] + 0.05)
+    _lo = min([0.0] + [m - l for m, l in zip(b_means, b_ci_low)])     # PI: keep the zero line off the spine
+    ax2.set_xlim(left=_lo - 0.08 * (ax2.get_xlim()[1] - _lo))
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(out_dir, f"{stem}.png"), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(out_dir, f"{stem}.svg"), bbox_inches='tight')
+    plt.close()
+
 if __name__ == "__main__":
     make_f1()
     make_f2()
@@ -584,3 +731,5 @@ if __name__ == "__main__":
     make_f5()
     make_f6()
     make_f7()
+    make_f8()
+

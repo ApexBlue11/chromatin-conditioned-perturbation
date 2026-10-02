@@ -162,5 +162,78 @@ def test_make_figures():
 
     print("All tests passed!")
 
+def test_make_f8_normal(capsys, tmp_path):
+    from model.figures.make_figures import make_f8
+    
+    fixture_path = "model/figures/fixtures/p7_standin_h2h.json"
+    make_f8(src=fixture_path, out_dir=tmp_path, stem="f8_test")
+    
+    out, err = capsys.readouterr()
+    
+    printed = {}
+    for line in out.splitlines():
+        if " | " in line:
+            fig, rest = line.split(" | ", 1)
+            if fig == "F8":
+                key, val = rest.split(": ", 1)
+                try:
+                    printed[f"F8_{key}"] = float(val)
+                except ValueError:
+                    printed[f"F8_{key}"] = val
+
+    with open(fixture_path, "r") as f:
+        fixture_data = json.load(f)
+    with open("model/results/coldcell_h2h_split_cold_cell_1_O2.json", "r") as f:
+        ref_data = json.load(f)
+        
+    for c in fixture_data["per_cell"]:
+        cell = c["cell"]
+        assert abs(printed[f"F8_cell_{cell}_d_c_median"] - c["d_c_median"]) < 1e-12
+        assert abs(printed[f"F8_cell_{cell}_ci95_0"] - c["d_c_median_ci95"][0]) < 1e-12
+        assert abs(printed[f"F8_cell_{cell}_ci95_1"] - c["d_c_median_ci95"][1]) < 1e-12
+        
+        ref_c = next(rc for rc in ref_data["per_cell"] if rc["cell"] == cell)
+        assert abs(printed[f"F8_cell_{cell}_ref_d_c_median"] - ref_c["d_c_median"]) < 1e-12
+        
+    assert abs(printed["F8_alt_cluster_mean"] - fixture_data["alt"]["cluster"]["mean_of_d_c"]) < 1e-12
+    
+    assert abs(printed["F8_ref_cluster_mean"] - ref_data["cluster"]["mean_of_d_c"]) < 1e-12
+    assert abs(printed["F8_ref_cluster_ci95_0"] - ref_data["cluster"]["cluster_ci95"][0]) < 1e-12
+    assert abs(printed["F8_ref_cluster_ci95_1"] - ref_data["cluster"]["cluster_ci95"][1]) < 1e-12
+    assert printed["F8_ref_cells_favouring_ours"] == ref_data["cluster"]["cells_favouring_ours"]
+    assert printed["F8_ref_n_cells"] == ref_data["cluster"]["n_cells"]
+    
+    assert os.path.exists(os.path.join(tmp_path, "f8_test.png"))
+    assert os.path.exists(os.path.join(tmp_path, "f8_test.svg"))
+
+def test_make_f8_missing(capsys, tmp_path):
+    from model.figures.make_figures import make_f8
+    make_f8(src=str(tmp_path / "does_not_exist.json"), out_dir=tmp_path)
+    
+    out, err = capsys.readouterr()
+    assert "F8 | skipped" in out
+    assert len(list(tmp_path.glob("*"))) == 0
+
+def test_make_f8_no_alt(capsys, tmp_path):
+    from model.figures.make_figures import make_f8
+    
+    fixture_path = "model/figures/fixtures/p7_standin_h2h.json"
+    with open(fixture_path, "r") as f:
+        data = json.load(f)
+        
+    del data["alt"]
+    new_src = tmp_path / "no_alt.json"
+    with open(new_src, "w") as f:
+        json.dump(data, f)
+        
+    make_f8(src=str(new_src), out_dir=tmp_path, stem="f8_no_alt")
+    
+    out, err = capsys.readouterr()
+    
+    assert "F8 | alt_" not in out
+    
+    assert os.path.exists(os.path.join(tmp_path, "f8_no_alt.png"))
+    assert os.path.exists(os.path.join(tmp_path, "f8_no_alt.svg"))
+
 if __name__ == "__main__":
     test_make_figures()
