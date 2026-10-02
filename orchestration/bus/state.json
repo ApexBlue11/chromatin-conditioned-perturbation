@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "043_chromatin_result"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -68,7 +70,7 @@
     "042_review041_t4"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "kern_chromatin91 (CPU) running the RESULTS 91 funnel + 91.9 calibration once (review 042 cleared after C3); read only with read_chromatin91.py. P7 + 88 t1 push at 05:40 IST by the detached loop; then t2. T4b (failed tracks only) local GPU.",
+  "pending_decision": "Packet 043 (chromatin funnel result: nothing advances; T1 informative null) with the critic; next: S12 encoding fix and/or training-time chromatin ablation as dev screens (own packets). P7 + 88 t1 push at 05:40 IST by the detached loop; then t2.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
   "challenges_upheld": "181 challenge rows in 42 adjudicated reviews (table rows | n | SEVERITY |, counted 2026-10-02 incl. review 042); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
