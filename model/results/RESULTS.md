@@ -6965,6 +6965,54 @@ the same recipe (§91.11, `v9_dev_score_T4_chromatin_ablated.json`):
 - **The push:** when a GPU slot frees (t2 and E1 s0 hold both now). About 3.3 GPU-h; the week then stands at ≈ 27.7 of 30.
 - **If E1 s0 also advances:** its seeds 1–2 go to next week's quota.
 
+### 92.8 E1 seed 0, read by rule 6 — **ADVANCE** (Δ +0.0044 ≥ 0.0034); seeds 1–2 go to next week's quota (2026-10-03)
+**The run:**
+- `lincs-v9dev-e1-s0`, pushed at 16:50 IST on the new `lincs-v9-src` (§92.7). COMPLETE by 18:31.
+- The log shows `mounted code verified for e1 (xpert_arm.py 60bdcd48039a)` and `CHROMATIN ENCODING clean: failed H3K27me3
+  tracks missing for [… HEK293T … VCAP]; rank-normal per (cell, mark)`. GUARD 4 (`51e7e4ab…`) and GUARD 5 (distinct) OK.
+- The arm JSON's `candidate_flags` records `chromatin_encoding: clean`. Its own dev metric (Pearson_deg 0.4414) equals `score_dev`'s.
+- Scored by `score_dev.py --centred` against P2's three seeds → `model/results/v9_dev_score_E1_s0.json`.
+
+**Rule 6 (against P2's μ0 only, review 047 ask 3):**
+- **E1 s0 0.44138, against μ0 0.43693: Δ = +0.0044 ≥ 0.0034, so ADVANCE** (seeds 1–2).
+- **Centred Δ +0.0044**, about 98 % of the raw Δ. Like T4 (94 %), and unlike E2 s0 (52 %), E1's gain sits in the
+  drug-specific (cell-centred) component.
+- **Cells favouring E1: 4 of 6.**
+
+**92.4's reported items** (one seed, descriptive). Per-cell median Δ against P2, one convention throughout (`score_dev` medians;
+T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
+
+| cell | E1 s0 (cleaned encoding) | E2 s0 (no cell-specific chromatin) | T4 (all, at inference) | T4b (failed tracks only, at inference) |
+|---|---|---|---|---|
+| LNCAP | +0.0053 | +0.0458 | +0.0252 | 0 (untouched) |
+| VCAP | **+0.0165** | +0.0234 | +0.0161 | **+0.0136** |
+| HEK293T | −0.0069 | +0.0174 | +0.0225 | −0.0005 |
+| U937 | +0.0135 | −0.0034 | +0.0012 | 0 (untouched) |
+| SKBR3 | +0.0003 | −0.0067 | −0.0029 | 0 (untouched) |
+| HL60 | −0.0179 | −0.0112 | −0.0130 | 0 (untouched) |
+
+- **VCAP:** E1's +0.0165 is the size of T4b's +0.0136 (the failed track removed at inference) and T4's +0.0161. At one seed this
+  is consistent with the cleaned encoding removing VCAP's failed-track harm. It is descriptive, not a finding.
+- **HEK293T:** the clean encoding also drops HEK293T's failed track, and T4b showed that track is not its harm. E1 is −0.0069
+  there, while E2, which removes all its cell-specific chromatin, is +0.0174. This is consistent with §91.11: HEK293T's harm sits
+  in its good marks.
+- **LNCAP:** most of LNCAP's harm is not removed by cleaning (E1 +0.0053, against E2 +0.0458).
+- **U937** (ATAC only): +0.0135 under E1 alone. Its encoding changes only by the rank-normal transform. One seed.
+- **E1 s0 − E2 s0, seed-0 paired (descriptive only; the 92.3 comparator binds at three seeds of both):** per-row −0.0058;
+  centred −0.0010. Per cell: LNCAP −0.038, HEK293T −0.023, HL60 −0.010, VCAP −0.004, SKBR3 +0.005, U937 +0.019.
+- **Rule 8's values:**
+  - aux alignment **0.2731** (floor 0.2532, > 0.2292); in-cell positive in 6 of 6. Reported beside P2's 0.273, not compared
+    (the readout's input changes).
+  - Read with the clean encoding through a new `align_dev.py --chromatin_encoding clean` flag, because **checkpoints do not record
+    their chromatin encoding**: the `.pt` carries `cfg`, `split`, `seed`, `ablate_epi` and `epochs` only. Without the flag the
+    readout would have been fed v9's encoding. The default path is unchanged.
+
+**Next (§92.5):**
+- **E1 seeds 1–2:** about 3.3 GPU-h. This week stands at ≈ 27.7 of 30 with E2 seeds 1–2 running, so they **go to next week's
+  quota** (resets Sat 10 Oct, 05:30 IST). They need a `kern_v9dev_e1_s1` from `make_e_kernels.py e1 --seed_start 1 --seeds 2`,
+  diffed against the cleared s0 kernel, as for E2.
+- **The E1-vs-E2 comparator** (92.3) is read when both have three seeds.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

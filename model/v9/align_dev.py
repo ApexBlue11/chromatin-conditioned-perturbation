@@ -36,14 +36,14 @@ DEV_SHA1 = '51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980'
 P7_SHA1 = ['9e94007ad60d5cd183ad56e14f2790451f475239', 'daba6a0b204fc957672d77c72dc5c2609105ee57', 'b106bf67fc476082744118bd68689e718846e223']  # from P7_COMPLETE.json (lincs-v9p7 v1, 2026-10-03), seeds 0-2
 
 
-def load_dev(split, dev_cells=6, dev_seed=0, ablate_epi=False, rows_mode='dev'):
+def load_dev(split, dev_cells=6, dev_seed=0, ablate_epi=False, rows_mode='dev', chromatin_encoding='v9'):
     roots = ['/kaggle/input', r'C:\Projects\LINCS', os.path.join(r'C:\Projects\LINCS', 'external')]
     npz = find('xpert_mdmt_splits.npz', roots)
     if rows_mode == 'dev':
         dev_args = argparse.Namespace(dev_cells=dev_cells, dev_seed=dev_seed, dev_min_rows=200, dev_max_rows=2000)
     else:
         dev_args = argparse.Namespace(dev_cells=0, dev_seed=dev_seed, dev_min_rows=200, dev_max_rows=2000)
-    D = XPertData(npz, roots, split, ablate_epi=ablate_epi, dev_args=dev_args)
+    D = XPertData(npz, roots, split, ablate_epi=ablate_epi, dev_args=dev_args, chromatin_encoding=chromatin_encoding)
     sha = hashlib.sha1(np.sort(D.row_index[D.te].astype(np.int64)).tobytes()).hexdigest()
     if rows_mode == 'dev':
         assert sha == DEV_SHA1, 'not the RESULTS 85.4 dev rows: %s' % sha
@@ -176,6 +176,8 @@ def main():
     ap.add_argument('--readout', choices=['mean', 'aux'], default='mean')
     ap.add_argument('--no_nulls', action='store_true', help='skip the permutation and cell-shuffle nulls (slow)')
     ap.add_argument('--rows', choices=['dev', 'test'], default='dev')
+    ap.add_argument('--chromatin_encoding', choices=['v9', 'clean'], default='v9',
+                    help='the encoding the checkpoint was TRAINED with (RESULTS 92 E1: clean); checkpoints do not record it')
     a = ap.parse_args()
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'
     if a.rows == 'test':
@@ -190,7 +192,8 @@ def main():
         ck = torch.load(p, map_location='cpu', weights_only=False)
         assert ck['split'] == a.split
         if D is None:
-            D, M, ppi, gv = load_dev(a.split, ablate_epi=ck.get('ablate_epi', False), rows_mode=a.rows)
+            D, M, ppi, gv = load_dev(a.split, ablate_epi=ck.get('ablate_epi', False), rows_mode=a.rows,
+                                     chromatin_encoding=a.chromatin_encoding)
             delta = D.X[D.te] - D.C[D.te]
             cells = np.asarray(D.cell[D.te]) if hasattr(D, 'cell') else None
             prior_tr = training_prior(D, M)
