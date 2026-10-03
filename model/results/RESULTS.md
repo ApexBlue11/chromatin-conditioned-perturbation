@@ -6923,7 +6923,7 @@ drug-known rows; nothing re-run). The MDEs above are fractions of the cell-speci
 Both arms are development after P7. An adopted change needs its own test-cell registration (a P8) before any test-cell statement,
 and P7 is unchanged.
 
-### 92.7 E2 seed 0, read by rule 6 — **ADVANCE to seeds 1–2** (Δ +0.0102 ≥ 0.0034); the per-cell pattern repeats T4's (2026-10-03)
+### 92.7 E2 seed 0, read by rule 6 — **ADVANCE to seeds 1–2** (Δ +0.0102 ≥ 0.0034); its per-cell signs resemble T4's at one seed (2026-10-03; wording amended by review 047)
 **The run:**
 - `lincs-v9dev-e2-s0`, pushed by the chain at 14:36 IST when P7 was COMPLETE with its marker; done in 1.64 h.
 - Mounted code verified: `xpert_arm.py` `75c58f52…`. GUARD 4 (dev rows `51e7e4ab…`) and GUARD 5 (distinct seeding) OK.
@@ -6945,8 +6945,12 @@ the same recipe (§91.11, `v9_dev_score_T4_chromatin_ablated.json`):
 | SKBR3 | −0.0067 | −0.0029 |
 | HL60 | −0.0112 | −0.0130 |
 
-- **The training-distribution test repeats the inference diagnostic's pattern.** The same three cells gain and the same two lose
-  (U937 is ≈ 0 in both). The overall gain is larger: +0.0102 against T4's +0.0060.
+- **At one seed, E2's per-cell signs resemble T4's** (amended, review 047 C1):
+  - r 0.92 across the six cells, signs agreeing in 5 of 6;
+  - no other P2-recipe screen (C1–C8, V1, V2, P6) shows LNCAP above +0.01 together with SKBR3 and HL60 negative;
+  - but single-seed per-cell medians in these screens swing by ±0.01–0.03.
+- **Unlike T4, about half of E2's gain is a per-cell offset:** centred +0.0053 of +0.0102 (52 %), against T4's 0.0056 of 0.0060
+  (94 %). E2's Δ is one seed against P2's three-seed mean; T4's is a three-seed paired Δ. **Read at three seeds.**
 - **Cells favouring E2: 3 of 6.** Rule 7's acceptance needs ≥ 4 of 6 at three seeds, so the arm advances on Δ but its cell
   count is already the binding conjunct.
 - **Rule 8's values** (`align_dev.py --readout aux --no_nulls`, seed 0's final checkpoint, dev rows):
