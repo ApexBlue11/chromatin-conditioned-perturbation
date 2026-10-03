@@ -612,7 +612,7 @@ def make_f8(src=P7_JSON, ref=O2_JSON, out_dir=OUT_DIR, stem="f8_p7_h2h"):
     d_c_err_low = [c["d_c_median"] - c["d_c_median_ci95"][0] for c in cells]
     d_c_err_high = [c["d_c_median_ci95"][1] - c["d_c_median"] for c in cells]
 
-    ax1.errorbar(d_c_medians, y_pos, xerr=[d_c_err_low, d_c_err_high], fmt='o', color=COLOR_V9, capsize=2, zorder=3, label="v9 (3 seeds, snapshot average)")
+    ax1.errorbar(d_c_medians, y_pos, xerr=[d_c_err_low, d_c_err_high], fmt='o', color=COLOR_V9, capsize=2, zorder=3, label="v9 (mean of 3 seeds' scores; each a snapshot average)")
 
     ref_d_c_medians = [ref_cells[c["cell"]]["d_c_median"] for c in cells]
     ax1.plot(ref_d_c_medians, y_pos, 'o', color='none', markeredgecolor=COLOR_GRAY, markeredgewidth=1.5, zorder=4, label="§87: one v9 run")
@@ -624,9 +624,9 @@ def make_f8(src=P7_JSON, ref=O2_JSON, out_dir=OUT_DIR, stem="f8_p7_h2h"):
     cluster_mean = src_data["cluster"]["mean_of_d_c"]
     cluster_ci = src_data["cluster"]["cluster_ci95"]
 
-    ax1.axvspan(cluster_ci[0], cluster_ci[1], alpha=0.2, color=COLOR_THIRD, zorder=1, label="cluster mean 95 % CI")
+    ax1.axvspan(cluster_ci[0], cluster_ci[1], alpha=0.2, color=COLOR_THIRD, zorder=1, label="cluster mean: percentile cluster bootstrap, 8 cells")
     ax1.axvline(cluster_mean, color=COLOR_V9, linestyle=':', zorder=2, label="cluster mean")
-    ax1.set_xlabel("v9 − XPert: per-row Δ Pearson, median per cell", fontsize=9)
+    ax1.set_xlabel("v9 − XPert: per-row Δ Pearson, median per cell (bars: row bootstrap, one XPert run)", fontsize=9)
     ax1.xaxis.set_major_locator(ticker.MaxNLocator(nbins=6))
     ax1.tick_params(axis='x', labelsize=8)
     ax1.legend(loc='lower center', bbox_to_anchor=(0.5, 1.0), ncol=2, frameon=False, fontsize=8)
@@ -661,12 +661,12 @@ def make_f8(src=P7_JSON, ref=O2_JSON, out_dir=OUT_DIR, stem="f8_p7_h2h"):
     b_means.append(cluster_mean)
     b_ci_low.append(cluster_mean - cluster_ci[0])
     b_ci_high.append(cluster_ci[1] - cluster_mean)
-    b_labels.append("v9, snapshot average (3 seeds)")
+    b_labels.append("v9 (mean of 3 seeds' scores)")
     b_colors.append(COLOR_V9)
     b_fmts.append('o')
     b_mfc.append(COLOR_V9)
     b_mec.append(COLOR_V9)
-    b_texts.append(f"{src_data['cluster']['cells_favouring_ours']} / {src_data['cluster']['n_cells']} cells")
+    b_texts.append(f"{src_data['cluster']['cells_favouring_ours']} / {src_data['cluster']['n_cells']} cells (criterion ≥ 7)")
 
     if has_alt:
         alt_mean = src_data["alt"]["cluster"]["mean_of_d_c"]
@@ -679,7 +679,7 @@ def make_f8(src=P7_JSON, ref=O2_JSON, out_dir=OUT_DIR, stem="f8_p7_h2h"):
         b_fmts.append('o')
         b_mfc.append(COLOR_GRAY)
         b_mec.append(COLOR_GRAY)
-        b_texts.append(f"{src_data['alt']['cluster']['cells_favouring_ours']} / {src_data['alt']['cluster']['n_cells']} cells")
+        b_texts.append(f"{src_data['alt']['cluster']['cells_favouring_ours']} / {src_data['alt']['cluster']['n_cells']} cells (criterion ≥ 7)")
 
         p_val("F8", "alt_cluster_mean", alt_mean)
         p_val("F8", "alt_cluster_ci95_0", alt_ci[0])
@@ -697,7 +697,7 @@ def make_f8(src=P7_JSON, ref=O2_JSON, out_dir=OUT_DIR, stem="f8_p7_h2h"):
     b_fmts.append('o')
     b_mfc.append('none')
     b_mec.append(COLOR_GRAY)
-    b_texts.append(f"{ref_data['cluster']['cells_favouring_ours']} / {ref_data['cluster']['n_cells']} cells")
+    b_texts.append(f"{ref_data['cluster']['cells_favouring_ours']} / {ref_data['cluster']['n_cells']} cells (criterion ≥ 7)")
 
     p_val("F8", "ref_cluster_mean", ref_mean)
     p_val("F8", "ref_cluster_ci95_0", ref_ci[0])
@@ -712,7 +712,7 @@ def make_f8(src=P7_JSON, ref=O2_JSON, out_dir=OUT_DIR, stem="f8_p7_h2h"):
     ax2.set_yticks(y_b)
     ax2.set_yticklabels([textwrap.fill(l, 30) for l in b_labels], fontsize=8)
     ax2.axvline(0, color=COLOR_REF, linestyle='-', zorder=1)
-    ax2.set_xlabel("v9 − XPert: cluster mean of per-cell medians (95 % CI)", fontsize=9)
+    ax2.set_xlabel("v9 − XPert: cluster mean of per-cell medians (percentile cluster bootstrap, 8 cells)", fontsize=9)
     ax2.tick_params(axis='x', labelsize=8)
     
     # ensure space for text

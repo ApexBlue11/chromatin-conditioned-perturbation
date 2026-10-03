@@ -6082,22 +6082,30 @@ two numbers attached to their own objects.
 | H1975 | 54 | **−0.0302** [−0.0402, −0.0174] | −0.0402 |
 
 **The reading (§85.12 item 6 = §71.3, mechanical):**
-- **Cluster mean of d_c: +0.0503, CI [+0.0107, +0.0883]** (width 0.078 < 0.10, so informative). It is above 0 and excludes 0.
+- **Cluster mean of d_c: +0.0503, registered CI [+0.0107, +0.0883]** (width 0.078 < 0.10, so informative). It is above 0 and
+  excludes 0. **Amended, review 046 C1:** the registered CI is a percentile cluster bootstrap over 8 cells, which undercovers at
+  this n. On the same eight d_c, a t-interval is **[−0.0002, +0.1009]** (width 0.101) and the Wilcoxon signed-rank p is 0.078.
+  The registered rule governs, and the reading is no claim either way.
 - **Cells favouring v9: 6 of 8** (sign p 0.29). The rule needs ≥ 7, so the verdict is **NO CELL-LEVEL CLAIM**.
 - CD34 and H1975 favour XPert with CIs excluding 0. BJAB favours v9, but its CI includes 0.
-- **Against §87:** §87 had +0.0465 [+0.0048, +0.0861] and 5 of 8. The dev-selected stack moves the cluster mean by +0.004 and
-  BJAB's sign (within its CI). The same two cells, CD34 and H1975, favour XPert in both.
+- **Against §87:** §87 had +0.0465 (bootstrap [+0.0048, +0.0861]; t-interval [−0.0064, +0.0994]) and 5 of 8. Amended,
+  review 046 C2:
+  - P7 differs from §87 (one run of the pre-development v9) by +0.004, **within the spread of P7's own seeds** (+0.048 to
+    +0.054), so the difference is not attributed to the protocol;
+  - BJAB's sign change is inside both intervals;
+  - the same two cells, CD34 and H1975, favour XPert in both, **both against the one XPert run**.
 - **Permitted reading:** *"a dev-selected v9 is not shown to generalise better than XPert at the cell level: it is higher on 6 of 8
   unseen cell lines and lower on 2 (CD34, H1975), and the pre-registered rule needs 7."*
 
 **Secondary (§85.12 item 7; never in the verdict):**
 - **Per seed:** cluster +0.054 / +0.048 / +0.049, each 6 of 8.
 - **Row-pooled:** +0.0944 (v9 0.481, XPert 0.387). This is dominated by MCF7 (51 % of rows) and is **not** a cell-level claim.
-- **Cell-centred score, both models (§85.10):** v9 0.4956, XPert 0.4627. Cluster +0.0303 [+0.0186, +0.0436]; **v9 is above in all 8
-  cells**, including CD34 (+0.068) and H1975 (+0.037).
-  - This is consistent with v9's raw deficit in those two cells sitting in each cell's mean delta profile, not in drug-specific
-    departures from it. It is not established.
-  - It is a registered secondary and **licenses no claim**.
+- **Cell-centred score, both models (§85.10):** v9 0.4956, XPert 0.4627; cluster +0.0303. Amended, review 046 C3:
+  On the cell-centred score, which removes each cell's mean response (the part a model must predict for an unseen
+  cell) from truth and prediction alike, v9 is above XPert in all 8 cells, CD34 and H1975 included. This is consistent with
+  v9's deficit in those two cells lying in its predicted mean response for the cell. It is a registered secondary, is not a
+  measure of cell-level generalisation, and licenses no claim. For CD34, v9's centred score (0.355) is above its raw one (0.292). For H1975, both models
+  lose most of their raw score on centring (v9 0.548 → 0.300; XPert 0.583 → 0.244).
 - **P7-last** (the stack's final snapshot, no snapshot averaging): cluster +0.0418 [+0.0026, +0.0799], 5 of 8; row-pooled +0.0842.
 - **`ensemble_own`** (v9's own seed ensemble, not a comparison with XPert's single run): 0.498 over rows.
 - **Reproduction:** XPert scores 0.38618 on all rows, inside [0.302, 0.464]. Admissible (§71.7).
