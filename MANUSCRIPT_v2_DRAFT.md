@@ -14,7 +14,9 @@ state-of-the-art model, XPert (Nature Machine Intelligence 2025), to its publish
 scores 0.386 on the test rows, inside its published 0.383 ± 0.027 [§87]. **(ii)** Against it, on 21,151 identical test rows, our
 model v9 is higher on 5 of 8 held-out cell lines and lower on 3 (two beyond row-level noise); row-pooled it scores 0.473 against 0.387,
 a figure dominated by MCF7 (51 % of rows). The pre-registered cell-level criterion was not met, so we make no claim that v9 generalises
-better [§87; C 1.11]. ⏳ *[P7: the registered second comparison with a dev-selected v9.]*
+better [§87; C 1.11]. A registered second comparison, with v9 selected on held-out training cells (three seeds), gives the same
+reading: higher on 6 of 8 cell lines and lower on 2 (CD34, H1975), against the 7 the criterion needs (cluster mean +0.050,
+95 % CI [+0.011, +0.088]) [§85.14].
 **(iii)** A dissection and a pre-registered development protocol on held-out training cells show that several components the field
 treats as load-bearing — chromatin features, protein-interaction message passing, a named pathway layer, and ranking and reweighted
 losses at their pre-registered weights — add nothing detectable or harm; atom-level drug tokens are the exception (a model trained
@@ -29,8 +31,8 @@ the training mean at inference raises the dev-cell score by 0.006 on balance (a 
 **(iv)** For
 interpretability, attention and gradient readouts do not recover annotated drug mechanism beyond calibrated nulls [C 4.1a, §86.4];
 a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which pathways move
-in held-out cells (dev baseline: ρ 0.273, +0.044 above a cell-agnostic prior; the final model's final-snapshot weights: 0.265,
-"in this cell" on 5 of 6; dev cells only so far) [§85.10, §85.13, C 4.16]. ⏳ *[§88: a drug-dependent pathway readout against annotated mechanism.]* We also document how the benchmark's own numbers
+in unseen test cell lines (ρ 0.295 against 0.241 for a cell-agnostic training-row prior, on every seed; above the readout for
+other cells in all 8 test cells) [§85.10, §85.14, C 4.16]. ⏳ *[§88: a drug-dependent pathway readout against annotated mechanism.]* We also document how the benchmark's own numbers
 are produced — a released checkpoint scored on folds it was trained on, and checkpoint selection on the test fold — and seven
 methods lessons, each with its measurement.
 
@@ -112,11 +114,20 @@ the recipe's objective switch at epoch 70; v9 trained a fixed 12 epochs; the com
 scores had been seen (bound 0.0042 row-pooled, ≈ 0.0004 on the cluster estimand); the earlier v9 runs used identical dropout
 masks on both GPUs, a defect found and fixed during this work [C 6.13].
 
-⏳ **5.1b P7 — the registered second comparison** (§85.12). The dev-selected v9 (P2 + C6 [+ V2]) on all 32 training cells, 3 seeds,
-scored once on the same 21,151 rows; readings fixed in advance: v9 wins → *"a dev-selected v9 generalises better than XPert as
-published"* (secondary, labelled *"dev-selected increments on a baseline partly chosen with test-cell knowledge"*); XPert wins →
-*"uninterpretable as a model comparison"*; otherwise no claim. Secondary rows: the cell-centred score for both models, v9's own seed
-ensemble (never set beside XPert's single run), and a V2-last row if V2 is used [§90.6].
+**5.1b P7 — the registered second comparison (Figure 8)** (§85.12, §85.14). The dev-selected v9 (P2 + sign head + snapshot
+ensemble) was trained on all 32 training cells with 3 seeds and scored once, blinded, on the same 21,151 rows, with readings fixed
+in advance. *Proposed wording:* **"A dev-selected v9 is not shown to generalise better than XPert at the cell level: it is higher
+on 6 of 8 unseen cell lines and lower on 2 (CD34 and H1975, beyond row-level noise), and the pre-registered criterion needs 7."**
+- **The cluster mean** of per-cell differences is +0.0503 [+0.0107, +0.0883], against §87's +0.0465 [+0.0048, +0.0861]. The
+  development protocol moved it by +0.004 and moved BJAB's sign within its interval. The two cells that favour XPert are the
+  same in both comparisons.
+- **Secondary rows (never in the verdict):**
+  - per seed +0.054 / +0.048 / +0.049, each 6 of 8;
+  - row-pooled 0.481 against 0.387, dominated by MCF7;
+  - the final snapshot alone, +0.042 and 5 of 8.
+- **The cell-centred score** (§85.10) is v9 0.496 against XPert 0.463, and v9 is above in **all 8 cells**, CD34 and H1975
+  included. This is consistent with v9's deficit in those two cells lying in each cell's mean response profile rather than in
+  drug-specific departures from it. It is a registered secondary and licenses no claim.
 
 ### 5.2 The warm split
 On the fold XPert's released checkpoint was trained on (`split_2`), v9 is ahead on all 8 metrics (delta Pearson +0.012 [0.011, 0.013],
@@ -199,8 +210,11 @@ head is in the final model by the pre-registered rule, not because it was shown 
   *"a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which pathways move
   in held-out cells at ρ = 0.273, +0.044 above a cell-agnostic training-row prior (0.229)"*; its own readout beats the same model's
   readout for other cells in all 6 dev cells (licensed "in this cell"). These are the **dev baseline's** numbers (P2, §85.10);
-  the final model, read on its final-snapshot weights, gives 0.265 and 5 of 6 dev cells (HL60 −0.0001) [§85.13], until P7's
-  test-cell reading replaces both. It is cell-level, drug-independent and supervised on the target
+  the final model, read on its final-snapshot weights, gives 0.265 and 5 of 6 dev cells (HL60 −0.0001) [§85.13].
+  **On the unseen test cells** (P7's three checkpoints, read once, §85.14):
+  - 0.292 / 0.304 / 0.290 against a training-row prior of 0.241 (all 32 training cells), so it beats the prior on every seed;
+  - above the other cells' readout in **all 8 test cells**, licensed "in this cell" (a consistency filter, sign p 0.004);
+  - no permutation nulls were run on the test rows. It is cell-level, drug-independent and supervised on the target
   it is scored against. An earlier "8–12 sd over a permutation null" for a channel-mean readout [§37] does not reproduce in these models
   (its sign is arbitrary) and its null did not control for a generic ranking; it is withdrawn as evidence of mechanism.
 - ⏳ **A drug-dependent pathway readout** (C8b's post-drug layer, trained on fold 0, 3 seeds, 5 untrained calibrations) against
@@ -224,16 +238,16 @@ head is in the final model by the pre-registered rule, not because it was shown 
    ≤ 0.0003 [§91.10, §91.12].
 
 ## 7. Limitations
-One cold-cell fold; one XPert run and, in §87, one v9 run, so the row-bootstrap intervals carry no run-to-run variance (P7 adds three
-v9 seeds, not XPert seeds). Three of eight test cells have no chromatin, and 12 of the 26 dev-training cells have it. The chromatin tracks are gene-level
+One cold-cell fold and one XPert run, so the intervals carry no XPert run-to-run variance (§87 is one v9 run; P7 adds three v9
+seeds, whose per-seed cluster means span +0.048 to +0.054). Three of eight test cells have no chromatin, and 12 of the 26 dev-training cells have it. The chromatin tracks are gene-level
 ATAC, H3K27ac and H3K27me3 at the landmark genes; the funnel's negative covers forms linear in those tracks on six dev cells. Landmark genes only. Most L1000 signatures are close to inert
 (~75 %) [C 6.1], which bounds any per-row correlation. Every §85 increment was measured on six dev cells, against a baseline whose own selection saw test scores; with that few cells,
-≥ 4 of 6 is a consistency filter, not a test. The pathway alignment is so far a dev-cell number; its test-cell measurement comes with
-P7 (§85.12 item 8).
+≥ 4 of 6 is a consistency filter, not a test. The test-cell pathway alignment is one measurement on P7's three seeds, without
+permutation nulls.
 
 ## Figures
 F1 per-cell head-to-head · F2 XPert reproduction · F3 dev screens · F4 gradient MoA probe with untrained calibration · F5 input
-coverage (supplement) · F6 variance: seed, snapshot and inference-time ensembles · F7 pathway alignment against its references · ⏳ F8 P7 head-to-head · F9 chromatin: the calibration, the closed-form gains, and T4/T4b *(caption: filled = T1's full rule, all five conjuncts;
+coverage (supplement) · F6 variance: seed, snapshot and inference-time ensembles · F7 pathway alignment against its references · F8 P7 head-to-head · F9 chromatin: the calibration, the closed-form gains, and T4/T4b *(caption: filled = T1's full rule, all five conjuncts;
 the band is |Δ| because a log axis cannot show negatives; P3 is omitted because the centred conjunct always fails it,
 although its raw Δ lies above the bar; the real-data mark is FBC − FB, gene-generic, and no planted size is implied)* · ⏳ dissection and
 forensics figures.

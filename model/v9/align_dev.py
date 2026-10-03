@@ -33,7 +33,7 @@ from interp_v9 import pathway_alignment
 DEV_SHA1 = '51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980'
 # RESULTS 85.12 item 8 (review 035 C2): --rows test runs ONLY on P7's three checkpoints, whose sha1s are copied here from the
 # P7 kernel's P7_COMPLETE.json before it is run. While any pin is None, --rows test refuses.
-P7_SHA1 = [None, None, None]
+P7_SHA1 = ['9e94007ad60d5cd183ad56e14f2790451f475239', 'daba6a0b204fc957672d77c72dc5c2609105ee57', 'b106bf67fc476082744118bd68689e718846e223']  # from P7_COMPLETE.json (lincs-v9p7 v1, 2026-10-03), seeds 0-2
 
 
 def load_dev(split, dev_cells=6, dev_seed=0, ablate_epi=False, rows_mode='dev'):

@@ -1,0 +1,104 @@
+{
+ "label": "P7",
+ "readout": "aux",
+ "n_rows": 21151,
+ "n_perm": 200,
+ "references": {
+  "training_prior": 0.240585507036758,
+  "loco_prior": 0.23069115875015503
+ },
+ "per_checkpoint": [
+  {
+   "ckpt": "v9p7_seed0.pt",
+   "ckpt_sha1": "9e94007ad60d5cd183ad56e14f2790451f475239",
+   "seed": 0,
+   "alignment": 0.29156058225806963,
+   "null_mean": null,
+   "null_sd": null,
+   "z": null,
+   "cell_shuffle_mean": null,
+   "cell_shuffle_sd": null,
+   "in_cell_increment": {
+    "BJAB": 0.04209975381596808,
+    "CD34": 0.01846355069781492,
+    "H1975": 0.08009148191377381,
+    "HS578T": 0.08555775999335753,
+    "HT29": 0.15573387407075096,
+    "MCF7": 0.0947263590102827,
+    "MDAMB231": 0.06463864524491245,
+    "THP1": 0.11089722947899161
+   },
+   "in_cell_increment_mean": 0.08152608177823151
+  },
+  {
+   "ckpt": "v9p7_seed1.pt",
+   "ckpt_sha1": "daba6a0b204fc957672d77c72dc5c2609105ee57",
+   "seed": 1,
+   "alignment": 0.3039076389152309,
+   "null_mean": null,
+   "null_sd": null,
+   "z": null,
+   "cell_shuffle_mean": null,
+   "cell_shuffle_sd": null,
+   "in_cell_increment": {
+    "BJAB": 0.022576152248696798,
+    "CD34": 0.0031270174654139393,
+    "H1975": 0.02002276783071362,
+    "HS578T": 0.10637931046522846,
+    "HT29": 0.16058618459197774,
+    "MCF7": 0.08255249840575449,
+    "MDAMB231": 0.07573969553277382,
+    "THP1": 0.13089895433789836
+   },
+   "in_cell_increment_mean": 0.07523532260980714
+  },
+  {
+   "ckpt": "v9p7_seed2.pt",
+   "ckpt_sha1": "b106bf67fc476082744118bd68689e718846e223",
+   "seed": 2,
+   "alignment": 0.2895329635099043,
+   "null_mean": null,
+   "null_sd": null,
+   "z": null,
+   "cell_shuffle_mean": null,
+   "cell_shuffle_sd": null,
+   "in_cell_increment": {
+    "BJAB": -0.001210841896221287,
+    "CD34": 0.0030254295683353957,
+    "H1975": 0.08945023091181914,
+    "HS578T": 0.09053199786336956,
+    "HT29": 0.15525537682446958,
+    "MCF7": 0.08529247643870387,
+    "MDAMB231": 0.0712813129345526,
+    "THP1": 0.08927018188304876
+   },
+   "in_cell_increment_mean": 0.07286202056600971
+  }
+ ],
+ "mean_alignment": 0.2950003948944016,
+ "mean_null_mean": null,
+ "mean_null_sd": null,
+ "sd_alignment": 0.007780234988862956,
+ "in_cell": {
+  "per_cell_3seed_mean": {
+   "BJAB": 0.021155021389481197,
+   "CD34": 0.008205332577188085,
+   "H1975": 0.06318816021876886,
+   "HS578T": 0.09415635610731853,
+   "HT29": 0.15719181182906608,
+   "MCF7": 0.08752377795158035,
+   "MDAMB231": 0.07055321790407963,
+   "THP1": 0.11035545523331292
+  },
+  "cells_positive": 8,
+  "seed_means": [
+   0.08152608177823151,
+   0.07523532260980714,
+   0.07286202056600971
+  ],
+  "licensed": true,
+  "min_cells": 7,
+  "beats_training_prior_every_seed": true,
+  "training_prior": 0.240585507036758
+ }
+}

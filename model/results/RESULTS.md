@@ -6059,6 +6059,71 @@ not because it was shown to help on top of V2.** (iii) Per-cell Δ (P6): HEK293T
 (+0.00874); the reported accuracy (+0.01844) is that of the three-snapshot prediction average. Every table and sentence keeps the
 two numbers attached to their own objects.
 
+### 85.14 P7 RESULT, scored once — **NO CELL-LEVEL CLAIM** (cluster mean +0.050, CI excluding 0, but **6 of 8** cells favour v9; ≥ 7 needed); the test-cell pathway readout licenses both its statements (2026-10-03)
+**The run:**
+- `lincs-v9p7` version 1, pushed by hand at 08:44 IST after the detached 05:40 loop died silently. The kernel was checked
+  byte-identical to its cleared commit 1cd614c first. COMPLETE by 14:36 IST.
+- `P7_COMPLETE.json`: 20 files, every sha1 verified. `score_p7.py --dry_check`: snapshot identities exact (`_last` = `_snap2`;
+  main = mean of snapshots, max |d| 0); stack P2 + C6 + V2; O2 sha1 `69484323…`.
+- **Scored once** by `score_p7.py` (`coldcell_h2h.py`, 20,000 bootstraps, seed 0) →
+  `model/results/coldcell_h2h_split_cold_cell_1_P7.json`. The blinded kernel printed no test metric.
+
+**Per cell** (per-row Δ Pearson, v9 − XPert, median per cell; 21,151 paired rows):
+
+| cell | n | P7 d_c [95 % CI] | §87 (one v9 run) |
+|---|---|---|---|
+| MCF7 | 10,815 | +0.0833 [+0.0807, +0.0854] | +0.0751 |
+| HT29 | 5,837 | +0.1325 [+0.1287, +0.1352] | +0.1225 |
+| MDAMB231 | 2,188 | +0.0680 [+0.0653, +0.0712] | +0.0697 |
+| HS578T | 1,074 | +0.0935 [+0.0886, +0.0992] | +0.1061 |
+| THP1 | 815 | +0.0762 [+0.0661, +0.0879] | +0.0754 |
+| CD34 | 295 | **−0.0335** [−0.0417, −0.0262] | −0.0355 |
+| BJAB | 73 | +0.0128 [−0.0003, +0.0265] | −0.0012 |
+| H1975 | 54 | **−0.0302** [−0.0402, −0.0174] | −0.0402 |
+
+**The reading (§85.12 item 6 = §71.3, mechanical):**
+- **Cluster mean of d_c: +0.0503, CI [+0.0107, +0.0883]** (width 0.078 < 0.10, so informative). It is above 0 and excludes 0.
+- **Cells favouring v9: 6 of 8** (sign p 0.29). The rule needs ≥ 7, so the verdict is **NO CELL-LEVEL CLAIM**.
+- CD34 and H1975 favour XPert with CIs excluding 0. BJAB favours v9, but its CI includes 0.
+- **Against §87:** §87 had +0.0465 [+0.0048, +0.0861] and 5 of 8. The dev-selected stack moves the cluster mean by +0.004 and
+  BJAB's sign (within its CI). The same two cells, CD34 and H1975, favour XPert in both.
+- **Permitted reading:** *"a dev-selected v9 is not shown to generalise better than XPert at the cell level: it is higher on 6 of 8
+  unseen cell lines and lower on 2 (CD34, H1975), and the pre-registered rule needs 7."*
+
+**Secondary (§85.12 item 7; never in the verdict):**
+- **Per seed:** cluster +0.054 / +0.048 / +0.049, each 6 of 8.
+- **Row-pooled:** +0.0944 (v9 0.481, XPert 0.387). This is dominated by MCF7 (51 % of rows) and is **not** a cell-level claim.
+- **Cell-centred score, both models (§85.10):** v9 0.4956, XPert 0.4627. Cluster +0.0303 [+0.0186, +0.0436]; **v9 is above in all 8
+  cells**, including CD34 (+0.068) and H1975 (+0.037).
+  - This is consistent with v9's raw deficit in those two cells sitting in each cell's mean delta profile, not in drug-specific
+    departures from it. It is not established.
+  - It is a registered secondary and **licenses no claim**.
+- **P7-last** (the stack's final snapshot, no snapshot averaging): cluster +0.0418 [+0.0026, +0.0799], 5 of 8; row-pooled +0.0842.
+- **`ensemble_own`** (v9's own seed ensemble, not a comparison with XPert's single run): 0.498 over rows.
+- **Reproduction:** XPert scores 0.38618 on all rows, inside [0.302, 0.464]. Admissible (§71.7).
+
+**The test-cell pathway readout (§85.12 item 8; reported beside P7, never in its verdict):**
+- **The run:** `align_dev.py --rows test --readout aux --no_nulls` on the three pinned checkpoints, once. These are the
+  final-snapshot weights; `P7_SHA1` is pinned from `P7_COMPLETE.json`. It used the 21,151 test rows (sha1 asserted), and the
+  training-row prior was recomputed from all 32 training cells. Local GPU inference; output
+  `model/results/v9_dev_align_P7_aux_test.json`.
+- **Alignment** 0.2916 / 0.3039 / 0.2895 (mean 0.2950, sd 0.0078), against a training-row prior of 0.2406 and a LOCO prior of 0.2307.
+  The readout **beats the prior on every seed**, so *"beats a cell-agnostic training-row prior"* is **licensed**.
+- **In-cell increment** over the other-cells mean readout:
+  - 3-seed means: BJAB +0.021, CD34 +0.008, H1975 +0.063, HS578T +0.094, HT29 +0.157, MCF7 +0.088, MDAMB231 +0.071, THP1 +0.110;
+  - **> 0 in 8 of 8 test cells** (≥ 7 needed), with seed means +0.082 / +0.075 / +0.073;
+  - so *"in this cell"* is **licensed**.
+- **What it licenses:** the shared linear readout of the named pathway nodes ranks which pathways move in **unseen test cells**
+  better than a cell-agnostic prior from the training cells, on every seed, and above the other cells' mean readout in each
+  of the 8 test cells (a consistency filter, sign p = 0.004).
+- **What it does not license:** a drug-dependent mechanism. That is §88's question.
+- **Nulls:** none were run on the test rows, matching P6's rule-8 command.
+
+**Chromatin:** P7 keeps chromatin as registered. T4 (§91.11) is reported beside it. No test-cell T4 row was registered, so no
+test-cell chromatin statement is made.
+
+**Figure:** F8 (`model/figures/out/f8_p7_h2h.png`), rendered from the scored JSON.
+
 ## 86. 🔒 PRE-REGISTERED: drug-specific pathway mechanism in trained v9, by gradient × activation (packet 020 as amended by review 020; IDEAS A11 step 1; 0 GPU-h) (2026-09-25)
 
 Ports `model/v6/probe_moa_v6.py` — never run on a trained model; its only run was the untrained control of CLAIMS 4.15
