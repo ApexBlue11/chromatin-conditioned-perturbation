@@ -22,7 +22,10 @@ without them is worse, −0.0086, although removing them from one trained model 
 per-gene direction head) is accepted, with no detectable change in the drug-specific component. A seed-specific prediction component
 (+0.029 from averaging three seeds, at three times the training compute) is larger than any architectural effect we measured;
 a snapshot ensemble within one run recovers 0.57 of it (+0.017, accepted), inference-time dropout averaging 3–4 %
-[§37, §55, §85.8, §85.9, §90.7, §90.8]. **(iv)** For
+[§37, §55, §85.8, §85.9, §90.7, §90.8]. For chromatin, a test calibrated by planting effects of known size into
+the real data rules out a drug-conditioned, gene-local effect explaining ≥ 0.5 % of the cell-specific response (linear in the
+encoded tracks), and removing chromatin from trained models at inference raises their held-out-cell score by 0.006 [§91].
+**(iv)** For
 interpretability, attention and gradient readouts do not recover annotated drug mechanism beyond calibrated nulls [C 4.1a, §86.4];
 a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which pathways move
 in held-out cells (dev baseline: ρ 0.273, +0.044 above a cell-agnostic prior; the final model's final-snapshot weights: 0.265,
@@ -122,8 +125,8 @@ protocol), and those v9 runs used the dropout-mask defect above [C 6.13].
 ### 5.3 What does not transfer (Figure 3)
 **Dissection of the committed v9** (exploratory): STRING message passing and the named pathway layer contribute ≈ 0 to accuracy when
 ablated to the mean in a trained model [§37]. Chromatin was tested by retraining: an arm without cell-specific chromatin (one run
-each, scored on the cold-cell test cells, §45) differs by +0.0004 on the cluster estimand over the five covered cells, 0.57 σ of
-run-to-run noise — no detectable effect — after an earlier row-bootstrap +0.0042 was retracted [§51–55]. **The development screens** (dev
+each, scored on the cold-cell test cells, §45) differs by +0.0004 on the cluster estimand over the five covered cells; with one run per arm
+that rules out only effects larger than ≈ 0.006–0.016 [§91.10], after an earlier row-bootstrap +0.0042 was retracted [§51–55]. **The development screens** (dev
 carve, rules committed first; Figure 3) [§85.8]: removing atom tokens during training (−0.0086; one seed, dropped at the screen),
 removing the control encoder (+0.0016, below the advance threshold; one seed), a ListNet ranking loss and a DEG-reweighted loss at their
 pre-registered weights (−0.0205 and −0.0042; one seed each), chromatin-gated union-graph edges (+0.0020 at three seeds, below its threshold 0.0042) and a post-drug pathway layer (+0.0026 at three seeds, *"indistinguishable
@@ -134,6 +137,32 @@ no detectable change in the drug-specific (cell-centred) component (Δ_c = +0.00
 drug-specific prediction. For atom tokens an inference ablation (one fold-0 model, drug self-attention off: removing them helped, the model lost 0.007 with
 them on unseen cells) and a retraining ablation (one dev-carve seed: a model trained without them is 0.0086 worse) disagree in sign;
 they differ in split, estimand and seed count, so we report this as an observation, not a finding [§37, §85.2 rule 9, §85.8].
+
+**Chromatin, with a test calibrated before it was read (Figure 9).** The earlier training-ablation null (one run per arm) could
+not have seen an effect smaller than ≈ 0.006–0.016, and the sign head we accepted moved the score by +0.0048 [§91.10]. We
+therefore pre-registered a closed-form funnel on the dev carve and calibrated it before reading it [§91.2–§91.11].
+- **The tests.** The main test (T1) asks whether a gene's chromatin in a new cell predicts how that cell's response to a drug
+  departs from the drug's mean response in other cells. It is a drug-conditioned, gene-local hierarchical ridge, fitted only on
+  dev-training cells. Two cheaper strategies were tested beside it: retrieving responses from cells with similar chromatin (T2),
+  and predicting which genes can move in a cell (T3).
+- **The calibration.** Effects of known size were planted into the real data, carried by tracks with the real ones' availability
+  and shape. A chromatin gain explaining 0.5 % of the cell-specific residual, the smallest size planted, moved T1's score by
+  +0.006 to +0.009 and was detected in 5 of 5 draws (the bar is +0.004). With nothing planted T1 never passed (|Δ| ≤ 0.0003).
+  Drug-specific shifts were detected at 5 % of the residual (+0.005 to +0.007), not at 2 % (+0.002 to +0.003).
+- **The reading: nothing advances.** T1's null is informative: *no drug-conditioned gene-local chromatin effect explaining
+  ≥ 0.5 % of the cell-specific residual, of a form linear in the encoded tracks, on these dev cells* (drug-specific shifts are
+  bounded at 5 %). T2's null is uninformative, and T3's positive control failed, so neither is interpreted [§91.12].
+- **What chromatin does carry is gene-generic.** Beyond basal expression it adds +0.0014 on the drug-known dev rows. Giving every
+  cell the same mean chromatin keeps all but 0.0002 of that, and giving each dev cell another dev cell's chromatin costs 0.0003.
+  This is the kind of per-gene content a gene embedding can represent [§91.12].
+
+**v9 reads its chromatin, and on unseen cells reading it costs accuracy.** In the three dev baseline models, mean-ablating
+chromatin at inference raises the dev score by +0.0060, on every seed. The cell-centred gain is +0.0056, so the cost is
+drug-specific rather than a per-cell offset. Most of it sits in three cells: HEK293T +0.023, LNCAP +0.027 and VCAP +0.014. For
+VCAP the cost is its failed H3K27me3 track: ablating that track alone recovers 93 % of the gain. For HEK293T and LNCAP no cause
+is identified [§91.11]. An inference-time ablation puts a model off its training distribution, so this is a diagnostic, not
+a method, and the final model keeps chromatin as registered. ⏳ *[§92: one-seed dev screens retraining without cell-specific
+chromatin (E2) and with a cleaned encoding (E1).]*
 
 **Variance, not architecture (Figure 6).** Averaging the predictions of three seeds raises the dev score from 0.4369 to 0.4662
 (+0.029), about 1.4× the largest candidate movement (C3, −0.0205) and 6× the largest gain (C6, +0.0048), and the gain survives
@@ -183,15 +212,19 @@ head is in the final model by the pre-registered rule, not because it was shown 
 6. **A row bootstrap on a cell-level question licenses trivial effects**: the retracted chromatin claim was +0.0042 row-pooled against
    +0.00036 by cluster [§51–55].
 7. **Read the supplementary before reverse-engineering a published number** [§46.1].
+8. **Plant an effect of known size before reading a null**: the earlier training-ablation null could not have seen effects below
+   ≈ 0.006–0.016, larger than the sign head we accepted (+0.0048). The calibrated funnel detects planted effects that move
+   its score by ≈ 0.005, and with nothing planted it moves by ≤ 0.0003 [§91.10, §91.12].
 
 ## 7. Limitations
 One cold-cell fold; one XPert run and, in §87, one v9 run, so the row-bootstrap intervals carry no run-to-run variance (P7 adds three
-v9 seeds, not XPert seeds). Three of eight test cells have no chromatin. Landmark genes only. Most L1000 signatures are close to inert
+v9 seeds, not XPert seeds). Three of eight test cells have no chromatin, and 12 of the 26 dev-training cells have it. The chromatin tracks are gene-level
+ATAC, H3K27ac and H3K27me3 at the landmark genes; the funnel's negative covers forms linear in those tracks on six dev cells. Landmark genes only. Most L1000 signatures are close to inert
 (~75 %) [C 6.1], which bounds any per-row correlation. Every §85 increment was measured on six dev cells, against a baseline whose own selection saw test scores; with that few cells,
 ≥ 4 of 6 is a consistency filter, not a test. The pathway alignment is so far a dev-cell number; its test-cell measurement comes with
 P7 (§85.12 item 8).
 
 ## Figures
 F1 per-cell head-to-head · F2 XPert reproduction · F3 dev screens · F4 gradient MoA probe with untrained calibration · F5 input
-coverage (supplement) · F6 variance: seed, snapshot and inference-time ensembles · F7 pathway alignment against its references · ⏳ F8 P7 head-to-head · ⏳ dissection and
+coverage (supplement) · F6 variance: seed, snapshot and inference-time ensembles · F7 pathway alignment against its references · ⏳ F8 P7 head-to-head · F9 chromatin: what each test could detect, the calibration, and T4/T4b · ⏳ dissection and
 forensics figures.

@@ -6770,6 +6770,24 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
 3. **Making cell-specific chromatin informative would need richer features** (S9: enhancer windows, TF-motif accessibility). That is
    a data project, not a model change.
 
+**Addendum (PI, 2026-10-03): the calibration in score units** (from `chromatin_power_91.json`, the five draws' T1 Δ on the
+drug-known rows; nothing re-run). The MDEs above are fractions of the cell-specific residual. In the funnel's own score:
+
+| planted | T1 Δ (5 draws) | passed |
+|---|---|---|
+| nothing (π = 0) | −0.00023 to +0.00025 | 0 / 5 |
+| P1 gain, 0.5 % (smallest planted) | +0.0055 to +0.0090 | 5 / 5 |
+| P1 gain, 1 % | +0.012 to +0.017 | 5 / 5 |
+| P2 drug-specific shift, 2 % | +0.0022 to +0.0034 | 0 / 5 |
+| P2 drug-specific shift, 5 % | +0.0050 to +0.0069 | 5 / 5 |
+
+- **So the funnel sees effects of ≈ +0.005 in its score**, set by its bar (+0.004 on these rows), with ≤ 0.0003 of noise. That
+  is below the training ablation's ≈ 0.006–0.016 (§91.10) and comparable to C7's ≈ 0.0042, not an order of magnitude finer.
+- **"MDE ≤ 0.5 %" is a ceiling:** 0.5 % was the smallest gain planted, so the gain form's true MDE is not located.
+- **§91.10's "+0.002 to +0.01" range is covered only from ≈ +0.004 up**, in this score. The score is the closed-form B0-based
+  one (B0 0.142), not v9's (§91.12 caveat on transfer).
+- The real T1 Δ (+0.0014) is above the π = 0 noise and below the bar, as §91.12 reads it.
+
 ## 92. 🔒 PRE-REGISTERED: two chromatin screens from the §91 funnel — E2 (no chromatin) and E1 (cleaned chromatin) on the dev carve (packet 044) (2026-10-03)
 ### 92.1 Why these two, and nothing else
 - **The funnel's verdict (§91.12):** no new chromatin mechanism earns a screen. The cell-specific content of promoter chromatin,
