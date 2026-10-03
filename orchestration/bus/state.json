@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "047_e2_s0"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -72,7 +74,7 @@
     "046_p7_result"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "P7 SCORED ONCE 2026-10-03 (RESULTS 85.14): no cell-level claim (6 of 8); test-cell readout licensed. E2 s0 RUNNING (pushed 14:36 by the chain). t1 RUNNING; t2 when t1 COMPLETE (chain). E1 s0 after the lincs-v9-src upload, made once t2 has started (review 044). Review 046 adjudicated (5 of 5 upheld; wording + F8 only; verdict unchanged).",
+  "pending_decision": "P7 scored (85.14, no claim). E2 s0 ADVANCES (92.7, +0.0102); E2 seeds 1-2 (kern_v9dev_e2_s1, 37e2083) pushed by the detached e2s1 chain when E1 s0 or t2 frees a slot. E1 s0 RUNNING (pushed 16:50 on the new lincs-v9-src). t2 RUNNING (16:27). Packet 047 open.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
   "challenges_upheld": "197 challenge rows in 46 adjudicated reviews (counted 2026-10-03 incl. review 046: 5 of 5 upheld); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
