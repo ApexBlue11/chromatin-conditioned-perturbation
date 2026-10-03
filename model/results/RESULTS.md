@@ -6975,8 +6975,8 @@ the same recipe (§91.11, `v9_dev_score_T4_chromatin_ablated.json`):
 
 **Rule 6 (against P2's μ0 only, review 047 ask 3):**
 - **E1 s0 0.44138, against μ0 0.43693: Δ = +0.0044 ≥ 0.0034, so ADVANCE** (seeds 1–2).
-- **Centred Δ +0.0044**, about 98 % of the raw Δ. Like T4 (94 %), and unlike E2 s0 (52 %), E1's gain sits in the
-  drug-specific (cell-centred) component.
+- **Centred Δ +0.0044**, about 98 % of the raw Δ. **At one seed**, like T4 (94 %) and unlike E2 s0 (52 %), E1's gain sits in
+  the drug-specific (cell-centred) component (amended, review 048 C2a).
 - **Cells favouring E1: 4 of 6.**
 
 **92.4's reported items** (one seed, descriptive). Per-cell median Δ against P2, one convention throughout (`score_dev` medians;
@@ -6992,7 +6992,9 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
 | HL60 | −0.0179 | −0.0112 | −0.0130 | 0 (untouched) |
 
 - **VCAP:** E1's +0.0165 is the size of T4b's +0.0136 (the failed track removed at inference) and T4's +0.0161. At one seed this
-  is consistent with the cleaned encoding removing VCAP's failed-track harm. It is descriptive, not a finding.
+  is consistent with the cleaned encoding removing VCAP's failed-track harm. It is descriptive, not a finding. E1 also
+  rank-normalises VCAP's K27ac, so the two changes are not separated here; and E1 +0.0165, T4b +0.0136 and E2 +0.0234 are
+  within single-seed per-cell noise, so no ordering among them is resolved (amended, review 048 C2b).
 - **HEK293T:** the clean encoding also drops HEK293T's failed track, and T4b showed that track is not its harm. E1 is −0.0069
   there, while E2, which removes all its cell-specific chromatin, is +0.0174. This is consistent with §91.11: HEK293T's harm sits
   in its good marks.
@@ -7012,6 +7014,36 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
   quota** (resets Sat 10 Oct, 05:30 IST). They need a `kern_v9dev_e1_s1` from `make_e_kernels.py e1 --seed_start 1 --seeds 2`,
   diffed against the cleared s0 kernel, as for E2.
 - **The E1-vs-E2 comparator** (92.3) is read when both have three seeds.
+
+### 92.9 🔒 PRE-REGISTERED before any seed 1–2 data: how the three-seed E1 and E2 reads are done (review 048 ask 3; 2026-10-03)
+1. **Acceptance per arm** (92.3 unchanged): rule 7 and Δ_centred > 0, both from `score_dev.py --centred --preds <arm ×3>
+   --baseline <P2 ×3>`; rule 8; and the in-cell rule (§85.10).
+2. **Rule 8 at acceptance:** `align_dev.py --readout aux --no_nulls` on the arm's three final checkpoints.
+   - **E2:** `ablate_epi` is taken from the `.pt`.
+   - **E1:** `--chromatin_encoding clean`, which `align_dev` now checks against `ENCODING_SHA1` and refuses on mismatch (review
+     048 C1). E1's seed 1–2 checkpoint sha1s are added to the map from their kernel output before the read.
+3. **The E1-vs-E2 comparator** (92.3), with its per-cell convention fixed here: `score_dev.py --centred --preds <E1 ×3>
+   --baseline <E2 ×3>`.
+   - **Δ** is the difference of the two arms' seed-mean per-row means.
+   - **Per cell:** the median over the cell's rows of (E1 seed-mean row r − E2 seed-mean row r), the convention of every other read.
+   - **E1 beats E2** iff Δ ≥ max(0.003, 2√(s_E1²/3 + s_E2²/3)) **and** that per-cell quantity is > 0 in ≥ 4 of 6 cells.
+4. **The decision table, fixed now:**
+
+   | E2 accepted | E1 accepted | reading |
+   |---|---|---|
+   | yes | yes | the comparator decides: E1 beats E2 → E1; otherwise *"cleaned chromatin does not beat no chromatin"* → E2 |
+   | yes | no | E2's reading |
+   | no | yes | E1, against P2 |
+   | no | no | no change to the recipe |
+
+   E2's acceptance read comes about a week before E1's seeds 1–2 exist. Each read is mechanical, so the order does not matter.
+5. **Code identity** (review 048):
+   - E2 seed 0 ran on `xpert_arm.py` `75c58f52…`; E2 seeds 1–2 and all E1 seeds run on `60bdcd48…` (3495ada).
+   - 3495ada leaves the v9 branch and the `ablate_epi` path untouched (it moves the z-score loop into an `elif`), so E2's seeds
+     compute the same thing on either.
+   - **`lincs-v9-src` stays frozen at `60bdcd48…` until E1's three-seed read** (`kern_v9dev_e1_s1` pins it). Recording the
+     encoding in checkpoints is a later `xpert_arm.py` change with its own pin update.
+6. **Either acceptance is development:** an adopted change needs its own test-cell registration (a P8, §92.6).
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

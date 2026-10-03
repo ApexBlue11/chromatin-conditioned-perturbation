@@ -33,6 +33,10 @@ from interp_v9 import pathway_alignment
 DEV_SHA1 = '51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980'
 # RESULTS 85.12 item 8 (review 035 C2): --rows test runs ONLY on P7's three checkpoints, whose sha1s are copied here from the
 # P7 kernel's P7_COMPLETE.json before it is run. While any pin is None, --rows test refuses.
+# Review 048 C1: checkpoints do not record their chromatin encoding, so --chromatin_encoding is checked against this pin map.
+# A checkpoint listed here must be read with its encoding; any checkpoint not listed must be read with 'v9'. E1's seeds 1-2
+# are added when they land (RESULTS 92.9).
+ENCODING_SHA1 = {'4c95150f4ad9dbaee7ac356238ac9c0f2830687b': 'clean'}   # E1 s0 (lincs-v9dev-e1-s0 v1)
 P7_SHA1 = ['9e94007ad60d5cd183ad56e14f2790451f475239', 'daba6a0b204fc957672d77c72dc5c2609105ee57', 'b106bf67fc476082744118bd68689e718846e223']  # from P7_COMPLETE.json (lincs-v9p7 v1, 2026-10-03), seeds 0-2
 
 
@@ -186,6 +190,11 @@ def main():
         got = sorted(hashlib.sha1(open(p, 'rb').read()).hexdigest() for p in a.ckpts)
         if got != sorted(P7_SHA1):
             raise SystemExit('FATAL: --rows test runs only on the three pinned P7 checkpoints; got %r' % got)
+    for p in a.ckpts:   # review 048 C1: refuse an encoding that does not match the checkpoint
+        want = ENCODING_SHA1.get(hashlib.sha1(open(p, 'rb').read()).hexdigest(), 'v9')
+        if want != a.chromatin_encoding:
+            raise SystemExit('FATAL: %s was trained with chromatin_encoding=%r; got --chromatin_encoding %r (ENCODING_SHA1)'
+                             % (os.path.basename(p), want, a.chromatin_encoding))
     D, M, ppi, gv = None, None, None, None
     per = []
     for p in a.ckpts:
