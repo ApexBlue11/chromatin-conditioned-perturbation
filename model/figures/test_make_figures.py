@@ -235,5 +235,109 @@ def test_make_f8_no_alt(capsys, tmp_path):
     assert os.path.exists(os.path.join(tmp_path, "f8_no_alt.png"))
     assert os.path.exists(os.path.join(tmp_path, "f8_no_alt.svg"))
 
+def test_make_f9_values(capsys, tmp_path):
+    from model.figures.make_figures import make_f9, CHROM_POWER_JSON, CHROM_FUNNEL_JSON, T4_PER_CELL_JSON
+    import numpy as np
+    make_f9(out_dir=tmp_path, stem="f9_test")
+    
+    out, err = capsys.readouterr()
+    printed = {}
+    for line in out.splitlines():
+        if " | " in line:
+            fig, rest = line.split(" | ", 1)
+            if fig == "F9":
+                key, val = rest.split(": ", 1)
+                try:
+                    printed[f"F9_{key}"] = float(val)
+                except ValueError:
+                    printed[f"F9_{key}"] = val
+                    
+    with open(CHROM_POWER_JSON, "r") as f:
+        power = json.load(f)
+    with open(CHROM_FUNNEL_JSON, "r") as f:
+        funnel = json.load(f)
+    with open(T4_PER_CELL_JSON, "r") as f:
+        t4 = json.load(f)
+        
+    for pi in power["pis"]:
+        pi_str = str(pi)
+        assert printed[f"F9_P1_{pi_str}_passes"] == power["summary"]["known"]["pass_counts"]["T1_P1"][pi_str]
+        assert printed[f"F9_P2_{pi_str}_passes"] == power["summary"]["known"]["pass_counts"]["T1_P2"][pi_str]
+        
+        p1_deltas = []
+        p2_deltas = []
+        for i in range(power["draws"]):
+            p1_deltas.append(power["records"][i]["T1"][f"P1_{pi_str}"]["known"]["delta_all"])
+            p2_deltas.append(power["records"][i]["T1"][f"P2_{pi_str}"]["known"]["delta_all"])
+        assert abs(printed[f"F9_P1_{pi_str}_median"] - np.median(p1_deltas)) < 1e-12
+        assert abs(printed[f"F9_P2_{pi_str}_median"] - np.median(p2_deltas)) < 1e-12
+        
+    null_deltas = [power["records"][i]["null_T1"]["known"]["delta_all"] for i in range(power["draws"])]
+    assert abs(printed["F9_null_max_abs"] - max(abs(d) for d in null_deltas)) < 1e-12
+    
+    real_delta = funnel["row_sets"]["known"]["M4"]["S_FBC_minus_S_FB"]
+    assert abs(printed["F9_real_delta"] - real_delta) < 1e-12
+    
+    known_scores = funnel["row_sets"]["known"]["scores"]
+    b0_all = known_scores["B0"]["all"]
+    for k in ["FB", "FC", "FBC", "N1", "N2"]:
+        assert abs(printed[f"F9_B_{k}"] - (known_scores[k]["all"] - b0_all)) < 1e-12
+        
+    for cell in t4["arms"]["T4"]["per_cell_mean"]:
+        assert abs(printed[f"F9_T4_{cell}"] - t4["arms"]["T4"]["per_cell_mean"][cell]) < 1e-12
+        if f"F9_T4b_{cell}" in printed:
+            assert abs(printed[f"F9_T4b_{cell}"] - t4["arms"]["T4b"]["per_cell_mean"][cell]) < 1e-12
+            
+    assert abs(printed["F9_T4_all"] - t4["arms"]["T4"]["all"]) < 1e-12
+    assert abs(printed["F9_T4b_all"] - t4["arms"]["T4b"]["all"]) < 1e-12
+    
+    assert os.path.exists(os.path.join(tmp_path, "f9_test.png"))
+    assert os.path.exists(os.path.join(tmp_path, "f9_test.svg"))
+
+def test_make_f9_failed_marks(capsys, tmp_path):
+    from model.figures.make_figures import make_f9
+    make_f9(out_dir=tmp_path, stem="f9_test")
+    
+    out, err = capsys.readouterr()
+    printed = {}
+    import ast
+    for line in out.splitlines():
+        if " | " in line:
+            fig, rest = line.split(" | ", 1)
+            if fig == "F9" and rest.startswith("failed_marks_"):
+                key, val = rest.split(": ", 1)
+                printed[key] = ast.literal_eval(val)
+                
+    assert printed["failed_marks_HEK293T"] == ['H3K27me3']
+    assert printed["failed_marks_VCAP"] == ['H3K27me3']
+    for cell in ["LNCAP", "SKBR3", "HL60", "U937"]:
+        assert printed[f"failed_marks_{cell}"] == []
+        
+    for line in out.splitlines():
+        if " | " in line:
+            fig, rest = line.split(" | ", 1)
+            if fig == "F9" and rest.startswith("T4b_"):
+                key, val = rest.split(": ", 1)
+                cell = key.replace("T4b_", "")
+                if cell != "all":
+                    assert cell in ["HEK293T", "VCAP"]
+
+def test_make_f9_row_set_guard(capsys, tmp_path):
+    from model.figures.make_figures import make_f9, CHROM_FUNNEL_JSON
+    with open(CHROM_FUNNEL_JSON, "r") as f:
+        funnel = json.load(f)
+        
+    funnel["row_set_of_record"] = "all"
+    
+    new_funnel = tmp_path / "bad_funnel.json"
+    with open(new_funnel, "w") as f:
+        json.dump(funnel, f)
+        
+    import pytest
+    with pytest.raises(AssertionError):
+        make_f9(funnel=str(new_funnel), out_dir=tmp_path, stem="f9_test")
+        
+    assert not os.path.exists(os.path.join(tmp_path, "f9_test.png"))
+
 if __name__ == "__main__":
     test_make_figures()

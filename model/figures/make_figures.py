@@ -2,6 +2,8 @@ import json
 import os
 import glob
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")  # headless: the Tk backend cannot find tk.tcl on this machine
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib.patches import Patch
@@ -723,6 +725,253 @@ def make_f8(src=P7_JSON, ref=O2_JSON, out_dir=OUT_DIR, stem="f8_p7_h2h"):
     plt.savefig(os.path.join(out_dir, f"{stem}.svg"), bbox_inches='tight')
     plt.close()
 
+CHROM_POWER_JSON = "model/results/chromatin_power_91.json"
+CHROM_FUNNEL_JSON = "model/results/chromatin_funnel_91.json"
+T4_PER_CELL_JSON = "model/results/v9_dev_T4_T4b_per_cell.json"
+
+def make_f9(power=CHROM_POWER_JSON, funnel=CHROM_FUNNEL_JSON, t4=T4_PER_CELL_JSON, out_dir=OUT_DIR, stem="f9_chromatin"):
+    if not os.path.exists(power):
+        p_val("F9", "skipped", power)
+        return
+        
+    with open(power, "r") as f:
+        power_data = json.load(f)
+    with open(funnel, "r") as f:
+        funnel_data = json.load(f)
+    with open(t4, "r") as f:
+        t4_data = json.load(f)
+        
+    assert funnel_data["row_set_of_record"] == "known"
+    assert power_data["summary"]["row_set_of_record"] == "known"
+    
+    fig = plt.figure(figsize=(7.2, 7.6))
+    import matplotlib.gridspec as gridspec
+    gs = gridspec.GridSpec(2, 2, height_ratios=[1, 1], hspace=0.55, wspace=0.95)
+    ax_a = fig.add_subplot(gs[0, 0])
+    ax_b = fig.add_subplot(gs[0, 1])
+    ax_c = fig.add_subplot(gs[1, :])
+    
+    setup_axes(ax_a)
+    setup_axes(ax_b)
+    setup_axes(ax_c)
+    
+    for ax, letter in zip([ax_a, ax_b, ax_c], ['a', 'b', 'c']):
+        ax.text(0.0, 1.05, letter, transform=ax.transAxes, fontweight='bold', va='bottom', ha='left')
+        
+    # --- PANEL A ---
+    pis = power_data["pis"]
+    ax_a.set_xscale("log")
+    ax_a.set_yscale("log")
+    ax_a.set_xlabel("planted effect (fraction of the cell-specific residual)", fontsize=8)
+    ax_a.set_ylabel("T1 Δ (drug-known dev rows)", fontsize=8)
+    
+    ax_a.set_xticks([0.005, 0.01, 0.02, 0.05, 0.1])
+    ax_a.set_xticklabels(["0.5 %", "1 %", "2 %", "5 %", "10 %"], fontsize=8)
+    ax_a.tick_params(axis='y', labelsize=8)
+    
+    p1_meds, p2_meds = [], []
+    for pi in pis:
+        pi_str = str(pi)
+        p1_deltas = []
+        p2_deltas = []
+        p1_passes = 0
+        p2_passes = 0
+        
+        for draw in range(power_data["draws"]):
+            rec_p1 = power_data["records"][draw]["T1"][f"P1_{pi_str}"]["known"]
+            rec_p2 = power_data["records"][draw]["T1"][f"P2_{pi_str}"]["known"]
+            
+            p1_deltas.append(rec_p1["delta_all"])
+            p2_deltas.append(rec_p2["delta_all"])
+            
+            p1_passes += int(rec_p1["pass"])
+            p2_passes += int(rec_p2["pass"])
+            
+            jitter_p1 = 0.94 + 0.03 * draw
+            jitter_p2 = 1.06 - 0.03 * draw
+            
+            if rec_p1["pass"]:
+                ax_a.plot(pi * jitter_p1, rec_p1["delta_all"], 'o', color=COLOR_THIRD, zorder=3)
+            else:
+                ax_a.plot(pi * jitter_p1, rec_p1["delta_all"], 'o', mfc='white', mec=COLOR_THIRD, zorder=3)
+                
+            if rec_p2["pass"]:
+                ax_a.plot(pi * jitter_p2, rec_p2["delta_all"], 's', color=COLOR_GRAY, zorder=3)
+            else:
+                ax_a.plot(pi * jitter_p2, rec_p2["delta_all"], 's', mfc='white', mec=COLOR_GRAY, zorder=3)
+                
+        p1_med = np.median(p1_deltas)
+        p2_med = np.median(p2_deltas)
+        
+        p1_meds.append(p1_med)
+        p2_meds.append(p2_med)
+        
+        p_val("F9", f"P1_{pi_str}_median", p1_med)
+        p_val("F9", f"P2_{pi_str}_median", p2_med)
+        p_val("F9", f"P1_{pi_str}_passes", p1_passes)
+        p_val("F9", f"P2_{pi_str}_passes", p2_passes)
+        
+    ax_a.plot(pis, p1_meds, '-', color=COLOR_THIRD, linewidth=1, zorder=2)
+    ax_a.plot(pis, p2_meds, '-', color=COLOR_GRAY, linewidth=1, zorder=2)
+    bar_val = funnel_data["row_sets"]["known"]["T1"]["bars"]["t1"]
+    assert abs(bar_val - 0.004) < 1e-9
+    p_val("F9", "bar", bar_val)
+    ax_a.axhline(bar_val, color=COLOR_SEC_TEXT, linestyle='--', zorder=1)
+    ax_a.text(0.12, bar_val * 0.92, "bar +0.004", va='top', ha='right', color=COLOR_SEC_TEXT, fontsize=7)
+    
+    real_delta = funnel_data["row_sets"]["known"]["M4"]["S_FBC_minus_S_FB"]
+    p_val("F9", "real_delta", real_delta)
+    ax_a.axhline(real_delta, color=COLOR_TEXT, linestyle=':', zorder=1)
+    ax_a.text(0.12, real_delta * 0.92, f"real data +{real_delta:.4f}", va='top', ha='right', color=COLOR_TEXT, fontsize=7)
+    
+    null_deltas = [power_data["records"][i]["null_T1"]["known"]["delta_all"] for i in range(power_data["draws"])]
+    null_max_abs = max(abs(d) for d in null_deltas)
+    p_val("F9", "null_max_abs", null_max_abs)
+    
+    ax_a.set_ylim(bottom=1e-4)
+    ax_a.set_xlim(0.004, 0.125)
+    ax_a.axhspan(1e-4, null_max_abs, color=COLOR_GRID, zorder=0)
+    
+    leg_a_elements = [
+        plt.Line2D([0], [0], marker='o', color='none', mfc=COLOR_THIRD, mec=COLOR_THIRD, label="chromatin gain (P1)"),
+        plt.Line2D([0], [0], marker='s', color='none', mfc=COLOR_GRAY, mec=COLOR_GRAY, label="drug-specific shift (P2)"),
+        plt.Line2D([0], [0], marker='o', color='none', mfc=COLOR_GRAY, mec=COLOR_GRAY, label="passed T1's rule"),
+        plt.Line2D([0], [0], marker='o', color='none', mfc='white', mec=COLOR_GRAY, label="did not pass"),
+        Patch(facecolor=COLOR_GRID, edgecolor='none', label=f"nothing planted: |Δ| ≤ {null_max_abs:.5f} (5 draws)")
+    ]
+    ax_a.legend(handles=leg_a_elements, loc='lower left', bbox_to_anchor=(-0.25, 1.06), ncol=2, frameon=False, fontsize=6.5,
+                columnspacing=1.0, handletextpad=0.4)
+    
+    # --- PANEL B ---
+    known_scores = funnel_data["row_sets"]["known"]["scores"]
+    b0_all = known_scores["B0"]["all"]
+    b_keys = ["FB", "FC", "FBC", "N1", "N2"]
+    b_labels = ["basal expression\n(FB)", "chromatin only\n(FC)", "basal + chromatin\n(FBC)",
+                "basal + every cell's\nmean chromatin (N1)", "basal + another dev\ncell's chromatin (N2)"]
+    
+    b_vals = []
+    for k in b_keys:
+        val = known_scores[k]["all"] - b0_all
+        b_vals.append(val)
+        p_val("F9", f"B_{k}", val)
+        
+    assert abs((known_scores["FBC"]["all"] - b0_all) - (known_scores["FB"]["all"] - b0_all) - funnel_data["row_sets"]["known"]["M4"]["S_FBC_minus_S_FB"]) < 1e-9
+    assert abs((known_scores["FC"]["all"] - b0_all) - funnel_data["row_sets"]["known"]["M4"]["S_FC_minus_S_B0"]) < 1e-9
+    
+    y_pos_b = np.arange(len(b_vals))[::-1]
+    ax_b.barh(y_pos_b, b_vals, color=COLOR_GRAY, zorder=3)
+    ax_b.axvline(0, color=COLOR_TEXT, linestyle='-', zorder=2)
+    
+    for i, val in enumerate(b_vals):
+        ax_b.text(val, y_pos_b[i], f" {val:+.4f}", va='center', ha='left' if val > 0 else 'right', color=COLOR_SEC_TEXT, fontsize=7)
+        
+    ax_b.set_yticks(y_pos_b)
+    ax_b.set_yticklabels(b_labels, fontsize=7)
+    ax_b.set_xlim(0, 0.0052)
+    ax_b.set_xlabel("Δ over B0 (drug-known dev rows)", fontsize=8)
+    ax_b.tick_params(axis='x', labelsize=8)
+    
+    # --- PANEL C ---
+    v9_marks = funnel_data["T0"]["v9"]["marks_dev"]
+    rn_marks = funnel_data["T0"]["rank_normal"]["marks_dev"]
+    mark_abbrev = {"ATAC": "ATAC", "H3K27ac": "K27ac", "H3K27me3": "K27me3"}
+    
+    dev_cells = sorted(t4_data["arms"]["T4"]["per_cell_mean"].keys(), key=lambda c: t4_data["arms"]["T4"]["per_cell_mean"][c], reverse=True)
+    
+    c_labels = []
+    c_failed_marks_list = []
+    
+    for cell in dev_cells:
+        marks = v9_marks[cell]
+        failed = [m for m in marks if m not in rn_marks[cell]]
+        p_val("F9", f"failed_marks_{cell}", failed)
+        c_failed_marks_list.append(failed)
+        
+        parts = []
+        for m in marks:
+            part = mark_abbrev.get(m, m)
+            if m in failed:
+                part += " (failed)"
+            parts.append(part)
+        tracks_str = " / ".join(parts)
+        
+        n_c = t4_data["cells"][cell]
+        c_labels.append(f"{cell} (n={n_c}) · {tracks_str}")
+        
+    c_labels.append(f"all dev rows (n={t4_data['n_rows']})")
+    y_pos_c = np.arange(len(c_labels))[::-1]
+    
+    bar_width = 0.35
+    
+    for i, cell in enumerate(dev_cells):
+        y = y_pos_c[i]  # label i sits at y_pos_c[i] (PI fix: W29 drew cell i at y_pos_c[i + 1], one row low)
+        
+        t4_val = t4_data["arms"]["T4"]["per_cell_mean"][cell]
+        ax_c.barh(y + bar_width/2, t4_val, height=bar_width, color=COLOR_V9, zorder=3)
+        p_val("F9", f"T4_{cell}", t4_val)
+        
+        for k, seed_val in enumerate(t4_data["arms"]["T4"]["per_cell_per_seed"][cell]):
+            ax_c.plot(seed_val, y + bar_width/2, 'o', color=COLOR_TEXT, markersize=2, zorder=4)
+            p_val("F9", f"T4_{cell}_seed{k}", seed_val)
+            
+        failed = c_failed_marks_list[i]
+        if failed:
+            t4b_val = t4_data["arms"]["T4b"]["per_cell_mean"][cell]
+            ax_c.barh(y - bar_width/2, t4b_val, height=bar_width, color=COLOR_V9, alpha=0.35, edgecolor=COLOR_V9, zorder=3)
+            p_val("F9", f"T4b_{cell}", t4b_val)
+            
+            for k, seed_val in enumerate(t4_data["arms"]["T4b"]["per_cell_per_seed"][cell]):
+                ax_c.plot(seed_val, y - bar_width/2, 'o', color=COLOR_TEXT, markersize=2, zorder=4)
+        else:
+            ax_c.text(0.0005, y - bar_width/2, "no failed track", va='center', ha='left', color=COLOR_SEC_TEXT, fontsize=6.5)
+            
+    # "all dev rows"
+    y_all = y_pos_c[-1]  # 'all dev rows' is the last label
+    t4_all = t4_data["arms"]["T4"]["all"]
+    ax_c.barh(y_all + bar_width/2, t4_all, height=bar_width, color=COLOR_V9, zorder=3)
+    p_val("F9", "T4_all", t4_all)
+    for k, seed_val in enumerate(t4_data["arms"]["T4"]["per_seed"]):
+        ax_c.plot(seed_val, y_all + bar_width/2, 'o', color=COLOR_TEXT, markersize=2, zorder=4)
+        
+    t4b_all = t4_data["arms"]["T4b"]["all"]
+    ax_c.barh(y_all - bar_width/2, t4b_all, height=bar_width, color=COLOR_V9, alpha=0.35, edgecolor=COLOR_V9, zorder=3)
+    p_val("F9", "T4b_all", t4b_all)
+    for k, seed_val in enumerate(t4_data["arms"]["T4b"]["per_seed"]):
+        ax_c.plot(seed_val, y_all - bar_width/2, 'o', color=COLOR_TEXT, markersize=2, zorder=4)
+        
+    ax_c.axvline(0, color=COLOR_TEXT, linestyle='-', zorder=2)
+    ax_c.set_yticks(y_pos_c)
+    ax_c.set_yticklabels(c_labels, fontsize=8)
+    # PI guard (W29 drew every cell one row below its label): each bar's value must be its own row's cell's value.
+    row_label = {round(float(y), 6): lab for y, lab in zip(y_pos_c, c_labels)}
+    n_checked = 0
+    for bar in ax_c.patches:
+        is_t4b = bar.get_alpha() is not None
+        y_row = round(bar.get_y() + bar.get_height() / 2 + (bar_width / 2 if is_t4b else -bar_width / 2), 6)
+        lab = row_label[y_row]
+        arm = t4_data["arms"]["T4b" if is_t4b else "T4"]
+        want = arm["all"] if lab.startswith("all dev rows") else arm["per_cell_mean"][lab.split(" (")[0]]
+        assert abs(bar.get_width() - want) < 1e-12, (lab, bar.get_width(), want)
+        n_checked += 1
+    assert n_checked == len(c_labels) + 1 + sum(bool(f) for f in c_failed_marks_list), n_checked
+    p_val("F9", "C_bars_checked_against_row_labels", n_checked)
+    ax_c.set_xlabel("ablated − intact: per-row Δ Pearson (mean over rows; 3 seeds averaged)", fontsize=8)
+    ax_c.tick_params(axis='x', labelsize=8)
+    
+    leg_c_elements = [
+        Patch(facecolor=COLOR_V9, edgecolor='none', label="all chromatin ablated (T4)"),
+        Patch(facecolor=COLOR_V9, alpha=0.35, edgecolor=COLOR_V9, label="failed H3K27me3 only (T4b)")
+    ]
+    ax_c.legend(handles=leg_c_elements, loc='lower center', bbox_to_anchor=(0.5, 1.05), ncol=2, frameon=False, fontsize=8)
+    
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        plt.tight_layout()
+    plt.savefig(os.path.join(out_dir, f"{stem}.png"), dpi=300, bbox_inches='tight')
+    plt.savefig(os.path.join(out_dir, f"{stem}.svg"), bbox_inches='tight')
+    plt.close()
+
 if __name__ == "__main__":
     make_f1()
     make_f2()
@@ -732,4 +981,5 @@ if __name__ == "__main__":
     make_f6()
     make_f7()
     make_f8()
+    make_f9()
 
