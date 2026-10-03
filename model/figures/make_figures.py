@@ -821,8 +821,10 @@ def make_f9(power=CHROM_POWER_JSON, funnel=CHROM_FUNNEL_JSON, t4=T4_PER_CELL_JSO
     
     real_delta = funnel_data["row_sets"]["known"]["M4"]["S_FBC_minus_S_FB"]
     p_val("F9", "real_delta", real_delta)
-    ax_a.axhline(real_delta, color=COLOR_TEXT, linestyle=':', zorder=1)
-    ax_a.text(0.12, real_delta * 0.92, f"real data +{real_delta:.4f}", va='top', ha='right', color=COLOR_TEXT, fontsize=7)
+    # Review 045 C5a: a short mark, not a line across the planted axis (no planted size is implied).
+    ax_a.plot([0.06, 0.125], [real_delta, real_delta], ':', color=COLOR_TEXT, linewidth=1.5, zorder=1)
+    ax_a.text(0.12, real_delta * 0.88, f"real data: FBC − FB +{real_delta:.4f}\ngene-generic;\nno planted size implied",
+              va='top', ha='right', color=COLOR_TEXT, fontsize=6)
     
     null_deltas = [power_data["records"][i]["null_T1"]["known"]["delta_all"] for i in range(power_data["draws"])]
     null_max_abs = max(abs(d) for d in null_deltas)
@@ -863,11 +865,11 @@ def make_f9(power=CHROM_POWER_JSON, funnel=CHROM_FUNNEL_JSON, t4=T4_PER_CELL_JSO
     ax_b.axvline(0, color=COLOR_TEXT, linestyle='-', zorder=2)
     
     for i, val in enumerate(b_vals):
-        ax_b.text(val, y_pos_b[i], f" {val:+.4f}", va='center', ha='left' if val > 0 else 'right', color=COLOR_SEC_TEXT, fontsize=7)
+        ax_b.text(val, y_pos_b[i], f" {val:+.5f}", va='center', ha='left' if val > 0 else 'right', color=COLOR_SEC_TEXT, fontsize=7)
         
     ax_b.set_yticks(y_pos_b)
     ax_b.set_yticklabels(b_labels, fontsize=7)
-    ax_b.set_xlim(0, 0.0052)
+    ax_b.set_xlim(0, 0.0056)
     ax_b.set_xlabel("Δ over B0 (drug-known dev rows)", fontsize=8)
     ax_b.tick_params(axis='x', labelsize=8)
     
@@ -955,7 +957,7 @@ def make_f9(power=CHROM_POWER_JSON, funnel=CHROM_FUNNEL_JSON, t4=T4_PER_CELL_JSO
         n_checked += 1
     assert n_checked == len(c_labels) + 1 + sum(bool(f) for f in c_failed_marks_list), n_checked
     p_val("F9", "C_bars_checked_against_row_labels", n_checked)
-    ax_c.set_xlabel("ablated − intact: per-row Δ Pearson (mean over rows; 3 seeds averaged)", fontsize=8)
+    ax_c.set_xlabel("ablated − intact: per-row Δ Pearson, mean over the cell's rows of the three seeds' differences (dots: each seed)", fontsize=8)
     ax_c.tick_params(axis='x', labelsize=8)
     
     leg_c_elements = [

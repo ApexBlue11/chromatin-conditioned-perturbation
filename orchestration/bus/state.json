@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "045_chromatin_wording"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -69,12 +67,13 @@
     "041_chromatin_code_review",
     "042_review041_t4",
     "043_chromatin_result",
-    "044_chromatin_screens"
+    "044_chromatin_screens",
+    "045_chromatin_wording"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "P7 and 88 t1 pushed BY HAND 08:44 IST 2026-10-03 (the detached 05:40 loop died silently); both RUNNING. E2 s0 (when P7 COMPLETE + P7_COMPLETE.json) and t2 (when t1 COMPLETE) via the re-armed midday_chain. E1 s0 after the lincs-v9-src upload, made only after P7_COMPLETE.json exists and 88 t1/t2 have started (review 044). Packet 045 (chromatin wording + F9) open.",
+  "pending_decision": "P7 and 88 t1 pushed BY HAND 08:44 IST 2026-10-03 (the detached 05:40 loop died silently); both RUNNING. E2 s0 (when P7 COMPLETE + P7_COMPLETE.json) and t2 (when t1 COMPLETE) via the re-armed midday_chain. E1 s0 after the lincs-v9-src upload, made only after P7_COMPLETE.json exists and 88 t1/t2 have started (review 044). Review 045 adjudicated (5 of 5 upheld, wording + F9 only).",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
-  "challenges_upheld": "187 challenge rows in 44 adjudicated reviews (counted 2026-10-03 incl. review 044); the older running tally (160 of 163) had drifted and is withdrawn",
+  "challenges_upheld": "192 challenge rows in 45 adjudicated reviews (counted 2026-10-03 incl. review 045: 5 of 5 upheld); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",

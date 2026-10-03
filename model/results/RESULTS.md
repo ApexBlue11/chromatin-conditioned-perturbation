@@ -6739,8 +6739,10 @@ pass reproduces the saved Kaggle predictions, with min per-row r 0.9999998 and p
   - Beyond basal expression it adds **+0.00144**.
   - **Nearly all of that is gene-generic:** N1, which gives every cell the same mean chromatin, scores within +0.0002 of FBC. Giving each
     dev cell another dev cell's chromatin (N2) costs only +0.0003.
-  - **The increment is real but gene-generic** (review 043 C3, PI-verified): the real FBC − FB (+0.00144) exceeds all five
-    π = 0 null draws (|Δ| ≤ 0.00025), and FBC − N1 (+0.00023) places it in the gene-generic component.
+  - **The increment is not a fitting artefact, and it is gene-generic** (review 043 C3; amended, review 045 C4): the real
+    FBC − FB (+0.00144) exceeds all five π = 0 null draws (|Δ| ≤ 0.00025; the spread over synthetic features on the same
+    cells, not cell-sampling error). It is positive in **3 of 6 cells**, carried by LNCAP (+0.0062) and HL60 (+0.0020); HEK293T
+    −0.0008, U937 −0.0002, VCAP −0.0001. FBC − N1 (+0.00023) places it in the gene-generic component.
   - **This cell's own chromatin adds ≈ nothing transferable in this form.** The gene-level content is something a per-gene
     parameter (e.g. v9's gene embedding) could represent; that is not tested here.
   - The use question is T4: trained v9 reads chromatin, and on dev cells reading it costs +0.006 (§91.11).
@@ -6781,12 +6783,15 @@ drug-known rows; nothing re-run). The MDEs above are fractions of the cell-speci
 | P2 drug-specific shift, 2 % | +0.0022 to +0.0034 | 0 / 5 |
 | P2 drug-specific shift, 5 % | +0.0050 to +0.0069 | 5 / 5 |
 
-- **So the funnel sees effects of ≈ +0.005 in its score**, set by its bar (+0.004 on these rows), with ≤ 0.0003 of noise. That
-  is below the training ablation's ≈ 0.006–0.016 (§91.10) and comparable to C7's ≈ 0.0042, not an order of magnitude finer.
+- **The funnel's floor is ≈ +0.004–0.005 in its own score** (B0 0.142), set by its bar, with ≤ 0.0003 of spread over five
+  synthetic features on the same cells (not cell-sampling error). It is **not ranked against Δs in v9's score** (≈ 0.44; the
+  training ablation's 0.006–0.016, C7's 0.0042). Amended, review 045 C2: a Pearson gain for the same captured variance scales
+  about as 1/r, so if v9 captured the same increment orthogonally, the bar would correspond to ≈ +0.0013 at v9's 0.437; that
+  assumption is untested, and the earlier "comparable to C7, not an order of magnitude finer" is withdrawn.
 - **"MDE ≤ 0.5 %" is a ceiling:** 0.5 % was the smallest gain planted, so the gain form's true MDE is not located.
-- **§91.10's "+0.002 to +0.01" range is covered only from ≈ +0.004 up**, in this score. The score is the closed-form B0-based
-  one (B0 0.142), not v9's (§91.12 caveat on transfer).
-- The real T1 Δ (+0.0014) is above the π = 0 noise and below the bar, as §91.12 reads it.
+- **§91.10's "+0.002 to +0.01" is a range in v9's score**, so the funnel's floor is not compared with it directly (amended,
+  review 045 C2; the earlier "covered only from ≈ +0.004 up" is withdrawn).
+- The real T1 Δ (+0.0014) is above the π = 0 spread (synthetic features, same cells) and below the bar, as §91.12 reads it.
 
 ## 92. 🔒 PRE-REGISTERED: two chromatin screens from the §91 funnel — E2 (no chromatin) and E1 (cleaned chromatin) on the dev carve (packet 044) (2026-10-03)
 ### 92.1 Why these two, and nothing else
