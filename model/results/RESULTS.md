@@ -6378,6 +6378,23 @@ screen runs **all three seeds regardless of rule 6**, and the MoA study (§88) e
    n_compounds = 496 and unseen n = 156 (§86). t0's post-training architecture guard also verifies t1/t2 (same code and
    argv but the seed).
 
+### 88.7 Before the read (2026-10-06; review 049 ask 2)
+1. **88.6 item 2, stated from the code path, not from saved weights (initial weights were not saved).** u0–u2 equal trained
+   seeds 0–2's starting weights.
+   - `train_v9_gpu.py:145` calls `torch.manual_seed(S)`, and `LincsV9(cfg, …)` is built at `:198`.
+   - In between, nothing draws from the torch CPU generator. `seed_devices` (`dp_seeding.py`) seeds only the CUDA generators;
+     `build_splits` uses its own `np.random.default_rng(0)`; dataset loading and `check_inputs_v9` draw no random numbers.
+   - `probe_moa_88.py:171–172` calls `torch.manual_seed(S)` immediately before `LincsV9(cfg, …)`, with the configuration
+     taken from t0's checkpoint. Shapes are asserted equal; t1/t2 used the same argv but the seed.
+   - The reader does not rely on this: it uses m_u and sd_u over the five untrained probes, unpaired.
+2. **Code identity on the new `lincs-v9-src` (3 Oct)** (review 049, checked by the critic). The probe kernels check string
+   markers, not file sha1s, so this is the record:
+   - the five model files `probe_moa_88.py` imports through hash to P7's mounted-byte pins: `model_v9`, `modules_v9`,
+     `config_v9`, `dp_seeding`, `modules_v7`;
+   - these were unchanged since 26 Sep or earlier, so before pt0 ran on 30 Sep: `probe_moa_88.py` (`66dd9531`), `data_v9.py`,
+     `train_v9_gpu.py`, `probe_pathways_v6.py`, `probe_moa_v9.py`;
+   - so pt1 and pt2 run the same code as pt0 and pu0–pu4.
+
 ## 89. 🔒 PRE-REGISTERED: C7, chromatin gating the union graph's edges — packet 026 as amended by review 026; C5 deferred (2026-09-25)
 Coverage and the C5 deferral as packet 026 (`model/results/cc1_input_coverage.json`): the local CCLE baseline is landmark-only
 and duplicates `x_cell` for DMSO-fallback cells; genome-wide CCLE would be a separate design.
@@ -7066,6 +7083,8 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
   `v9_dev_align_E2_3seed_aux.json`): alignment 0.2979 / 0.2866 / 0.2830, mean **0.2891** ≥ 0.2532 and > 0.2292 ✓.
 - **In-cell rule:** 6 of 6 cells; seed means +0.094 / +0.080 / +0.079 ✓.
 - **Verdict:** every conjunct but the cell count passes. **By the registered rule, E2 is not accepted.**
+- **Descriptive (review 049 C1):** the cell count fails on U937, whose 3-seed sign is set by one seed (seed-paired per-cell
+  medians +0.011 / −0.041 / +0.012).
 
 **Per cell** (3-seed median Δ against P2):
 
@@ -7073,20 +7092,110 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
 |---|---|---|---|---|---|
 | **+0.0217** | **+0.0365** | **+0.0220** | −0.0055 | −0.0077 | −0.0123 |
 
-- **The split is the one T4 found** (§91.11, three seeds at inference): training without cell-specific chromatin gains in the
-  three cells T4 marked as harmed and loses in the other three.
+- **The split mostly matches T4's** (§91.11, three seeds at inference; amended, review 049 C1):
+  - training without cell-specific chromatin gains in the three cells T4 marked as harmed, on every seed (HEK293T, LNCAP,
+    VCAP);
+  - it loses in SKBR3 on every seed and in HL60 on 2 of 3, each losing on every T4 seed;
+  - **U937 is mixed** in both.
   - So the per-cell pattern of §92.7 holds at three seeds.
   - About 63 % of the gain is drug-specific (centred +0.0045 of +0.0073).
 - **Permitted reading:** *"training v9 without cell-specific chromatin raises the per-row dev score (+0.0073 at three seeds,
   every seed positive) but in only 3 of 6 dev cells; it is not accepted under the pre-registered rule."*
-- **What it suggests, not established:** v9's chromatin helps in some cells (HL60, SKBR3, U937) and harms in others (HEK293T,
-  LNCAP, VCAP). Removing it wholesale trades the two.
+- **What it suggests, not established** (amended, review 049 C1): v9's **cell-specific** chromatin appears to help in SKBR3 and
+  HL60 and to harm in HEK293T, LNCAP and VCAP, each consistent across E2's seeds and T4's; U937 is mixed. Removing it
+  wholesale trades the two.
 
 **The decision table (92.9 item 4):** E2 is not accepted, so the reading is set by E1 alone.
 - **E1 accepted at three seeds:** E1, against P2.
 - **E1 not accepted:** no change to the recipe.
 - **The E1-vs-E2 comparator** binds only if both are accepted, so it no longer binds. It is reported, descriptively, when E1's
   seeds exist.
+
+## 93. 🔒 PRE-REGISTERED (draft, packet 050): why chromatin does not transfer — H2 and H3 on the §91 features, H1 on richer accessibility features (principal's request, 2026-10-03/06)
+### 93.1 The question, and what is already known
+- **The principal's argument** (2026-10-03): chromatin is a cell's own context. Baseline expression is downstream of it, so
+  chromatin should carry what expression lacks: response potential (poised promoters, primed enhancers, TF access).
+- **What the record says:**
+  - In-distribution, chromatin helped (v3, July: +0.039 Pearson on reproducible signatures), but the benefit fell with cell
+    familiarity: unseen compounds +0.035, unseen cells ≈ 0.
+  - §91: promoter-window marks at the landmark genes add nothing transferable in a linear gene-local form, and what they
+    carry is gene-generic.
+  - T4 and E2 (§91.11, §92.10): v9's cell-specific chromatin appears to help in SKBR3 and HL60 and to harm in HEK293T,
+    LNCAP and VCAP; U937 is mixed (review 049 C1).
+- **Hypotheses for the failure:**
+  - **H1, granularity:** response potential lives in enhancers and TF sites, not in promoter windows.
+  - **H2, too few contexts:** a chromatin→response rule is learned from ≈ 11 covered fitting cells.
+  - **H3, form:** the effect is non-linear (thresholds, interactions with the drug's own response), not linear.
+  - **H4, shortcut:** E1/E2 (§92), in progress.
+  - **H5, data quality:** failed H3K27me3 tracks (E1). New, found while building the manifest: **VCAP's ATAC is an EpiMap
+    imputed track (BSS01888), not a measurement**, and three cells (AGS, NPC, PHH) use H3K4me3 as an accessibility proxy.
+
+### 93.2 Stage 1a: H2 and H3 on the existing §91 features (no new data; Kaggle CPU)
+Everything not stated is §91.2 as amended, and is reused through `chromatin_funnel.py`:
+- the rows of record (3,074 drug-known dev rows);
+- the primary encoding;
+- μ^(−c);
+- LOCO over the covered dev-train cells for every hyper-parameter;
+- `BARS['known']`;
+- the calibration machinery of `chromatin_power.py`.
+1. **H2, learning curve (reported, never a gate):**
+   - **Design:** T1's FBC − FB Δ and FBC − N1 Δ on the dev rows, with T1 refitted on random subsets of k covered dev-train
+     cells, k ∈ {4, 6, 8, all}. Five subsets per k, drawn with `default_rng(9300 + k)`.
+   - **Read as "rising":** iff the median Δ increases with k at every step and Δ(all) − median Δ(k = 4) exceeds 2 sd of the
+     k = 4 subsets.
+   - **Licensed statement:** *"the gene-local chromatin increment grows with the number of fitting cells"*. No extrapolation
+     beyond k = all is stated.
+   - **The same curve for M2's planted P1 at 0.5 %** shows how much of any slope is the estimator's own small-k bias, and is
+     reported beside it.
+2. **H3, a non-linear form (a test, with T1's bars):**
+   - **The model:** gradient-boosted trees (LightGBM, the prebuilt package) predicting the residual e = y − μ^(−c) per (row,
+     gene).
+   - **Inputs:** μ^(−c) at the gene, the drug's ‖μ‖ over genes, b̃, and the chromatin columns (arm C), with the columns
+     dropped (arm B) or replaced by the N1 gene-generic means (arm N1).
+   - **Fixed settings:** 200 trees, 31 leaves, learning rate 0.05; min child samples chosen by LOCO from {50, 200, 1000}. Fitting
+     rows are the covered dev-train cells' drug-known rows.
+   - **Advances** iff S(C) − S(B) ≥ 0.004 (or top tercile ≥ 0.008), centred ≥ 0.002, > 0 in ≥ 4 of 6 cells, and C > N1 in ≥
+     4 of 6 cells (T1's conjuncts and bars).
+   - **Calibrated first** (M2's FBC⨯ planted P1/P2 at π ∈ {0.005, 0.02, 0.05}, 3 draws). If it misses P1 at 2 %, its null is
+     uninformative and says so.
+
+### 93.3 Stage 1b: H1 on richer accessibility features (new public data; Kaggle CPU with internet)
+1. **Data, frozen by sha1 before any outcome is read.**
+   - **Samples:** exactly the accessibility samples v9's coverage report lists (`coverage_report_final.tsv`), ATAC or DNase only.
+     H3K4me3 proxies (AGS, NPC, PHH) and EpiMap imputed tracks (VCAP) are excluded, so those cells are missing.
+   - **Cistrome samples:** fetched from ChIP-Atlas `bed05` by GSM → SRX (NCBI E-utilities).
+   - **ENCODE experiments:** their released GRCh38 peak files.
+   - **Empty or absent files** are recorded and skipped. A cell's peaks are the merged union over its usable samples, and a cell
+     with none is missing.
+   - **The feasibility check (2026-10-06):** 4 of 7 sampled GSMs gave peak files of 0.8–13 MB; the rest were empty or tiny.
+   - **Other resources:**
+     - hg38;
+     - JASPAR 2024 CORE vertebrates non-redundant;
+     - CollecTRI regulons (via the `decoupler` package).
+   - **Outputs:** a manifest (every file, size and sha1) and a features npz.
+2. **Features per (cell, landmark gene)**, each rank-normal per (cell, feature) as in §91:
+   - **F_prom:** peak coverage within ±1 kb of the TSS. This is a same-data control comparable to v9's ATAC.
+   - **F_enh:** distance-weighted peak coverage in 1–50 kb of the TSS, with weight exp(−d / 10 kb), excluding the promoter.
+   - **F_reg:** for gene g, the CollecTRI-signed sum over g's regulators of that TF's motif accessibility in the cell. Motif
+     accessibility is the share of the cell's peaks carrying the motif, standardised across cells; motif calls use a prebuilt
+     package (e.g. `pychromvar` / MOODS).
+3. **The H1 test** is T1 (§91.3), with **FB + {F_enh, F_reg}** against **FB + F_prom**, so the reference has the same data at
+   promoter granularity.
+   - **Bars:** `BARS['known']`, the centred conjunct, and the N1 null built from the new features.
+   - **Cells:** the five measured dev cells (VCAP missing). The cell conjuncts become ≥ 4 of 5.
+   - **Calibration:** M2 with each new feature's availability and shape.
+   - **Secondary:** LOCO over the covered dev-train cells as evaluation cells. It is reported, and is never read on test cells.
+4. **What a pass buys:** a GPU dev screen of v9 with the passing feature as a new gene-level input (one seed, rule 6), in its own
+   packet next week. No pass: S9 is closed for these data, and the negative carries its MDE.
+
+### 93.4 Order, cost, scope
+- **Order:**
+  - Stage 1a runs first: no downloads, about 1 h of Kaggle CPU.
+  - Stage 1b's data kernel can be built in parallel; it is outcome-free.
+  - Stage 1b's test runs only after the data's sha1s are committed.
+- **Cost:** no GPU. Kaggle CPU only; the laptop downloads only the small outputs.
+- **Scope:** dev and training cells only, so no test-cell statement. **Written after §91's and §92's results**, which is
+  disclosed: the hypotheses were chosen knowing those nulls.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
