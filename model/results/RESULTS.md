@@ -7425,8 +7425,14 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
      (each from its full union), with every feature rank-normal per (cell, feature) as in §91.
    - **Reported:** per cell and feature, Pearson and Spearman across genes with a TSS between dev_A and dev_B. Also the median
      over cells, and the same for MA_A and MA_B across motifs.
-   - **What it means:** high reliability means the deviation is reproducible, so noise is not what blocks transfer (a); low
-     reliability supports (b). No threshold is read.
+   - **The mismatched-cell baseline** (critic follow-up to review 053; before any data):
+     - dev_A and dev_B subtract the same gene mean m, so (gene profile − m) appears in both and correlates them even when the
+       halves share no cell-specific signal. This is the shape of review 043 C2's shared-control artefact.
+     - So beside each cell's corr(dev_A[c], dev_B[c]), report the median over c' ≠ c of corr(dev_A[c], dev_B[c']), computed
+       the same way, for both Pearson and Spearman.
+     - The cell-specific reliability is the excess over that baseline.
+   - **What it means:** a high excess means the deviation is reproducible, so noise is not what blocks transfer (a); a low
+     excess supports (b). No threshold is read.
 2. **A shrinkage arm, reported beside H1's binding comparison.**
    - The cell's own new features are shrunk toward their N1 means: (1 − λ) F + λ N1, with λ ∈ {0.25, 0.5, 0.75} chosen by
      grouped CV over the covered fitting cells.
