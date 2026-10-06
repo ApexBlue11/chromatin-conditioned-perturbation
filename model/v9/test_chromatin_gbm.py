@@ -81,11 +81,11 @@ def test_h3_reading_needs_an_N1_magnitude():
 
 
 def test_a_gene_generic_planted_effect_is_absorbed_by_mu_and_does_not_pass():
-    # Review 052 C1(a), as answered by the PI: an effect common to every cell (mu * the same gene vector everywhere) is part
-    # of mu itself (the drug's mean response in other cells), so the residual target e = y - mu holds nothing for C or N1
-    # to fit, however large it is planted. The planted G check therefore cannot clear the raw bar by construction; the
-    # protection against gene-generic gains is the S(C) - S(N1) magnitude conjunct (test_h3_reading_needs_an_N1_magnitude).
-    # This test pins that fact: chromatin that C can read (a shared vector plus cell noise), a large planted G, no gain, no pass.
+    # Review 052 C1(a), as answered by the PI and corrected by the critic: a plant common to every COVERED cell is absorbed
+    # into mu (the mean over all dev-train cells) except for about (uncovered share)^2 of it. In THIS world 12 of 14 train
+    # cells are covered, so ~2 % survives and the planted G cannot clear the raw bar here. In the real data ~11 of 26 are
+    # covered, so ~(15/26)^2 ~ 33 % survives and the real G check may well be informative (then VOID_G binds); its outcome is
+    # not pre-stated. The reading's own protection is the S(C) - S(N1) magnitude conjunct (test_h3_reading_needs_an_N1_magnitude).
     ctx = world(seed=5, n_perts=12, noise=0.05)
     e = ctx.enc['rank_normal']
     cov = list(e['cov_dt']) + list(e['cov_dev'])
@@ -100,7 +100,7 @@ def test_a_gene_generic_planted_effect_is_absorbed_by_mu_and_does_not_pass():
     mu_e, _ = cf.condition_means(ctx, ctx.y, ctx.fit_mask)
     y_g, _ = cp.plant(ctx, ctx.y, mu_e, fg, 'P1', 0.5, 0)
     res = gbm.run_h3(ctx, y_g, gbm.real_builders(ctx))
-    assert abs(res['known']['delta']['all']) < cf.BARS['known']['t1']     # absorbed by mu, not captured by C
+    assert abs(res['known']['delta']['all']) < cf.BARS['known']['t1']     # absorbed by mu in this world (12 of 14 covered)
     assert res['known']['vs_N1']['all'] < cf.BARS['known']['t1'] / 2
     assert not res['known']['pass']
 

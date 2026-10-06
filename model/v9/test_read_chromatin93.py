@@ -40,7 +40,7 @@ def test_h2_refuses_a_bad_marker_and_reads_rising_only_when_monotone_and_large(t
     assert rd.read_h2(_h2({'4': lo, '6': D91_N1 - 0.0001, '8': mid, 'all': D91_N1}))['reading'] == 'NOT RISING'   # not monotone
     assert rd.read_h2(_h2({'4': lo, '6': mid, '8': D91_N1 - 0.0001, 'all': D91_N1}, sd4=0.01))['reading'] == 'NOT RISING'
     bad = rd.read_h2(_h2({'4': lo, '6': mid, '8': D91_N1 - 0.0001, 'all': D91_N1}, repro=False))
-    assert not bad['k_all_reproduces_91'] and bad['HARNESS_FAULT']
+    assert not bad['k_all_reproduces_91'] and bad['HARNESS_FAULT'] and bad['reading'] == 'HARNESS_FAULT'
 
 
 def _h3(real_pass, mde_p1, void=False, g_delta=0.01):

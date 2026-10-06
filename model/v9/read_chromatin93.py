@@ -50,7 +50,8 @@ def read_h2(res):
     a = real['all'][0]
     repro = bool(abs(a['FBC_minus_FB'] - (sc['FBC']['all'] - sc['FB']['all'])) < 1e-6 and
                  abs(a['FBC_minus_N1'] - (sc['FBC']['all'] - sc['N1']['all'])) < 1e-6)
-    return {'reading': 'RISING' if rising else 'NOT RISING', 'k_all_reproduces_91': repro,
+    reading = ('RISING' if rising else 'NOT RISING') if repro else 'HARNESS_FAULT'   # review 052 follow-up: a fault is not a reading
+    return {'reading': reading, 'k_all_reproduces_91': repro,
             'HARNESS_FAULT': None if repro else 'k = all does not reproduce 91.12; the curve is not read',
             'median_FBC_minus_N1': med, 'sd_k4': sd4,
             'rise_all_minus_k4': rise, 'monotone': monotone,
