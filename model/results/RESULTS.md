@@ -7318,13 +7318,14 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
 - **Tests:** 11 pass.
 - **Not yet done:** nothing has run on real data, and the code dataset version is not yet uploaded.
 
-### 93.7 RESULT, Stage 1a read once: **H2 NOT RISING; H3 DOES NOT ADVANCE** (informative for the gain form). In the non-linear learner, **the fitting cells' gene-generic mean chromatin beats each dev cell's own chromatin in 6 of 6 cells** (2026-10-06)
+### 93.7 RESULT, Stage 1a read once: **H2 NOT RISING; H3 DOES NOT ADVANCE** (informative for the gain form; blind to drug-specific shifts) (2026-10-06; interpretation amended by review 053)
 **The runs:**
 - **Kernels:** `lincs-chromatin93-h2` (Kaggle CPU, 4,185 s) and `lincs-chromatin93-h3` (Kaggle CPU, 34,002 s ≈ 9.4 h).
   - Both verified the 10 pinned inputs and the split bundle (log line 1). LightGBM is 4.6.0 on Kaggle; the local tests ran 4.7.0.
   - **H3 ran 9× over 93.6's ≈ 1 h estimate.** The fit count was as estimated (31 runs × 39 fits = 1,209), but each case
-    took ≈ 1,070 s, not ≈ 120 s; `bench()` timed the fit alone, not the fold designs and predictions. It stayed inside the
-    12 h session, so nothing was re-planned.
+    took ≈ 1,070 s, not ≈ 120 s; `bench()` timed one fit on synthetic data, not μ, the fold designs, prediction or Kaggle's
+    slower CPUs. It stayed inside the 12 h session, so nothing was re-planned.
+  - **So (review 053 ask 4):** H3 used 9.4 h of a 12 h session. Any H3-style run with more cases is split across kernels.
   - **The log's sklearn warning** ("X does not have valid feature names") is benign: fit and predict both take
     `make_dataset`'s float32 ndarray with the same columns. It is the LightGBM 4.6 sklearn-API warning.
 - **Reading:** `CHROMATIN93_{H2,H3}_COMPLETE.json` were verified by the reader (output sha1s `d90fa910…`, `faef65c3…`). Each
@@ -7376,31 +7377,61 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
 - **Reading: DOES NOT ADVANCE.** The reader's label: *"informative null for the gain form (MDE ≤ 0.005; non-linear learner,
   these features, these dev cells)"*. It says nothing about drug-specific shifts.
 - **All dev rows (reported, never read):**
-  - **Its P3 check is VOID:** P3 at 5 % passes on all rows, unlike the drug-known rows.
+  - **Its P3 check is VOID:** P3 at 5 % passes on all rows, unlike the drug-known rows. Its centred Δ is +0.0041 to +0.0063
+    on all rows (known rows −0.0001 to +0.0012), which clears the all-rows centred bar of 0.0015.
+  - **The likely mechanism** (review 053 ask 2; plausible, not verified):
+    - on level-3 rows μ is the global mean, so a covered-cell plant is absorbed differently on known and level-3 rows;
+    - pooling both row types within a cell leaves a row-type-dependent part of the "drug-independent" plant that centring does
+      not remove;
+    - this is why review 041 C3 made the drug-known rows the rows of record.
   - So the all-rows instrument carries no weight. Its real run does not pass either.
 
-**What Stage 1a says** (interpretation, for the critic):
+**What Stage 1a says** (interpretation; items 1, 2 and 4 amended by review 053 C1–C2):
 1. **H2 and H3 are not supported for the §91 promoter-window features:**
-   - more fitting cells (in the linear form) did not lift the curve;
-   - a non-linear learner found no cell-specific gain.
-   Of the five hypotheses for why chromatin does not transfer, H1 (granularity) and H5 (data quality) remain open, with E1
-   (H4/H5) in progress.
-2. **Gene-generic chromatin beats the cell's own, in every dev cell.**
-   - In H3, replacing each dev cell's chromatin with the fitting cells' mean adds +0.0053 over B. The cell's own chromatin adds
-     +0.0019.
-   - This is the strongest form yet of 91.12's *"gain is gene-generic"* (there, N1 was within +0.0002 of FBC). A flexible learner
-     that can use a cell's own promoter chromatin does worse with it than with the population average.
+   - more fitting cells did not lift the curve over k = 4–11: the rise is a monotone +0.0007, below 2 sd, and the planted
+     0.5 % gain is already detected at full size at k = 4;
+   - a non-linear learner found no cell-specific gain of the gain form (MDE ≤ 0.5 %).
+   - Of the five hypotheses for why chromatin does not transfer, H1 (granularity) and H5 (data quality) remain open, with E1
+     (H4/H5) in progress.
+2. **The cell's own promoter chromatin behaves like a feature without transferable cell-specific signal** (review 053 C1).
+   - C − N1 = −0.0034 (0 of 6 cells) lies within the nothing-planted calibration's range: −0.0044 to −0.0021, with C > N1 in
+     0–1 of 6.
+   - Its deficit against N1 is the learner's cost of fitting cell-specific variation that does not transfer.
+   - **Above the null:** own chromatin adds +0.0019 over B (null ≈ 0) and gene-mean chromatin +0.0053 (null +0.003).
    - **Two readings fit, and this does not separate them:**
      - (a) the cell-specific deviation carries no transferable response information at promoter granularity;
-     - (b) it is dominated by measurement noise. A mean over ≈ 11 cells is a denoised profile. H5's flags (93.5 item 7) bear on
-       this.
+     - (b) it is dominated by measurement noise.
+   - What would separate them is 93.8's split-half reliability.
+   - **Withdrawn:** *"gene-generic chromatin beats the cell's own, in every dev cell"* and *"the strongest form yet"*. The
+     nothing-planted draws produce the same gap.
 3. **H3's per-cell signs (C − B) do not follow T4/E2's pattern** (T4/E2: helps SKBR3 and HL60, harms HEK293T, LNCAP and VCAP).
    H3's C − B is positive in HEK293T, SKBR3 and U937. This was not pre-registered and is not read.
 4. **For the principal's direction** (chromatin as the cell's own context, attending over pathway graphs):
-   - this result says the promoter-window marks v9 has do not carry a cell-specific signal that either a linear or a tree learner
-     can transfer to unseen cells;
+   - the promoter-window marks v9 has do not carry a cell-specific signal **of the gain form** that a linear or tree learner
+     transfers to unseen cells;
+   - drug-specific shifts are bounded at 5 % linearly (§91.12) and were undetected by the trees at any planted size;
    - richer chromatin (H1: enhancers and TF-motif accessibility) is the remaining route, and Stage 1b is built for it;
-   - H1's binding conjunct will be the N1 one: the new features must beat their own gene-generic means.
+   - H1's binding conjunct stays as 93.5 C2 has it: linear T1, with S(C) − S(N1) ≥ 0.002. The ≈ −0.003 null cost above is a
+     tree property; §91's linear T1 had C − N1 = +0.00023.
+
+### 93.8 🔒 Stage 1b additions from review 053 ask 5 (before any Stage 1b data, 2026-10-06; reported, never read)
+1. **Split-half reliability of each cell's deviation.** It separates 93.7 item 2's readings (a) and (b).
+   - **The cells:** every kept cell with ≥ 2 usable samples (files that downloaded and parsed with ≥ 1 interval).
+   - **The fixed split:** samples in step10's order (the URL order of `select_atac_samples`). Half A takes positions 0, 2, 4;
+     half B takes positions 1, 3, 5.
+   - **For each half:** its own merged union gives F_prom_A, F_enh_A and MA_A (from which F_reg_A), and likewise for B. The
+     rules are 93.3 item 2's.
+   - **The deviation of half h** for gene g: dev_h[c, g] = F_h[c, g] − mean over the other kept cells c' ≠ c of F[c', g]
+     (each from its full union), with every feature rank-normal per (cell, feature) as in §91.
+   - **Reported:** per cell and feature, Pearson and Spearman across genes with a TSS between dev_A and dev_B. Also the median
+     over cells, and the same for MA_A and MA_B across motifs.
+   - **What it means:** high reliability means the deviation is reproducible, so noise is not what blocks transfer (a); low
+     reliability supports (b). No threshold is read.
+2. **A shrinkage arm, reported beside H1's binding comparison.**
+   - The cell's own new features are shrunk toward their N1 means: (1 − λ) F + λ N1, with λ ∈ {0.25, 0.5, 0.75} chosen by
+     grouped CV over the covered fitting cells.
+   - It is informative only if it finds a gain. A null at every λ does not separate (a) from (b).
+3. **Unchanged:** H1's binding comparison and conjuncts (93.3 item 3, 93.5 C2 and C6).
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "053_c93_stage1a_result"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -77,12 +75,13 @@
     "049_e2_3seed_88pins",
     "050_chromatin_h1_h3",
     "051_moa88_result",
-    "052_c93_code"
+    "052_c93_code",
+    "053_c93_stage1a_result"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "93 Stage 1a READ (RESULTS 93.7): H2 NOT RISING, H3 DOES NOT ADVANCE (informative, gain form; gene-generic N1 beats own chromatin 6/6 cells). Packet 053 open. Next: review W31b's chromatin_features93.py (Stage 1b) before any Kaggle run; E1 seeds 1-2 (kern_v9dev_e1_s1) after the Sat 10 Oct 05:30 IST reset.",
+  "pending_decision": "93 Stage 1a READ and adjudicated (RESULTS 93.7 amended by review 053; 93.8 adds split-half reliability and a shrinkage arm to Stage 1b, reported only). Next: Stage 1b data module (chromatin_features93.py) needs a fix round (W31b's MOODS/py2bit calls do not exist in those APIs) then a Kaggle selftest; E1 seeds 1-2 after Sat 10 Oct 05:30 IST.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
-  "challenges_upheld": "211 challenge rows in 52 adjudicated reviews (counted 2026-10-06 incl. review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
+  "challenges_upheld": "213 challenge rows in 53 adjudicated reviews (counted 2026-10-06 incl. review 053: C1, C2 upheld -- item 2 sat inside the null calibration, items 1/4 lacked the gain-form scope; review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
