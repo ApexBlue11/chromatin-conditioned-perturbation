@@ -78,7 +78,7 @@
     "052_c93_code"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "93 Stage 1a cleared by review 052 (fixes in); awaiting the critic's ack of the C1(a) answer, then upload lincs-chromatin-funnel and push kern_chromatin93_h2/h3 (Kaggle CPU). W31 delivered chromatin_features93.py (Stage 1b) -- PI review pending.",
+  "pending_decision": "93 Stage 1a RUNNING on Kaggle CPU since 07:41 IST 6 Oct (lincs-chromatin93-h2, -h3; cleared by review 052 + follow-up). Next: download each, read ONCE with read_chromatin93.py {h2,h3} DIR, record as RESULTS 93.7, packet the critic. W31b (detached) is fixing chromatin_features93.py (Stage 1b); PI must review it and its selftest before any Kaggle run. E1 seeds 1-2 (kern_v9dev_e1_s1) after the Sat 10 Oct 05:30 IST reset.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
   "challenges_upheld": "211 challenge rows in 52 adjudicated reviews (counted 2026-10-06 incl. review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
