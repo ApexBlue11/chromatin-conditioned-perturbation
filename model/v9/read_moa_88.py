@@ -17,7 +17,7 @@ FLOOR, PMAX, GATE = -0.02, 0.05, 0.95
 ROWS = '3e59a7ba7832775596f032dbab06c2c36a7723b4'
 N_COMPOUNDS, N_UNSEEN = 496, 156                   # identity with RESULTS 86 (review 028 C3)
 # sha1 of c8b_ckpt_v9_fold0_seed{0,1,2}.pt as printed by kern_moa88_t{0,1,2}; filled in BEFORE the probe kernels run.
-TRAINED_SHA1 = ['efd0e1cf2774ab0aa5ba02d1a75f0c999a45c38a', None, None]   # t0 pinned 2026-09-30 from its log; t1, t2 when trained
+TRAINED_SHA1 = ['efd0e1cf2774ab0aa5ba02d1a75f0c999a45c38a', '9a6e8a8146a905e0a4ca9da1239c41e963e75b4b', 'aa82e17d9f224aa26cf98636104750d0555048d0']   # t0 pinned 2026-09-30, t1/t2 2026-10-06, each from its kern_moa88_t* log
 
 
 def load(D, tag):
