@@ -6395,6 +6395,39 @@ screen runs **all three seeds regardless of rule 6**, and the MoA study (§88) e
      `train_v9_gpu.py`, `probe_pathways_v6.py`, `probe_moa_v9.py`;
    - so pt1 and pt2 run the same code as pt0 and pu0–pu4.
 
+### 88.8 RESULT, read once by `read_moa_88.py` — **NULL**: the drug-dependent named pathway layer does not align with annotated mechanism beyond its untrained calibration on all three seeds (2026-10-06)
+**The run:**
+- **Probes:** t0 (pt0, 30 Sep); t1 and t2 (pt1 and pt2, 6 Oct, on Kaggle CPU, after the 832f270 pins); u0–u4 (30 Sep).
+- **Pins:** each trained probe's log shows its pinned sha1 (`efd0e1cf…`, `9a6e8a81…`, `aa82e17d…`). Probe exit 0.
+- **The read:** `read_moa_88.py external/kaggle_out/moa88_read model/results/moa_88_reading.json`, once.
+- **No probe output was opened** before the reader ran.
+
+**Every validity check passes:** rows sha1; quintile sha1 identical across the 8; n_compounds identical; trained epoch 11;
+untrained from fold-0 seed 0; trained sha1s pinned; n identity with §86 (496 / 156); data-projection S identical; no void probe.
+
+**The untrained calibration (all rows):**
+- diffs −0.0022, +0.0064, −0.0192, −0.0021, +0.0201;
+- m_u +0.0006, sd_u 0.0144, so the 2-sd bar is −0.0282;
+- unseen stratum: m +0.0124, sd 0.0179.
+
+| seed | gate (ρ) | all rows: diff (p, p_s) | ≤ min_u | ≤ m_u − 2sd_u | S < Null 2 | unseen: diff (p) | unseen conditions |
+|---|---|---|---|---|---|---|---|
+| 0 | ✓ (0.18) | −0.0210 (0.013, 0.020) | ✓ | **✗** | ✓ | −0.0437 (0.008) | all ✓ |
+| 1 | ✓ (0.30) | −0.0011 (0.43, 0.43) | ✗ | ✗ | ✗ | −0.0012 (0.48) | none |
+| 2 | ✓ (0.26) | −0.0147 (0.042, 0.052) | ✗ | ✗ | ✗ | −0.0242 (0.075) | ≤ min, ≤ 2sd, ≤ −0.02; p ✗ |
+
+**The reading (§88.3, mechanical): NULL.** SIGNAL and SEEN-ONLY both need the all-rows conditions on all three seeds. No seed
+meets all of them; seed 0 fails only the 2-sd condition.
+- **Permitted wording:** *"a trained drug-dependent named pathway layer (C8b's post-drug layer, three seeds) does not align
+  with annotated drug mechanism beyond five untrained initialisations of the same architecture."*
+- **Reported, not read:** seed 0 aligns at p 0.013 (unseen compounds −0.044, p 0.008), which seeds 1 and 2 do not reproduce.
+  The untrained models alone span −0.019 to +0.020.
+  - This is the instability §86.4 and review 023 warned of: a single seed would have read as an effect.
+  - No per-drug case study is made (§88.3).
+- **With §86.4 (gradient readout, NULL) and C 4.1a (attention):** none of the three ways of reading drug mechanism from v9
+  recovers annotated mechanism beyond its calibrated nulls. **The interpretability that holds is cell-level:** the named
+  pathway readout ranks which pathways move in unseen test cells (§85.14).
+
 ## 89. 🔒 PRE-REGISTERED: C7, chromatin gating the union graph's edges — packet 026 as amended by review 026; C5 deferred (2026-09-25)
 Coverage and the C5 deferral as packet 026 (`model/results/cc1_input_coverage.json`): the local CCLE baseline is landmark-only
 and duplicates `x_cell` for DMSO-fallback cells; genome-wide CCLE would be a separate design.
