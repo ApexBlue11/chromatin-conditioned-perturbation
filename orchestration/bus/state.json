@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "049_e2_3seed_88pins"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -74,7 +76,7 @@
     "048_e1_s0"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "P7 scored (85.14, no claim). E2 s0 ADVANCES (92.7); E2 seeds 1-2 RUNNING (pushed 18:31). E1 s0 ADVANCES (92.8, +0.0044, centred +0.0044); E1 seeds 1-2 (kern_v9dev_e1_s1, 4fd8344) after the 10 Oct reset. t2 RUNNING (16:27). Review 048 adjudicated; 92.9 pre-registers the three-seed reads (comparator convention, decision table); lincs-v9-src frozen at 60bdcd48 until E1's three-seed read.",
+  "pending_decision": "E2 NOT ACCEPTED at three seeds (92.10; 3 of 6 cells). E1 s0 advanced (92.8); E1 seeds 1-2 (kern_v9dev_e1_s1) after the Sat 10 Oct 05:30 IST reset; the reading is set by E1 alone. 88: t1/t2 pinned (832f270); probes pt1/pt2 RUNNING on Kaggle CPU; then read_moa_88.py. Richer-chromatin data route approved by the principal 2026-10-06 (downloads). Packet 049 open.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
   "challenges_upheld": "200 challenge rows in 48 adjudicated reviews (counted 2026-10-03 incl. review 048: 2 of 2 upheld); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
