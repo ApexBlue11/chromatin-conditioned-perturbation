@@ -6422,11 +6422,16 @@ meets all of them; seed 0 fails only the 2-sd condition.
   with annotated drug mechanism beyond five untrained initialisations of the same architecture."*
 - **Reported, not read:** seed 0 aligns at p 0.013 (unseen compounds −0.044, p 0.008), which seeds 1 and 2 do not reproduce.
   The untrained models alone span −0.019 to +0.020.
-  - This is the instability §86.4 and review 023 warned of: a single seed would have read as an effect.
+  - Judged by its permutation p alone (0.013), a single seed would have read as an effect. Against five untrained
+    initialisations it does not: one untrained model reaches −0.019 (amended, review 051 C1).
   - No per-drug case study is made (§88.3).
-- **With §86.4 (gradient readout, NULL) and C 4.1a (attention):** none of the three ways of reading drug mechanism from v9
-  recovers annotated mechanism beyond its calibrated nulls. **The interpretability that holds is cell-level:** the named
-  pathway readout ranks which pathways move in unseen test cells (§85.14).
+- **The combined statement (amended, review 051 C2):** Three readouts of drug mechanism, on three models, do not recover annotated mechanism beyond their references:
+  atom→gene attention in an earlier model (target rank against chance; C 4.1a), gradient × activation pathway importance
+  in trained v9 (three seeds, against untrained controls; §86.4), and a trained drug-dependent pathway layer (C8b, three
+  seeds, against five untrained initialisations; §88). The readout that passes its registered test is cell-level and
+  drug-independent (against a training-row prior, without permutation nulls; §85.14).
+  - It is a null without an MDE: the untrained spread sets a bar only strong alignment clears. It reads "does not recover …
+    beyond", never "lacks". v9 does use its drug features for accuracy (§85.8).
 
 ## 89. 🔒 PRE-REGISTERED: C7, chromatin gating the union graph's edges — packet 026 as amended by review 026; C5 deferred (2026-09-25)
 Coverage and the C5 deferral as packet 026 (`model/results/cc1_input_coverage.json`): the local CCLE baseline is landmark-only

@@ -28,10 +28,11 @@ the real data rules out a chromatin gain on the drug's mean response explaining 
 (drug-specific shifts: ≥ 5 %), of forms linear in the encoded tracks, on six dev cells; replacing each cell's chromatin with
 the training mean at inference raises the dev-cell score by 0.006 on balance (a diagnostic) [§91].
 **(iv)** For
-interpretability, attention and gradient readouts do not recover annotated drug mechanism beyond calibrated nulls [C 4.1a, §86.4];
+interpretability, attention and gradient readouts do not recover annotated drug mechanism beyond their references, nor a trained
+drug-dependent pathway layer [C 4.1a, §86.4, §88];
 a shared linear readout of the named pathway nodes, trained to predict each pathway's response magnitude, ranks which pathways move
 in unseen test cell lines (ρ 0.295 against 0.241 for a cell-agnostic training-row prior, on every seed, with no permutation nulls;
-above the readout for other cells in all 8 test cells) [§85.10, §85.14, C 4.16]. ⏳ *[§88: a drug-dependent pathway readout against annotated mechanism.]* We also document how the benchmark's own numbers
+above the readout for other cells in all 8 test cells) [§85.10, §85.14, C 4.16]. We also document how the benchmark's own numbers
 are produced — a released checkpoint scored on folds it was trained on, and checkpoint selection on the test fold — and seven
 methods lessons, each with its measurement.
 
@@ -220,8 +221,15 @@ head is in the final model by the pre-registered rule, not because it was shown 
   - no permutation nulls were run on the test rows. It is cell-level, drug-independent and supervised on the target
   it is scored against. An earlier "8–12 sd over a permutation null" for a channel-mean readout [§37] does not reproduce in these models
   (its sign is arbitrary) and its null did not control for a generic ranking; it is withdrawn as evidence of mechanism.
-- ⏳ **A drug-dependent pathway readout** (C8b's post-drug layer, trained on fold 0, 3 seeds, 5 untrained calibrations) against
-  annotated mechanism, SIGNAL / SEEN-ONLY / NULL by §88.3 with §88.6's wording [§88].
+- **A trained drug-dependent pathway layer does not align with annotated mechanism** (C8b's post-drug layer, fold 0, 3 seeds,
+  against 5 untrained initialisations; NULL by §88.3) [§88.8].
+  - Seed 0 aligns at a permutation p of 0.013, which seeds 1 and 2 do not reproduce. One untrained initialisation alone reaches
+    −0.019, against seed 0's −0.021.
+  - Three readouts of drug mechanism, on three models, do not recover annotated mechanism beyond their references:
+    atom→gene attention in an earlier model (target rank against chance; C 4.1a), gradient × activation pathway importance
+    in trained v9 (three seeds, against untrained controls; §86.4), and a trained drug-dependent pathway layer (C8b, three
+    seeds, against five untrained initialisations; §88). The readout that passes its registered test is cell-level and
+    drug-independent (against a training-row prior, without permutation nulls; §85.14).
 
 ## 6. Methods lessons (each with its measurement)
 1. **Chance for pathway alignment is not 0.5**: an untrained model scores 0.218 against a label-permutation null of 0.229 [C 4.15].
