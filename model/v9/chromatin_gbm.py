@@ -106,35 +106,49 @@ def _lgbm(mcs):
 FOLD_LOG = []   # (fold index, training-row cells, feature-builder cells) per fold fit -- read by the tests
 
 
-def run_loocv_arm(ctx, y, make_B, arm, fit_cells, fit_rows, sampled_r, sampled_g, folds, _leaky=False):
+def fold_pools(ctx, y, folds):
+    """Review 052 C3: each fold's mu_h (a pool without the fold), computed once per run_h3 and shared by the three arms."""
+    out = []
+    for fold_cells in folds:
+        pool = ctx.fit_mask & ~np.isin(ctx.rows['cell'], list(fold_cells))
+        cf.assert_no_dev(ctx, pool, 'fold pool')
+        out.append(cf.condition_means(ctx, y, pool)[0])
+    return out
+
+
+def run_loocv_arm(ctx, y, make_B, arm, fit_cells, fit_rows, sampled_r, sampled_g, folds, _leaky=False, mus=None):
     """Choose min_child_samples for one arm by grouped 4-fold over the covered fitting cells (93.5 C5 / PI amendment).
     PI fix (W30's N1 leak): each fold's features are built from THAT fold's training cells (make_B(train_cells)), so N1's
-    gene-generic means never include the held-out fold's chromatin; its target uses mu_h from a pool without the fold."""
+    gene-generic means never include the held-out fold's chromatin; its target uses mu_h from a pool without the fold.
+    Each fold's design is built once and reused for the three min-child values (review 052 C3)."""
     G = ctx.y.shape[1]
+    mus = fold_pools(ctx, y, folds) if mus is None else mus
+    prepared = []
+    for fi, fold_cells in enumerate(folds):
+        fold_cells = list(fold_cells)
+        train_cells = [c for c in fit_cells if c not in fold_cells]
+        mu_h = mus[fi]
+        train_mask = np.ones(len(sampled_r), bool) if _leaky else ~np.isin(ctx.rows['cell'][sampled_r], fold_cells)
+        train_r, train_g = sampled_r[train_mask], sampled_g[train_mask]
+        if not _leaky:
+            assert not np.isin(ctx.rows['cell'][train_r], fold_cells).any(), 'a fold cell entered its own fit'
+        cf.assert_no_dev(ctx, train_r, 'train rows')
+        F = make_B(train_cells)[arm](None)
+        val_r = fit_rows[np.isin(ctx.rows['cell'][fit_rows], fold_cells)]
+        X_val = make_dataset(ctx, np.repeat(val_r, G), np.tile(np.arange(G), len(val_r)), mu_h, F) if len(val_r) else None
+        prepared.append((fi, train_r, train_g, mu_h, F, val_r, X_val, sorted(train_cells)))
     best_mcs, best_score = None, -np.inf
     for mcs in (50, 200, 1000):
         fold_scores = []
-        for fi, fold_cells in enumerate(folds):
-            fold_cells = list(fold_cells)
-            train_cells = [c for c in fit_cells if c not in fold_cells]
-            pool = ctx.fit_mask & ~np.isin(ctx.rows['cell'], fold_cells)
-            cf.assert_no_dev(ctx, pool, 'fold pool')
-            mu_h, _ = cf.condition_means(ctx, y, pool)
-            train_mask = np.ones(len(sampled_r), bool) if _leaky else ~np.isin(ctx.rows['cell'][sampled_r], fold_cells)
-            train_r, train_g = sampled_r[train_mask], sampled_g[train_mask]
-            if not _leaky:
-                assert not np.isin(ctx.rows['cell'][train_r], fold_cells).any(), 'a fold cell entered its own fit'
-            cf.assert_no_dev(ctx, train_r, 'train rows')
-            F = make_B(train_cells)[arm](None)
-            FOLD_LOG.append((fi, sorted(set(ctx.rows['cell'][train_r].tolist())), sorted(train_cells)))
+        for fi, train_r, train_g, mu_h, F, val_r, X_val, train_cells in prepared:
+            FOLD_LOG.append((fi, sorted(set(ctx.rows['cell'][train_r].tolist())), train_cells))
             model = _lgbm(mcs)
             t0 = time.time()
             model.fit(make_dataset(ctx, train_r, train_g, mu_h, F), (y - mu_h)[train_r, train_g])
             print('fit %s mcs %d fold %d: %.1f s' % (arm, mcs, fi, time.time() - t0), flush=True)
-            val_r = fit_rows[np.isin(ctx.rows['cell'][fit_rows], fold_cells)]
-            if len(val_r) == 0:
+            if X_val is None:
                 continue
-            e_hat = model.predict(make_dataset(ctx, np.repeat(val_r, G), np.tile(np.arange(G), len(val_r)), mu_h, F))
+            e_hat = model.predict(X_val)
             fold_scores.append(float(np.nanmean(cf.row_pearson(mu_h[val_r] + e_hat.reshape(len(val_r), G), y[val_r]))))
         m = float(np.mean(fold_scores))
         if m > best_score:
@@ -166,8 +180,10 @@ def run_h3(ctx, y, make_B):
     fit_rows, sampled_r, sampled_g = get_fitting_pairs(ctx, y, seed=9301)
     folds = get_folds(ctx)
     chosen, cv = {}, {}
+    mus = fold_pools(ctx, y, folds)
     for arm in ARMS:
-        chosen[arm], cv[arm] = run_loocv_arm(ctx, y, make_B, arm, fit_cells, fit_rows, sampled_r, sampled_g, folds)
+        chosen[arm], cv[arm] = run_loocv_arm(ctx, y, make_B, arm, fit_cells, fit_rows, sampled_r, sampled_g, folds,
+                                             mus=mus)
     yh = {arm: fit_predict_arm(ctx, y, make_B, arm, fit_cells, chosen[arm], sampled_r, sampled_g) for arm in ARMS}
     _, level = cf.condition_means(ctx, y, ctx.fit_mask)
     known = level[ctx.dev_mask] <= 2

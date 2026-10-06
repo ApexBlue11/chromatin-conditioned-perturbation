@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "052_c93_code"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -76,12 +74,13 @@
     "048_e1_s0",
     "049_e2_3seed_88pins",
     "050_chromatin_h1_h3",
-    "051_moa88_result"
+    "051_moa88_result",
+    "052_c93_code"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "E2 NOT ACCEPTED (92.10). E1 seeds 1-2 after the 10 Oct reset. 88 NULL (88.8). 93 Stage 1a code committed (93.6, 3e388cb); packet 052 (code review) open; no run before clearance. Stage 1b (H1 data kernel) not started.",
+  "pending_decision": "93 Stage 1a cleared by review 052 (fixes in); awaiting the critic's ack of the C1(a) answer, then upload lincs-chromatin-funnel and push kern_chromatin93_h2/h3 (Kaggle CPU). W31 delivered chromatin_features93.py (Stage 1b) -- PI review pending.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
-  "challenges_upheld": "209 challenge rows in 51 adjudicated reviews (counted 2026-10-06 incl. review 051: 2 of 2 upheld); the older running tally (160 of 163) had drifted and is withdrawn",
+  "challenges_upheld": "211 challenge rows in 52 adjudicated reviews (counted 2026-10-06 incl. review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
   "checkpoint_count": 2,
   "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",

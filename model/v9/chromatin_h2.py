@@ -6,8 +6,8 @@ chromatin_funnel.run_t1; no new estimator.
 
 For k in {4, 6, 8} covered dev-train cells (5 subsets each, default_rng(9300 + k)) and k = all (11, one fit), T1 is refitted on
 the subset (its LOCO and N1 over the same subset) and scored on the drug-known dev rows. Recorded per subset: FBC - N1 (the
-read quantity) and FBC - FB (reported); the same subsets carry M2's planted P1 at 0.5 % (draw 0), to show the estimator's own
-small-k behaviour. Prints no reading; read_chromatin93.py reads the JSON.
+read quantity) and FBC - FB (reported); the same subsets carry M2's planted P1 at 0.5 % (draws 0-2; review 052 ask 3), to show the estimator's
+own small-k behaviour. Prints no reading; read_chromatin93.py reads the JSON.
 """
 import argparse
 import json
@@ -22,6 +22,7 @@ import chromatin_power as cp
 KS = (4, 6, 8)
 N_SUB = 5
 PI_PLANT = 0.005
+PLANT_DRAWS = (0, 1, 2)
 
 
 def subsets(fit):
@@ -55,18 +56,25 @@ def main():
     fit_all = ctx.enc['rank_normal']['cov_dt']
     assert len(fit_all) == 11 and not set(fit_all) & set(cf.DEV_CELLS)
     S = subsets(fit_all)
-    fstar, rho = cp.synthetic_feature(ctx, 0)
     mu_e, _ = cf.condition_means(ctx, ctx.y, ctx.fit_mask)
-    y_plant, alpha = cp.plant(ctx, ctx.y, mu_e, fstar, 'P1', PI_PLANT, 0)
-    res = {'subsets': S, 'pi_plant': PI_PLANT, 'alpha_plant': alpha, 'rho_plant': rho, 'real': {}, 'planted_P1': {}}
+    plants = {}
+    for d in PLANT_DRAWS:
+        fstar, rho = cp.synthetic_feature(ctx, d)
+        y_plant, alpha = cp.plant(ctx, ctx.y, mu_e, fstar, 'P1', PI_PLANT, d)
+        plants[d] = (fstar, y_plant, alpha, rho)
+    res = {'subsets': S, 'pi_plant': PI_PLANT, 'plant_draws': list(PLANT_DRAWS),
+           'alpha_plant': {d: v[2] for d, v in plants.items()}, 'rho_plant': {d: v[3] for d, v in plants.items()},
+           'real': {}, 'planted_P1': {}}
     for k, subs in S.items():
         res['real'][k], res['planted_P1'][k] = [], []
         for fit in subs:
             t1 = time.time()
             Br = {kind: cf.feature_builder(ctx, 'rank_normal', kind, fit) for kind in ('FB', 'FBC', 'N1')}
             res['real'][k].append(t1_deltas(ctx, ctx.y, Br, fit))
-            Bp = cp.builders(ctx, fstar, fit, 0)
-            res['planted_P1'][k].append(t1_deltas(ctx, y_plant, Bp, fit))
+            for d, (fstar, y_plant, _, _) in plants.items():
+                r = t1_deltas(ctx, y_plant, cp.builders(ctx, fstar, fit, d), fit)
+                r['draw'] = d
+                res['planted_P1'][k].append(r)
             print('k=%s subset %d/%d done in %.0f s' % (k, len(res['real'][k]), len(subs), time.time() - t1), flush=True)
     res['inputs'] = ctx.inputs
     res['seconds'] = time.time() - t

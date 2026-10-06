@@ -20,6 +20,10 @@ import sys
 
 import numpy as np
 
+REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+F91 = os.path.join(REPO, 'model', 'results', 'chromatin_funnel_91.json')
+T1_BAR_KNOWN = 0.004
+
 
 def _verified(d, out_name, marker_name):
     out, mk = os.path.join(d, out_name), os.path.join(d, marker_name)
@@ -41,7 +45,14 @@ def read_h2(res):
     monotone = all(a < b for a, b in zip(steps, steps[1:]))
     rise = med['all'] - med['4']
     rising = bool(monotone and rise > 2 * sd4)
-    return {'reading': 'RISING' if rising else 'NOT RISING', 'median_FBC_minus_N1': med, 'sd_k4': sd4,
+    # review 052 C2: k = all is 91's T1 exactly; it must reproduce 91.12 (a harness check, not a reading)
+    sc = json.load(open(F91))['row_sets']['known']['scores']
+    a = real['all'][0]
+    repro = bool(abs(a['FBC_minus_FB'] - (sc['FBC']['all'] - sc['FB']['all'])) < 1e-6 and
+                 abs(a['FBC_minus_N1'] - (sc['FBC']['all'] - sc['N1']['all'])) < 1e-6)
+    return {'reading': 'RISING' if rising else 'NOT RISING', 'k_all_reproduces_91': repro,
+            'HARNESS_FAULT': None if repro else 'k = all does not reproduce 91.12; the curve is not read',
+            'median_FBC_minus_N1': med, 'sd_k4': sd4,
             'rise_all_minus_k4': rise, 'monotone': monotone,
             'reported_median_FBC_minus_FB': {k: float(np.median([r['FBC_minus_FB'] for r in v])) for k, v in real.items()},
             'reported_planted_P1_median_FBC_minus_N1': {k: float(np.median([r['FBC_minus_N1'] for r in v]))
@@ -60,12 +71,18 @@ def read_h3(res):
     else:
         verdict = 'DOES NOT ADVANCE'
     mde = f['MDE']
+    # review 052 C1(b): the gene-generic check certifies something only if some G case cleared the raw bar in every draw
+    recs = res['calibration']
+    g_inf = any(all(r['cases']['G_%g' % pi]['known']['delta']['all'] >= T1_BAR_KNOWN for r in recs) for pi in (0.02, 0.05))
     label = None
     if verdict == 'DOES NOT ADVANCE':
         label = ('informative null for the gain form (MDE <= %g; non-linear learner, these features, these dev cells)' % mde['P1']
                  if mde['P1'] is not None and mde['P1'] <= 0.02 else
                  'uninformative null: the calibration does not detect a planted gain at <= 2 %')
-    return {'reading': verdict, 'label': label, 'faults': {k: f[k] for k in ('VOID_null', 'VOID_P3', 'VOID_G')},
+    if not g_inf:
+        label = (label + '; ' if label else '') + 'the gene-generic check is uninformative (G\'s raw delta below the bar)'
+    return {'reading': verdict, 'label': label, 'G_check_informative': g_inf,
+            'faults': {k: f[k] for k in ('VOID_null', 'VOID_P3', 'VOID_G')},
             'G_raw_delta': f['G_raw_delta'], 'MDE': mde, 'conjuncts': real['conjuncts'],
             'delta_C_minus_B': real['delta']['all'], 'delta_top': real['delta']['top'],
             'centred': real['delta']['centred_all'], 'C_minus_N1': real['vs_N1']['all'],

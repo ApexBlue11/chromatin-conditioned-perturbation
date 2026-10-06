@@ -80,16 +80,29 @@ def test_h3_reading_needs_an_N1_magnitude():
         assert gbm.h3_reading(s_C, s_B, s_N1, bars)['pass'] is expect
 
 
-def test_a_gene_generic_planted_effect_does_not_pass():
-    ctx = world(seed=5, n_perts=6)
-    cov = list(ctx.enc['rank_normal']['cov_dt']) + list(ctx.enc['rank_normal']['cov_dev'])
-    fbar = np.random.default_rng(0).normal(size=ctx.y.shape[1])
-    fg = {c: fbar for c in cov}                                  # the same vector in every covered cell, dev cells included
+def test_a_gene_generic_planted_effect_is_absorbed_by_mu_and_does_not_pass():
+    # Review 052 C1(a), as answered by the PI: an effect common to every cell (mu * the same gene vector everywhere) is part
+    # of mu itself (the drug's mean response in other cells), so the residual target e = y - mu holds nothing for C or N1
+    # to fit, however large it is planted. The planted G check therefore cannot clear the raw bar by construction; the
+    # protection against gene-generic gains is the S(C) - S(N1) magnitude conjunct (test_h3_reading_needs_an_N1_magnitude).
+    # This test pins that fact: chromatin that C can read (a shared vector plus cell noise), a large planted G, no gain, no pass.
+    ctx = world(seed=5, n_perts=12, noise=0.05)
+    e = ctx.enc['rank_normal']
+    cov = list(e['cov_dt']) + list(e['cov_dev'])
+    rng = np.random.default_rng(0)
+    fbar = rng.normal(size=ctx.y.shape[1]).astype(np.float32)
+    for c in cov:
+        i = ctx.cells.index(c)
+        for k in range(3):
+            if e['has'][i, k]:
+                e['Ez'][i, :, k] = fbar + 0.05 * rng.normal(size=ctx.y.shape[1]).astype(np.float32)
+    fg = {c: fbar for c in cov}
     mu_e, _ = cf.condition_means(ctx, ctx.y, ctx.fit_mask)
-    y_g, _ = cp.plant(ctx, ctx.y, mu_e, fg, 'P1', 0.05, 0)
+    y_g, _ = cp.plant(ctx, ctx.y, mu_e, fg, 'P1', 0.5, 0)
     res = gbm.run_h3(ctx, y_g, gbm.real_builders(ctx))
-    assert not res['known']['pass']
+    assert abs(res['known']['delta']['all']) < cf.BARS['known']['t1']     # absorbed by mu, not captured by C
     assert res['known']['vs_N1']['all'] < cf.BARS['known']['t1'] / 2
+    assert not res['known']['pass']
 
 
 def test_faults_and_mde_read_three_of_three():
