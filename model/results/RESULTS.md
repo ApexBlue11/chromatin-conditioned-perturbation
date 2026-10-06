@@ -7291,6 +7291,33 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
    - **Chromatin-gated TF-regulon or pathway edges.** It must say how its gate differs from C7's (§89, +0.0020).
    - **Chromatin→expression pretraining.**
 
+### 93.6 Stage 1a code, and two PI amendments for compute (2026-10-06; before any §93 run; packet 052)
+**Amendments (outcome-free, made for compute while the code was being written):**
+1. **H3 chooses `min_child_samples` by grouped 4-fold over the covered fitting cells, not per-cell LOCO.**
+   - **Folds:** cells sorted by name, permuted by `default_rng(9302)`, dealt round-robin.
+   - **Each fold:** its target uses μ from a pool without the fold, and its features (N1's gene-generic means included) come
+     from the fold's training cells only.
+2. **H3's fitting sample is a seeded 5 % of the (row, gene) pairs, not 20 %** (`default_rng(9301)`), the same in every arm, fold
+   and calibration case.
+- **Why both:** per-cell LOCO inside every calibration draw (93.5 C3) at 20 % would exceed a 12 h Kaggle CPU session.
+- **Estimate:** 1,209 fits, about 3 s each on 4 cores (the synthetic `bench()`), ≈ 1 h.
+
+**The code:**
+- **`model/v9/chromatin_h2.py`** (PI glue around `run_t1`) and its tests.
+- **`model/v9/chromatin_gbm.py`**, written by W30 with PI fixes:
+  - W30 built N1's fold features from all covered cells, held-out fold included;
+  - its calibration built every draw's tasks before running any;
+  - its marker hashed re-serialised JSON.
+- **`model/v9/test_chromatin_gbm.py`**, rewritten by the PI:
+  - the leak test reads the normal path's fold log;
+  - the gene-generic case is planted on dev cells too;
+  - the fault and MDE logic is tested.
+- **`model/v9/read_chromatin93.py`**, the only reader, and its tests on fabricated outputs.
+- **`orchestration/make_chromatin93_kernels.py`**: two free Kaggle CPU kernels, `kern_chromatin93_h2` and `_h3`. Each pins all
+  10 input sha1s and the split bundle, and writes a completion marker with its output's sha1.
+- **Tests:** 11 pass.
+- **Not yet done:** nothing has run on real data, and the code dataset version is not yet uploaded.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
