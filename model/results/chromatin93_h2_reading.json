@@ -1,0 +1,47 @@
+{
+ "reading": "NOT RISING",
+ "k_all_reproduces_91": true,
+ "HARNESS_FAULT": null,
+ "median_FBC_minus_N1": {
+  "4": -0.0004781236727844085,
+  "6": -0.00012353940460999024,
+  "8": 0.00013328996410821858,
+  "all": 0.0002281994418581179
+ },
+ "sd_k4": 0.0011485345807497069,
+ "rise_all_minus_k4": 0.0007063231146425264,
+ "monotone": true,
+ "reported_median_FBC_minus_FB": {
+  "4": 0.0011416110508982724,
+  "6": 0.0011739146711133297,
+  "8": 0.0014140325636736728,
+  "all": 0.0014380984083488535
+ },
+ "reported_planted_P1_median_FBC_minus_N1": {
+  "4": 0.004217967481161877,
+  "6": 0.0037118435591751153,
+  "8": 0.004028857003817582,
+  "all": 0.0038647362802289587
+ },
+ "licensed": null,
+ "marker": {
+  "pins": {
+   "chromatin_funnel.py": "c56bb6f153596e4234fa74e3372606aba55f2ee4",
+   "chromatin_power.py": "c501cba28b1dfe0c435bd68ab8cc6f4787956424",
+   "score_dev.py": "a9002bceff97ab5552790caf12b6819e7949965e",
+   "chromatin_h2.py": "3a1c8d0015b4b0f1b474fe8a3a56acff91299b82",
+   "chromatin_gbm.py": "7f7c3bb5aad4398ae535906c89937714f6f460b8",
+   "E_final.npy": "20e9a3e4ce56f0d8a938c185dc5ca9e016590aac",
+   "E_final_mask.npy": "6186bbdd9edae48d0382b5f269c600ff455fdb2f",
+   "lincs_cell_index.json": "5f7bc6b42fe45c56f62a27d06c1925a077056e6d",
+   "cell_lineage.npy": "1efd3dea686816db00b10ca426ed2e54d533c75d",
+   "E_final_provenance.json": "22c249d1e6c8208809e6fa088664d93b1de18c8f"
+  },
+  "splits_sha1": "1444b253d48c5adf066bf7a3cc0ba8ea5fb71464",
+  "lightgbm": "4.6.0",
+  "outputs": {
+   "chromatin_h2_93.json": "d90fa910169ec5298ed7bee8f55f153bcccffa23"
+  },
+  "complete": true
+ }
+}

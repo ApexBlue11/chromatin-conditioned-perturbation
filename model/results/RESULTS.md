@@ -7318,6 +7318,90 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
 - **Tests:** 11 pass.
 - **Not yet done:** nothing has run on real data, and the code dataset version is not yet uploaded.
 
+### 93.7 RESULT, Stage 1a read once: **H2 NOT RISING; H3 DOES NOT ADVANCE** (informative for the gain form). In the non-linear learner, **the fitting cells' gene-generic mean chromatin beats each dev cell's own chromatin in 6 of 6 cells** (2026-10-06)
+**The runs:**
+- **Kernels:** `lincs-chromatin93-h2` (Kaggle CPU, 4,185 s) and `lincs-chromatin93-h3` (Kaggle CPU, 34,002 s ≈ 9.4 h).
+  - Both verified the 10 pinned inputs and the split bundle (log line 1). LightGBM is 4.6.0 on Kaggle; the local tests ran 4.7.0.
+  - **H3 ran 9× over 93.6's ≈ 1 h estimate.** The fit count was as estimated (31 runs × 39 fits = 1,209), but each case
+    took ≈ 1,070 s, not ≈ 120 s; `bench()` timed the fit alone, not the fold designs and predictions. It stayed inside the
+    12 h session, so nothing was re-planned.
+  - **The log's sklearn warning** ("X does not have valid feature names") is benign: fit and predict both take
+    `make_dataset`'s float32 ndarray with the same columns. It is the LightGBM 4.6 sklearn-API warning.
+- **Reading:** `CHROMATIN93_{H2,H3}_COMPLETE.json` were verified by the reader (output sha1s `d90fa910…`, `faef65c3…`). Each
+  output was read once by `model/v9/read_chromatin93.py` → `model/results/chromatin93_h2_reading.json` and
+  `chromatin93_h3_reading.json`.
+- **Raw outputs:** `model/results/chromatin_h2_93.json` and `chromatin_gbm_93.json` (sha1s as the markers; `external/` is git-ignored).
+
+**H2, the learning curve** (drug-known dev rows; T1 refitted on k covered dev-train cells; medians over 5 subsets):
+
+| k | FBC − N1 (read) | FBC − FB (reported) | planted P1 0.5 %, FBC − N1 (3 draws × 5 subsets) |
+|---|---|---|---|
+| 4 | −0.00048 | +0.00114 | +0.00422 |
+| 6 | −0.00012 | +0.00117 | +0.00371 |
+| 8 | +0.00013 | +0.00141 | +0.00403 |
+| all (1 fit) | +0.00023 | +0.00144 | +0.00386 |
+
+- **Reading: NOT RISING.** The curve is monotone, but Δ(all) − median Δ(k = 4) = +0.00071 is below 2 sd of the k = 4 subsets
+  (2 × 0.00115 = 0.00230).
+- **Harness check passed:** k = all reproduces 91.12 exactly (FBC − FB +0.00144, FBC − N1 +0.00023).
+- **The planted curve is flat at ≈ +0.004 from k = 4.** T1 recovers a 0.5 % planted gain from 4 fitting cells, so the flat
+  real curve is not the estimator's small-k bias.
+- **No licensed statement.** It is not stated that the increment grows with fitting cells.
+- **Not covered (93.5 C4):**
+  - the plant is one rule shared by all cells, and a real rule could be cell-heterogeneous;
+  - 8-of-11 subsets overlap heavily, and k = all has no spread.
+
+**H3, a non-linear form** (LightGBM on e = y − μ^(−c); drug-known dev rows, which bind):
+
+| calibration (3 draws) | passes | raw Δ C − B | C − N1 |
+|---|---|---|---|
+| null (π = 0) | 0 / 3 | −0.0007 to +0.0005 | −0.0044 to −0.0021 |
+| P1 gain 0.5 % / 2 % / 5 % | 3 / 3 at each | +0.022 / +0.068 to +0.071 / +0.124 to +0.131 | +0.009 to +0.084 |
+| P2 drug-specific shift 0.5 % / 2 % / 5 % | **0 / 3 at each** | ≤ +0.0031 | < 0 |
+| P3 additive 5 % | 0 / 3 (fails the centred conjunct) | +0.130 to +0.143 | +0.075 to +0.082 |
+| G gene-generic 2 % / 5 % | 0 / 3 at each | **+0.029 to +0.056** | −0.052 to −0.026 |
+
+- **No fault:** VOID_null, VOID_P3 and VOID_G are all false.
+- **MDE_P1 ≤ 0.005.** 0.5 % was the smallest gain planted, so this is a ceiling.
+- **MDE_P2: none up to 5 %.** H3 is blind to drug-specific shifts. T1 detected them at 5 % (91.12) because its rule has per-drug
+  terms; H3's only drug inputs are μ^(−c) at the gene and ‖μ‖.
+- **The gene-generic check is informative.** G cleared the raw bar by 7–14× in every draw and was rejected by the N1 conjunct,
+  so the instrument separates gene-generic from cell-specific information (93.5 C2).
+- **Real run:**
+  - S(C) − S(B) = **+0.0019** against a bar of 0.004 (top tercile +0.0004 against 0.008), > 0 in 3 of 6 cells.
+  - Centred: +0.0030 against 0.002, > 0 in 4 of 6.
+  - **S(C) − S(N1) = −0.0034, and C > N1 in 0 of 6 cells**: HEK293T −0.0025, HL60 −0.0105, LNCAP −0.0045, SKBR3 −0.0029,
+    U937 −0.0024, VCAP −0.0033. Centred: −0.0046, 1 of 6.
+  - min_child_samples chosen: FB 50, FBC 50, N1 200.
+- **Reading: DOES NOT ADVANCE.** The reader's label: *"informative null for the gain form (MDE ≤ 0.005; non-linear learner,
+  these features, these dev cells)"*. It says nothing about drug-specific shifts.
+- **All dev rows (reported, never read):**
+  - **Its P3 check is VOID:** P3 at 5 % passes on all rows, unlike the drug-known rows.
+  - So the all-rows instrument carries no weight. Its real run does not pass either.
+
+**What Stage 1a says** (interpretation, for the critic):
+1. **H2 and H3 are not supported for the §91 promoter-window features:**
+   - more fitting cells (in the linear form) did not lift the curve;
+   - a non-linear learner found no cell-specific gain.
+   Of the five hypotheses for why chromatin does not transfer, H1 (granularity) and H5 (data quality) remain open, with E1
+   (H4/H5) in progress.
+2. **Gene-generic chromatin beats the cell's own, in every dev cell.**
+   - In H3, replacing each dev cell's chromatin with the fitting cells' mean adds +0.0053 over B. The cell's own chromatin adds
+     +0.0019.
+   - This is the strongest form yet of 91.12's *"gain is gene-generic"* (there, N1 was within +0.0002 of FBC). A flexible learner
+     that can use a cell's own promoter chromatin does worse with it than with the population average.
+   - **Two readings fit, and this does not separate them:**
+     - (a) the cell-specific deviation carries no transferable response information at promoter granularity;
+     - (b) it is dominated by measurement noise. A mean over ≈ 11 cells is a denoised profile. H5's flags (93.5 item 7) bear on
+       this.
+3. **H3's per-cell signs (C − B) do not follow T4/E2's pattern** (T4/E2: helps SKBR3 and HL60, harms HEK293T, LNCAP and VCAP).
+   H3's C − B is positive in HEK293T, SKBR3 and U937. This was not pre-registered and is not read.
+4. **For the principal's direction** (chromatin as the cell's own context, attending over pathway graphs):
+   - this result says the promoter-window marks v9 has do not carry a cell-specific signal that either a linear or a tree learner
+     can transfer to unseen cells;
+   - richer chromatin (H1: enhancers and TF-motif accessibility) is the remaining route, and Stage 1b is built for it;
+   - H1's binding conjunct will be the N1 one: the new features must beat their own gene-generic means.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

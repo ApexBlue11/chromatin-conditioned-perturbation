@@ -1,0 +1,60 @@
+{
+ "reading": "DOES NOT ADVANCE",
+ "label": "informative null for the gain form (MDE <= 0.005; non-linear learner, these features, these dev cells)",
+ "G_check_informative": true,
+ "faults": {
+  "VOID_null": false,
+  "VOID_P3": false,
+  "VOID_G": false
+ },
+ "G_raw_delta": [
+  0.029474345774109567,
+  0.05028581122110337,
+  0.032971385552559906,
+  0.055812112129646096,
+  0.03356350767489652,
+  0.05318135634691068
+ ],
+ "MDE": {
+  "P1": 0.005,
+  "P2": null
+ },
+ "conjuncts": {
+  "all_or_top": false,
+  "cells_pos": false,
+  "centred_all": true,
+  "centred_cells_pos": true,
+  "vs_N1_all": false,
+  "vs_N1_cells_pos": false
+ },
+ "delta_C_minus_B": 0.0018807356627147387,
+ "delta_top": 0.0004161447199073076,
+ "centred": 0.002997610607732598,
+ "C_minus_N1": -0.0033909716765336273,
+ "chosen_mcs": {
+  "FB": 50,
+  "FBC": 50,
+  "N1": 200
+ },
+ "reported_all_rows_pass": false,
+ "marker": {
+  "pins": {
+   "chromatin_funnel.py": "c56bb6f153596e4234fa74e3372606aba55f2ee4",
+   "chromatin_power.py": "c501cba28b1dfe0c435bd68ab8cc6f4787956424",
+   "score_dev.py": "a9002bceff97ab5552790caf12b6819e7949965e",
+   "chromatin_h2.py": "3a1c8d0015b4b0f1b474fe8a3a56acff91299b82",
+   "chromatin_gbm.py": "7f7c3bb5aad4398ae535906c89937714f6f460b8",
+   "E_final.npy": "20e9a3e4ce56f0d8a938c185dc5ca9e016590aac",
+   "E_final_mask.npy": "6186bbdd9edae48d0382b5f269c600ff455fdb2f",
+   "lincs_cell_index.json": "5f7bc6b42fe45c56f62a27d06c1925a077056e6d",
+   "cell_lineage.npy": "1efd3dea686816db00b10ca426ed2e54d533c75d",
+   "E_final_provenance.json": "22c249d1e6c8208809e6fa088664d93b1de18c8f"
+  },
+  "splits_sha1": "1444b253d48c5adf066bf7a3cc0ba8ea5fb71464",
+  "lightgbm": "4.6.0",
+  "outputs": {
+   "chromatin_gbm_93.json": "faef65c365438dfb4f4efc7ee85a6bc057c63cd3"
+  },
+  "complete": true
+ }
+}
