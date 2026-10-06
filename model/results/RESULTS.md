@@ -7045,6 +7045,49 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
      encoding in checkpoints is a later `xpert_arm.py` change with its own pin update.
 6. **Either acceptance is development:** an adopted change needs its own test-cell registration (a P8, §92.6).
 
+### 92.10 E2 at three seeds, read by 92.3 / 92.9 — **NOT ACCEPTED**: Δ +0.0073 clears its bar, but only **3 of 6** dev cells favour it (2026-10-06)
+**The runs:**
+- Seed 0: §92.7. Seeds 1–2: `lincs-v9dev-e2-s1`, pushed by the chain at 18:31 IST on 3 Oct.
+- Seeds 1–2's log: `mounted code verified for e2 (xpert_arm.py 60bdcd48039a)`. Per 92.9 item 5 this computes the same thing as
+  seed 0's 75c58f52. GUARD 4 (`51e7e4ab…`) and GUARD 5 (distinct, seeds 1 and 2) OK.
+- Scored by `score_dev.py --centred --preds <E2 ×3> --baseline <P2 ×3>` → `model/results/v9_dev_score_E2_3seed.json`.
+
+**Rule 7:**
+
+| conjunct | value | needed | |
+|---|---|---|---|
+| 3-seed mean Δ, per-row mean | **+0.0073** (E2 0.44421, sd 0.0026; P2 0.43693, sd 0.0017) | ≥ max(0.003, 2√(s0²/3 + s_v²/3)) = 0.0036 | ✓ |
+| Δ on the mean of per-cell means | +0.0095 | > 0 | ✓ |
+| dev cells favouring E2 | **3 of 6** | ≥ 4 of 6 | **✗** |
+
+- **Seed-paired Δ:** +0.0121 / +0.0038 / +0.0059, every seed positive.
+- **Centred Δ: +0.0045 > 0** ✓ (seed-paired +0.0068 / +0.0036 / +0.0033).
+- **Rule 8** (`align_dev.py --readout aux --no_nulls`, three final checkpoints, `ablate_epi` from the `.pt`;
+  `v9_dev_align_E2_3seed_aux.json`): alignment 0.2979 / 0.2866 / 0.2830, mean **0.2891** ≥ 0.2532 and > 0.2292 ✓.
+- **In-cell rule:** 6 of 6 cells; seed means +0.094 / +0.080 / +0.079 ✓.
+- **Verdict:** every conjunct but the cell count passes. **By the registered rule, E2 is not accepted.**
+
+**Per cell** (3-seed median Δ against P2):
+
+| HEK293T | LNCAP | VCAP | U937 | SKBR3 | HL60 |
+|---|---|---|---|---|---|
+| **+0.0217** | **+0.0365** | **+0.0220** | −0.0055 | −0.0077 | −0.0123 |
+
+- **The split is the one T4 found** (§91.11, three seeds at inference): training without cell-specific chromatin gains in the
+  three cells T4 marked as harmed and loses in the other three.
+  - So the per-cell pattern of §92.7 holds at three seeds.
+  - About 63 % of the gain is drug-specific (centred +0.0045 of +0.0073).
+- **Permitted reading:** *"training v9 without cell-specific chromatin raises the per-row dev score (+0.0073 at three seeds,
+  every seed positive) but in only 3 of 6 dev cells; it is not accepted under the pre-registered rule."*
+- **What it suggests, not established:** v9's chromatin helps in some cells (HL60, SKBR3, U937) and harms in others (HEK293T,
+  LNCAP, VCAP). Removing it wholesale trades the two.
+
+**The decision table (92.9 item 4):** E2 is not accepted, so the reading is set by E1 alone.
+- **E1 accepted at three seeds:** E1, against P2.
+- **E1 not accepted:** no change to the recipe.
+- **The E1-vs-E2 comparator** binds only if both are accepted, so it no longer binds. It is reported, descriptively, when E1's
+  seeds exist.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

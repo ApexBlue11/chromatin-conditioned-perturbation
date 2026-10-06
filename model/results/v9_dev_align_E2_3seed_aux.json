@@ -1,0 +1,96 @@
+{
+ "label": "E2_3seed",
+ "readout": "aux",
+ "n_rows": 4043,
+ "n_perm": 200,
+ "references": {
+  "training_prior": 0.22924682255205894,
+  "loco_prior": 0.2142509537381763
+ },
+ "per_checkpoint": [
+  {
+   "ckpt": "v9dev_e2_dev6s0_seed0.pt",
+   "ckpt_sha1": "9b4a9868f5b046f77a028cc1659d89bda69eddf4",
+   "seed": 0,
+   "alignment": 0.29787063763603294,
+   "null_mean": null,
+   "null_sd": null,
+   "z": null,
+   "cell_shuffle_mean": null,
+   "cell_shuffle_sd": null,
+   "in_cell_increment": {
+    "HEK293T": 0.08481519104773154,
+    "HL60": 0.03704805894948531,
+    "LNCAP": 0.16410150793803738,
+    "SKBR3": 0.07477550044641333,
+    "U937": 0.06397186740734152,
+    "VCAP": 0.14086448976504543
+   },
+   "in_cell_increment_mean": 0.09426276925900907
+  },
+  {
+   "ckpt": "v9dev_e2_dev6s0_seed1.pt",
+   "ckpt_sha1": "3d9c819526ba4235fdd790b490fa0d28148ca95a",
+   "seed": 1,
+   "alignment": 0.28657063139804245,
+   "null_mean": null,
+   "null_sd": null,
+   "z": null,
+   "cell_shuffle_mean": null,
+   "cell_shuffle_sd": null,
+   "in_cell_increment": {
+    "HEK293T": 0.05167119670304172,
+    "HL60": 0.05426680695511402,
+    "LNCAP": 0.1013076069125141,
+    "SKBR3": 0.0651130687259646,
+    "U937": 0.07606115174429148,
+    "VCAP": 0.1310562910032024
+   },
+   "in_cell_increment_mean": 0.07991268700735471
+  },
+  {
+   "ckpt": "v9dev_e2_dev6s0_seed2.pt",
+   "ckpt_sha1": "8979356da1c574c9ee83f3b1a61e81c2124fa7df",
+   "seed": 2,
+   "alignment": 0.2829888014232641,
+   "null_mean": null,
+   "null_sd": null,
+   "z": null,
+   "cell_shuffle_mean": null,
+   "cell_shuffle_sd": null,
+   "in_cell_increment": {
+    "HEK293T": 0.06373518308231732,
+    "HL60": 0.006578529317180215,
+    "LNCAP": 0.1747118923656387,
+    "SKBR3": 0.04464245093911621,
+    "U937": 0.05153309028607858,
+    "VCAP": 0.13009945207102855
+   },
+   "in_cell_increment_mean": 0.07855009967689326
+  }
+ ],
+ "mean_alignment": 0.2891433568191132,
+ "mean_null_mean": null,
+ "mean_null_sd": null,
+ "sd_alignment": 0.0077673321890522435,
+ "in_cell": {
+  "per_cell_3seed_mean": {
+   "HEK293T": 0.0667405236110302,
+   "HL60": 0.032631131740593185,
+   "LNCAP": 0.14670700240539672,
+   "SKBR3": 0.06151034003716471,
+   "U937": 0.06385536981257053,
+   "VCAP": 0.13400674427975878
+  },
+  "cells_positive": 6,
+  "seed_means": [
+   0.09426276925900907,
+   0.07991268700735471,
+   0.07855009967689326
+  ],
+  "licensed": true,
+  "min_cells": 5,
+  "beats_training_prior_every_seed": true,
+  "training_prior": 0.22924682255205894
+ }
+}
