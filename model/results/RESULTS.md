@@ -7111,7 +7111,7 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
 - **The E1-vs-E2 comparator** binds only if both are accepted, so it no longer binds. It is reported, descriptively, when E1's
   seeds exist.
 
-## 93. 🔒 PRE-REGISTERED (draft, packet 050): why chromatin does not transfer — H2 and H3 on the §91 features, H1 on richer accessibility features (principal's request, 2026-10-03/06)
+## 93. 🔒 PRE-REGISTERED (packet 050, amended by review 050): why chromatin does not transfer — H2 and H3 on the §91 features, H1 on richer accessibility features (principal's request, 2026-10-03/06)
 ### 93.1 The question, and what is already known
 - **The principal's argument** (2026-10-03): chromatin is a cell's own context. Baseline expression is downstream of it, so
   chromatin should carry what expression lacks: response potential (poised promoters, primed enhancers, TF access).
@@ -7127,8 +7127,12 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
   - **H2, too few contexts:** a chromatin→response rule is learned from ≈ 11 covered fitting cells.
   - **H3, form:** the effect is non-linear (thresholds, interactions with the drug's own response), not linear.
   - **H4, shortcut:** E1/E2 (§92), in progress.
-  - **H5, data quality:** failed H3K27me3 tracks (E1). New, found while building the manifest: **VCAP's ATAC is an EpiMap
-    imputed track (BSS01888), not a measurement**, and three cells (AGS, NPC, PHH) use H3K4me3 as an accessibility proxy.
+  - **H5, data quality:** failed H3K27me3 tracks (E1), and sparse or heavy-tailed tracks on other marks (93.5 item 6).
+    - **Corrected, review 050 C1:** VCAP has **no accessibility track in v9**. Its EpiMap entry yielded no tracks
+      (`E_peaks_log.txt:129`), so its chromatin is measured H3K27ac plus a failed H3K27me3.
+    - **AGS, NPC, PHH, A375 and NOMO1** likewise have no accessibility track: their entries gave 0 tracks and were masked.
+    - The draft's *"VCAP's ATAC is an EpiMap imputed track"* read the coverage report, which lists sources, not what v9
+      assembled. It is withdrawn.
 
 ### 93.2 Stage 1a: H2 and H3 on the existing §91 features (no new data; Kaggle CPU)
 Everything not stated is §91.2 as amended, and is reused through `chromatin_funnel.py`:
@@ -7196,6 +7200,58 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
 - **Cost:** no GPU. Kaggle CPU only; the laptop downloads only the small outputs.
 - **Scope:** dev and training cells only, so no test-cell statement. **Written after §91's and §92's results**, which is
   disclosed: the hypotheses were chosen knowing those nulls.
+
+### 93.5 AMENDED by review 050 (6 of 6 upheld; before any §93 code or data, 2026-10-06)
+1. **C1 (MAJOR), the H1 samples are what v9 assembled.**
+   - **The rule:** H1's samples are chosen by **v9's own assembly rule**, re-run, not from `coverage_report_final.tsv`. That is
+     `phase2_assembly/scripts/step10_extract_peak_tensor.py`:
+     - Cistrome sample IDs → GSM → SRX, the first 6 SRX, ChIP-Atlas `bed05`;
+     - ENCODE: the first 4 experiments, the first released peak file each.
+   - **Cells:** only (cell, ATAC) slots that produced channel 0 in v9 (`E_peaks_log.txt` tracks > 0): 19 of the 25 listed.
+     **A375 and NOMO1 are excluded**, as are AGS, NPC, PHH and VCAP. Their accessibility, where public data now exists, would be
+     new to v9, and F_prom would then not be v9's data.
+   - **The manifest** records every (cell, sample, URL, size, sha1, genes with a peak). A cell whose merged peaks give 0 genes
+     with promoter coverage is missing (SKBR3's three tracks gave `nonzero_genes = 0` in v9; it is re-checked, not assumed).
+2. **C2 (MAJOR), N1 needs a magnitude.**
+   - **The rule:** in H3 and H1 the N1 conjunct becomes **S(C) − S(N1) ≥ +0.002 on the drug-known rows** (half the raw bar)
+     **and** C > N1 in ≥ 4 cells. N1 is built from that test's own features.
+   - **A planted gene-generic effect must fail:** the same f\* for every cell, at a size whose raw Δ clears 0.004. Any pass
+     → the instrument is VOID.
+   - §91's T1 carried the same count-only conjunct; its real Δ was below the raw bar, so no §91 reading changes.
+3. **C3 (MAJOR), H3's calibration has §91.9's fault checks.**
+   - **Draws:** each calibration draw includes π = 0 (any pass → VOID) and P3 at 5 % (any pass → VOID), plus item 2's
+     gene-generic case.
+   - **MDE:** the smallest π at which a form passes in **3 of 3** draws.
+   - **Re-tuning:** LOCO's min-child choice is re-run inside every draw.
+   - **The reader:** fault and MDE readings are applied by a `read_chromatin93.py`, committed before the run (as for §91).
+4. **C4, H2 is read on FBC − N1 only.**
+   - "Rising" is read on **FBC − N1**; FBC − FB is reported.
+   - The planted-P1 curve uses the **same** subsets.
+   - k = all is one fit with no spread, and 8-of-11 subsets overlap heavily; both are stated beside the curve.
+5. **C5, compute and H1's free choices, fixed now.**
+   - **H3 fitting rows:** a seeded 20 % sample of the (row, gene) pairs (`default_rng(9301)`), the same sample in every arm and
+     every calibration draw. LightGBM `n_jobs = 4`.
+   - **Sessions:** separate Kaggle CPU kernels for H2 and H3, each with its calibration, each under the 12 h session limit. If
+     a kernel times out, it is re-planned, never silently shortened.
+   - **H1 motif calls:** MOODS (`moods-python`), p < 1e-4, background = hg38 base composition.
+   - **H1 motifs and regulons:** JASPAR 2024 CORE vertebrates non-redundant; CollecTRI via `decoupler` (version and retrieval
+     date recorded, table sha1 in the manifest).
+   - **H1 TSS and peaks:** TSS from `phase2_assembly/outputs/tss_hg38.tsv`; a cell's peaks are the union of its samples,
+     merged by `pyranges` `merge()` (overlapping or book-ended intervals, the equivalent of `bedtools merge -d 0`).
+6. **C6, H1's binding comparison is incremental:** **FB + F_prom + {F_enh, F_reg} against FB + F_prom**. The replacement
+   comparison (FB + {F_enh, F_reg} against FB + F_prom) is reported.
+7. **Ask 5, the H5 screen** (desk, from `E_peaks_log.txt` and `E_final`; reported, never a gate).
+   - **Measures:** for every (cell, mark) slot present in v9, the genes with a peak, the max |z| in `E_final`, and the
+     reliability.
+   - **Flags:** sparse (< 100 genes with a peak) or heavy-tailed (max |z| > 5).
+   - **Named cases:**
+     - HEK293T ATAC (63 genes with a peak; max |z| 7.8; reliability 1.00; a T4 harm cell whose harm sits in its good marks);
+     - SKBR3 ATAC (0 genes with a peak, channel present);
+     - AGS K27ac (73), HUH7 ATAC (33), HME1 ATAC (9), SKMEL1 K27ac (19).
+   - **Follow-ups:** any test that follows, e.g. ablating HEK293T's ATAC at inference as T4b did for K27me3, needs its own packet.
+8. **Later directions, in their own packets after Stage 1:**
+   - **Chromatin-gated TF-regulon or pathway edges.** It must say how its gate differs from C7's (§89, +0.0020).
+   - **Chromatin→expression pretraining.**
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
