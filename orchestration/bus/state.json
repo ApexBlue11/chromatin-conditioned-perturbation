@@ -1,147 +1,149 @@
 {
-  "iteration": 40,
-  "max_iterations": 12,
-  "opened": "2026-09-20",
-  "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
-  "note": "PI refuses to open an iteration past max_iterations without explicit human approval.",
-  "responses_since_checkpoint": 0,
-  "checkpoint_every": 30,
-  "autonomy": {
-    "delegated": [
-      "kaggle_gpu_spend",
-      "git_push_own_repo",
-      "file_deletion"
-    ],
-    "still_gated": [
-      "credentials",
-      "external_publishing_or_sending",
-      "non_principal_repos"
-    ],
-    "set_by": "principal",
-    "set_on": "2026-09-20"
-  },
-  "loop_state": "RUNNING",
-  "open_packets": [],
-  "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
-  "closed_packets": [
-    "001_cold_cell_chromatin",
-    "002_chromatin_rescored",
-    "003_drugsa_design",
-    "004_drugsa_design_v2",
-    "005_drugsa_result",
-    "006_alpha_gate_and_edgegate_design",
-    "007_xpert_coldcell_feasibility",
-    "008_masked_result_and_cc1_kernel",
-    "009_mydataset_memory_patch",
-    "010_atom_only_result",
-    "011_activation_checkpointing",
-    "012_xpert_budget",
-    "013_a9_result_and_dp_criteria",
-    "014_dp_redesign_and_resume",
-    "015_o2_launch_design",
-    "016_a1_pretests",
-    "017_t1_warm",
-    "018_o2_lightning_migration",
-    "019_v9_dev_protocol",
-    "020_moa_gradient_probe",
-    "021_lightning_allocation",
-    "022_o2_headtohead",
-    "023_moa_probe_result",
-    "024_candidate_specs",
-    "025_c8b_moa_prereg",
-    "026_c7_chromatin_edges",
-    "027_c8b_result_and_88_execution",
-    "028_moa88_code",
-    "029_variance_batch",
-    "030_v1v2_code",
-    "031_c3_c6_screens",
-    "032_rule8_readout",
-    "033_screens_final_p6",
-    "034_p7_prereg",
-    "035_p7_blinding_code",
-    "036_manuscript_wording",
-    "037_v2_result_p6",
-    "038_p6_result_p7_kernel",
-    "039_review038_guard0",
-    "040_chromatin_funnel_prereg",
-    "041_chromatin_code_review",
-    "042_review041_t4",
-    "043_chromatin_result",
-    "044_chromatin_screens",
-    "045_chromatin_wording",
-    "046_p7_result",
-    "047_e2_s0",
-    "048_e1_s0",
-    "049_e2_3seed_88pins",
-    "050_chromatin_h1_h3",
-    "051_moa88_result",
-    "052_c93_code"
+ "iteration": 40,
+ "max_iterations": 12,
+ "opened": "2026-09-20",
+ "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
+ "note": "PI refuses to open an iteration past max_iterations without explicit human approval.",
+ "responses_since_checkpoint": 0,
+ "checkpoint_every": 30,
+ "autonomy": {
+  "delegated": [
+   "kaggle_gpu_spend",
+   "git_push_own_repo",
+   "file_deletion"
   ],
-  "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "93 Stage 1a RUNNING on Kaggle CPU since 07:41 IST 6 Oct (lincs-chromatin93-h2, -h3; cleared by review 052 + follow-up). Next: download each, read ONCE with read_chromatin93.py {h2,h3} DIR, record as RESULTS 93.7, packet the critic. W31b (detached) is fixing chromatin_features93.py (Stage 1b); PI must review it and its selftest before any Kaggle run. E1 seeds 1-2 (kern_v9dev_e1_s1) after the Sat 10 Oct 05:30 IST reset.",
-  "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
-  "challenges_upheld": "211 challenge rows in 52 adjudicated reviews (counted 2026-10-06 incl. review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
-  "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
-  "checkpoint_count": 2,
-  "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
-  "decisions_locked": [
-    "XPert cold-cell comparison runs option (a) AS PUBLISHED, including their val=test early-stopping fallback, with the asymmetry disclosed: a v9 win is conservative, an XPert win is uninterpretable.",
-    "Option A (unmasked flash semantics) needs no decision -- the shim already exists, is tested, and produced 0.6933 against their published 0.688 on warm split_2.",
-    "Buy fold 1 only. v9 itself is fold 1 at one seed, so five XPert folds would reintroduce an asymmetry.",
-    "Never read XPert’s own reported metrics (train_xpert.py:573-574 overwrites test with val). Score predictions with head_to_head_mdmt.py.",
-    "No XPert session boundary goes through their --resume_from (review 012 C1): strict full-state load, key set asserted.",
-    "RESULTS 78.5: in a multi-session run 71.7 applies to the FINAL termination; per-session guard fires are resume events; threshold 45 unchanged.",
-    "A capped single-session XPert run (O3) is uninformative in both directions and is not bought.",
-    "RESULTS 81.5: v6 dumps are never re-read under 81; no bar is set after v7; fp32 dp-vs-single and split-vs-single stay reported only.",
-    "Production DP variant is dp (no checkpointing).",
-    "RESULTS 84.1: O2 ends FINAL only by their early stopping or at 297 cumulative completed epochs; everything else is incomplete and never read through 71.7; between sessions only timing, state integrity and quota inform decisions.",
-    "RESULTS 84.4 (review 018): O2 sessions >=3 may run on Lightning, one GPU, under six binding conditions; decided on timing/credits/guards only.",
-    "RESULTS 85: v9 development protocol (banded dev carve, accept floor 0.003, seeds 0-2, every run ledgered, scoped non-inferiority interpretability gate, P7 as a second comparison with an outcome-to-claim table). 71 untouched.",
-    "RESULTS 86: MoA gradient probe pre-registered -- gate on rho_del < 0.95, untrained control must read NULL, output/data projection references scope any SIGNAL, unseen-compound and non-responsive-target strata required for a mechanism claim.",
-    "RESULTS 85.5: distinct per-device seeds under DP (default); Lightning variants vs a Lightning baseline; s0 = max(s_K, s_L); P6/P7 on Kaggle."
+  "still_gated": [
+   "credentials",
+   "external_publishing_or_sending",
+   "non_principal_repos"
   ],
-  "result_packet_obligations": [
-    "Quote RESULTS 71.7 VERBATIM with its commit (08b0a90), as packet 005 quoted 58.4: the reviewer is blinded from RESULTS.md and 71.7 decides admissibility.",
-    "Report the empty __init__.py files as provenance only, NOT as an as-published deviation (008b note).",
-    "Describe the XPert run as \"trained to its published recipe on split_cold_cell_1\" -- never \"their cold-cell run reproduced\" (review 009 C3).",
-    "List all four deviations with the MyDataset patch sha1s; report as XPert as published (review 009 C1)."
+  "set_by": "principal",
+  "set_on": "2026-09-20"
+ },
+ "loop_state": "RUNNING",
+ "open_packets": [
+  "053_c93_stage1a_result"
+ ],
+ "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
+ "closed_packets": [
+  "001_cold_cell_chromatin",
+  "002_chromatin_rescored",
+  "003_drugsa_design",
+  "004_drugsa_design_v2",
+  "005_drugsa_result",
+  "006_alpha_gate_and_edgegate_design",
+  "007_xpert_coldcell_feasibility",
+  "008_masked_result_and_cc1_kernel",
+  "009_mydataset_memory_patch",
+  "010_atom_only_result",
+  "011_activation_checkpointing",
+  "012_xpert_budget",
+  "013_a9_result_and_dp_criteria",
+  "014_dp_redesign_and_resume",
+  "015_o2_launch_design",
+  "016_a1_pretests",
+  "017_t1_warm",
+  "018_o2_lightning_migration",
+  "019_v9_dev_protocol",
+  "020_moa_gradient_probe",
+  "021_lightning_allocation",
+  "022_o2_headtohead",
+  "023_moa_probe_result",
+  "024_candidate_specs",
+  "025_c8b_moa_prereg",
+  "026_c7_chromatin_edges",
+  "027_c8b_result_and_88_execution",
+  "028_moa88_code",
+  "029_variance_batch",
+  "030_v1v2_code",
+  "031_c3_c6_screens",
+  "032_rule8_readout",
+  "033_screens_final_p6",
+  "034_p7_prereg",
+  "035_p7_blinding_code",
+  "036_manuscript_wording",
+  "037_v2_result_p6",
+  "038_p6_result_p7_kernel",
+  "039_review038_guard0",
+  "040_chromatin_funnel_prereg",
+  "041_chromatin_code_review",
+  "042_review041_t4",
+  "043_chromatin_result",
+  "044_chromatin_screens",
+  "045_chromatin_wording",
+  "046_p7_result",
+  "047_e2_s0",
+  "048_e1_s0",
+  "049_e2_3seed_88pins",
+  "050_chromatin_h1_h3",
+  "051_moa88_result",
+  "052_c93_code"
+ ],
+ "gpu_hours_spent_this_session": 18.71,
+ "pending_decision": "93 Stage 1a READ (RESULTS 93.7): H2 NOT RISING, H3 DOES NOT ADVANCE (informative, gain form; gene-generic N1 beats own chromatin 6/6 cells). Packet 053 open. Next: review W31b's chromatin_features93.py (Stage 1b) before any Kaggle run; E1 seeds 1-2 (kern_v9dev_e1_s1) after the Sat 10 Oct 05:30 IST reset.",
+ "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
+ "challenges_upheld": "211 challenge rows in 52 adjudicated reviews (counted 2026-10-06 incl. review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
+ "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
+ "checkpoint_count": 2,
+ "next_gpu_spend": "46.5 is NOT ~5.8 GPU-h: RESULTS 78.2 supersedes every earlier estimate (~25-53 GPU-h for an admissible fold-1 run). Decision in packet 012.",
+ "decisions_locked": [
+  "XPert cold-cell comparison runs option (a) AS PUBLISHED, including their val=test early-stopping fallback, with the asymmetry disclosed: a v9 win is conservative, an XPert win is uninterpretable.",
+  "Option A (unmasked flash semantics) needs no decision -- the shim already exists, is tested, and produced 0.6933 against their published 0.688 on warm split_2.",
+  "Buy fold 1 only. v9 itself is fold 1 at one seed, so five XPert folds would reintroduce an asymmetry.",
+  "Never read XPert’s own reported metrics (train_xpert.py:573-574 overwrites test with val). Score predictions with head_to_head_mdmt.py.",
+  "No XPert session boundary goes through their --resume_from (review 012 C1): strict full-state load, key set asserted.",
+  "RESULTS 78.5: in a multi-session run 71.7 applies to the FINAL termination; per-session guard fires are resume events; threshold 45 unchanged.",
+  "A capped single-session XPert run (O3) is uninformative in both directions and is not bought.",
+  "RESULTS 81.5: v6 dumps are never re-read under 81; no bar is set after v7; fp32 dp-vs-single and split-vs-single stay reported only.",
+  "Production DP variant is dp (no checkpointing).",
+  "RESULTS 84.1: O2 ends FINAL only by their early stopping or at 297 cumulative completed epochs; everything else is incomplete and never read through 71.7; between sessions only timing, state integrity and quota inform decisions.",
+  "RESULTS 84.4 (review 018): O2 sessions >=3 may run on Lightning, one GPU, under six binding conditions; decided on timing/credits/guards only.",
+  "RESULTS 85: v9 development protocol (banded dev carve, accept floor 0.003, seeds 0-2, every run ledgered, scoped non-inferiority interpretability gate, P7 as a second comparison with an outcome-to-claim table). 71 untouched.",
+  "RESULTS 86: MoA gradient probe pre-registered -- gate on rho_del < 0.95, untrained control must read NULL, output/data projection references scope any SIGNAL, unseen-compound and non-responsive-target strata required for a mechanism claim.",
+  "RESULTS 85.5: distinct per-device seeds under DP (default); Lightning variants vs a Lightning baseline; s0 = max(s_K, s_L); P6/P7 on Kaggle."
+ ],
+ "result_packet_obligations": [
+  "Quote RESULTS 71.7 VERBATIM with its commit (08b0a90), as packet 005 quoted 58.4: the reviewer is blinded from RESULTS.md and 71.7 decides admissibility.",
+  "Report the empty __init__.py files as provenance only, NOT as an as-published deviation (008b note).",
+  "Describe the XPert run as \"trained to its published recipe on split_cold_cell_1\" -- never \"their cold-cell run reproduced\" (review 009 C3).",
+  "List all four deviations with the MyDataset patch sha1s; report as XPert as published (review 009 C1)."
+ ],
+ "o2": {
+  "status": "FINAL: their early stopping at epoch 90 (best 40); RESULTS 87: NO CELL-LEVEL CLAIM",
+  "sessions": [
+   {
+    "index": 1,
+    "kernel_version": 8,
+    "commit": "f252b12",
+    "outcome": "session_boundary",
+    "epochs": "0-65",
+    "wall_h": 8.254,
+    "chain_test": "PASS",
+    "amendment_E_reprice": false,
+    "handoff": {
+     "sha1": {
+      "full_state.pt": "59c5e9603de2a741e0d397a48f11475e94a2b087",
+      "resume_from.pt": "0f6989e25adfdc3b71ee86ca6a1198914a64693f",
+      "best.pth": "8b216a57aecbca8d8a7ccb03f71ec241dc8b1eb1"
+     },
+     "final_epoch": 65,
+     "torch": "2.10.0+cu128",
+     "cuda": "12.8"
+    }
+   },
+   {
+    "index": 2,
+    "kernel_version": 9,
+    "commit": "4c24d1e",
+    "outcome": "early_stop",
+    "epochs": "66-90",
+    "wall_h": 3.242
+   }
   ],
-  "o2": {
-    "status": "FINAL: their early stopping at epoch 90 (best 40); RESULTS 87: NO CELL-LEVEL CLAIM",
-    "sessions": [
-      {
-        "index": 1,
-        "kernel_version": 8,
-        "commit": "f252b12",
-        "outcome": "session_boundary",
-        "epochs": "0-65",
-        "wall_h": 8.254,
-        "chain_test": "PASS",
-        "amendment_E_reprice": false,
-        "handoff": {
-          "sha1": {
-            "full_state.pt": "59c5e9603de2a741e0d397a48f11475e94a2b087",
-            "resume_from.pt": "0f6989e25adfdc3b71ee86ca6a1198914a64693f",
-            "best.pth": "8b216a57aecbca8d8a7ccb03f71ec241dc8b1eb1"
-          },
-          "final_epoch": 65,
-          "torch": "2.10.0+cu128",
-          "cuda": "12.8"
-        }
-      },
-      {
-        "index": 2,
-        "kernel_version": 9,
-        "commit": "4c24d1e",
-        "outcome": "early_stop",
-        "epochs": "66-90",
-        "wall_h": 3.242
-      }
-    ],
-    "horizon_epochs": 297,
-    "state_dataset": "apexblue/xpert-cc1-state (private; version 1 = session 1 handoff)"
-  },
-  "compute": {
-    "lightning": "CPU-only: GPU refused (403, free tier needs a verified payment method; principal: no card). 85.5 Lightning block void; all 85 dev runs on Kaggle 2xT4 (distinct seeding). $14.99 unspent."
-  }
+  "horizon_epochs": 297,
+  "state_dataset": "apexblue/xpert-cc1-state (private; version 1 = session 1 handoff)"
+ },
+ "compute": {
+  "lightning": "CPU-only: GPU refused (403, free tier needs a verified payment method; principal: no card). 85.5 Lightning block void; all 85 dev runs on Kaggle 2xT4 (distinct seeding). $14.99 unspent."
+ }
 }
