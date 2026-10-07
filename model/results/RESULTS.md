@@ -7474,6 +7474,51 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
    float32-vs-float64 exact equality in check (b), after checks (a) and (b)'s hit and RC-score assertions had passed on Kaggle.
    It produced no data. The comparison is now made to 1e-6.
 
+### 93.10 🔒 H1's free choices, fixed before any Stage 1b output is read (PI, 2026-10-07)
+Everything not stated is T1 as in §91.2–91.12 and `chromatin_funnel.run_t1`, with 93.3 item 3, 93.5 C2/C6, 93.8 and 93.9.
+1. **The features.**
+   - **From `c93_features.npz`:** for each kept cell with `has`, the three gene columns F_prom, F_enh and F_reg, each
+     `rank_normal` per (cell, feature) over the 978 genes, as §91 encodes.
+   - **Cells without `has`:** their new columns are 0.
+2. **The arms** (all with b, the basal-expression column):
+   - **B, the reference:** [b, F_prom].
+   - **C, the binding arm:** [b, F_prom, F_enh, F_reg].
+   - **C′, the replacement arm (reported):** [b, F_enh, F_reg].
+   - **N1:** [b, own F_prom, and the mean over the fitting cells (the held-out cell excluded in LOCO) of F_enh and F_reg].
+3. **Fitting cells:** the bundle's dev-train cells with `has` (inputs from all 32 cells enter only through MA_std; 93.9 C3).
+4. **Rows of record:** the drug-known dev rows (back-off level ≤ 2) of the measured dev cells, the dev cells with `has`.
+   **Bars:** `BARS['known']`.
+5. **The cell rule:**
+   - **5 measured dev cells:** ≥ 4 of 5 for each cell conjunct.
+   - **4** (e.g. SKBR3 fails `has`): ≥ 3 of 4.
+   - **≤ 3:** H1 is not run, and is reported as uninformative for lack of cells.
+6. **The reading:** **ADVANCES** iff all of these hold on the rows of record:
+   - S(C) − S(B) ≥ 0.004, or the top tercile ≥ 0.008;
+   - the centred difference ≥ 0.002;
+   - C − B > 0, and centred C − B > 0, each in the cell rule's count;
+   - S(C) − S(N1) ≥ 0.002, with C > N1 in the cell rule's count.
+7. **Calibration** (M2, the test as run; 3 draws, d = 0, 1, 2):
+   - **Twice:** once with f\* in F_enh's slot, once in F_reg's.
+   - **f\*** = ρ·b + √(1 − ρ²)·(the cell's own rank-normal slot feature with genes permuted by `default_rng(1000 + d)`).
+     ρ is the median within-cell r(slot feature, b) over the fitting cells.
+   - **Every other new column** is a gene-permuted copy of itself (`default_rng(3000 + 10d + k)`), so no real new feature enters
+     the calibration.
+   - **Cases:**
+     - null;
+     - P1 and P2 at π ∈ {0.005, 0.02, 0.05};
+     - P3 at 0.05;
+     - G (gene-generic: the mean f\* in every covered cell) at {0.02, 0.05}.
+   - **VOID:** any pass at null, P3 or G (the G check informative only if G's raw Δ clears 0.004 in every draw).
+   - **MDE:** the smallest π passing in 3 of 3 draws, per slot. **Informative null** iff MDE_P1 ≤ 0.02 in both slots.
+8. **Reported, never read:**
+   - C′ against B;
+   - the LOCO score over the fitting cells per arm (`run_t1`'s `loco`), C − B and C − N1;
+   - **the shrinkage arm** (93.8 item 2): F_enh and F_reg → (1 − λ)·own + λ·N1 mean, λ ∈ {0.25, 0.5, 0.75} chosen by that LOCO
+     score;
+   - F_reg's gene coverage and the per-cell depth diagnostics (93.9 C2).
+9. **Code, reader and kernel:** `model/v9/chromatin_h1.py`, `model/v9/read_h1.py` (the only reader; it refuses on a marker sha1
+   mismatch) and their tests, reviewed before the run. The features enter by sha1 only after they are committed.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
