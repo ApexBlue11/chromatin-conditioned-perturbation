@@ -213,12 +213,13 @@ def test_calibration_permutations_and_planted_p1():
     c93 = ctx.enc['c93']
     for c in calib['cov_dt'] + calib['cov_dev']:
         i = cf.cell_index(ctx, c)
-        # Column 0 (P) and Column 2 (R) must be exact permutations of the real ones
-        for k in (0, 2):
-            real_col = c93['Ez'][i, :, k]
-            calib_col = calib['Ez'][i, :, k]
-            assert np.array_equal(np.sort(real_col), np.sort(calib_col)), f"col {k} is not a permutation"
-            assert not np.array_equal(real_col, calib_col), f"col {k} was not permuted"
+        # Review 055 C1: column 0 (F_prom, the incremental reference) stays real; column 2 (the other NEW column) is an exact
+        # gene permutation of the real one; column 1 (the slot) is f*
+        np.testing.assert_array_equal(calib['Ez'][i, :, 0], c93['Ez'][i, :, 0])
+        real_col, calib_col = c93['Ez'][i, :, 2], calib['Ez'][i, :, 2]
+        assert np.array_equal(np.sort(real_col), np.sort(calib_col)), "col 2 is not a permutation"
+        assert not np.array_equal(real_col, calib_col), "col 2 was not permuted"
+        assert not np.array_equal(calib['Ez'][i, :, 1], c93['Ez'][i, :, 1]), "the slot still holds the real column"
 
     # In calibration records: null does not pass, P1 at 5% passes
     assert not rec['cases']['null']['pass']

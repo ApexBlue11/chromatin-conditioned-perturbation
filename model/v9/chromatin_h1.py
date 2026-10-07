@@ -259,8 +259,10 @@ def calibrate(ctx, slot, draws=3):
             v_c = c93['Ez'][i, :, slot].astype(np.float64)
             fstar[c] = (rho * b_c + scale * v_c[perm]).astype(np.float32)
 
-        Ez_calib = np.zeros_like(c93['Ez'])
-        for k in range(3):
+        # Review 055 C1 (93.10 item 7): F_prom (k = 0), the reference column of the incremental comparison, stays REAL; the
+        # slot carries f*; only the other NEW column is gene-permuted, so no real new feature enters the calibration.
+        Ez_calib = c93['Ez'].copy()
+        for k in (1, 2):
             if k == slot:
                 for c in all_has_cells:
                     i = cf.cell_index(ctx, c)

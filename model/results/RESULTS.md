@@ -7569,14 +7569,30 @@ excess:
 - **What it shows:** each cell's deviation from the other cells' gene mean is reproducible across disjoint sample halves.
   - Dev cells: HL60 0.94 / 0.99 / 1.04 (F_prom / F_enh / F_reg); LNCAP 0.75 / 0.70 / 1.11; U937 0.58 / 0.65 / 0.81.
   - Lower: HUVEC (−0.02 / 0.43 / 0.32) and HUES3 (0.36 / 0.74 / 0.03).
-- **For 93.7 item 2:** for accessibility from these samples, measurement noise is not what would block transfer. This
-  favours reading (a) over (b) for ATAC-derived promoter features, the closest analogue of v9's ATAC channel.
+- **For 93.7 item 2 (scoped by review 055 C3):** for promoter accessibility built from these samples, a cell's deviation
+  from the gene mean is reproducible across disjoint, mostly same-series sample halves (excess ≈ 0.8).
+  - So within-series measurement noise is not what would block transfer.
+  - **Not measured:** between-lab noise, and v9's own channel (±2 kb max signalValue averaged over tracks, against these
+    ±1 kb coverage features). 93.7 item 2 is answered only by analogy.
 - **Caveats** (disclosed, not corrections):
   - the halves of a cell usually come from one GEO series or lab, so technical batch is shared and counts as "reproducible";
   - HEK293T, the sparsest dev cell, has no halves;
   - the duplicated cells (ASC/ASC.C, SKB/SKL/SKL.C) enter each other's baselines. SKB's MA baseline is 0.38 for that reason;
   - the baseline is slightly negative because each cell is part of the other cells' gene means;
   - the excess is over 978 genes (TSS genes) and 879 motifs. No threshold is read.
+
+### 93.12 AMENDED by review 055 (3 of 3 MINOR upheld; before any H1 run, 2026-10-07)
+1. **C1, code to registration.** `calibrate` had gene-permuted F_prom, the reference column of the incremental comparison
+   (93.5 C6), against 93.10 item 7's "every other **new** column".
+   - **Now:** F_prom stays real in `c93_calib`, the slot carries f\*, and only the other new column is permuted.
+   - **A test asserts it.** The kernel pin is regenerated.
+   - The effect was small: within-cell r(F_enh, F_prom) has median −0.16, and r(F_reg, F_prom) ≈ 0.
+2. **C2, beside the reading (descriptive, not a rule change; 93.10's ≥ 3 of 4 stands, fixed before `has` was seen):**
+   - *"HEK293T: 1 sample, 58 promoter genes; its cell sign is low-information"*;
+   - the C − B and C − N1 cell counts over HL60, LNCAP and U937, reported and not read.
+3. **C3:** 93.11's split-half sentence was scoped in place: within-series reproducibility; between-lab noise and v9's
+   channel not measured.
+4. **Runtime (review 055 ask 4):** ≈ 65 s per `run_t1`, so about 1–1.5 h in one session.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
