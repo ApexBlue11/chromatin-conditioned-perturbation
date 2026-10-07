@@ -7417,8 +7417,9 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
 ### 93.8 🔒 Stage 1b additions from review 053 ask 5 (before any Stage 1b data, 2026-10-06; reported, never read)
 1. **Split-half reliability of each cell's deviation.** It separates 93.7 item 2's readings (a) and (b).
    - **The cells:** every kept cell with ≥ 2 usable samples (files that downloaded and parsed with ≥ 1 interval).
-   - **The fixed split:** samples in step10's order (the URL order of `select_atac_samples`). Half A takes positions 0, 2, 4;
-     half B takes positions 1, 3, 5.
+   - **The fixed split:** usable samples in step10's order (the URL order of `select_atac_samples`). Half A takes positions
+     0, 2, 4 **of the usable list**; half B takes positions 1, 3, 5. An unusable file does not occupy a position (PI
+     clarification, before any data).
    - **For each half:** its own merged union gives F_prom_A, F_enh_A and MA_A (from which F_reg_A), and likewise for B. The
      rules are 93.3 item 2's.
    - **The deviation of half h** for gene g: dev_h[c, g] = F_h[c, g] − mean over the other kept cells c' ≠ c of F[c', g]
