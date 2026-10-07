@@ -7246,6 +7246,13 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
      - Cistrome sample IDs → GSM → SRX, the first 6 SRX, ChIP-Atlas `bed05`;
      - ENCODE: the first 4 experiments, the first released peak file each.
    - **Cells:** only (cell, ATAC) slots that produced channel 0 in v9 (`E_peaks_log.txt` tracks > 0): 19 of the 25 listed.
+     - **Count corrected (PI, 2026-10-07, before any Stage 1b data; the rule is unchanged):** the rule gives **32** cells,
+       all in the 83-cell index, not 19.
+       - **Encode:** A549, HCT116, HEPG2, MCF7, PC3.
+       - **Cistrome:** ASC, ASC.C, CD34, HEK293T, HELA, HL60, HME1, HS27A, HT29, HUES3, HUH7, HUVEC, JURKAT, LNCAP, LOVO,
+         MCF10A, MCH58, MDAMB231, RKO, SKB, SKBR3, SKL, SKL.C, SW480, THP1, U266, U937.
+       - **The 19 did not come from the rule.** Stage 1b's code applies the rule.
+       - **Dev cells covered:** HEK293T, HL60, LNCAP, SKBR3 and U937. VCAP is excluded.
      **A375 and NOMO1 are excluded**, as are AGS, NPC, PHH and VCAP. Their accessibility, where public data now exists, would be
      new to v9, and F_prom would then not be v9's data.
    - **The manifest** records every (cell, sample, URL, size, sha1, genes with a peak). A cell whose merged peaks give 0 genes
