@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "055_c93_h1_code"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -80,7 +82,7 @@
     "054_c93_stage1b_data_code"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "93 Stage 1b data kernel v2 (review 054: 500-bp scan windows) to run on Kaggle CPU + internet; outcome-free. Next: download, check selftest/manifest (SKBR3 has?), commit c93 outputs by sha1, then pre-register H1's test module in code. E1 seeds 1-2 (kern_v9dev_e1_s1) after Sat 10 Oct 05:30 IST.",
+  "pending_decision": "93 Stage 1b data frozen (93.11). H1 code (chromatin_h1.py, read_h1.py) in packet 055 for review; kernel kern_chromatin93_h1 generated, NOT pushed until cleared. Then push, read once with read_h1.py, record 93.12. E1 seeds 1-2 (kern_v9dev_e1_s1) after Sat 10 Oct 05:30 IST.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
   "challenges_upheld": "216 challenge rows in 54 adjudicated reviews (counted 2026-10-07 incl. review 054: C1 MAJOR motif accessibility measured peak width, fixed 500-bp windows; C2, C3 upheld; review 053: C1, C2 upheld -- item 2 sat inside the null calibration, items 1/4 lacked the gain-form scope; review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
