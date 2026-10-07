@@ -7508,7 +7508,10 @@ Everything not stated is T1 as in §91.2–91.12 and `chromatin_funnel.run_t1`, 
      - P1 and P2 at π ∈ {0.005, 0.02, 0.05};
      - P3 at 0.05;
      - G (gene-generic: the mean f\* in every covered cell) at {0.02, 0.05}.
-   - **VOID:** any pass at null, P3 or G (the G check informative only if G's raw Δ clears 0.004 in every draw).
+   - **VOID:** any pass at null, P3 or G.
+     - **Clarified before any H1 run** (PI, 2026-10-07; the same rule as `read_chromatin93`): a G pass anywhere is VOID.
+     - "Informative" only labels a null: the G check certifies the N1 conjunct iff G's raw Δ clears 0.004 in every draw
+       for some π.
    - **MDE:** the smallest π passing in 3 of 3 draws, per slot. **Informative null** iff MDE_P1 ≤ 0.02 in both slots.
 8. **Reported, never read:**
    - C′ against B;
