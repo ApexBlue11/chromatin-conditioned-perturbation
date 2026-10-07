@@ -174,6 +174,16 @@ therefore pre-registered a closed-form funnel on the dev carve and calibrated it
   3 of 6 cells and carried by LNCAP and HL60. Giving every cell the same mean chromatin keeps all but 0.0002 of that, and giving
   each dev cell another dev cell's chromatin costs 0.0003. This is the kind of per-gene content a gene embedding can represent;
   whether v9's does is not tested [§91.12].
+- **Two explanations for the null were tested and not supported** [§93.7].
+  - **Too few fitting cells:** refitting T1 on 4, 6, 8 and all 11 fitting cells did not lift the increment. It rose a monotone
+    +0.0007 from 4 to 11 cells, below two standard deviations of the 4-cell subsets. A planted 0.5 % gain was detected at full
+    size from 4 cells.
+  - **A non-linear form:** gradient-boosted trees, given the drug's mean response and each cell's chromatin, found no
+    cell-specific gain of the gain form. They were calibrated the same way (MDE ≤ 0.5 %), but they cannot see drug-specific
+    shifts at any planted size.
+  - **Read with care:** in the trees, a cell's own chromatin scores below the fitting cells' mean chromatin (−0.0034, 0 of 6
+    cells). Nothing-planted synthetic features show the same deficit (−0.0044 to −0.0021). So it is the learner's cost of
+    fitting cell-specific variation that does not transfer, not a property of chromatin.
 
 **v9 reads its chromatin; on the dev cells, reading it costs accuracy on balance.** In the three dev baseline models,
 replacing each cell's chromatin with the dev-training mean at inference (which keeps the gene-generic part) raises the dev
