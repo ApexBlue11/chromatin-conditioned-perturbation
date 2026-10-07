@@ -849,3 +849,49 @@ def test_split_halves_take_usable_positions_and_skip_cells_without_has(tmp_path)
     assert [g for g, v in zip(genes, hx['F_prom_A']) if v > 0] == ['G1', 'G3']
     assert [g for g, v in zip(genes, hx['F_prom_B']) if v > 0] == ['G2', 'G4']
     assert manifest['n_tracks_now']['CellX'] == 5 and manifest['mismatches'] == {}
+
+
+def test_motif_accessibility_does_not_scale_with_peak_width(tmp_path):
+    """Review 054 C1: two cells whose merged peaks share midpoints but differ 10x in width get the same MA_raw (motifs are
+    scanned in fixed 500-bp windows at the midpoints); their median widths are recorded."""
+    import hashlib as _hl
+    from model.v9.chromatin_features93 import scan_window
+    assert scan_window(1000, 1200, 10 ** 6) == (850, 1350) and scan_window(0, 100, 80) == (0, 80)
+    (tmp_path / 'genes.txt').write_text('G1\n')
+    (tmp_path / 'tss.tsv').write_text('symbol\tentrez\tchrom\ttss_hg38\tstrand\nG1\t1\tchr1\t50000\t+\n')
+    (tmp_path / 'ci.json').write_text(json.dumps({'cell_id_to_row': {'Narrow': 0, 'Wide': 1}}))
+    (tmp_path / 'log.txt').write_text('Narrow/ATAC-seq src=cistrome: 1 bed track(s), nonzero_genes=1  (1s)\n'
+                                      'Wide/ATAC-seq src=cistrome: 1 bed track(s), nonzero_genes=1  (1s)\n')
+    (tmp_path / 'cov.tsv').write_text('lincs_cell_id\tstatus\tassay_target\tsource_used\tnotes\tsample_ids_used\n'
+                                      'Narrow\tresolved\tATAC-seq\tcistrome\t\t1\nWide\tresolved\tATAC-seq\tcistrome\t\t2\n')
+    (tmp_path / 'cis.json').write_text(json.dumps([{'id': i, 'external_id_type': 'GEO', 'external_id': 'GSM%d' % i}
+                                                   for i in (1, 2)]))
+    (tmp_path / 'ca.tab').write_text(''.join('SRX%d\ta\tb\tc\td\te\tf\tGSM%d\n' % (i, i) for i in (1, 2)))
+    cache = tmp_path / 'cache'
+    cache.mkdir()
+    mids = [42000, 50000, 58000]
+    url = 'https://chip-atlas.dbcls.jp/data/hg38/eachData/bed05/SRX%d.05.bed'
+    for i, half in ((1, 150), (2, 1500)):
+        bed = ''.join('chr1\t%d\t%d\t.\t1\t.\t5\n' % (m - half, m + half) for m in mids)
+        (cache / _hl.sha1((url % i).encode()).hexdigest()).write_bytes(bed.encode())
+    cons = 'ACGTTGCAAGCT'
+    rng = np.random.default_rng(3)
+    seq = list(rng.choice(list('ACGT'), size=100000))
+    for start in (50000 - 6, 58000 - 6, 42000 + 1000):    # centred in two peaks; inside only the WIDE third peak, 1 kb off
+        seq[start:start + 12] = list(cons)
+    seq = ''.join(seq)
+    assert seq.count(cons) == 3 and seq.count('AGCTTGCAACGT') == 0
+    genome = FakeGenome({'chr1': seq})
+    m1 = FakeMotif('MA0001.1', 'TF1', {b: [10.0 if c == b else 0.1 for c in cons] for b in 'ACGT'})
+    cfg = {'cov_tsv': str(tmp_path / 'cov.tsv'), 'cistrome_json': str(tmp_path / 'cis.json'),
+           'peaks_log': str(tmp_path / 'log.txt'), 'tss': str(tmp_path / 'tss.tsv'), 'genes': str(tmp_path / 'genes.txt'),
+           'chipatlas_list': str(tmp_path / 'ca.tab'), 'twobit': 'fake', 'cache': str(cache),
+           'cell_index': str(tmp_path / 'ci.json'), 'threads': 1}
+    arrays, manifest, halves = build_features(
+        cfg, open_genome=lambda p: genome, load_motifs=lambda: [m1],
+        load_net=lambda: (pd.DataFrame(columns=['source', 'target', 'weight']), '0'),
+        scan_factory=make_fake_scanner, merge_fn=merge_intervals_reference)
+    assert arrays['MA_raw'][0, 0] == arrays['MA_raw'][1, 0] == np.float32(2 / 3)   # scanning whole peaks: Wide = 3 / 3
+    pc = manifest['per_cell']
+    assert pc['Narrow']['median_width_merged'] == 300 and pc['Wide']['median_width_merged'] == 3000
+    assert pc['Narrow']['usable_samples'] == 1 and 'F_reg_nonzero' in pc['Wide'] and manifest['F_reg_gene_coverage'] == 0

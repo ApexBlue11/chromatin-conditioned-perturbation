@@ -7447,6 +7447,33 @@ Everything not stated is §91.2 as amended, and is reused through `chromatin_fun
    - It is informative only if it finds a gain. A null at every λ does not separate (a) from (b).
 3. **Unchanged:** H1's binding comparison and conjuncts (93.3 item 3, 93.5 C2 and C6).
 
+### 93.9 AMENDED by review 054 (C1 MAJOR, C2, C3 upheld; before any Stage 1b data was read, 2026-10-07)
+1. **C1, width control for motif accessibility** (amends 93.3 item 2 and 93.5 C5).
+   - **The rule:** motifs are scanned in **fixed 500-bp windows**, [mid − 250, mid + 250) at each merged near-landmark peak's
+     midpoint, clipped to the chromosome (chromVAR-style width control). MA_raw[c, t] is the share of windows with ≥ 1 hit on
+     either strand. The halves use the same rule.
+   - **Why:** the share of whole merged peaks with a hit scales with peak width. At p < 1e-4 on both strands, P(hit) ≈ 0.10 for
+     500 bp and ≈ 0.18 for 1 kb, and unions widen with sample count. So MA would mostly measure depth. Through F_reg that
+     becomes the same gene pattern in every cell with a cell-specific sign, and the MA split-half would reward technical
+     reproducibility.
+   - **Reported:** each cell's mean MA_raw across motifs, a depth diagnostic.
+   - **Tests:** a local test (same midpoints, 10× the width, same MA; a whole-peak mutant fails it) and a selftest check.
+2. **C2, recorded per cell:**
+   - usable samples;
+   - median merged-peak width (all, and near-landmark);
+   - genes with F_reg ≠ 0;
+   - overall, F_reg's gene coverage (genes with ≥ 1 CollecTRI regulator that has a JASPAR motif; `has_reg` in the npz).
+   - It is reported beside H1's reading.
+3. **C3, populations** (amends 93.5 C1 and 93.8):
+   - **The features:** built for all 32 cells by the log rule. MA_std and the split-half's other-cell mean use all kept
+     has-cells (inputs only).
+   - **H1's fitting cells and N1:** only the bundle's covered dev-train cells, as in T1.
+   - **The dev cells:** HEK293T, HL60, LNCAP, SKBR3 and U937 (VCAP excluded). If SKBR3 fails `has`, H1 has 4 dev cells, and
+     its cell rule is restated before the test is written.
+4. **Data-kernel version 1** (`lincs-chromatin93-features`, before this review) stopped in `selftest()`. The cause was a
+   float32-vs-float64 exact equality in check (b), after checks (a) and (b)'s hit and RC-score assertions had passed on Kaggle.
+   It produced no data. The comparison is now made to 1e-6.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

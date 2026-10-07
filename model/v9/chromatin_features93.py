@@ -20,6 +20,7 @@ from collections import defaultdict
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)        # chromatin_funnel (rank_normal) is imported from beside this file, here and on Kaggle
+SCAN_HALF_BP = 250              # review 054 C1: motifs are scanned in [mid - 250, mid + 250) of each merged peak
 PACKAGES = ('MOODS-python', 'py2bit', 'pyjaspar', 'pyranges', 'decoupler', 'numpy', 'pandas', 'scipy')
 
 # ---------------------------------------------------------------------------
@@ -411,6 +412,13 @@ def regulon_scores(net_df, MA_std_row, motif_map, canon_genes):
 # Per-cell feature computation
 # ---------------------------------------------------------------------------
 
+def scan_window(st, en, chrom_len, half=SCAN_HALF_BP):
+    """Review 054 C1: a fixed-width window at the merged peak's midpoint, clipped to the chromosome, so that motif
+    accessibility does not scale with peak width (chromVAR-style width control)."""
+    mid = (st + en) // 2
+    return max(0, mid - half), min(chrom_len, mid + half)
+
+
 def cell_features(beds, tss_dict, canon, genome, scan_fn, merge_fn):
     """Compute features for one cell.
 
@@ -508,12 +516,13 @@ def cell_features(beds, tss_dict, canon, genome, scan_fn, merge_fn):
         if chrom not in chroms_in_genome:
             dropped += 1
             continue
-        L = chroms_in_genome[chrom]
-        sc = max(0, st)
-        ec = min(L, en)
+        sc, ec = scan_window(st, en, chroms_in_genome[chrom])
         if ec <= sc:
             continue
         seqs.append(genome.sequence(chrom, sc, ec).upper())
+    widths = [en - st for _, st, en in filtered_peaks]
+    result['median_width_near_landmarks'] = float(np.median(widths)) if widths else 0.0
+    result['median_width_merged'] = float(np.median(merged['End'] - merged['Start'])) if len(merged) else 0.0
 
     result['near_landmarks'] = len(seqs)
     result['dropped_chrom'] = dropped
@@ -823,6 +832,10 @@ def build_features(cfg, fetch_fn=None, open_genome=None, load_motifs=None,
             'near_landmarks': cf['near_landmarks'],
             'dropped_chrom': cf['dropped_chrom'],
             'genes_with_prom': cf['genes_with_prom'],
+            'usable_samples': len(usable),
+            'median_width_merged': cf.get('median_width_merged', 0.0),
+            'median_width_near_landmarks': cf.get('median_width_near_landmarks', 0.0),
+            'mean_MA_raw': float(np.mean(cf['MA_raw'])) if len(cf['MA_raw']) else 0.0,   # depth diagnostic (reported)
         })
         if cf['per_file_genes']:
             manifest['per_cell'][cell]['per_file_genes'] = [
@@ -833,6 +846,15 @@ def build_features(cfg, fetch_fn=None, open_genome=None, load_motifs=None,
     for ci in range(NC):
         if has_mat[ci]:
             F_reg_mat[ci] = regulon_scores(sorted_net, MA_std[ci], motif_map, canon)
+    reg_cov = np.zeros(len(canon), bool)                     # review 054 C2: genes with >= 1 regulator that has a motif
+    for gi, g in enumerate(canon):
+        srcs = sorted_net.loc[sorted_net['target'] == g, 'source'].astype(str).str.upper()
+        reg_cov[gi] = bool(srcs.isin(list(motif_map)).any())
+    manifest['F_reg_gene_coverage'] = int(reg_cov.sum())
+    for ci, cell in enumerate(cells_kept):
+        manifest['per_cell'][cell]['F_reg_nonzero'] = int((F_reg_mat[ci] != 0).sum())
+    manifest['scan'] = {'window': 'fixed %d bp at each merged near-landmark peak midpoint, clipped (review 054 C1)'
+                                  % (2 * SCAN_HALF_BP)}
 
     # ---- Build arrays dict ----
     arrays = {
@@ -843,6 +865,7 @@ def build_features(cfg, fetch_fn=None, open_genome=None, load_motifs=None,
         'F_reg': F_reg_mat,
         'has': has_mat,
         'has_tss': np.array([g in tss_dict for g in canon]),
+        'has_reg': reg_cov,
         'MA_raw': raw_MA_mat,
         'MA_std': MA_std,
         'motif_ids': np.array([m.matrix_id for m in motifs]),
@@ -1026,14 +1049,21 @@ def selftest():
 
     # MA equals per-peak hit mean exactly
     ma = motif_accessibility(hits)
-    assert ma[0] == hits[:, 0].mean(), "MA != mean of hits"
+    assert abs(float(ma[0]) - hits[:, 0].mean()) < 1e-6, "MA != mean of hits"     # MA is float32
 
     # MA >= 0.5
     assert ma[0] >= 0.5, f"MA {ma[0]} < 0.5"
 
+    # review 054 C1: a planted motif at a merged peak's midpoint gives the same hits whether the peak is 300 or 3,000 bp
+    flank = ''.join(rng.choice(list('ACGT'), size=3000))
+    g = DictGenome({'chrT': flank[:1500 - ncols // 2] + consensus + flank[1500 - ncols // 2 + ncols:]})
+    narrow, wide = scan_window(1350, 1650, 3000), scan_window(0, 3000, 3000)
+    assert narrow == wide == (1250, 1750), (narrow, wide)
+    assert motif_hits(scanner, 1, [g.sequence('chrT', *narrow)])[0, 0]
+
     # MA = (planted + chance-hit unplanted) / all: the 20 planted peaks give exactly 0.5, chance hits add k / 40
     k_chance = int(hits[n_fw + n_rc:, 0].sum())
-    assert abs(ma[0] - (n_fw + n_rc + k_chance) / n_peaks) < 1e-9, (ma[0], k_chance)
+    assert abs(float(ma[0]) - (n_fw + n_rc + k_chance) / n_peaks) < 1e-6, (ma[0], k_chance)
 
     # ================================================================
     # (c) build_features end to end: real MOODS + real pyranges against the reference merge; F_reg by hand
@@ -1056,7 +1086,7 @@ def selftest():
         for k in ('F_prom', 'F_enh', 'F_reg', 'MA_raw', 'has'):
             assert np.array_equal(A[k], R[k]), 'pyranges and reference differ in %s' % k
         assert list(A['has']) == [True, True, False], A['has']          # CellC: peaks give no promoter coverage
-        assert A['MA_raw'][0, 0] >= 2 / 3 - 1e-9, A['MA_raw']            # CTCF planted in 2 of CellA's 3 merged peaks
+        assert A['MA_raw'][0, 0] >= 2 / 3 - 1e-6, A['MA_raw']            # CTCF planted in 2 of CellA's 3 merged peaks
         ms = standardise_across_cells(A['MA_raw'], A['has'])
         g = list(A['genes'])
         assert abs(A['F_reg'][0, g.index('DDR1')] - ms[0, 0]) < 1e-6        # +1 x CTCF
@@ -1093,7 +1123,7 @@ def selftest_fixture(tmpdir, consensus):
     rng = np.random.default_rng(7)
     seqs = {ch: ''.join(rng.choice(list('ACGT'), size=300000)) for ch in ('chr1', 'chr6')}
     a = seqs['chr6']
-    for pos in (49700, 40300):
+    for pos in (50100 - 7, 40500 - 7):         # centred at CellA's merged-peak midpoints (scan windows, review 054 C1)
         a = a[:pos] + consensus + a[pos + len(consensus):]
     seqs['chr6'] = a
     files = {'genes': 'DDR1\nPAX8\nNOTSS\n',
@@ -1196,7 +1226,7 @@ def main():
     np.savez(npz_path,
              cells=arrays['cells'], genes=arrays['genes'],
              F_prom=arrays['F_prom'], F_enh=arrays['F_enh'],
-             F_reg=arrays['F_reg'], has=arrays['has'], has_tss=arrays['has_tss'],
+             F_reg=arrays['F_reg'], has=arrays['has'], has_tss=arrays['has_tss'], has_reg=arrays['has_reg'],
              MA_raw=arrays['MA_raw'], MA_std=arrays['MA_std'],
              motif_ids=arrays['motif_ids'], motif_names=arrays['motif_names'])
 
