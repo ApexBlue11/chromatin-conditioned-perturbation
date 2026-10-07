@@ -1,0 +1,32 @@
+{
+ "code_pins": {
+  "chromatin_features93.py": "2bc8b29c897f93beef784979f0ce3e88769bb139",
+  "chromatin_funnel.py": "c56bb6f153596e4234fa74e3372606aba55f2ee4",
+  "score_dev.py": "a9002bceff97ab5552790caf12b6819e7949965e"
+ },
+ "input_pins": {
+  "coverage_report_phase2.tsv": "7f3e61ce7251cc9595fbc831cb463ef3154cf1c3",
+  "cistrome_human_samples.json": "bb981324c521f7cbec513a88dfe6c788975b2642",
+  "E_peaks_log.txt": "6492ed20567d7d1d16db91535743a1d27823715a",
+  "tss_hg38.tsv": "012c9f9a6c4992ea4aac24429af39b82ced9f51c",
+  "pathway_landmark_genes.txt": "5cbcc93b8d1dd1ae9efbb506d1cd39b7ad94bcc1",
+  "chip_atlas_human_epi.tab": "fc1102ea13790607c243621206d0b4e97003c2b7",
+  "lincs_cell_index.json": "5f7bc6b42fe45c56f62a27d06c1925a077056e6d"
+ },
+ "packages": {
+  "MOODS-python": "1.9.4.1",
+  "py2bit": "1.0.1",
+  "pyjaspar": "4.0.0",
+  "pyranges": "0.1.4",
+  "decoupler": "2.2.0"
+ },
+ "python": "3.13.15 (main, Aug  6 2026, 11:06:22) [GCC 13.3.0]",
+ "outputs": {
+  "C93_FEATURES_COMPLETE.json": "dbbaa2dbf3e0667b71c6d7f15d1f113c1282f262",
+  "c93_features.npz": "23e12b9dca69d26f628a197392e0890d30f51bc6",
+  "c93_halves.npz": "72b5670e89a08838c66bba963b47df29cd89a40f",
+  "c93_manifest.json": "fd4455d89e26e490b015626f0a981cd755971d68",
+  "c93_split_half.json": "3c041bad4a1bfcefe9c19e8cd592b3ce3148a624"
+ },
+ "complete": true
+}

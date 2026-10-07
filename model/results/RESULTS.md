@@ -7519,6 +7519,62 @@ Everything not stated is T1 as in §91.2–91.12 and `chromatin_funnel.run_t1`, 
 9. **Code, reader and kernel:** `model/v9/chromatin_h1.py`, `model/v9/read_h1.py` (the only reader; it refuses on a marker sha1
    mismatch) and their tests, reviewed before the run. The features enter by sha1 only after they are committed.
 
+### 93.11 Stage 1b data, frozen (data kernel v2, 2026-10-07; outcome-free, no drug response read)
+**The run:**
+- **Kernel:** `lincs-chromatin93-features` version 2, 1,041 s on Kaggle CPU with internet.
+  - All 3 code pins (module `2bc8b29c`) and the 7 input pins were verified.
+  - `selftest()` passed: pyranges equalled the reference; CTCF was found on both strands with the RC score at the planted
+    position; the windows were width-invariant; build_features ran end to end. `selftest_genome` passed.
+  - MOODS took 0.6 s per 200 kb with 879 motifs on both strands.
+- **Frozen in `model/results/c93/`:**
+  - `c93_features.npz` `23e12b9d`;
+  - `c93_halves.npz` `72b5670e`;
+  - `c93_manifest.json` `fd4455d8`;
+  - `c93_split_half.json` `3c041bad`;
+  - `C93_FEATURES_COMPLETE.json` `dbbaa2db`.
+  These sha1s equal the kernel's run marker. H1 enters these features by sha1 only.
+- **The resources:**
+  - JASPAR2024 CORE vertebrates, 879 motifs;
+  - CollecTRI through `dc.op.collectri` (decoupler 2.2.0, 2026-10-07): 42,990 rows, sha1 `6a9937d1`;
+  - hg38.2bit, sha1 `6fb20ba4`, background A/C/G/T 0.295/0.205/0.205/0.296;
+  - F_reg covers 520 of the 978 genes (`has_reg`).
+
+**Samples and cells:**
+- **Files:** no n_tracks mismatch against v9's log. One ChIP-Atlas file returns 404, recorded; v9's count already excluded
+  it. 10 files are now empty.
+- **SKBR3 fails `has`:** its 3 files are all empty now, as v9's `nonzero_genes = 0` suggested.
+  - So **H1 has 4 measured dev cells** (HEK293T, HL60, LNCAP, U937), and **93.10 item 5's rule is ≥ 3 of 4**.
+- **Sparse cells:**
+  - HEK293T: 1 usable sample of 6, 1,324 merged peaks, 58 genes with promoter coverage;
+  - HME1: 17 near-landmark peaks;
+  - HUH7: 125.
+  - They pass `has`, whose rule is minimal (F_prom > 0 in some gene), and they are named here.
+- **Duplicated inputs:** ASC and ASC.C, and SKB, SKL and SKL.C, have identical samples in v9's coverage report.
+- **The depth diagnostic** (mean MA_raw across motifs) is 0.158–0.184 in every has-cell. It does not track usable samples:
+  0.180 at 1 sample (HEK293T), 0.165 at 6 (HUES3). The 500-bp windows (93.9 C1) removed the width scaling.
+
+**93.8 split-half reliability (reported, never read):** 21 cells have halves. Pearson median across cells, own / baseline /
+excess:
+
+| feature | own | mismatched-cell baseline | excess |
+|---|---|---|---|
+| F_prom | 0.76 | −0.04 | 0.79 |
+| F_enh | 0.76 | −0.05 | 0.77 |
+| F_reg | 0.76 | −0.06 | 0.80 |
+| MA (across motifs) | 0.85 | 0.07 | 0.84 |
+
+- **What it shows:** each cell's deviation from the other cells' gene mean is reproducible across disjoint sample halves.
+  - Dev cells: HL60 0.94 / 0.99 / 1.04 (F_prom / F_enh / F_reg); LNCAP 0.75 / 0.70 / 1.11; U937 0.58 / 0.65 / 0.81.
+  - Lower: HUVEC (−0.02 / 0.43 / 0.32) and HUES3 (0.36 / 0.74 / 0.03).
+- **For 93.7 item 2:** for accessibility from these samples, measurement noise is not what would block transfer. This
+  favours reading (a) over (b) for ATAC-derived promoter features, the closest analogue of v9's ATAC channel.
+- **Caveats** (disclosed, not corrections):
+  - the halves of a cell usually come from one GEO series or lab, so technical batch is shared and counts as "reproducible";
+  - HEK293T, the sparsest dev cell, has no halves;
+  - the duplicated cells (ASC/ASC.C, SKB/SKL/SKL.C) enter each other's baselines. SKB's MA baseline is 0.38 for that reason;
+  - the baseline is slightly negative because each cell is part of the other cells' gene means;
+  - the excess is over 978 genes (TSS genes) and 879 motifs. No threshold is read.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
