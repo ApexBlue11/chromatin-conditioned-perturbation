@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "061_stage_a_result_stage_b_prereg"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -86,7 +88,7 @@
     "060_mechanism_stage_a_code"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "93 closed for now (93.13-93.17; manuscript 5.3 updated). E1 seeds 1-2: a DETACHED push of external/kaggle_kernels/kern_v9dev_e1_s1 is armed for 2026-10-10 05:40 IST (scratchpad push_e1_s1_at_reset.sh; done-file push_e1_s1.done, log push_e1_s1.log). If no done-file exists after then, push it by hand (diff vs e1_s0 checked: seeds and output glob only). Then read E1 at three seeds per 92.9 (rule 8 with --chromatin_encoding clean; add the s1/s2 checkpoint sha1s to align_dev ENCODING_SHA1 first), with the 93.16 artefact caveat (E1's clean encoding keeps the tie-break blocks). Then pre-register E3 (tie-fixed encoding) as its own packet. Principal approved (2026-10-08): E3 after E1, chromatin closed for transfer, move to mechanistic interpretability. Section 94 Stage A amended by review 059 (94.7); worker W33 to build mechanism_stage_a.py; E3 92.11 amended (C8).",
+  "pending_decision": "94 Stage A read (94.8: BOTH readouts carry signal). Stage B pre-registered (94.9) + code (ce75800) in packet 061; run 6 local CPU readouts after clearance, then --read_b once. E1 seeds 1-2 detached push armed for Sat 10 Oct 05:40 IST (fallback: push kern_v9dev_e1_s1 by hand). E3 (92.11) code after E1's read.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
   "challenges_upheld": "245 challenge rows in 60 adjudicated reviews + 2 addenda (counted 2026-10-08 incl. review 060: C1 no A3 positive-control unit disclosed, C2 self-retrieval half-vs-half with plate rule, C3, C4; review 059: C1 MAJOR label filter, C2 MAJOR genotype-gated A3 signs, C3-C8; review 058: C1 carried by SKBR3 and LNCAP, C2 weak cell conjunct, C3 not-of-cells scoped; review 057a: C1 MAJOR H3K27me3 carries the tie-break block in ~90 % of entries, tie-corrected arms of record; C2, C3; review 057: C1 MAJOR expression control was one direction against three, now an incremental capacity-matched reference; C2 shared permutation; C3 reading 2 split; C4 wording; review 056: C1-C4 Stage 1 summary scoped, F_enh MDE at the detection edge; review 055: C1 calibration kept F_prom real, C2 HEK293T caveat, C3 split-half scoped; review 054: C1 MAJOR motif accessibility measured peak width, fixed 500-bp windows; C2, C3 upheld; review 053: C1, C2 upheld -- item 2 sat inside the null calibration, items 1/4 lacked the gain-form scope; review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
