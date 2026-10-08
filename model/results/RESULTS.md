@@ -8326,6 +8326,48 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
   cold-drug gates as a second gated table keyed by cell. A test checks the gates.
 - **Cost:** local CPU, ≈ 4 min.
 
+### 95.5 AMENDED by review 063 (C1 MAJOR, C2, C3 upheld; before any Stage A′ data, 2026-10-08)
+1. **The substrate, at identity level** (no response read).
+   - **Classes with ≥ 2 parents in all six scored cells:** DNA inhibitor; EGFR (erbB1) and erbB2; the multi-kinase classes (KIT,
+     PDGFR, RET, FLT3); COX; Kir6.2 blocker; and CNS classes (5-HT2a, D2, NET, SERT, β1).
+   - **In five cells:** PDE4, PDE3, HSP90, Na-channel, L-type Ca-channel, M1.
+   - **Kinase classes beyond these** have ≤ 3 parents per cell.
+   - **Under §94.7's gated table,** A3 has 6 units, all EGFR, from 4 distinct compounds. There are 0 MDM2 inhibitors.
+2. **A3's rules here:**
+   - **A new class row, fixed now:** **DNA inhibitors → PROGENy p53 (+)** in TP53-wild-type cells (MCF7, A549, A375), by MoA
+     string, with HA1E (SV40 large T), PC3 (null) and HT29 (R273H) excluded.
+   - **A3 is decision-bearing on this split only if its units span ≥ 2 classes.** Otherwise it is reported only.
+3. **C2:** A375 (TP53-wild-type) joins the MDM2 gate. That is moot here, with no MDM2 inhibitors.
+4. **The CNS / channel caveat and the A1 without them.**
+   - **Why:** an A1 pass carried by CNS classes may reflect shared cationic-amphiphilic physicochemistry (the lysosomal /
+     cholesterol response), not the annotated receptor.
+   - **A1_noncns is computed alongside A1:** the same machinery with CNS / neurotransmitter / ion-channel classes removed from
+     the labels.
+     - **The fixed regex:** dopamine, serotonin, 5-HT, histamine, adrenergic/adrenoceptor, muscarinic, acetylcholine, GABA,
+       opioid, glutamate, NMDA, transporter, channel, cholinesterase, melatonin, sigma, cannabinoid, vasopressin, oxytocin,
+       neurokinin, orexin, Kir6.
+     - **Its null:** rng 9400 + k + 50.
+   - **Reported:** the per-class member-mean AUROC (review 060 C3's meaning).
+5. **The P9 mechanism gate, explicit.** P9 (≈ 6 GPU-h) opens on mechanism grounds **iff**:
+   - A1_noncns carries signal in ≥ 3 of 6 scored cells (Δ ≥ 0.05 over its own null, p < 0.01); **or**
+   - A3 carries signal (p < 0.01, ≥ 2/3 of units with d > 0) **with units spanning ≥ 2 classes**.
+   - **Otherwise:** *"the cold-drug split's held-out compounds cannot test mechanism-from-chemistry at these readouts"*. P9 is
+     then justified only on accuracy grounds (the XPert cold-drug head-to-head), registered as such.
+   - The reader prints the gate.
+6. **C3:** `read_stage_b`'s B1 threshold follows the split (4 of 6 on cold-drug).
+7. **Stage B′ must include** (review 063 ask 2; registered with Stage B′):
+   - a structure-only retrieval floor (Tanimoto similarity AUROC, mates against non-mates, no responses);
+   - k-NN (k = 5, similarity-weighted) beside 1-NN;
+   - a physicochemical-descriptor reference (cLogP, basic pKa / charge, MW, TPSA);
+   - the NN rule (the nearest training compound profiled in the same cell, a stated fallback, per-compound max Tanimoto
+     reported, and claims stratified by it);
+   - paired swap nulls for v9 against each reference.
+8. **Code:** `mechanism_stage_a.py` (review 063 fixes), 29 tests. The new tests check:
+   - the CNS regex;
+   - the DNA row in TP53-wild-type cells only;
+   - the P9 gate;
+   - the split-aware B1.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

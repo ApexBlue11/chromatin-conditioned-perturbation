@@ -18,6 +18,7 @@ Functions:
 import argparse
 import hashlib
 import json
+import re
 import os
 import sys
 from collections import defaultdict
@@ -35,8 +36,17 @@ SPLITS = {
     'split_cold_cell_1': {'scored': SCORED_CELLS_ORDER, 'n_rows': 21151, 'a1_min': 3,
                           'gates': {'raf': {'HT29'}, 'mdm2': {'MCF7'}, 'er': {'MCF7'}}},
     'split_cold_drug_1': {'scored': ['MCF7', 'PC3', 'A375', 'HA1E', 'HT29', 'A549'], 'n_rows': 13445, 'a1_min': 4,
-                          'gates': {'raf': {'HT29', 'A375'}, 'mdm2': {'MCF7', 'A549'}, 'er': {'MCF7'}}},
+                          'gates': {'raf': {'HT29', 'A375'}, 'mdm2': {'MCF7', 'A549', 'A375'}, 'er': {'MCF7'},
+                                    'dna_p53': {'MCF7', 'A549', 'A375'}},
+                          # review 063 C1: DNA inhibitors -> p53 (+) in TP53-wild-type cells (membership by MoA string)
+                          'extra_classes': [{'class': 'DNA', 'pathway': 'p53', 'inhibitor_sign': +1.0,
+                                             'moa_match': 'DNA inhibitor', 'gate': 'dna_p53'}],
+                          'noncns_a1_min': 3},
 }
+# review 063 C1(ii)-(iii): CNS / neurotransmitter / ion-channel classes, removed for the cold-drug A1 gate (fixed before data)
+CNS_CHANNEL_RE = re.compile(r'dopamine|serotonin|5-ht|histamine|adrenergic|adrenoceptor|muscarinic|acetylcholine|gaba|'
+                            r'opioid|glutamate|nmda|transporter|channel|cholinesterase|melatonin|sigma|cannabinoid|'
+                            r'vasopressin|oxytocin|neurokinin|orexin|kir6', re.I)
 
 ACTIVE = dict(SPLITS['split_cold_cell_1'], name='split_cold_cell_1')   # set by run_pipeline(split=...)
 
@@ -702,7 +712,8 @@ def run_a3(cell_units_map, scored_cells_list, parent_to_targets, net=None, landm
         net = load_progeny_network(top=500, landmarks_file=landmarks_file)
 
     landmarks = load_landmark_genes(landmarks_file) if (landmarks_file or os.path.exists(LANDMARKS_FILE_DEFAULT)) else None
-    class_table = GATED_CLASSES if gated else UNGATED_CLASSES
+    class_table = (GATED_CLASSES + list(ACTIVE.get('extra_classes', []))) if gated else UNGATED_CLASSES
+    unit_moas = {u['unit_id']: u.get('moas', set()) for cu in cell_units_map.values() for u in cu.values()}
 
     if tmin is None:
         source_counts = net['source'].value_counts()
@@ -761,6 +772,14 @@ def run_a3(cell_units_map, scored_cells_list, parent_to_targets, net=None, landm
             if pathway not in acts.columns:
                 continue
 
+            if 'moa_match' in cls_def:                       # review 063: membership by MoA string, gated by cell
+                if cell not in ACTIVE['gates'].get(cls_def['gate'], set()):
+                    continue
+                members = [(uid, cls_def['inhibitor_sign']) for uid in u_ids if cls_def['moa_match'] in unit_moas.get(uid, set())]
+                if len(members) >= 3:
+                    eval_units.append({'class': cls_name, 'cell': cell, 'pathway': pathway,
+                                       'inhibitor_sign': cls_def['inhibitor_sign'], 'members': members, 'all_units': u_ids})
+                continue
             target_set = cls_def['targets_fn'](cell)
             if not target_set:
                 continue
@@ -927,6 +946,18 @@ def read_stage_a(result):
     a3_p = a3_gated.get('p', 1.0)
     a3_frac = a3_gated.get('frac_positive', 0.0)
     a3_signal = (a3_p < 0.01) and (a3_frac >= (2.0 / 3.0))
+    a3_classes = sorted({u.split('@')[0] for u in a3_gated.get('d_per_unit', {})})
+    split_cfg = SPLITS[result.get('split', 'split_cold_cell_1')]
+    p9_gate = None
+    if 'noncns_a1_min' in split_cfg:                     # review 063 C1(iii), cold-drug only
+        n_nc = sum(1 for c in scored_cells_list
+                   if (a1_data.get(c, {}).get('a1_noncns') or {}).get('a1') is not None
+                   and a1_data[c]['a1_noncns']['a1'] - a1_data[c]['a1_noncns']['null_mean'] >= 0.05
+                   and a1_data[c]['a1_noncns']['p_value'] < 0.01)
+        a1_nc_signal = n_nc >= split_cfg['noncns_a1_min']
+        a3_multi = a3_signal and len(a3_classes) >= 2
+        p9_gate = {'a1_noncns_cells': n_nc, 'a1_noncns_signal': a1_nc_signal, 'a3_classes': a3_classes,
+                   'a3_signal_multiclass': a3_multi, 'open': bool(a1_nc_signal or a3_multi)}
 
     # Format scoping metrics for null sentence (§94.7 item 5)
     mean_sc = np.mean(self_ceilings) if len(self_ceilings) > 0 else np.nan
@@ -963,8 +994,15 @@ def read_stage_a(result):
         )
         dtype = 'NEITHER'
 
+    if p9_gate is not None and not p9_gate['open']:
+        text += (" P9 mechanism gate CLOSED: the cold-drug split's held-out compounds cannot test mechanism-from-chemistry at "
+                 "these readouts; P9 may be justified only on accuracy grounds, registered as such.")
+    elif p9_gate is not None:
+        text += " P9 mechanism gate OPEN (review 063 C1(iii))."
     return Decision(
         text,
+        p9_gate=p9_gate,
+        a3_classes=a3_classes,
         a1_signal=a1_signal,
         a3_signal=a3_signal,
         decision_type=dtype,
@@ -1045,7 +1083,8 @@ def read_stage_b(measured, v9_seeds, v9_mean, mu, ridge=None):
 
     def one(res):
         a1 = {c: res['a1'][c]['a1'] - res['a1'][c]['null_mean'] for c in cells}
-        b1 = sum(1 for c in cells if a1[c] >= 0.05 and res['a1'][c]['p_value'] < 0.01) >= 3
+        b1 = sum(1 for c in cells if a1[c] >= 0.05 and res['a1'][c]['p_value'] < 0.01) >= \
+            SPLITS[measured.get('split', 'split_cold_cell_1')]['a1_min']
         b3 = res['a3_gated']['p'] < 0.01 and res['a3_gated']['frac_positive'] >= 2.0 / 3.0
         rho, p, n = b3c(dm, res['a3_gated']['d_std_per_unit'])
         rho_raw, p_raw, _ = b3c(dm_raw, res['a3_gated']['d_per_unit'])
@@ -1119,10 +1158,19 @@ def run_pipeline(bundle_path, labels_tsv, landmarks_file=None, row_index_npz=Non
         # Seed per RESULTS §94.3: 9400 + k
         cell_seed = 9400 + idx
         res = a1_cell(sigs, labels, hashes, rng_seed=cell_seed)
+        noncns = None
+        if 'noncns_a1_min' in ACTIVE:
+            lab_nc = [{m for m in l if not CNS_CHANNEL_RE.search(m)} for l in labels]
+            keep = [i for i, l in enumerate(lab_nc) if l]
+            if len(keep) >= 2:
+                noncns = dict(a1_cell([sigs[i] for i in keep], [lab_nc[i] for i in keep], [hashes[i] for i in keep],
+                                      rng_seed=cell_seed + 50))
 
         # C4 diagnostics
         c4 = compute_self_retrieval_and_active_subset(units, rng_seed=cell_seed)
         c_dict = dict(res)
+        if noncns is not None:
+            c_dict['a1_noncns'] = noncns
         c_dict['self_retrieval_ceiling'] = c4['self_retrieval_ceiling']
         c_dict['self_retrieval_ceiling_no_shared_plate'] = c4['self_retrieval_ceiling_no_shared_plate']
         c_dict['n_self_retrieval_units'] = c4['n_self_retrieval_units']

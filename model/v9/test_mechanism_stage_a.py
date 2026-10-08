@@ -705,3 +705,61 @@ def test_cold_drug_gates_and_threshold():
     assert not msa.read_stage_a(res).a1_signal                           # 3 of 6 is not enough on cold-drug
     res['a1'][cells[3]] = {'a1': 0.7, 'null_mean': 0.5, 'p_value': 0.001}
     assert msa.read_stage_a(res).a1_signal
+
+
+
+# ---- review 063 (cold-drug gate), PI ----
+
+def test_cns_channel_classes_are_recognised_and_others_are_not():
+    for m in ('Dopamine D2 receptor antagonist', 'Serotonin transporter inhibitor', 'Sodium channel alpha subunit blocker',
+              'Sulfonylurea receptor 1, Kir6.2 blocker', 'Muscarinic acetylcholine receptor M1 antagonist'):
+        assert msa.CNS_CHANNEL_RE.search(m), m
+    for m in ('DNA inhibitor', 'Epidermal growth factor receptor erbB1 inhibitor', 'Cyclooxygenase inhibitor',
+              'Heat shock protein HSP90 inhibitor', 'Phosphodiesterase 4 inhibitor'):
+        assert not msa.CNS_CHANNEL_RE.search(m), m
+
+
+def test_dna_class_joins_only_in_tp53_wt_cells_on_cold_drug(fake_progeny_net):
+    G = 20
+    genes = [f'GENE_{i}' for i in range(G)]
+    try:
+        msa.ACTIVE.clear(); msa.ACTIVE.update(msa.SPLITS['split_cold_drug_1'], name='split_cold_drug_1')
+        units = {}
+        for cell in ('MCF7', 'PC3'):
+            units[cell] = {}
+            for i in range(6):
+                k = '%s_D%d' % (cell, i)
+                units[cell][k] = {'unit_id': k, 'is_labelled': True, 'moas': {'DNA inhibitor'} if i < 3 else {'other'},
+                                  'sig': np.random.default_rng(i).normal(size=G)}
+        r = msa.run_a3(units, ['MCF7', 'PC3'], {}, net=fake_progeny_net, gene_names=genes, gated=True, rng_seed=1, n_perm=10)
+        assert r['units'] == ['DNA@MCF7']                                   # PC3 is TP53-null: no DNA unit
+    finally:
+        msa.ACTIVE.clear(); msa.ACTIVE.update(msa.SPLITS['split_cold_cell_1'], name='split_cold_cell_1')
+
+
+def test_p9_gate_needs_noncns_a1_or_a3_over_two_classes():
+    cells = msa.SPLITS['split_cold_drug_1']['scored']
+    def res(n_nc, a3_units, p=0.001, frac=1.0):
+        a1 = {}
+        for k, c in enumerate(cells):
+            a1[c] = {'a1': 0.7, 'null_mean': 0.5, 'p_value': 0.001,
+                     'a1_noncns': ({'a1': 0.7, 'null_mean': 0.5, 'p_value': 0.001} if k < n_nc
+                                   else {'a1': 0.5, 'null_mean': 0.5, 'p_value': 0.5})}
+        return {'split': 'split_cold_drug_1', 'scored_cells': cells, 'a1': a1,
+                'a3_gated': {'p': p, 'frac_positive': frac, 'd_per_unit': {u: 1.0 for u in a3_units}}}
+    egfr_only = ['EGFR@%s' % c for c in cells]
+    assert not msa.read_stage_a(res(2, egfr_only)).p9_gate['open']        # CNS-only A1 and a one-class A3: closed
+    assert msa.read_stage_a(res(3, egfr_only)).p9_gate['open']            # 3 of 6 cells without CNS classes
+    assert msa.read_stage_a(res(0, egfr_only + ['DNA@MCF7'])).p9_gate['open']
+    assert 'CLOSED' in msa.read_stage_a(res(0, egfr_only))
+
+
+def test_read_stage_b_uses_the_splits_a1_threshold():
+    cells = msa.SPLITS['split_cold_drug_1']['scored']
+    def r(n):
+        return {'split': 'split_cold_drug_1', 'scored_cells': cells,
+                'a1': {c: {'a1': 0.7 if k < n else 0.5, 'null_mean': 0.5, 'p_value': 0.001 if k < n else 0.5} for k, c in enumerate(cells)},
+                'a3_gated': {'T': 1, 'p': 0.001, 'frac_positive': 1.0, 'd_per_unit': {'EGFR@MCF7': 1.0, 'EGFR@PC3': 2.0},
+                             'd_std_per_unit': {'EGFR@MCF7': 1.0, 'EGFR@PC3': 2.0}}}
+    out = msa.read_stage_b(r(6), [r(3)] * 3, r(3), r(3))
+    assert not out['per_run']['seed_mean']['B1_signal']                  # 3 of 6 < the cold-drug minimum of 4
