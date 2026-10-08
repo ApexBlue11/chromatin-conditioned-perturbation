@@ -8368,6 +8368,49 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
    - the P9 gate;
    - the split-aware B1.
 
+### 95.6 RESULT, Stage A′ read once (cold-drug test rows, measured): **A1 does not carry signal (3 of 6); A3 does, over 2 classes; the P9 mechanism gate is OPEN, through A3** (2026-10-08)
+**The run:**
+- **Code:** `mechanism_stage_a.py --split split_cold_drug_1` (`f7c58f51`, reviews 063 and 063a cleared it; the 2-class A3 rule
+  is enforced in the reader). Local CPU.
+- **Output:** `model/results/mechanism95/stage_a_prime.json`, sha1 `723235d5`, with its marker. Read once by `--read` →
+  `stage_a_prime_reading.txt`.
+
+**A1** (Δ over null; p; compounds scored), and A1_noncns beside it:
+
+| cell | A1 Δ | p | n | A1_noncns Δ | p | n |
+|---|---|---|---|---|---|---|
+| MCF7 | +0.089 | 0.021 | 53 | **+0.208** | **0.002** | 27 |
+| PC3 | **+0.099** | **0.009** | 53 | +0.099 | 0.055 | 25 |
+| A375 | **+0.113** | **0.002** | 47 | +0.124 | 0.025 | 22 |
+| HA1E | +0.069 | 0.070 | 40 | +0.049 | 0.229 | 20 |
+| HT29 | +0.085 | 0.041 | 37 | +0.092 | 0.120 | 16 |
+| A549 | **+0.120** | **0.00999** | 36 | **+0.215** | **0.005** | 17 |
+
+- **A1:** 3 of 6 cells pass, against a minimum of 4. **No signal.**
+- **A1_noncns:** 2 of 6 pass, against a minimum of 3. **No signal.**
+- Every Δ is positive. The misses are on p, with 16–53 compounds per cell.
+
+**A3** (gated, with the DNA → p53 row):
+- T **2.72**, p **0.001**, with d > 0 in **8 of 9** units.
+- **The units span 2 classes:**
+  - DNA@A375 +6.4, DNA@A549 +5.9, DNA@MCF7 +5.3;
+  - EGFR: A549 +3.7, MCF7 +1.8, HT29 +1.2, A375 +0.3, PC3 +0.3, HA1E −0.4.
+- **A3 carries signal (multi-class).**
+- Ungated, reported: T 1.15, p 0.012, 5 of 6 (EGFR only).
+
+**The decision (95.5, mechanical):**
+- Stage B′ tests whether v9's predicted signatures show the expected pathway direction.
+- **The P9 mechanism gate is OPEN, through A3** (A1_noncns did not open it).
+
+**Beside it** (descriptive):
+- **The A3 substrate is thin:**
+  - 4 "DNA inhibitor" parents in each TP53-wild-type cell;
+  - 4 distinct EGFR inhibitors across the six cells;
+  - so about 8 compounds and 2 mechanism classes carry the gate.
+- **A Stage B′ claim from it** would be scoped to *"DNA-damaging and EGFR-inhibiting compounds"*, not to mechanism-from-chemistry
+  in general.
+- **A1 fell one cell short,** and A1_noncns two cells short, so retrieval on the cold-drug compounds is not established.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

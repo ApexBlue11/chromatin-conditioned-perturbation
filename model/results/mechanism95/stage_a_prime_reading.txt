@@ -1,0 +1,1 @@
+Stage B tests whether v9's predicted signatures show the expected pathway direction, against the same references. P9 mechanism gate OPEN (review 063 C1(iii)).
