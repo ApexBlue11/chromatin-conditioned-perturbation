@@ -7838,6 +7838,51 @@ are G_tie = S(N1tie) − S(FB) and Δ_tie|E = S(E+N1tie) − S(E).
   too. So, for **accessibility**, the artefact is not what hid a gene-local gain. **The histone channels (H3K27ac ≈ 20 %,
   H3K27me3 ≈ 90 % artefact) have not been tested free of it.**
 
+### 93.17 RESULT, 93.15b read once: **CHROMATIN-SPECIFIC** (tie-corrected features, of record). The gene-generic chromatin gain is small, carried mostly by LNCAP, and at the edge of the cell rule (2026-10-08)
+**The run:**
+- **Kernel:** `lincs-chromatin93-gg` v1, Kaggle CPU, 2,879 s. All 8 pins and the split bundle were verified
+  (`chromatin_genegeneric.py` `d00ebeb1`).
+- **Read:** once, by `chromatin_genegeneric.py --read`, after the marker's sha1 was verified →
+  `model/results/chromatin93_gg_reading.json`. The raw output is `model/results/c93/chromatin_genegeneric_93.json`.
+- **Harness check:** §91's N1 − FB = +0.0012099, equal to 91.12.
+
+**The numbers** (T1 score, drug-known dev rows):
+
+| quantity | tie-corrected (of record) | §91's features (reported) |
+|---|---|---|
+| G_chr = S(N1) − S(FB) | **+0.00139** | +0.00121 |
+| max over 20 gene-permuted N1 (range) | +0.00059 (−0.00089 to +0.00059) | +0.00046 (−0.00030 to +0.00046) |
+| G_E = S(E) − S(FB), expression reference alone | +0.00055 | +0.00074 |
+| Δ_chr\|E = S(E+N1) − S(E) | **+0.00154** | +0.00185 |
+| max over 20 E+perm (range) | +0.00095 (−0.00052 to +0.00095) | +0.00047 (−0.00022 to +0.00047) |
+| Δ_chr\|E > 0, cells | **4 of 6** | 4 of 6 |
+| reading | **CHROMATIN-SPECIFIC** | CHROMATIN-SPECIFIC |
+
+**Per cell, Δ_chr|E on the tie-corrected features:**
+
+| HEK293T | HL60 | LNCAP | SKBR3 | U937 | VCAP |
+|---|---|---|---|---|---|
+| −0.0000 | +0.0006 | +0.0026 | +0.0019 | −0.0007 | **+0.0001** |
+
+G_chr per cell: LNCAP +0.0041, SKBR3 +0.0013, HEK293T +0.0001, VCAP −0.0002, U937 −0.0004, HL60 −0.0005.
+
+**The licensed sentence** (93.15a reading 3, applied to the tie-corrected features):
+- *"What chromatin carries for T1 is gene-level chromatin content beyond a capacity-matched per-gene expression covariate."*
+- **Beside it** (descriptive):
+  - **Small:** +0.0014 in T1's score, below T1's advance bar of 0.004.
+  - **Mostly one cell:** LNCAP carries most of it.
+  - **At the edge of the cell rule:** the fourth positive cell is VCAP at +0.0001.
+  - **Each test** is one-sided against the maximum of 20 permutations (p ≈ 0.048 apiece).
+  - **The reference** is one choice of expression covariate (mean, sd and squared mean of b).
+  - **§91.12's caveat stands:** a fitted per-gene parameter (e.g. v9's gene embedding) could represent it, and that is not
+    tested.
+- **The artefact did not create it:** tie-correction left it in place, slightly larger (G_chr +0.00139 against +0.00121).
+  §91's features give the same reading.
+
+**What it means for the record** (interpretation, for the critic): §91's gene-generic gain is not an artefact and not
+capacity. Gene-level chromatin content (the average chromatin of a gene across cells) carries a small amount of
+response-relevant information that a matched expression covariate does not. It is a property of genes, not of cells.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
