@@ -8086,6 +8086,55 @@ G_chr per cell: LNCAP +0.0041, SKBR3 +0.0013, HEK293T +0.0001, VCAP −0.0002, U
      JAK-STAT 33, PI3K 30, VEGF 17, WNT 13, Trail 3.
    - So Trail and WNT are below it. Neither is in the table, and every class row's pathway clears it.
 
+### 94.8 RESULT, Stage A read once: **both readouts carry signal**. The measured test-cell responses do encode drug mechanism, by MoA-mate retrieval and by PROGENy pathway direction (2026-10-08)
+**The run:**
+- **Code:** `mechanism_stage_a.py` (`3f9a0153` → `a1d2372`; review 060 cleared it). Local CPU, 241 s.
+- **Rows:** P7's 21,151 scored rows. Only the `row_index` key of `v9p7_seed0.npz` was read, never a prediction.
+- **The first attempt** stopped at the 21,151 guard (the split's test set has 21,321) before computing anything. The rows were
+  then restricted to §94.2's set.
+- **Output:** `model/results/mechanism94/stage_a_result.json`, sha1 `d7f3856a`, with its marker. Read once by
+  `--read` → `stage_a_reading.txt`. The first `--read` crashed on printing "μ" to the cp1252 console before printing; it was
+  rerun with UTF-8 output, same code and input.
+
+**A1, MoA-mate retrieval** (AUROC of response similarity, mates against non-mates; same-plate pairs excluded):
+
+| cell | A1 | null mean (sd) | p | compounds scored | self-retrieval ceiling (no shared plate) | active-subset A1 (n) |
+|---|---|---|---|---|---|---|
+| MCF7 | **0.653** | 0.500 (0.011) | 0.001 | 400 | 0.991 (0.973) | 0.657 (466) |
+| HT29 | **0.598** | 0.500 (0.014) | 0.001 | 288 | 0.994 (0.981) | 0.606 (365) |
+| MDAMB231 | **0.646** | 0.498 (0.039) | 0.001 | 48 | 0.998 (1.000) | 0.646 (72) |
+| HS578T | **0.671** | 0.502 (0.053) | 0.001 | 31 | 1.000 (—) | 0.671 (47) |
+| THP1 | 0.665 | 0.499 (0.078) | 0.022 | 17 | 0.989 (0.975) | 0.647 (50) |
+
+- **A1 carries signal:** 4 of 5 cells meet Δ ≥ 0.05 and p < 0.01 (THP1 misses on p, with 17 compounds left after the plate rule).
+
+**A3, PROGENy pathway activity in the expected direction** (gated table; 17 units):
+- T = **3.92**, p = **0.001**, with d > 0 in **15 of 17** units (0.88).
+- **Per unit:**
+  - MAPK (MEK/ERK, and RAF in HT29): MDAMB231 +20.1, HS578T +10.9, HT29 +9.4, MCF7 +5.6;
+  - PI3K: MCF7 +3.8, THP1 +3.4, HS578T +3.1, MDAMB231 +2.4, HT29 +1.7;
+  - ER@MCF7: +2.9;
+  - JAK: MDAMB231 +0.8, HS578T +0.8, MCF7 +0.6;
+  - EGFR: MCF7 +1.7, HT29 +1.5, **HS578T −1.3, MDAMB231 −0.8**.
+- **A3 carries signal.**
+- **Beside it (review 060 C1):** *no positive-control unit exists* (fewer than 3 EGLN inhibitors in every scored cell, and none
+  for MDM2 or IKBKB/CHUK). A3's 17 units are kinase and ER classes.
+- **Reported, never read:** the ungated table gives T 2.81, p 0.001, 16 of 20 positive. Its RAF members in non-HT29 cells
+  shrink the MAPK units (MCF7 +2.9 against +5.6; HS578T +6.9 against +10.9), consistent with the paradoxical activation the
+  gate anticipated.
+
+**The decision (§94.5, mechanical): BOTH.** Stage B tests whether v9's P7 predicted signatures retrieve MoA-mates and show the
+expected pathway direction. Its references are the drug-mean prediction μ and the measured ceiling, registered next.
+
+**What it means** (interpretation, for the critic):
+- **On the earlier nulls:** the measured landmark responses in the unseen test cells carry drug mechanism at two standard
+  readouts. So the earlier model-mechanism nulls (C 4.1a, §86, §88) cannot be blamed on mechanism being absent from the data
+  at these readouts. Note that §86's target-*pathway-membership* readout is a different one.
+- **The ceilings:** about 0.99 everywhere, so compounds' responses are highly reproducible within a cell. This is
+  within-compound identity, not mechanism.
+- **The pathway magnitude is strongly cell-dependent:** the MAPK unit is +20.1 in MDAMB231 against +5.6 in MCF7. That is the
+  kind of cell-specific mechanism a model would have to capture.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

@@ -1,0 +1,1 @@
+Stage B tests whether v9's P7 predicted signatures retrieve MoA-mates and show the expected pathway direction. Its references are the drug-mean prediction μ (no cell-specific information) and the measured ceiling, both registered then.
