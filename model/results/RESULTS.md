@@ -7149,6 +7149,51 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
 - **The E1-vs-E2 comparator** binds only if both are accepted, so it no longer binds. It is reported, descriptively, when E1's
   seeds exist.
 
+### 92.11 🔒 PRE-REGISTERED: E3, the tie-fixed chromatin encoding (93.16), before any E3 code or run and before E1's seeds 1–2 exist (PI, 2026-10-08)
+**Why:**
+- 93.16 found that 20 %, 20 % and 90 % of v9's ATAC, H3K27ac and H3K27me3 entries are tie-break codes, and E1's clean encoding
+  keeps them.
+- E2's per-cell pattern (92.10: gains in HEK293T, LNCAP and VCAP; losses in SKBR3 and HL60) involves cells whose channels are
+  mostly such codes:
+  - SKBR3: ATAC 100 %, H3K27me3 94 %;
+  - HEK293T: ATAC 94 %;
+  - VCAP: H3K27me3 99 %;
+  - LNCAP: H3K27me3 93 %.
+- E3 is the only training-time test of v9's chromatin free of them.
+
+**The arm, `--chromatin_encoding tie`:**
+- E1's clean encoding: failed H3K27me3 tracks missing, then rank-normal per present (cell, mark), average ranks.
+- **Before the rank-normal step,** every entry in its mark's tie block (value ≤ (Z_k − 0.5)/(N_k − 1)) is set to 0. A cell's
+  no-peak genes then share one tied value.
+- **The block sizes** are 93.15b's `TIE`: ATAC 6,465 / 31,264; H3K27ac 6,726 / 34,195; H3K27me3 22,778 / 25,402 (an estimate).
+- **Everything else is E1's:** the P2 recipe, the dev carve, seeds 0–2, guards 1–5 and the kernel pattern.
+
+**Acceptance** (92.9 items 1–2, applied to E3 against P2):
+- rule 7, and Δ_centred > 0;
+- rule 8, with `align_dev.py --chromatin_encoding tie` (`ENCODING_SHA1` extended with E3's checkpoints);
+- the in-cell rule.
+
+**The comparator with E1:** E3 beats E1 iff 92.9 item 3's rule holds with E3 in place of E1 and E1 in place of E2.
+
+**The decision table, fixed now:**
+
+| E1 accepted | E3 accepted | reading |
+|---|---|---|
+| no | no | no change to the recipe |
+| no | yes | E3, against P2 |
+| yes | no | E1's reading |
+| yes | yes | E3 beats E1 → E3; otherwise E1 |
+
+**Reported, never read:**
+- E3 − P2 per cell, against E2's and T4's pattern;
+- E3 − E1 per cell, which isolates the tie fix.
+
+**Code and cost:**
+- `xpert_arm.py` gets `--chromatin_encoding tie` **after** E1's three-seed read (the 92.9 item 5 freeze), with a test: no-peak
+  entries tied per (cell, mark), everything else identical to `clean`. The kernel pins the new sha1.
+- ≈ 5 GPU-h (three seeds at ≈ 1.7 h each).
+- **Either acceptance is development:** a test-cell claim needs its own registration (a P8).
+
 ## 93. 🔒 PRE-REGISTERED (packet 050, amended by review 050): why chromatin does not transfer — H2 and H3 on the §91 features, H1 on richer accessibility features (principal's request, 2026-10-03/06)
 ### 93.1 The question, and what is already known
 - **The principal's argument** (2026-10-03): chromatin is a cell's own context. Baseline expression is downstream of it, so
