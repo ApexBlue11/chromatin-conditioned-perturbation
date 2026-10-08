@@ -8135,6 +8135,52 @@ expected pathway direction. Its references are the drug-mean prediction μ and t
 - **The pathway magnitude is strongly cell-dependent:** the MAPK unit is +20.1 in MDAMB231 against +5.6 in MCF7. That is the
   kind of cell-specific mechanism a model would have to capture.
 
+### 94.9 🔒 PRE-REGISTERED: Stage B, do v9's test-cell predictions express the mechanism the measured responses carry, beyond the drug's average? (PI, 2026-10-08; before any prediction value is read)
+**The predictions** (on Stage A's 21,151 rows, units, labels, plate rule, gated table and null seeds):
+- **v9:** P7's model of record, the three seeds `v9p7_seed{0,1,2}.npz`, each the three-snapshot average P7's accuracy was read
+  on (§85.12).
+  - **Predicted Δ:** `deg_pred`, which `xpert_arm.py` scores against X − X_ctl.
+  - **The seed-mean** is the mean of the three seeds' `deg_pred`.
+- **μ:** `mean_drug_delta_pred` in `baselines_split_cold_cell_1.npz`, the drug's mean Δ over the training cells. It carries
+  the compound's identity and no cell-specific information.
+- **Measured:** Stage A's values (94.8), the ceiling.
+- **Reported, never read:** the bundle's `ridge_pred`.
+
+**The readouts** (Stage A's code, with the predicted Δ in place of the measured Δ; nothing else changes):
+- **B1:** A1 per scored cell.
+- **B3:** A3's T and per-unit d on the gated table.
+- **B3c, cell-specific pathway magnitude:**
+  - centre each unit's d within its class, over the cells where that class has a unit;
+  - B3c is the Spearman correlation across the 17 units between the measured and predicted within-class-centred d;
+  - **null:** the predicted d permuted across cells within each class (exact enumeration, or 10,000 draws,
+    `default_rng(9460)`), one-sided p.
+
+**The readings** (mechanical; a reading needs it to hold on the **seed-mean and on each of the three seeds**):
+1. **EXPRESSES MECHANISM** iff B1 carries signal by Stage A's rule (≥ 3 of 5 cells with Δ ≥ 0.05 over its own null and
+   p < 0.01), **and** B3 carries signal by A3's rule (p < 0.01, d > 0 in ≥ 2/3 of units).
+2. **BEYOND THE DRUG'S AVERAGE (μ),** the interpretability claim, in two parts read separately:
+   - **2a, retrieval:** A1_v9 − A1_μ > 0 in ≥ 4 of 5 scored cells, and its mean over the 5 cells is ≥ 0.02;
+   - **2b, cell-specific pathway magnitude:** B3c_v9 > 0 with p < 0.05, **and** B3c_v9 > B3c_μ.
+3. **Otherwise,** for each part: *"v9's predictions express mechanism no better than the drug's training-cell average"*,
+   stated with the measured ceiling.
+
+**Reported, never read:**
+- the fraction of the measured ceiling recovered, (A1 − 0.5) / (A1_measured − 0.5), per cell, for v9 and μ;
+- B3's T for v9, μ and measured;
+- per-unit d for v9, μ and measured;
+- the ridge baseline's readouts.
+
+**What it can and cannot license:**
+- **A reading-2 pass licenses:** *"v9's predictions in unseen cells express drug mechanism beyond the compound's training-cell
+  average"* (2a), and/or *"…predict in which cells a pathway inhibitor's pathway effect is strong"* (2b).
+- **What the model claims are:** statements about the model's predictions, not about internal attributions.
+- **Limits:**
+  - compounds are seen in training under the cold-cell split, so nothing is said about unseen compounds;
+  - A3 has no positive-control unit (94.8).
+
+**Code:** `mechanism_stage_a.py` gains `--delta npz:key` (the predicted Δ aligned by `row_index`; asserted equal to Stage A's
+rows) and a Stage B reader over the result files, with tests. Local CPU.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
