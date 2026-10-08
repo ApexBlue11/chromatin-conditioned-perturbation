@@ -8410,6 +8410,12 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
 - **A Stage B′ claim from it** would be scoped to *"DNA-damaging and EGFR-inhibiting compounds"*, not to mechanism-from-chemistry
   in general.
 - **A1 fell one cell short,** and A1_noncns two cells short, so retrieval on the cold-drug compounds is not established.
+  - It is "not established", not "absent" (review 064): Δ is +0.069 to +0.120 in all six cells, 1.5–2.8 null sd.
+- **What carries A3** (review 064 C1):
+  - A3's signal is carried by the **DNA → p53 row**: 4 compounds × 3 TP53-wild-type cells, added before data in 95.5.
+  - **EGFR alone** gives T 1.15, p 0.012, which fails p < 0.01.
+  - It is a generic DNA-damage → p53 response: robust biology, and possibly easy for chemistry-only references if those
+    compounds have close training relatives.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
