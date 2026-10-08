@@ -193,6 +193,9 @@ class A1Result(dict):
         self.n_scored = n_scored
         self.per_class_auroc = per_class_auroc
         self.n_with_mate = n_with_mate
+        # review 060 C3: not a class-specific retrieval
+        self['per_class_auroc_meaning'] = ('mean, over the class members, of each member\'s AUROC against all its mates (any '
+                                           'shared MoA string); reported only')
 
     def __getattr__(self, name):
         if name in self:
@@ -363,10 +366,8 @@ def units_for_cell(cell, rows, pert_to_parent=None, parent_to_moa=None, parent_t
         raw_sig = np.mean(deltas, axis=0)
         raw_sigs[uid] = raw_sig
 
-        ctl_hashes = set()
-        for i in idxs:
-            row_ctl = rows['X_ctl'][i].astype(np.float32).tobytes()
-            ctl_hashes.add(hashlib.sha1(row_ctl).hexdigest())
+        row_ctl_hashes = [hashlib.sha1(rows['X_ctl'][i].astype(np.float32).tobytes()).hexdigest() for i in idxs]
+        ctl_hashes = set(row_ctl_hashes)
 
         row_indices = [int(rows['row_index'][i]) for i in idxs]
         # Store deltas and row indices aligned for split-half self-retrieval
@@ -379,6 +380,7 @@ def units_for_cell(cell, rows, pert_to_parent=None, parent_to_moa=None, parent_t
             'ctl_hashes': ctl_hashes,
             'row_indices': row_indices,
             'row_deltas': row_deltas,
+            'row_ctl_hashes': row_ctl_hashes,
             'moas': parent_to_moa.get(uid, set()),
             'targets': parent_to_targets.get(uid, []),
         }
@@ -577,61 +579,44 @@ def compute_self_retrieval_and_active_subset(cell_units, rng_seed, active_thresh
             'active_subset': None,
         }
 
-    # Compute split-halves
+    # Compute split-halves (review 060 C2: negatives are half B of other units, same-plate units excluded)
     split_half_corrs = {}
-    sig_A_map = {}
-    sig_B_map = {}
+    sig_A_map, sig_B_map, hashes_map, halves_share_plate = {}, {}, {}, {}
+
+    def _pearson(x, y):
+        cx, cy = x - np.mean(x), y - np.mean(y)
+        den = np.linalg.norm(cx) * np.linalg.norm(cy)
+        return float(np.dot(cx, cy) / den) if den > 0 else 0.0
 
     for u in labelled:
         n_rows = len(u['row_indices'])
         if n_rows < 2:
             continue
-        # sort rows by row_index
-        sorted_pairs = sorted(zip(u['row_indices'], u['row_deltas']), key=lambda x: x[0])
-        even_deltas = [p[1] for idx, p in enumerate(sorted_pairs) if idx % 2 == 0]
-        odd_deltas = [p[1] for idx, p in enumerate(sorted_pairs) if idx % 2 == 1]
+        hashes = u.get('row_ctl_hashes', [None] * n_rows)
+        trip = sorted(zip(u['row_indices'], u['row_deltas'], hashes), key=lambda x: x[0])
+        sig_A = np.mean([t[1] for k, t in enumerate(trip) if k % 2 == 0], axis=0) - u['cell_mean']
+        sig_B = np.mean([t[1] for k, t in enumerate(trip) if k % 2 == 1], axis=0) - u['cell_mean']
+        hA = {t[2] for k, t in enumerate(trip) if k % 2 == 0}
+        hB = {t[2] for k, t in enumerate(trip) if k % 2 == 1}
+        split_half_corrs[u['unit_id']] = _pearson(sig_A, sig_B)
+        sig_A_map[u['unit_id']], sig_B_map[u['unit_id']] = sig_A, sig_B
+        hashes_map[u['unit_id']] = u.get('ctl_hashes', set())
+        halves_share_plate[u['unit_id']] = bool((hA & hB) - {None})
 
-        sig_A = np.mean(even_deltas, axis=0) - u['cell_mean']
-        sig_B = np.mean(odd_deltas, axis=0) - u['cell_mean']
-
-        # Pearson correlation
-        cA = sig_A - np.mean(sig_A)
-        cB = sig_B - np.mean(sig_B)
-        denom = (np.linalg.norm(cA) * np.linalg.norm(cB))
-        r_self = float(np.dot(cA, cB) / denom) if denom > 0 else 0.0
-
-        split_half_corrs[u['unit_id']] = r_self
-        sig_A_map[u['unit_id']] = sig_A
-        sig_B_map[u['unit_id']] = sig_B
-
-    # Self-retrieval AUROC per qualifying unit
-    self_aurocs = []
+    self_aurocs, self_aurocs_clean = [], []
     qualifying_units = list(sig_A_map.keys())
-
     for uid in qualifying_units:
-        sig_A = sig_A_map[uid]
         r_self = split_half_corrs[uid]
-
-        # Negative scores: corr(sig_A, sig_j) for other units
-        neg_corrs = []
-        cA = sig_A - np.mean(sig_A)
-        normA = np.linalg.norm(cA)
-
-        for other_u in labelled:
-            if other_u['unit_id'] == uid:
-                continue
-            sig_j = other_u['sig']
-            cj = sig_j - np.mean(sig_j)
-            denom = normA * np.linalg.norm(cj)
-            r_other = float(np.dot(cA, cj) / denom) if denom > 0 else 0.0
-            neg_corrs.append(r_other)
-
-        if len(neg_corrs) > 0:
-            # AUROC of 1 positive against len(neg_corrs) negatives
-            auroc = float(np.mean([1.0 if r_self > neg else (0.5 if r_self == neg else 0.0) for neg in neg_corrs]))
+        neg = [_pearson(sig_A_map[uid], sig_B_map[j]) for j in qualifying_units
+               if j != uid and not (plate_rule and (hashes_map[uid] & hashes_map[j]))]
+        if neg:
+            auroc = float(np.mean([1.0 if r_self > x else (0.5 if r_self == x else 0.0) for x in neg]))
             self_aurocs.append(auroc)
+            if not halves_share_plate[uid]:
+                self_aurocs_clean.append(auroc)
 
     self_retrieval_ceiling = float(np.mean(self_aurocs)) if len(self_aurocs) > 0 else np.nan
+    self_retrieval_ceiling_no_shared_plate = float(np.mean(self_aurocs_clean)) if self_aurocs_clean else np.nan
 
     # Active subset A1
     active_units = [u for u in labelled if split_half_corrs.get(u['unit_id'], -1.0) >= active_threshold]
@@ -647,6 +632,8 @@ def compute_self_retrieval_and_active_subset(cell_units, rng_seed, active_thresh
 
     return {
         'self_retrieval_ceiling': self_retrieval_ceiling,
+        'self_retrieval_ceiling_no_shared_plate': self_retrieval_ceiling_no_shared_plate,
+        'n_self_retrieval_units': len(self_aurocs),
         'split_half_corrs': split_half_corrs,
         'active_subset': active_result,
     }
@@ -761,18 +748,16 @@ def run_a3(cell_units_map, scored_cells_list, parent_to_targets, net=None, landm
             for uid in u_ids:
                 targets = parent_to_targets.get(uid, [])
                 # Check matching targets
-                matched_sign = None
+                signs = set()
                 for gene, action in targets:
                     if gene in target_set:
                         act_upper = action.upper()
                         if act_upper in INHIBITOR_ACTIONS:
-                            matched_sign = inh_sign
-                            break
+                            signs.add(inh_sign)
                         elif act_upper in AGONIST_ACTIONS:
-                            matched_sign = -inh_sign
-                            break
-                if matched_sign is not None:
-                    members.append((uid, matched_sign))
+                            signs.add(-inh_sign)
+                if len(signs) == 1:                  # review 060 C4: opposite-sign matching targets -> excluded
+                    members.append((uid, signs.pop()))
 
             if len(members) >= 3:
                 eval_units.append({
@@ -993,6 +978,8 @@ def run_pipeline(bundle_path, labels_tsv, landmarks_file=None):
         c4 = compute_self_retrieval_and_active_subset(units, rng_seed=cell_seed)
         c_dict = dict(res)
         c_dict['self_retrieval_ceiling'] = c4['self_retrieval_ceiling']
+        c_dict['self_retrieval_ceiling_no_shared_plate'] = c4['self_retrieval_ceiling_no_shared_plate']
+        c_dict['n_self_retrieval_units'] = c4['n_self_retrieval_units']
         c_dict['active_subset'] = c4['active_subset']
         a1_results[cell] = c_dict
 

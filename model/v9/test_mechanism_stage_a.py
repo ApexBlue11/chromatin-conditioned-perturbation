@@ -550,3 +550,50 @@ def test_the_reader_needs_three_A1_cells_and_two_thirds_of_A3_units():
     assert msa.read_stage_a(base).a3_signal
     base['a3_gated'] = {'p': 0.02, 'frac_positive': 1.0}
     assert not msa.read_stage_a(base).a3_signal
+
+
+
+def test_self_retrieval_is_half_against_half_and_a_reproducible_compound_scores_near_one():
+    """Review 060 C2: noise-matched halves of a strongly reproducible compound retrieve themselves (ceiling ~ 1); same-plate
+    units are dropped from the negatives."""
+    rng = np.random.default_rng(3)
+    G, units = 50, {}
+    cell_mean = np.zeros(G)
+    for i in range(12):
+        base = rng.normal(size=G) * 3.0
+        rows = [base + rng.normal(scale=0.3, size=G) for _ in range(4)]
+        units['U%d' % i] = {'unit_id': 'U%d' % i, 'is_labelled': True, 'moas': {'m%d' % (i % 3)},
+                            'row_indices': list(range(10 * i, 10 * i + 4)), 'row_deltas': rows,
+                            'row_ctl_hashes': ['h%d_%d' % (i, k) for k in range(4)], 'ctl_hashes': {'h%d_%d' % (i, k) for k in range(4)},
+                            'cell_mean': cell_mean, 'sig': np.mean(rows, axis=0)}
+    out = msa.compute_self_retrieval_and_active_subset(units, rng_seed=1)
+    assert out['self_retrieval_ceiling'] > 0.95 and out['n_self_retrieval_units'] == 12
+    assert out['self_retrieval_ceiling_no_shared_plate'] > 0.95
+
+
+def test_a_compound_with_opposite_sign_matching_targets_is_excluded(fake_progeny_net):
+    G = 20
+    genes = [f'GENE_{i}' for i in range(G)]
+    p2t = {'X%d' % i: [('MAP2K1', 'INHIBITOR')] for i in range(2)}
+    p2t['CONFLICT'] = [('MAP2K1', 'INHIBITOR'), ('MAP2K2', 'AGONIST')]
+    units = {'HT29': {k: {'unit_id': k, 'is_labelled': True, 'sig': np.random.default_rng(j).normal(size=G)}
+                      for j, k in enumerate(list(p2t) + ['O1', 'O2'])}}
+    p2t.update({'O1': [], 'O2': []})
+    r = msa.run_a3(units, ['HT29'], p2t, net=fake_progeny_net, gene_names=genes, gated=True, rng_seed=1, n_perm=20)
+    assert r['units'] == []                            # 2 clean members: a unit only if the conflicted compound were counted
+
+
+def test_self_retrieval_is_unbiased_when_every_compound_shares_one_signal():
+    """Review 060 C2: with one shared signal and no compound-specific one, a half-vs-half ceiling sits at ~0.5. Half-vs-FULL
+    negatives would be less noisy than the positive half and push it well below 0.5."""
+    rng = np.random.default_rng(8)
+    G, units = 200, {}
+    shared = rng.normal(size=G)
+    for i in range(40):
+        rows = [shared + rng.normal(scale=1.0, size=G) for _ in range(4)]
+        units['U%d' % i] = {'unit_id': 'U%d' % i, 'is_labelled': True, 'moas': {'m'},
+                            'row_indices': list(range(10 * i, 10 * i + 4)), 'row_deltas': rows,
+                            'row_ctl_hashes': ['h%d_%d' % (i, k) for k in range(4)], 'ctl_hashes': {'h%d_%d' % (i, k) for k in range(4)},
+                            'cell_mean': np.zeros(G), 'sig': np.mean(rows, axis=0)}
+    out = msa.compute_self_retrieval_and_active_subset(units, rng_seed=1)
+    assert abs(out['self_retrieval_ceiling'] - 0.5) < 0.12, out['self_retrieval_ceiling']
