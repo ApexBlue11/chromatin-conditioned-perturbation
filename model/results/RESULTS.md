@@ -8600,10 +8600,14 @@ Review 065 cleared P9's kernel, pin and GUARD 6 (SOUND-WITH-CAVEATS). Each item 
 Review 065a found 96.7 SOUND and asked, optionally, for P7's snapshot-identity check in the P9 scorer. Adopted.
 
 1. **A scale confound in 96.4 item 2** (PI catch):
-   - **The problem:** A3's T is a mean of **raw** ULM activity differences (`mechanism_stage_a.run_a3`). So T_v9 − T_R carries
-     each model's prediction amplitude, and a model whose predictions are larger would pass the swap test with no better
-     direction. The swap null doesn't remove this: the null centres on 0, while the observed difference keeps the amplitude
-     term.
+   - **The problem** (reworded per review 066 C1): A3's T is a mean of **raw** ULM activity differences
+     (`mechanism_stage_a.run_a3`).
+     - ULM activities are t-values. They're invariant to signature scale (`ulm(5X) − ulm(X)` ≤ 5e-15) but grow with a
+       prediction's **signal-to-noise**.
+     - So noise-free predictions get systematically larger T (Stage B: T for μ 8.23, v9 5.81, measured 3.92), and T_v9 − T_R
+       mixes direction with each model's smoothness.
+     - The swap null doesn't remove this: it centres on 0, while the observed difference keeps the smoothness term.
+     - (The first wording, "prediction amplitude", was wrong. A test of the standardisation must vary noise, not scale.)
    - **Amended:** the comparison of record uses each model's **standardised** activities. Per pathway, they are z-scored within
      the cell over that cell's labelled compounds, on **that model's own** predictions. That is review 061 C1's `d_std`, already
      computed in `run_a3`. The swap exchanges these standardised elements, and the raw-activity comparison is reported, labelled.
@@ -8654,6 +8658,30 @@ Review 065a found 96.7 SOUND and asked, optionally, for P7's snapshot-identity c
    - per reference, the fallback counts and the members' 1-NN Tanimoto;
    - the per-class direction (96.4 item 2);
    - the raw-activity comparison (item 1), labelled.
+
+### 96.9 AMENDMENT (before any Stage B′ code or P9 output): review 066's pins (PI, 2026-10-08)
+Review 066 found 96.8's fix right and its mechanism wrong (C1, reworded above). C2 and C3 are adopted, and C4 is declined.
+
+1. **No re-standardisation after a swap** (C2a):
+   - **Standardised once:** each model's activities are z-scored once, on its own predictions (`d_std`'s rule).
+   - **Each swapped element** carries those z-values, and d is computed from the swapped elements by `run_a3`'s formula (members'
+     mean × sign, minus the others' mean × the inhibitor sign).
+   - **Why:** this keeps every element's (v9, R) pair exactly exchangeable under H0.
+2. **Training candidates are collapsed by molecule** (C2b):
+   - **The rule:** before any nearest-neighbour step, training compounds are collapsed by InChIKey first block (else
+     `PERT:<pert_id>`), the molecule unit of 96.7 item 1. The critic counted 63 training molecules covering 147 `pert_id`s; the
+     code reports its own count.
+   - **The responses:** Δ̄_j,c and Δ̄_j pool all rows of all the molecule's `pert_id`s.
+   - **The structure:** the molecule's fingerprint and descriptors come from the SMILES of its smallest `pert_id` that has a
+     parsable SMILES.
+   - **Ties:** broken by the smallest molecule key.
+3. **The largest-fragment parent** (C3): every SMILES (training and test) is reduced with RDKit
+   `rdMolStandardize.LargestFragmentChooser` before fingerprints and descriptors. The critic counted 4 multi-fragment training
+   SMILES and 0 in test; the count affected is reported.
+4. **The seed rule stays as registered** (C4 declined):
+   - **What it is:** the seed-mean **and** every seed. The seed-mean is the prediction-averaged ensemble.
+   - **Why keep it:** it is an extra hurdle beside "every seed", so the rule is strictly more conservative than "every seed"
+     alone, and no ensemble can carry the claim by itself.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
