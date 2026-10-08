@@ -8596,6 +8596,65 @@ Review 065 cleared P9's kernel, pin and GUARD 6 (SOUND-WITH-CAVEATS). Each item 
    - **P9's encoding:** P9 is P7's model, so it uses the default `v9` chromatin encoding with the 93.16 tie-break codes.
    - **If E3 is adopted:** a P9-style run on it is its own registration.
 
+### 96.8 AMENDMENT (before any Stage B′ code or P9 output): the "beyond chemistry" test compares **standardised** activities, and the references are pinned (PI, 2026-10-08)
+Review 065a found 96.7 SOUND and asked, optionally, for P7's snapshot-identity check in the P9 scorer. Adopted.
+
+1. **A scale confound in 96.4 item 2** (PI catch):
+   - **The problem:** A3's T is a mean of **raw** ULM activity differences (`mechanism_stage_a.run_a3`). So T_v9 − T_R carries
+     each model's prediction amplitude, and a model whose predictions are larger would pass the swap test with no better
+     direction. The swap null doesn't remove this: the null centres on 0, while the observed difference keeps the amplitude
+     term.
+   - **Amended:** the comparison of record uses each model's **standardised** activities. Per pathway, they are z-scored within
+     the cell over that cell's labelled compounds, on **that model's own** predictions. That is review 061 C1's `d_std`, already
+     computed in `run_a3`. The swap exchanges these standardised elements, and the raw-activity comparison is reported, labelled.
+   - **Item 1 is unaffected:** B3 against its own label-permutation null permutes within one model, so it's scale-free.
+2. **The swap null, exactly:**
+   - **The elements:** every labelled (compound, cell) in the cells holding a B′ unit, members and others alike, each carrying
+     its two standardised activity vectors (v9's and R's).
+   - **One draw:** each element's pair is exchanged with probability ½, independently. T is recomputed for both pseudo-models on
+     the standardised rule, giving Δ* = T*_v9 − T*_R.
+   - **The draws:** 10,000, `default_rng(9470)`.
+   - **The p-value:** p = (1 + #{Δ* ≥ Δ_obs}) / (1 + 10,000). One-sided p < 0.05 passes.
+   - **Run on both unit sets:**
+     - the **excluding** reading (of record, 96.6 item 2): 4 units, DNA@MCF7, DNA@A375, DNA@A549 and EGFR@MCF7;
+     - the **including** reading (reported): 9 units, EGFR in all 6 scored cells plus DNA in the 3 TP53-wild-type cells.
+   - **The guard:** the code refuses unless the unit sets are exactly these. Membership is identity-level, fixed by 96.6/96.7
+     and the 13,364-row set.
+3. **Which v9:** as in item 1, "beyond chemistry against R" holds only if it holds for the **seed-mean and for every seed**.
+   - **Why:** the references are single deterministic runs, and an ensemble alone must not carry the claim (the same reasoning
+     as 96.7 item 2).
+4. **The references, pinned** (computed for every one of P9's 13,364 rows: one prediction per (compound, cell), identical over
+   that compound's rows in the cell):
+   - **The training compounds:** `split_cold_drug_1 == 'train'` pert_ids with an RDKit-parsable `canonical_smiles` in the two
+     LINCS pert_info tables (the count is reported).
+   - **Their responses:** training Δ = bundle `X − X_ctl` (float64). Δ̄_j,c is compound j's mean over its training rows in cell
+     c, and Δ̄_j is its mean over all its training rows.
+   - **The fingerprint:** ECFP4 (Morgan radius 2, 2,048 bits, RDKit), as 96.6.
+   - **Candidates for test compound k in cell c:** the training compounds with ≥ 1 training row in c (the same-cell rule).
+   - **1-NN:** the highest-Tanimoto candidate, with ties broken by the smallest `pert_id` lexicographically. The prediction is
+     Δ̄_j,c.
+   - **5-NN:** the 5 highest-Tanimoto candidates (the same tie rule), predicting Σ s_j Δ̄_j,c / Σ s_j (the unweighted mean if
+     Σ s_j = 0). If fewer than 5 candidates are profiled in c, it uses all of them.
+   - **The fallback** (no candidate profiled in c): the same rule over all training compounds, using Δ̄_j. It is counted per
+     reference.
+   - **physchem:**
+     - **the descriptors:** RDKit `Crippen.MolLogP`, `rdMolDescriptors.CalcTPSA`, `Descriptors.MolWt`, `Lipinski.NumHDonors`,
+       `Lipinski.NumHAcceptors`, and the number of basic amines;
+     - **the basic-amine SMARTS:** `[NX3;!a;!$(N=*);!$(N#*);!$(N-[C,S,P]=[O,S,N]);!$(N-a);!$(N-[N,O])]`. Checked before
+       registration: imatinib 2, afatinib 1, triethylamine 1, and erlotinib, nitrobenzene, acetamide, aniline and a guanidine
+       0;
+     - **the space:** each descriptor z-scored by the training compounds' mean and sd, then Euclidean distance d, with
+       similarity s = 1 / (1 + d);
+     - **the prediction:** 5-NN by the same same-cell, tie, weighting and fallback rules.
+   - **ridge:** the bundle's `ridge_pred − ctl_true` (96.3).
+   - **No test response is read:** the references use test compound identities only, and B3 on any model's predictions reads
+     predictions and labels only. The references and their own B3 may therefore be computed before P9 returns. The swap
+     comparison waits for P9.
+5. **Reported beside each reading:**
+   - per reference, the fallback counts and the members' 1-NN Tanimoto;
+   - the per-class direction (96.4 item 2);
+   - the raw-activity comparison (item 1), labelled.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
