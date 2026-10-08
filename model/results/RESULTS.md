@@ -7838,7 +7838,7 @@ are G_tie = S(N1tie) − S(FB) and Δ_tie|E = S(E+N1tie) − S(E).
   too. So, for **accessibility**, the artefact is not what hid a gene-local gain. **The histone channels (H3K27ac ≈ 20 %,
   H3K27me3 ≈ 90 % artefact) have not been tested free of it.**
 
-### 93.17 RESULT, 93.15b read once: **CHROMATIN-SPECIFIC** (tie-corrected features, of record). The gene-generic chromatin gain is small, carried mostly by LNCAP, and at the edge of the cell rule (2026-10-08)
+### 93.17 RESULT, 93.15b read once: **CHROMATIN-SPECIFIC** (tie-corrected features, of record). The gene-generic chromatin gain is small and carried by two cells, SKBR3 and LNCAP (2026-10-08; caveats amended by review 058)
 **The run:**
 - **Kernel:** `lincs-chromatin93-gg` v1, Kaggle CPU, 2,879 s. All 8 pins and the split bundle were verified
   (`chromatin_genegeneric.py` `d00ebeb1`).
@@ -7866,22 +7866,38 @@ are G_tie = S(N1tie) − S(FB) and Δ_tie|E = S(E+N1tie) − S(E).
 
 G_chr per cell: LNCAP +0.0041, SKBR3 +0.0013, HEK293T +0.0001, VCAP −0.0002, U937 −0.0004, HL60 −0.0005.
 
-**The licensed sentence** (93.15a reading 3, applied to the tie-corrected features):
-- *"What chromatin carries for T1 is gene-level chromatin content beyond a capacity-matched per-gene expression covariate."*
-- **Beside it** (descriptive):
-  - **Small:** +0.0014 in T1's score, below T1's advance bar of 0.004.
-  - **Mostly one cell:** LNCAP carries most of it.
-  - **At the edge of the cell rule:** the fourth positive cell is VCAP at +0.0001.
-  - **Each test** is one-sided against the maximum of 20 permutations (p ≈ 0.048 apiece).
+**The licensed sentence** (93.15a reading 3, with "tie-corrected" restored by review 058 C3):
+- *"What chromatin carries for T1 is gene-level, tie-corrected chromatin content beyond a capacity-matched per-gene expression
+  covariate."*
+- **Beside it** (descriptive; review 058 C1–C2):
+  - **Small:** +0.0014 in T1's score, below T1's advance bar of 0.004. Each test is one-sided against the maximum of 20
+    permutations (p ≈ 0.048 apiece).
+  - **Carried by two cells:**
+    - SKBR3 is 54 % of the scored rows and supplies 68 % of Δ_chr|E; LNCAP supplies 31 %.
+    - Each survives the other's removal against the permutation maximum on the same rows:
+      - without LNCAP: G +0.00079 against +0.00049, Δ|E +0.00131 against +0.00095;
+      - without SKBR3: G +0.00155 against +0.00064, Δ|E +0.00108 against +0.00051.
+    - The other four cells are null-sized (Δ|E ≈ +0.00007 together).
+    - Tie-correction moved the weight from LNCAP (59 % on §91's features) to SKBR3.
+  - **The cell conjunct is weak here:**
+    - it passes in 4 of the 20 permutation draws;
+    - VCAP's +0.0001 is inside its per-cell null;
+    - only LNCAP and SKBR3 exceed their own per-cell permutation maxima.
+    - The reading stands as registered, since the rule is a sign count.
   - **The reference** is one choice of expression covariate (mean, sd and squared mean of b).
   - **§91.12's caveat stands:** a fitted per-gene parameter (e.g. v9's gene embedding) could represent it, and that is not
     tested.
-- **The artefact did not create it:** tie-correction left it in place, slightly larger (G_chr +0.00139 against +0.00121).
-  §91's features give the same reading.
+  - **T1's grid:** κ_d sits at the bottom of `KAPPA_DS` (0.01) in every arm, so LOCO's optimum may lie below the grid. All arms
+    share it.
+- **The artefact did not create it** (licensed): with the tie-break codes removed from all three marks, the gain is still there
+  (G_chr +0.00139 against +0.00121; Δ_chr|E +0.00154 against +0.00185). The artefact shifted which cell carries it.
 
-**What it means for the record** (interpretation, for the critic): §91's gene-generic gain is not an artefact and not
-capacity. Gene-level chromatin content (the average chromatin of a gene across cells) carries a small amount of
-response-relevant information that a matched expression covariate does not. It is a property of genes, not of cells.
+**What it means for the record** (review 058 C3's wording):
+- Gene-level, tie-corrected chromatin content (a gene's average across the fitting cells) carries a small amount of
+  response-relevant information that a matched expression covariate doesn't.
+- A cell's own deviation from it adds nothing transferable **for accessibility** (H1, clean features).
+- **For the histone marks**, that was tested only on artefact-bearing features (§91's FBC − N1 +0.00023; H3K27ac ≈ 20 % and
+  H3K27me3 ≈ 90 % tie-break code).
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

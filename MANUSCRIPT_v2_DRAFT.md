@@ -174,6 +174,13 @@ therefore pre-registered a closed-form funnel on the dev carve and calibrated it
   3 of 6 cells and carried by LNCAP and HL60. Giving every cell the same mean chromatin keeps all but 0.0002 of that, and giving
   each dev cell another dev cell's chromatin costs 0.0003. This is the kind of per-gene content a gene embedding can represent;
   whether v9's does is not tested [§91.12].
+- **…and it is chromatin, not capacity or an artefact** [§93.16, §93.17].
+  - **The control:** we found that v9's assembly gave every gene without a peak an arbitrary tie-break value in all three
+    chromatin channels (≈ 20 %, 20 % and 90 % of entries), and removed it.
+  - **The finding:** a gene's average chromatin across the training cell lines then adds a small gain (+0.0014 in the
+    closed-form score; bar 0.004). It exceeds a capacity-matched expression covariate and 20 gene-permuted controls.
+  - **Its scope:** it is carried by two of six held-out cells, SKBR3 and LNCAP. Whether a learned per-gene parameter captures
+    the same information is untested.
 - **Two explanations for the null were tested and not supported** [§93.7].
   - **Too few fitting cells:** refitting T1 on 4, 6, 8 and all 11 fitting cells did not lift the increment. It rose a monotone
     +0.0007 from 4 to 11 cells, below two standard deviations of the 4-cell subsets. A planted 0.5 % gain was detected at full
