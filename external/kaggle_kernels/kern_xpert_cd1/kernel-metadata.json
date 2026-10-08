@@ -1,0 +1,21 @@
+{
+ "id": "apexblue/lincs-xpert-cd1",
+ "title": "lincs xpert cd1",
+ "code_file": "lincs-xpert-cd1.py",
+ "language": "python",
+ "kernel_type": "script",
+ "is_private": true,
+ "enable_gpu": true,
+ "enable_tpu": false,
+ "enable_internet": true,
+ "keywords": [
+  "gpu"
+ ],
+ "dataset_sources": [
+  "apexblue/xpert-train-src"
+ ],
+ "kernel_sources": [],
+ "competition_sources": [],
+ "model_sources": [],
+ "machine_shape": "NvidiaTeslaT4"
+}
