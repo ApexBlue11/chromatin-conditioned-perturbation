@@ -8211,7 +8211,7 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
 6. **Unchanged:** the readings, bars, nulls and the seed-mean-and-every-seed rule (94.9).
    - **Optional, not added:** C1's paired swap null for 2a.
 
-### 94.11 RESULT, Stage B read once: v9's predictions **express mechanism (as does μ)**; **no gain over μ in retrieval (2a)**; **2b passes as registered** on standardised pathway activity, with a small margin over μ and a reversal on raw activity (2026-10-08)
+### 94.11 RESULT, Stage B read once: v9's predictions **express mechanism (as does μ)**; **no gain over μ in retrieval (2a)**; **2b passes its registered rule by a margin within a paired swap null.** Nothing shows v9 adds cell-specific mechanism beyond the drug's average (2026-10-08; amended by review 062)
 **The runs:**
 - **Code and clearance:** `mechanism_stage_a.py` 6602e762, cleared by review 061a. Seven local CPU runs, each about 4 min.
 - **The measured rerun:** reproduces 94.8 exactly (asserted on every A1 field, and A3's T, p, frac and d), and adds `d_std`.
@@ -8243,9 +8243,16 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
      - v9 seed-mean **0.806 (p 0.002)**; seeds 0.784 (p 0.004), 0.860 (p 0.0005), 0.728 (p 0.007);
      - μ **0.718** (p 0.013).
    - Every v9 run is > 0 with p < 0.05 and above μ's.
-   - **The licensed sentence** (review 061a's form): *"v9's predictions in unseen cells indicate in which cells a pathway
-     inhibitor's pathway effect stands out most, relative to that pathway's spread across the cell's compounds, slightly
-     better than the compound's training-cell average does."*
+   - **How it may be stated** (review 062 C1, replacing the earlier licensed sentence):
+     - *"Reading 2b passed its registered rule (v9 B3c 0.81 against μ 0.72 on within-cell standardised pathway activity)."*
+     - *"Its margin over μ is within a paired swap null (post hoc; p 0.29 for the seed-mean, 0.24–0.47 by seed), v9's
+       across-cell pattern correlates 0.8 with μ's, and on raw activity the order reverses."*
+     - *"It is not evidence that v9 adds cell-specific pathway information beyond the compound's average."*
+     - **The paper does not state 2b's original sentence as a finding.**
+   - **The post-hoc swap null** (review 062, descriptive, never read): per unit, v9's and μ's standardised d are swapped at
+     random (10,000 draws, centred within class).
+     - B3c_v9 − B3c_μ is +0.088 for the seed-mean (p 0.29), and +0.066 / +0.142 / +0.010 by seed (p 0.36 / 0.24 / 0.47).
+     - r(v9 centred d_std, μ centred d_std) = 0.79–0.84.
 
 **Beside reading 2b** (descriptive; it must accompany any use of it):
 - **The margin over μ is small:** 0.01 to 0.14 by seed; 0.09 for the seed-mean. 94.9 registered no null for the v9 − μ
@@ -8265,13 +8272,15 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
 **What Stage B says** (interpretation, for the critic):
 - v9's test-cell predictions carry mechanism structure (retrieval of mechanism-mates; pathway direction), but **essentially
   the compound's identity**: retrieval does not exceed the drug's training-cell average.
-- The one place v9 goes beyond μ is a modest, standardised-scale signal of which cells' pathway effects stand out. On raw
-  scale it trails μ.
+- **2b:** a registered standardised-scale reading passed, by a margin within noise (review 062 C1). v9's cell pattern is
+  largely μ's, and on raw scale it trails μ.
 - **For mechanistic interpretability:**
   - the model's predictions are mechanism-consistent;
   - nothing here shows the model *adds* mechanism-relevant, cell-specific information robustly beyond what the drug's average
     response already carries;
-  - this matches §85.14's cell-level readout, the accuracy gains over μ, and §88's internal null.
+  - **On accuracy** (review 062 C2): v9's per-row Δ Pearson on these rows is 0.481 (§85.14) against μ's 0.110 (§45). So
+    whatever v9 adds over μ in accuracy is **not visible at these mechanism readouts**;
+  - **it is consistent with §88's internal null.**
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

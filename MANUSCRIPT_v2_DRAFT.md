@@ -214,6 +214,18 @@ is identified [§91.11]. An inference-time ablation puts a model off its trainin
 a method, and the final model keeps chromatin as registered. ⏳ *[§92: one-seed dev screens retraining without cell-specific
 chromatin (E2) and with a cleaned encoding (E1).]*
 
+**Mechanism in the measurements, and in the predictions** [§94]:
+- **The measurements carry it:** the measured landmark responses in unseen cells carry drug mechanism.
+  - Mechanism-mate retrieval gives an AUROC of 0.60–0.67 against a 0.50 null, in 4 of 5 cells.
+  - Pathway activity moves in the expected direction (PROGENy) in 15 of 17 class-by-cell units.
+- **v9 reproduces it, but adds nothing over the drug's average:** v9's predictions reproduce that structure, but no better than
+  the compound's average response across the training cells.
+  - Retrieval does not exceed that average.
+  - A registered cell-specific pathway readout passed, by a margin within a paired swap null that reverses on raw activity.
+  - Nothing here shows v9 adds mechanism-relevant, cell-specific information beyond the drug's average. That holds although v9
+    is far more accurate than the average: per-row Δ Pearson 0.48 against 0.11.
+- **Scope:** compounds seen in training; model predictions, not internal attributions.
+
 **Variance, not architecture (Figure 6).** Averaging the predictions of three seeds raises the dev score from 0.4369 to 0.4662
 (+0.029), about 1.4× the largest candidate movement (C3, −0.0205) and 6× the largest gain (C6, +0.0048), and the gain survives
 cell-centring (+0.027) [§85.9]. Seed predictions correlate
