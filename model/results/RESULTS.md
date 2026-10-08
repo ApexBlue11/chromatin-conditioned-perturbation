@@ -7628,6 +7628,11 @@ excess:
 - **C − N1:** −0.00006, > 0 in 1 of 4 (HEK293T).
 - **Reading: DOES NOT ADVANCE**, with every conjunct false. The reader's label: *"informative null (MDE_P1 ≤ 0.005 in both slots;
   linear T1, richer accessibility features); slot 2 the gene-generic check is uninformative"*.
+- **The F_enh bound is at the detection edge** (review 056 C3; no rule change, since the MDE was registered as 3 of 3 on the
+  {0.5, 2, 5} % grid).
+  - F_enh's weakest P1 0.5 % draw: C − B +0.0043 against 0.004, and C − N1 +0.0020 against 0.002.
+  - F_reg's weakest draw has margin: +0.0072 and +0.0105.
+  - So for F_enh, a gain near 0.5 % would only just be detected, and gains somewhat below it are not excluded.
 - **The real Δ is inside the nothing-planted range** (−0.0001 to +0.0005). A planted 0.5 % gain moves it by +0.004 to +0.012.
 - **Beside the reading (93.12 C2):**
   - *"HEK293T: 1 sample, 58 promoter genes; its cell sign is low-information."*
@@ -7649,21 +7654,49 @@ excess:
   - one of the 4 dev cells is sparse (HEK293T);
   - this is the data v9's own ATAC samples allow.
 
-**What Stage 1 says, taken together** (interpretation, for the critic):
+**What Stage 1 says, taken together** (interpretation; items 1–3 as amended by review 056 C1, C2 and C4):
 1. **Of the five hypotheses** for why chromatin does not transfer:
-   - **H1, granularity:** not supported for these samples. Enhancers and TF motifs add nothing over promoters.
-   - **H2, too few fitting cells:** not supported. The curve was flat, and the planted gain was detected from 4 cells.
-   - **H3, a non-linear form:** not supported for the gain form.
-   - **H5, data quality:** within-series measurement noise is not the cause (93.11), though between-lab noise was not measured.
+   - **H1, granularity:** not supported for these samples. Enhancers and TF motifs add nothing over promoters (gain form;
+     MDE 0.5 %, at the edge for F_enh).
+   - **H2, too few fitting cells:** not supported over 4–11 fitting cells with v9's marks. The curve was flat, and the planted
+     gain was detected from 4 cells. Beyond 11 cells is untested; the data limit the range, the result doesn't.
+   - **H3, a non-linear form:** not supported, for v9's promoter features in the gain form. The trees were not run on the c93
+     features.
+   - **H5, data quality:** within-series measurement noise is not the cause (93.11). Between-lab noise was not measured.
    - **H4, the shortcut:** E1's seeds 1–2 are still pending.
-2. **What remains consistent with every result:** the cell-specific part of accessibility, though reproducible, carries no
-   drug-conditioned response information that transfers to unseen cells in a gene-local form. What chromatin offers response
-   prediction here is gene-generic (91.12, 93.7).
-3. **Not tested by any Stage 1 test:**
-   - drug-specific interactions that do not act through the drug's own mean response (P2-type), bounded only at 5 %;
-   - effects routed through other genes, not gene-local (network-propagated);
-   - the trained model's use of chromatin beyond the closed forms.
-   These are the remaining routes, each in its own packet (93.5 item 8).
+2. **What the record supports** (review 056 C1's wording):
+   - Across both learners and both feature granularities, the cell-specific part of accessibility (reproducible within series)
+     carries no drug-conditioned response information of the gain form above ≈ 0.5 % of the cell-specific residual that
+     transfers to the dev cells from 4–11 fitting cells.
+   - Drug-specific forms are bounded at 5 % (F_reg and v9's promoter marks, linear), or not at all (F_enh, the trees).
+   - For the promoter marks, a small gene-generic gain remains: T1 +0.0012, below its bar; the trees ≈ +0.002 above their null.
+     A per-gene parameter could represent it, which is untested.
+   - The enhancer and regulon features add nothing in either form (N1 − B = −0.00002).
+3. **Not tested** (review 056 C2):
+   - **(1) drug-specific interactions (P2-type):** bounded at 5 % for F_reg and v9's promoter marks, unbounded for F_enh and
+     the trees;
+   - **(2) propagation beyond one TF→target hop:** F_reg is null; this includes the genes without a motif-bearing regulator
+     (458 of 978);
+   - **(3) the mechanism behind the trained model's per-cell chromatin pattern** (T4, E2: help in SKBR3 and HL60, harm in
+     HEK293T, LNCAP and VCAP). Of the "help" cells, H1 measures only HL60, and it is null there.
+
+### 93.14 Review 056 adjudicated (C1–C4 upheld, wording; 2026-10-08)
+- **The reading is mechanical and was reproduced.** The informative negative is licensed as written, with C3's edge
+  caveat beside it.
+- **What the record licenses closing:** the **gene-local gain form** for these data, with both learners and both
+  granularities, MDE ≈ 0.5 % (at the edge for F_enh), and ≤ 11 fitting cells.
+- **What it does not license:** a general "chromatin does not transfer". Three reasons:
+  - the P2 forms are weakly bounded;
+  - the cell range is limited by the data;
+  - E2 and T4 show the trained model's chromatin doing something cell-dependent.
+- **For the paper, the gene-generic finding needs:**
+  - §91.12's caveat;
+  - its size against the null;
+  - H1's result that the enhancer and regulon features carry none;
+  - and, to call it chromatin-specific, a control with a **non-chromatin per-gene covariate of matched shape**.
+- **Open data item (review 056, not assessed):** v9's SKBR3 accessibility channel is non-zero in `E_final` (sd 0.059), although
+  SKBR3's ATAC files are empty now and v9's log has `nonzero_genes = 0`. Its source is to be traced before any SKBR3 chromatin
+  claim. It does not bear on H1, which excludes SKBR3.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
