@@ -184,6 +184,18 @@ therefore pre-registered a closed-form funnel on the dev carve and calibrated it
   - **Read with care:** in the trees, a cell's own chromatin scores below the fitting cells' mean chromatin (−0.0034, 0 of 6
     cells). Nothing-planted synthetic features show the same deficit (−0.0044 to −0.0021). So it is the learner's cost of
     fitting cell-specific variation that does not transfer, not a property of chromatin.
+- **Richer accessibility does not help either** [§93.11, §93.13].
+  - **The features:** we rebuilt accessibility from the same public peak files v9 used. Per landmark gene: promoter
+    coverage, distance-weighted enhancer-window coverage, and a TF-regulon score (CollecTRI regulators' JASPAR motif
+    accessibility, scanned with MOODS in fixed 500-bp windows).
+  - **Reproducible:** a cell's deviation from the gene mean is reproducible across disjoint, mostly same-series sample
+    halves (excess over a mismatched-cell baseline ≈ 0.8).
+  - **But it does not transfer:** added to promoter accessibility in T1, enhancer and regulon features change the dev score
+    by −0.00008 (bar 0.004), inside the nothing-planted range. The test detected a planted 0.5 % gain in 3 of 3 draws, at
+    the detection edge for the enhancer feature.
+  - **So the gene-local gain form is closed for these data:** both learners, both granularities, 4–11 fitting cells.
+    Drug-specific forms remain weakly bounded (5 %, or not at all), and the trained model's cell-dependent use of chromatin
+    (T4, E2) is not explained.
 
 **v9 reads its chromatin; on the dev cells, reading it costs accuracy on balance.** In the three dev baseline models,
 replacing each cell's chromatin with the dev-training mean at inference (which keeps the gene-generic part) raises the dev
