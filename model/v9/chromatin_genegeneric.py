@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-"""RESULTS 93.15: is §91's gene-generic chromatin gain (T1's N1 - FB, +0.0012) chromatin-specific? PI glue on chromatin_funnel.
+"""RESULTS 93.15 as amended by 93.15a (review 057): is §91's gene-generic chromatin gain (T1's N1 - FB, +0.0012)
+chromatin-specific? PI glue on chromatin_funnel.
 
     python model/v9/chromatin_genegeneric.py --data_dir <dir> --provenance <json> --out <json>      # Kaggle: scores only
     python model/v9/chromatin_genegeneric.py --read DIR                                             # local: the one reading
 
-N1 is §91's (the fitting-cell mean of each mark's Ez, LOCO). N1perm_d gene-permutes each mark's mean vector (capacity null,
-20 draws); N1expr replaces it with the fitting-cell mean of basal expression b, quantile-matched to the mark mean (a per-gene
-covariate that is not chromatin). Same marginal, same availability, same T1. The kernel writes scores and no reading; the
-reading is applied locally, once, after the marker's sha1 is verified, with the harness check against 91.12.
+Arms (one run_t1 call, §91's T1, drug-known dev rows):
+  FB, N1 (§91); N1perm_d (mark means gene-permuted, ONE permutation per draw shared across marks, rng 9500 + d), d = 0..19;
+  E = [b, x1, x2, x3]: over the fitting cells (held-out excluded) x1 = mean b, x2 = sd b, x3 = (mean b)^2, each quantile-matched
+  to mark k's mean vector and present where the cell has mark k; E+N1 and E+perm_d add the (permuted) mark means to E.
+  Reported only (93.16): N1tie and E+N1tie, built from marks whose no-peak entries are tied before rank_normal.
 """
 import argparse
 import hashlib
@@ -27,47 +29,83 @@ F91 = os.path.join(REPO, 'model', 'results', 'chromatin_funnel_91.json')
 N_PERM = 20
 OUT = 'chromatin_genegeneric_93.json'
 MARKER = 'CHROMATIN93_GG_COMPLETE.json'
+# 93.16: step10 ranked each mark jointly over all covered entries; the Z no-peak entries hold ranks 0..Z-1 of N-1.
+TIE = {0: (6465, 31264), 1: (6726, 34195)}          # mark -> (Z no-peak entries from E_peaks_log, N covered entries)
 
 
-def n1_variant(ctx, enc, fit_cells, kind, draw=None):
-    """Builder like cf.feature_builder(..., 'N1', ...): [b, mean mark where the cell has it]. kind 'N1' (identical to §91's),
-    'perm' (each mark's mean vector gene-permuted, rng 9500 + 10 draw + k), 'expr' (each mark's mean vector replaced by the
-    fitting-cell mean of b, quantile-matched to it). The held-out cell h is excluded from every mean, as in §91."""
-    e = ctx.enc[enc]
-    b, Ez, has = e['b'], e['Ez'], e['has']
+def _quantile_match(x, target):
+    """x's ranks carry target's sorted values: same marginal as target, same ordering as x."""
+    v = np.empty(len(x), np.float32)
+    v[np.argsort(x, kind='stable')] = np.sort(target)
+    return v
+
+
+def variant(ctx, enc, fit_cells, kind, draw=None, ref_enc='rank_normal'):
+    """Builder like cf.feature_builder N1. kind in {'N1', 'perm', 'E', 'E+N1', 'E+perm'}. Mark means are over the fitting
+    cells with the mark, the held-out cell h excluded (as §91). E's columns are quantile-matched to ref_enc's mark means."""
+    e, r = ctx.enc[enc], ctx.enc[ref_enc]
+    b, has = e['b'], e['has']
     G = cf.G
 
-    def build(h):
-        src = [cf.cell_index(ctx, c) for c in fit_cells if c != h]
-        mean_mark = np.zeros((G, 3), np.float32)
+    def means(ez, src):
+        m = np.zeros((G, 3), np.float32)
         for k in range(3):
             idx = [i for i in src if has[i, k]]
             if idx:
-                mean_mark[:, k] = Ez[idx, :, k].mean(0)
-        if kind == 'perm':
-            for k in range(3):
-                mean_mark[:, k] = mean_mark[np.random.default_rng(9500 + 10 * draw + k).permutation(G), k]
-        elif kind == 'expr':
-            order = np.argsort(b[src].mean(0), kind='stable')            # genes from lowest to highest mean basal expression
-            for k in range(3):
-                v = np.empty(G, np.float32)
-                v[order] = np.sort(mean_mark[:, k])
-                mean_mark[:, k] = v
-        elif kind != 'N1':
-            raise ValueError(kind)
-        return {c: np.concatenate([b[i][:, None], np.where(has[i][None, :], mean_mark, 0.0)], 1).astype(np.float32)
+                m[:, k] = ez[idx, :, k].mean(0)
+        return m
+
+    def build(h):
+        src = [cf.cell_index(ctx, c) for c in fit_cells if c != h]
+        M = means(e['Ez'], src)
+        if kind in ('perm', 'E+perm'):
+            M = M[np.random.default_rng(9500 + draw).permutation(G)]          # one permutation, all three marks
+        cols = []
+        if kind.startswith('E'):
+            Mr = means(r['Ez'], src)
+            bs = b[src].astype(np.float64)
+            stats = (bs.mean(0), bs.std(0), bs.mean(0) ** 2)
+            cols.append(np.stack([_quantile_match(stats[k], Mr[:, k]) for k in range(3)], 1))
+        if kind in ('N1', 'perm', 'E+N1', 'E+perm'):
+            cols.append(M)
+        X = np.concatenate(cols, 1)
+        mask = np.tile(has, (1, X.shape[1] // 3))
+        return {c: np.concatenate([b[i][:, None], np.where(mask[i][None, :], X, 0.0)], 1).astype(np.float32)
                 for i, c in enumerate(ctx.cells)}
     return build
 
 
-def run(ctx, y, n_perm=N_PERM):
-    enc = 'rank_normal'
-    fit = list(ctx.enc[enc]['cov_dt'])
-    specs = {'FB': (cf.feature_builder(ctx, enc, 'FB', fit), ['full']), 'N1': (cf.feature_builder(ctx, enc, 'N1', fit), ['full']),
-             'N1expr': (n1_variant(ctx, enc, fit, 'expr'), ['full'])}
+def install_tie(ctx, E, cidx):
+    """93.16, reported only: 'rank_normal_tie' = rank_normal of each present (cell, mark) after setting the step10 no-peak block
+    (value <= (Z - 0.5) / (N - 1), ATAC and H3K27ac) to one tied value 0. b, has and the cell lists are rank_normal's."""
+    r = ctx.enc['rank_normal']
+    Ez = np.zeros_like(r['Ez'])
+    for i, c in enumerate(ctx.cells):
+        j = cidx.get(c)
+        for k in range(3):
+            if j is None or not r['has'][i, k]:
+                continue
+            v = E[j, :, k].astype(np.float64)
+            if k in TIE:
+                Z, N = TIE[k]
+                v = np.where(v <= (Z - 0.5) / (N - 1), 0.0, v)
+            Ez[i, :, k] = cf.rank_normal(v)
+    ctx.enc['rank_normal_tie'] = dict(r, Ez=Ez.astype(np.float32))
+    return ctx.enc['rank_normal_tie']
+
+
+def run(ctx, y, n_perm=N_PERM, with_tie=True):
+    fit = list(ctx.enc['rank_normal']['cov_dt'])
+    rn = 'rank_normal'
+    specs = {'FB': cf.feature_builder(ctx, rn, 'FB', fit), 'N1': cf.feature_builder(ctx, rn, 'N1', fit),
+             'E': variant(ctx, rn, fit, 'E'), 'E+N1': variant(ctx, rn, fit, 'E+N1')}
     for d in range(n_perm):
-        specs['N1perm_%d' % d] = (n1_variant(ctx, enc, fit, 'perm', d), ['full'])
-    out, mu, level = cf.run_t1(ctx, y, specs, fit)
+        specs['N1perm_%d' % d] = variant(ctx, rn, fit, 'perm', d)
+        specs['E+perm_%d' % d] = variant(ctx, rn, fit, 'E+perm', d)
+    if with_tie:
+        specs['N1tie'] = variant(ctx, 'rank_normal_tie', fit, 'N1')
+        specs['E+N1tie'] = variant(ctx, 'rank_normal_tie', fit, 'E+N1')
+    out, mu, level = cf.run_t1(ctx, y, {k: (v, ['full']) for k, v in specs.items()}, fit)
     known = level[ctx.dev_mask] <= 2
     sc = {k: cf.score(ctx, y, out[(k, 'full')]['y_hat_dev'], known) for k in specs}
     return {'scores': {k: {'all': v['all'], 'top': v['top'], 'per_cell': v['per_cell'], 'centred_all': v['centred_all']}
@@ -77,25 +115,29 @@ def run(ctx, y, n_perm=N_PERM):
 
 
 def reading(res, n1_minus_fb_91):
-    """93.15's mechanical reading. Refuses (HARNESS_FAULT) if N1 - FB does not reproduce 91.12."""
-    s = res['scores']
-    g = lambda k: s[k]['all'] - s['FB']['all']                         # noqa: E731
-    g_chr, g_expr = g('N1'), g('N1expr')
-    g_perm = [g('N1perm_%d' % d) for d in range(res['n_perm'])]
-    cells = res['dev_cells']
-    diff_cells = {c: (s['N1']['per_cell'][c] - s['FB']['per_cell'][c]) - (s['N1expr']['per_cell'][c] - s['FB']['per_cell'][c])
-                  for c in cells}
-    out = {'G_chr': g_chr, 'G_expr': g_expr, 'G_perm_max': max(g_perm), 'G_perm': g_perm, 'G_chr_minus_G_expr': g_chr - g_expr,
-           'G_chr_minus_G_expr_per_cell': diff_cells, 'cells_chr_gt_expr': int(sum(v > 0 for v in diff_cells.values())),
-           'harness': {'N1_minus_FB': g_chr, '91_12': n1_minus_fb_91, 'reproduces': bool(abs(g_chr - n1_minus_fb_91) < 1e-6)}}
+    """93.15a's mechanical reading. HARNESS_FAULT if N1 - FB does not reproduce 91.12."""
+    s, cells, n = res['scores'], res['dev_cells'], res['n_perm']
+    d = lambda a, b: s[a]['all'] - s[b]['all']                                          # noqa: E731
+    dc = lambda a, b: {c: s[a]['per_cell'][c] - s[b]['per_cell'][c] for c in cells}     # noqa: E731
+    g_chr, g_perm = d('N1', 'FB'), [d('N1perm_%d' % k, 'FB') for k in range(n)]
+    x_chr, x_perm = d('E+N1', 'E'), [d('E+perm_%d' % k, 'E') for k in range(n)]
+    x_cells = dc('E+N1', 'E')
+    out = {'G_chr': g_chr, 'G_perm_max': max(g_perm), 'G_perm': g_perm, 'D_chr_given_E': x_chr, 'D_perm_given_E_max': max(x_perm),
+           'D_perm_given_E': x_perm, 'D_chr_given_E_per_cell': x_cells, 'cells_D_chr_given_E_pos': int(sum(v > 0 for v in x_cells.values())),
+           'G_chr_per_cell': dc('N1', 'FB'), 'G_E': d('E', 'FB'),
+           'reported_tie': ({'G_tie': d('N1tie', 'FB'), 'D_tie_given_E': d('E+N1tie', 'E')} if 'N1tie' in s else None),
+           'harness': {'N1_minus_FB': g_chr, '91_12': n1_minus_fb_91, 'reproduces': bool(abs(g_chr - n1_minus_fb_91) < 1e-6)},
+           'caveat': '91.12: a per-gene parameter (e.g. v9 gene embedding) could represent it; not tested'}
     if not out['harness']['reproduces']:
         out['reading'] = 'HARNESS_FAULT'
     elif g_chr <= max(g_perm):
         out['reading'] = 'NOT DISTINGUISHABLE FROM CAPACITY'
-    elif g_chr - g_expr > 0 and out['cells_chr_gt_expr'] >= 4:
-        out['reading'] = 'CHROMATIN-SPECIFIC'
+    elif x_chr <= max(x_perm):
+        out['reading'] = 'GENE-LEVEL, MATCHED BY EXPRESSION (2a)'
+    elif out['cells_D_chr_given_E_pos'] < 4:
+        out['reading'] = 'GENE-LEVEL, EXCESS NOT ESTABLISHED ACROSS CELLS (2b)'
     else:
-        out['reading'] = 'GENE-LEVEL, NOT CHROMATIN-SPECIFIC'
+        out['reading'] = 'CHROMATIN-SPECIFIC'
     return out
 
 
@@ -122,6 +164,12 @@ def main():
     t = time.time()
     ctx = cf.prepare(a.data_dir, a.provenance)
     assert len(ctx.enc['rank_normal']['cov_dt']) == 11
+    E = np.load(os.path.join(a.data_dir, 'E_final.npy'))
+    Em = np.load(os.path.join(a.data_dir, 'E_final_mask.npy'))
+    for k, (Z, N) in TIE.items():                    # the pinned block sizes describe THIS E_final
+        assert int(Em[:, :, k].sum()) == N and int((E[:, :, k][Em[:, :, k]] <= (Z - 0.5) / (N - 1)).sum()) == Z, k
+    cidx = json.load(open(os.path.join(a.data_dir, 'lincs_cell_index.json')))
+    install_tie(ctx, E, cidx.get('cell_id_to_row', cidx))
     res = run(ctx, ctx.y)
     res.update({'inputs': ctx.inputs, 'seconds': time.time() - t})
     json.dump(cf.jsonable(res), open(a.out, 'w'), indent=1)

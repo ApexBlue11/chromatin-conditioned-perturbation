@@ -7700,7 +7700,8 @@ excess:
 
 ### 93.15 🔒 PRE-REGISTERED: is §91's gene-generic chromatin gain chromatin-specific? A matched per-gene control (PI, 2026-10-08; before any code or run)
 **The question** (review 056, 93.14): T1's N1 − FB = +0.0012 on the drug-known dev rows (§91.12). Is that chromatin content,
-or what any per-gene covariate of the same shape and availability gives T1, i.e. the effect of a per-gene parameter?
+or what a per-gene covariate of the same marginal and availability gives T1? (Wording amended by review 057 C4: neither arm is
+a fitted per-gene parameter, so §91.12's caveat stands beside every reading.)
 
 **The design.** Everything not stated is §91's T1: the rank_normal encoding, the 11 covered dev-train fitting cells,
 `chromatin_funnel.run_t1` (its LOCO grid), the drug-known dev rows, and the 6 dev cells.
@@ -7731,6 +7732,80 @@ or what any per-gene covariate of the same shape and availability gives T1, i.e.
 - About 22 T1 arms in one `run_t1` call, one free Kaggle CPU kernel, ≈ 15 min.
 - `model/v9/chromatin_genegeneric.py` (PI glue on `chromatin_funnel`), a reader in the same file applied once, and tests on
   `test_chromatin_funnel.world()`. Reviewed before the run.
+
+### 93.15a AMENDED by review 057 (C1 MAJOR, C2–C4 upheld; before any 93.15 run, 2026-10-08)
+**C1, capacity.** N1expr's three columns were quantile maps of **one** ordering (mean b), nearly collinear under rank_normal
+marginals (r ≈ 0.99). N1's mark means are three distinct directions (r 0.48, −0.31, −0.05). So "chromatin beats expression"
+could arise from three directions against one. Chromatin is now read as an **increment over a capacity-matched expression
+reference**:
+- **The reference arm E:** [b, x1, x2, x3], where over the fitting cells (held-out cell excluded) x1 = mean b, x2 = sd b and
+  x3 = (mean b)².
+  - Each column is quantile-matched to mark k's mean vector, and enters only where the cell has mark k (N1's availability).
+- **The incremental arms:**
+  - **E+N1:** [E, the N1 mark means];
+  - **E+perm_d**, d = 0..19: [E, the mark means gene-permuted].
+- **The quantities:** Δ_chr|E = S(E+N1) − S(E); Δ_perm|E(d) = S(E+perm_d) − S(E); per cell.
+
+**C2, the permutation is shared across marks:** one permutation per draw, `default_rng(9500 + d)`, applied to all three mark
+means. This keeps their joint structure and destroys only gene identity. It is used in both N1perm_d and E+perm_d.
+
+**The readings, replacing 93.15's three** (mechanical):
+1. **NOT DISTINGUISHABLE FROM CAPACITY** iff G_chr ≤ max_d G_perm(d), as registered.
+   - Its sentence (C4): *"…is no more than a gene-permuted copy (a random per-gene covariate with the same marginal and
+     availability) provides."*
+2. **The two GENE-LEVEL readings** (C3), both requiring G_chr > max_d G_perm(d):
+   - **2a, matched:** Δ_chr|E ≤ max_d Δ_perm|E. *"…is gene-level content that a matched expression covariate provides."*
+   - **2b, not established across cells:** Δ_chr|E > max_d Δ_perm|E, but Δ_chr|E > 0 in fewer than 4 of 6 cells. *"…is
+     gene-level content; that it exceeds a matched expression covariate is not established across cells."*
+3. **CHROMATIN-SPECIFIC** iff G_chr > max_d G_perm(d), Δ_chr|E > max_d Δ_perm|E, and Δ_chr|E > 0 in ≥ 4 of 6 cells.
+   - *"…is gene-level chromatin content beyond a capacity-matched per-gene expression covariate."*
+
+**Unchanged:**
+- the harness check (G_chr = 91.12's +0.0012099 within 1e-6);
+- the rows, the cells, `run_t1`, and the reading applied locally once;
+- §91.12's caveat beside every reading (*"a per-gene parameter, e.g. v9's gene embedding, could represent it; not tested"*).
+
+**Not added:** C4's optional fitted per-gene gain ĝ. The per-gene-parameter question stays open, and is stated as open.
+
+**Reported, never read (93.16):** the same N1 and E+N1 built from **tie-corrected** marks, N1tie and E+N1tie. The quantities
+are G_tie = S(N1tie) − S(FB) and Δ_tie|E = S(E+N1tie) − S(E).
+
+### 93.16 FINDING (desk, outcome-free): v9's ATAC and H3K27ac channels carry tie-break artefacts in every gene without a peak (PI, 2026-10-08)
+- **The mechanism:** `step10_extract_peak_tensor.py:133–136` rank-normalises each mark across **all** covered (cell, gene)
+  entries jointly with `vals.argsort().argsort()`. Equal values, here every gene without a peak (raw 0), get **distinct**
+  ranks ordered by the sort's tie-breaking, not equal ranks.
+- **What it produces:**
+  - a non-biological value in [0, b_k] for each such entry, with b = 0.2068 for ATAC and 0.1967 for H3K27ac;
+  - in some cells the values run almost exactly along gene order: Spearman(value, gene index) inside the block is +0.999 for
+    HEK293T's ATAC, −0.997 for HL60's ATAC and +0.999 for HL60's H3K27ac.
+  - H3K27me3 (bigWig coverage, step13) is not affected.
+- **Its size, verified exactly against `E_peaks_log.txt`'s nonzero_genes:** Σ(covered − nonzero) = 6,465 ATAC entries
+  (20.7 %) and 6,726 H3K27ac entries (19.7 %). The entries at or below b_k number exactly the same.
+- **Share of each dev cell's channel that is artefact:**
+
+  | dev cell | ATAC | H3K27ac |
+  |---|---|---|
+  | SKBR3 | **100 %** | 9 % |
+  | HEK293T | **94 %** | 6 % |
+  | U937 | 44 % | — |
+  | LNCAP | 37 % | 12 % |
+  | HL60 | 9 % | 18 % |
+  | VCAP | — | 9 % |
+
+- **What inherits it:**
+  - v9 itself (z-scored per cell);
+  - §91's rank_normal encoding, §93's Stage 1a and E1's "clean" encoding (`xpert_arm.py:190–204`). Each re-ranks the
+    artefact values, so it keeps them.
+  - The c93 features (93.11) do not: they are rebuilt from the peaks, and rank_normal ties zeros by average rank.
+- **Why it matters** (no reading changes; flagged for interpretation):
+  - The per-cell chromatin pattern of T4 and E2 has HEK293T as a harm cell and SKBR3 as a help cell. Their ATAC channels are
+    94 % and 100 % artefact.
+  - In those two cells, "v9 uses its chromatin" is partly v9 using a fixed per-(cell, gene) code that is not chromatin.
+  - E1, still pending, does not remove it.
+  - **The fix** (an encoding packet of its own): give the no-peak entries one tied value per (cell, mark) before any
+    transform, e.g. 0, or mask them.
+- **What H1 adds:** with clean features from the same samples (93.13), the gene-local gain is null too. So the artefact is not
+  what hid a chromatin signal in that form.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
