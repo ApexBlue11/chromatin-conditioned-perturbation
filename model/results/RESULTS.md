@@ -8710,8 +8710,11 @@ Review 066 found 96.8's fix right and its mechanism wrong (C1, reworded above). 
 - **One improvement on O2:** XPert's published commands (`scripts/train.sh:13–17`) train `split_cold_drug_k` **first** in each
   fold list, right after `set_random_seed(2024)` (`train_xpert.py:402`). A fresh model and `init_weights()` follow per fold
   (`:425–439`).
-- **So:** O9's fold starts from **the same seed-2024 state as their own run of that fold.** O2's cold-cell fold was second in
-  their list and carried a disclosed seed difference; O9 carries none.
+- **So:** O9's fold starts from **the same seed-2024 state as their own run of that fold** (no seed difference at
+  initialisation; review 067 C2).
+  - **Its trajectory isn't a replication:** O2's disclosed deviations apply (DataParallel over two T4s, the ten frozen
+    parameters, full-state resumes, cuDNN non-determinism, the GPU type).
+  - **For contrast:** O2's cold-cell fold was second in their list and also carried a seed difference.
 
 ### 97.2 Execution: O2's production machinery, with only fold constants changed
 - **The kernel:** a builder `orchestration/make_o9_kernel.py`, derived from `kern_xpert_cc1/generator/make_prod_kernel.py` and
@@ -8781,6 +8784,43 @@ Review 066 found 96.8's fix right and its mechanism wrong (C1, reworded above). 
 - **Other folds:** anything about XPert's other four cold-drug folds. Only fold 1 is run, and their leak rates differ (96.7
   item 3).
 - **Their published numbers:** any statement about them beyond 96.6 / 96.7's identity-level finding.
+
+### 97.6 AMENDMENT (review 067, before any O9 code): five pins (PI, 2026-10-08)
+Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINOR). All five are adopted.
+
+1. **The builder covers every fold literal** (C1):
+   - **The framing:** O2's `RECORD['framing']` says "NOT a reproduction of their **cold-cell** run", and joins the asserted
+     substitutions. So do the docstring and comment lines naming the fold.
+   - **The guard:** the builder refuses unless the generated kernel contains no `cold_cell`, `cold-cell`, `cc1`, `47509`,
+     `21321` or `482.2` outside an explicit allow-list of historical comments, printed by the builder.
+2. **The wording** (C2): fixed in 97.1. There's no seed difference **at initialisation**, and the trajectory isn't a
+   replication.
+3. **The reproduction band is asymmetric** (C3; replaces 97.3 item 4's "no head-to-head claim outside the band"):
+   - **Below 0.621:** possible reproduction failure, so **no v9-win claim** (a broken or under-trained XPert would make it
+     meaningless). Everything is reported.
+   - **Above 0.669:** flagged, and read normally. A higher XPert score can't make a v9 win less conservative, and XPert wins are
+     never claims (97.3 item 1).
+   - **Inside the band:** read normally. This matches O2's practice (flag and read) on the side where a flag can't mislead.
+4. **The cost** (C4): Amendment E's 562.1 s scales training rows only. Each epoch also evaluates the test set (val = test),
+   which shrinks on this fold (13,445 rows against 21,321), so 562.1 s is an **upper bound**. That is conservative for
+   planning; it only makes the reprice trigger less sensitive.
+5. **What the duplicates do to each model's score** (C5; **reported, never a claim**; belongs with the 96.6 integrity finding):
+   - **The measurement:** per model (XPert O9, v9 score-averaged, ridge), the mean row score on the rows of the 38 duplicate
+     compounds (1,381 of the 13,364 rows), minus the mean on the clean rows.
+   - **Molecule-level bootstrap:** the duplicate and clean molecule sets are resampled with replacement, 20,000 draws,
+     `default_rng(0)`.
+   - **The across-model difference-in-differences:** XPert − v9, XPert − ridge and v9 − ridge, with the same bootstrap and paired
+     draws.
+   - **The caveat, stated beside it:** the duplicate-minus-clean contrast also reflects **composition** (which compounds happen
+     to be duplicates), so a single model's difference isn't purely "leak". The difference-in-differences is the more
+     informative number.
+   - **Order:** computed when P9 is scored (v9 and ridge), and completed with XPert when O9 is.
+6. **The clean subset doesn't escape the asymmetry** (answer to ask 4): XPert's checkpoint is selected on the **full** test loss,
+   which includes the clean rows. So on the clean reading, too, a v9 win is conservative and an XPert win uninterpretable.
+7. **The spend doesn't depend on P9** (the reviewer's sequencing note, declined):
+   - **O9 runs to its final termination** (their early stop or the horizon) **whatever P9's reading against ridge.** Quota shapes
+     only its timing.
+   - **Why:** completing O9 only when v9 looks good would make its result conditional on P9's.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
