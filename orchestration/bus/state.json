@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "063_cold_drug_stage_a_prereg"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -88,7 +90,7 @@
     "062_stage_b_result"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "94 closed (94.8-94.11; manuscript updated). Next: pre-register the cold-drug programme (Stage A on cold-drug test rows, then a v9 cold-drug run + Stage B + XPert cold-drug head-to-head). E1 seeds 1-2 detached push armed for Sat 10 Oct 05:40 IST (fallback: push kern_v9dev_e1_s1 by hand); E3 (92.11) code after E1's read.",
+  "pending_decision": "95 cold-drug programme: Stage A' pre-registered + code in packet 063; run after clearance. E1 seeds 1-2 detached push armed for Sat 10 Oct 05:40 IST (fallback: push kern_v9dev_e1_s1 by hand); E3 (92.11) code after E1's read.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
   "challenges_upheld": "252 challenge rows in 62 adjudicated reviews + 3 addenda (counted 2026-10-08 incl. review 062: C1 MAJOR 2b margin within a paired swap null, C2; review 061: C1 MAJOR B3c on standardised activity, C2-C5, and the baselines-are-expression catch; review 060: C1 no A3 positive-control unit disclosed, C2 self-retrieval half-vs-half with plate rule, C3, C4; review 059: C1 MAJOR label filter, C2 MAJOR genotype-gated A3 signs, C3-C8; review 058: C1 carried by SKBR3 and LNCAP, C2 weak cell conjunct, C3 not-of-cells scoped; review 057a: C1 MAJOR H3K27me3 carries the tie-break block in ~90 % of entries, tie-corrected arms of record; C2, C3; review 057: C1 MAJOR expression control was one direction against three, now an incremental capacity-matched reference; C2 shared permutation; C3 reading 2 split; C4 wording; review 056: C1-C4 Stage 1 summary scoped, F_enh MDE at the detection edge; review 055: C1 calibration kept F_prom real, C2 HEK293T caveat, C3 split-half scoped; review 054: C1 MAJOR motif accessibility measured peak width, fixed 500-bp windows; C2, C3 upheld; review 053: C1, C2 upheld -- item 2 sat inside the null calibration, items 1/4 lacked the gain-form scope; review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
