@@ -71,6 +71,18 @@ statement about one cell line; our estimand is per cell line, with a cluster boo
   recipe as published and disclose this asymmetry; it favours XPert.
 - *The published numbers exist.* XPert's per-scenario means are in its Supplementary Table R8 [§46]; our ridge baseline reproduces
   the scale of their TranSiGen column (0.296 against 0.293) [§46.4].
+- *The cold-drug splits hold out identifiers, not molecules.* `split_cold_drug_k` holds out compounds by LINCS `pert_id`, and LINCS
+  often gives one molecule several BRD identifiers (batches, salts, stereo-forms).
+  - **The count, at identity level only** (no response read): on every one of the five folds, **27–41 of the 395–396 test
+    compounds** (6.8–10.4 %) appear in training as the same molecule under another identifier. That is ECFP4 Tanimoto 1.0, or a
+    shared InChIKey first block.
+  - **Their weight:** they carry **5.3–9.9 % of each fold's test rows** (fold 1: 37 compounds and 1,330 of 13,445 rows; for
+    example afatinib and doxorubicin) [§96.6–96.7].
+  - **So:** published cold-drug scores on these splits, a five-fold mean, partly measure molecules seen in training. We haven't
+    measured how much this moves any model's score.
+  - **How we read it:** our unseen-compound claims are read on a molecule-clean subset. Fold 1 then has 11,983 scored rows and
+    346 molecules, with the unit of analysis the molecule (InChIKey first block), not the identifier. The full split is reported
+    as "the benchmark as defined".
 
 ## 3. Models
 
