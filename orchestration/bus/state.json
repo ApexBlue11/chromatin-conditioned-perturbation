@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "061_stage_a_result_stage_b_prereg"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -85,7 +83,8 @@
     "057_c93_genegeneric_code",
     "058_c93_genegeneric_result",
     "059_mechanism_stage_a_and_e3_prereg",
-    "060_mechanism_stage_a_code"
+    "060_mechanism_stage_a_code",
+    "061_stage_a_result_stage_b_prereg"
   ],
   "gpu_hours_spent_this_session": 18.71,
   "pending_decision": "94 Stage A read (94.8: BOTH readouts carry signal). Stage B pre-registered (94.9) + code (ce75800) in packet 061; run 6 local CPU readouts after clearance, then --read_b once. E1 seeds 1-2 detached push armed for Sat 10 Oct 05:40 IST (fallback: push kern_v9dev_e1_s1 by hand). E3 (92.11) code after E1's read.",
