@@ -8682,6 +8682,26 @@ Review 066 found 96.8's fix right and its mechanism wrong (C1, reworded above). 
    - **What it is:** the seed-mean **and** every seed. The seed-mean is the prediction-averaged ensemble.
    - **Why keep it:** it is an extra hurdle beside "every seed", so the rule is strictly more conservative than "every seed"
      alone, and no ensemble can carry the claim by itself.
+5. **The B′ row set** is P9's 13,364 scored rows.
+   - **The change:** `mechanism_stage_a.load_rows` accepts that count when a row file restricts cold-drug (`SPLITS[...]
+     ['n_rows_restricted']`).
+   - **Who and what:** a PI change with a test. The noise-level test that replaces review 061a's vacuous scale test is also in
+     `test_mechanism_stage_a.py` (31 pass).
+   - **Unchanged:** Stage A′'s unrestricted 13,445-row path.
+6. **The excluding reading** removes afatinib (`BRD-K66175015`) and doxorubicin (`BRD-K92093830`), by their ChEMBL parents:
+   - **from where:** the members **and** the others;
+   - **the standardisation:** stays as computed once over all labelled compounds (`d_std`'s rule);
+   - **the swap elements:** the labelled compounds of the reading's cells, less those two.
+7. **Item 1 (B3 against v9's own label-permutation null)** is read on the 9 units, as `mechanism_stage_a` computes it. The
+   exclusion applies to the comparison (item 2).
+8. **A runtime equivalence guard:** the comparison code computes raw d and `d_std` per unit by its own path. It refuses unless
+   they equal `run_a3`'s on the same input (≤ 1e-9).
+9. **The swap is a sign-flip test** (exact algebra):
+   - **The contributions:** d_u = Σ_i a_ui z_i,p(u), with a_ui = sign_i / |M_u| for members, −inhibitor_sign / |O_u| for others,
+     and 0 otherwise.
+   - **The identity:** a swap mask m gives Δ* = Σ_i (1 − 2 m_i) g_i, where g_i = (1/U) Σ_u a_ui (z^v9_i,p(u) − z^R_i,p(u)).
+   - **The implementation:** Δ_obs = Σ_i g_i, and the null draws random signs. A test checks it against brute-force
+     recomputation of both pseudo-models.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

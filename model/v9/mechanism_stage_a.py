@@ -38,6 +38,7 @@ SPLITS = {
     'split_cold_drug_1': {'scored': ['MCF7', 'PC3', 'A375', 'HA1E', 'HT29', 'A549'], 'n_rows': 13445, 'a1_min': 4,
                           'gates': {'raf': {'HT29', 'A375'}, 'mdm2': {'MCF7', 'A549', 'A375'}, 'er': {'MCF7'},
                                     'dna_p53': {'MCF7', 'A549', 'A375'}},
+                          'n_rows_restricted': 13364,   # 96.9 item 5: Stage B' reads P9's featurisable rows
                           # review 063 C1: DNA inhibitors -> p53 (+) in TP53-wild-type cells (membership by MoA string)
                           'extra_classes': [{'class': 'DNA', 'pathway': 'p53', 'inhibitor_sign': +1.0,
                                              'moa_match': 'DNA inhibitor', 'gate': 'dna_p53'}],
@@ -290,6 +291,8 @@ def load_rows(bundle_path, row_index_npz=None, delta_spec=None, split='split_col
         keep = set(np.load(row_index_npz)['row_index'].astype(np.int64).tolist())
         test_idx = test_idx[np.isin(np.asarray(z['row_index'][test_idx]).astype(np.int64), list(keep))]
     want_n = SPLITS[split]['n_rows']
+    if row_index_npz is not None and 'n_rows_restricted' in SPLITS[split]:
+        want_n = SPLITS[split]['n_rows_restricted']
     assert len(test_idx) == want_n, f'expected {want_n} test rows for {split}, got {len(test_idx)}'
 
     X = np.asarray(z['X'][test_idx], dtype=np.float32)

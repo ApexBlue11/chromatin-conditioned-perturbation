@@ -663,24 +663,49 @@ def test_delta_spec_can_subtract_the_control(tmp_path):
     assert np.allclose(d[:, 0], [0.5, 2.0])
 
 
-def test_standardised_d_removes_a_cell_level_scale(fake_progeny_net):
-    """Review 061 C1: scaling a whole cell's signatures by 5 multiplies its raw d by ~5 but leaves the standardised d."""
+def test_standardised_d_removes_the_smoothness_inflation_of_ulm_t(fake_progeny_net):
+    """Review 066 C1: ULM activities are t-values, invariant to signature scale but growing with signal-to-noise. Cutting the
+    noise 10x (every compound keeps its pathway component) inflates raw d several-fold; the standardised d barely moves."""
     G = 20
     genes = [f'GENE_{i}' for i in range(G)]
     w = fake_progeny_net[fake_progeny_net['source'] == 'MAPK'].set_index('target')['weight']
     wv = np.array([w.get(g, 0.0) for g in genes])
     p2t = {('M%d' % i): [('MAP2K1', 'INHIBITOR')] for i in range(4)}
-    p2t.update({('O%d' % i): [('NONE', 'INHIBITOR')] for i in range(8)})
+    p2t.update({('O%d' % i): [('NONE', 'INHIBITOR')] for i in range(30)})
 
-    def world(scale):
-        return {'HT29': {k: {'unit_id': k, 'is_labelled': True,
-                             'sig': scale * ((-2.0 * wv if k.startswith('M') else 0) + np.random.default_rng(j).normal(size=G))}
-                         for j, k in enumerate(p2t)}}
-    r1 = msa.run_a3(world(1.0), ['HT29'], p2t, net=fake_progeny_net, gene_names=genes, gated=True, rng_seed=1, n_perm=20)
-    r5 = msa.run_a3(world(5.0), ['HT29'], p2t, net=fake_progeny_net, gene_names=genes, gated=True, rng_seed=1, n_perm=20)
+    def world(noise, scale=1.0):
+        out = {}
+        for j, k in enumerate(p2t):
+            r = np.random.default_rng(j)
+            c = -1.0 if k.startswith('M') else 0.6 * r.normal()
+            out[k] = {'unit_id': k, 'is_labelled': True, 'sig': scale * (c * wv + noise * r.normal(size=G))}
+        return {'HT29': out}
+
+    def run(world_):
+        return msa.run_a3(world_, ['HT29'], p2t, net=fake_progeny_net, gene_names=genes, gated=True, rng_seed=1, n_perm=20)
     k = 'MAPK@HT29'
-    assert abs(r5['d_std_per_unit'][k] - r1['d_std_per_unit'][k]) < 1e-6
-    assert 'HT29' in r1['activity_scale'] and 'MAPK' in r1['activity_scale']['HT29']['sd']
+    noisy, clean, scaled = run(world(1.0)), run(world(0.1)), run(world(1.0, scale=5.0))
+    assert clean['d_per_unit'][k] > 5 * noisy['d_per_unit'][k]                     # raw t carries smoothness
+    assert clean['d_std_per_unit'][k] < 1.25 * noisy['d_std_per_unit'][k]          # the standardised d does not
+    assert abs(scaled['d_per_unit'][k] - noisy['d_per_unit'][k]) < 1e-6            # and ULM ignores scale altogether
+    assert 'HT29' in noisy['activity_scale'] and 'MAPK' in noisy['activity_scale']['HT29']['sd']
+
+
+def test_cold_drug_rows_restricted_by_a_row_file_must_be_p9s_13364(tmp_path):
+    """96.9 item 5: on cold-drug, a row file restricts the 13,445 test rows to P9's 13,364; any other count refuses."""
+    N, G = 13445, 4
+    rng = np.random.default_rng(0)
+    bundle = tmp_path / 'b.npz'
+    np.savez(bundle, X=rng.normal(size=(N, G)).astype(np.float32), X_ctl=rng.normal(size=(N, G)).astype(np.float32),
+             meta_pert_id=np.array(['P%d' % i for i in range(N)]), meta_cell=np.array(['MCF7'] * N),
+             row_index=np.arange(N, dtype=np.int64), split_split_cold_drug_1=np.array(['test'] * N))
+    assert len(msa.load_rows(str(bundle), split='split_cold_drug_1')['X']) == 13445
+    good, bad = tmp_path / 'good.npz', tmp_path / 'bad.npz'
+    np.savez(good, row_index=np.arange(13364, dtype=np.int64))
+    np.savez(bad, row_index=np.arange(13363, dtype=np.int64))
+    assert len(msa.load_rows(str(bundle), row_index_npz=str(good), split='split_cold_drug_1')['X']) == 13364
+    with pytest.raises(AssertionError, match='expected 13364 test rows'):
+        msa.load_rows(str(bundle), row_index_npz=str(bad), split='split_cold_drug_1')
 
 
 
