@@ -253,7 +253,7 @@ def load_landmark_genes(path=None):
     return genes
 
 
-def load_rows(bundle_path, row_index_npz=None):
+def load_rows(bundle_path, row_index_npz=None, delta_spec=None):
     """Load test rows from the XPert bundle (split_split_cold_cell_1 == 'test').
 
     Asserts exactly 21,151 rows.
@@ -278,6 +278,8 @@ def load_rows(bundle_path, row_index_npz=None):
     cell = np.asarray(z['meta_cell'][test_idx]).astype(str)
     row_index = np.asarray(z['row_index'][test_idx]).astype(np.int64)
     delta = X.astype(np.float64) - X_ctl.astype(np.float64)
+    if delta_spec:
+        delta = load_predicted_delta(delta_spec, row_index)
 
     return RowsDict({
         'X': X,
@@ -942,6 +944,98 @@ def read_stage_a(result):
     )
 
 
+def load_predicted_delta(spec, row_index):
+    """§94.9: 'a.npz[,b.npz,...]:key' -> the mean over the files of key, aligned to row_index by each file's own 'row_index'.
+    Every file must hold exactly the Stage A rows."""
+    paths, key = spec.rsplit(':', 1)
+    mats = []
+    want = np.asarray(row_index, np.int64)
+    for path in paths.split(','):
+        z = np.load(path, allow_pickle=False)
+        ri = np.asarray(z['row_index'], np.int64)
+        pos = {int(r): i for i, r in enumerate(ri)}
+        assert set(want.tolist()) <= set(pos), '%s lacks some Stage A rows' % path
+        mats.append(np.asarray(z[key], np.float64)[[pos[int(r)] for r in want]])
+    return np.mean(mats, axis=0)
+
+
+def b3c(d_meas, d_pred, n_perm=10000, rng_seed=9460):
+    """§94.9 B3c: Spearman over the gated units of within-class-centred d (measured vs predicted); null = predicted d permuted
+    across cells within each class. Returns (rho, p, n_units)."""
+    from scipy.stats import spearmanr
+    units = sorted(d_meas)
+    assert set(units) == set(d_pred), 'measured and predicted units differ'
+    cls = np.array([u.split('@')[0] for u in units])
+    m = np.array([d_meas[u] for u in units], float)
+    q = np.array([d_pred[u] for u in units], float)
+
+    def centre(v):
+        out = v.copy()
+        for k in set(cls):
+            out[cls == k] -= v[cls == k].mean()
+        return out
+    mc = centre(m)
+
+    def _rho(a, b):          # a prediction with no within-class variation has no ordering: rho = 0 (Spearman undefined)
+        if np.ptp(a) == 0 or np.ptp(b) == 0:
+            return 0.0
+        return float(spearmanr(a, b).correlation)
+    rho = _rho(mc, centre(q))
+    rng = np.random.default_rng(rng_seed)
+    groups = [np.flatnonzero(cls == k) for k in sorted(set(cls))]
+    null = np.empty(n_perm)
+    for t in range(n_perm):
+        qp = q.copy()
+        for g in groups:
+            qp[g] = q[rng.permutation(g)]
+        null[t] = _rho(mc, centre(qp))
+    null = np.nan_to_num(null, nan=0.0)
+    return rho, float((1 + np.sum(null >= rho)) / (1 + n_perm)), len(units)
+
+
+def _verified_json(path):
+    mk = json.load(open(path + '.marker', encoding='utf-8'))
+    if not mk.get('complete') or mk.get('sha1') != sha1_file(path):
+        raise SystemExit('REFUSED: %s does not match its marker' % path)
+    return json.load(open(path, encoding='utf-8'))
+
+
+def read_stage_b(measured, v9_seeds, v9_mean, mu, ridge=None):
+    """§94.9's mechanical readings. Arguments are Stage-A-format result dicts (measured = Stage A's own)."""
+    cells = list(measured['scored_cells'])
+    dm = measured['a3_gated']['d_per_unit']
+
+    def one(res):
+        a1 = {c: res['a1'][c]['a1'] - res['a1'][c]['null_mean'] for c in cells}
+        b1 = sum(1 for c in cells if a1[c] >= 0.05 and res['a1'][c]['p_value'] < 0.01) >= 3
+        b3 = res['a3_gated']['p'] < 0.01 and res['a3_gated']['frac_positive'] >= 2.0 / 3.0
+        rho, p, n = b3c(dm, res['a3_gated']['d_per_unit'])
+        return {'B1_signal': bool(b1), 'B3_signal': bool(b3), 'B3c_rho': rho, 'B3c_p': p, 'B3c_units': n,
+                'A1': {c: res['a1'][c]['a1'] for c in cells}, 'B3_T': res['a3_gated']['T']}
+    mu_r = one(mu)
+    runs = {'seed_mean': v9_mean}
+    runs.update({'seed%d' % k: r for k, r in enumerate(v9_seeds)})
+    per = {}
+    for name, res in runs.items():
+        r = one(res)
+        diff = {c: r['A1'][c] - mu_r['A1'][c] for c in cells}
+        r['A1_minus_mu'] = diff
+        r['expresses'] = r['B1_signal'] and r['B3_signal']
+        r['beyond_mu_2a'] = (sum(v > 0 for v in diff.values()) >= 4) and (float(np.mean(list(diff.values()))) >= 0.02)
+        r['beyond_mu_2b'] = (r['B3c_rho'] > 0) and (r['B3c_p'] < 0.05) and (r['B3c_rho'] > mu_r['B3c_rho'])
+        r['ceiling_fraction'] = {c: (r['A1'][c] - 0.5) / (measured['a1'][c]['a1'] - 0.5) for c in cells}
+        per[name] = r
+    allrun = lambda k: all(per[n][k] for n in per)                     # noqa: E731 -- seed-mean AND every seed
+    out = {'reading_1_expresses_mechanism': allrun('expresses'), 'reading_2a_beyond_mu_retrieval': allrun('beyond_mu_2a'),
+           'reading_2b_beyond_mu_cell_specific_pathway': allrun('beyond_mu_2b'), 'per_run': per, 'mu': mu_r,
+           'mu_ceiling_fraction': {c: (mu_r['A1'][c] - 0.5) / (measured['a1'][c]['a1'] - 0.5) for c in cells},
+           'measured': {'A1': {c: measured['a1'][c]['a1'] for c in cells}, 'B3_T': measured['a3_gated']['T']},
+           'reported_ridge': one(ridge) if ridge else None,
+           'scope': 'model predictions, not internal attributions; compounds seen in training (cold-cell split); A3 has no '
+                    'positive-control unit (94.8)'}
+    return out
+
+
 def sha1_file(path):
     """Compute sha1 hash of file contents."""
     h = hashlib.sha1()
@@ -951,9 +1045,9 @@ def sha1_file(path):
     return h.hexdigest()
 
 
-def run_pipeline(bundle_path, labels_tsv, landmarks_file=None, row_index_npz=None):
-    """Execute complete Stage A analysis pipeline."""
-    rows = load_rows(bundle_path, row_index_npz)
+def run_pipeline(bundle_path, labels_tsv, landmarks_file=None, row_index_npz=None, delta_spec=None):
+    """Execute complete Stage A analysis pipeline (Stage B: delta_spec gives the predicted delta, §94.9)."""
+    rows = load_rows(bundle_path, row_index_npz, delta_spec)
     pert_to_parent, parent_to_moa, parent_to_targets = load_labels(labels_tsv)
 
     # Group into units for every cell
@@ -1012,9 +1106,18 @@ def main():
     parser.add_argument('--labels', help="Path to ChEMBL DTI labels (chembl_dti_edges.tsv)")
     parser.add_argument('--landmarks', default=None, help="Path to 978 landmark genes txt")
     parser.add_argument('--rows', default=None, help="npz whose 'row_index' key lists the rows (v9p7_seed0.npz; §94.2)")
+    parser.add_argument('--delta', default=None, help="§94.9 Stage B: 'a.npz[,b.npz]:key', predicted delta in place of measured")
+    parser.add_argument('--read_b', nargs='+', default=None,
+                        help="§94.9: MEASURED V9_SEED0 V9_SEED1 V9_SEED2 V9_MEAN MU [RIDGE] (result JSONs with markers)")
     parser.add_argument('--out', help="Output JSON path")
     parser.add_argument('--read', help="Apply read_stage_a to an existing result JSON and print decision")
     args = parser.parse_args()
+
+    if args.read_b:
+        f = [_verified_json(x) for x in args.read_b]
+        out = read_stage_b(f[0], f[1:4], f[4], f[5], f[6] if len(f) > 6 else None)
+        print(json.dumps(out, indent=1, default=float))
+        return
 
     if args.read:
         mk = json.load(open(args.read + '.marker', encoding='utf-8'))
@@ -1029,7 +1132,9 @@ def main():
     if not args.bundle or not args.labels or not args.out:
         parser.error("--bundle, --labels, and --out are required unless --read is specified.")
 
-    result = run_pipeline(args.bundle, args.labels, landmarks_file=args.landmarks, row_index_npz=args.rows)
+    result = run_pipeline(args.bundle, args.labels, landmarks_file=args.landmarks, row_index_npz=args.rows,
+                          delta_spec=args.delta)
+    result['delta_source'] = args.delta or 'measured'
 
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     with open(args.out, 'w', encoding='utf-8') as f:

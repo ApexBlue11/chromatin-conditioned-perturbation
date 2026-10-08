@@ -597,3 +597,59 @@ def test_self_retrieval_is_unbiased_when_every_compound_shares_one_signal():
                             'cell_mean': np.zeros(G), 'sig': np.mean(rows, axis=0)}
     out = msa.compute_self_retrieval_and_active_subset(units, rng_seed=1)
     assert abs(out['self_retrieval_ceiling'] - 0.5) < 0.12, out['self_retrieval_ceiling']
+
+
+
+# ---- Stage B (§94.9), PI ----
+
+def test_predicted_delta_is_aligned_by_row_index_and_averaged_over_files(tmp_path):
+    ri = np.array([5, 3, 9], np.int64)
+    a = tmp_path / 'a.npz'
+    b = tmp_path / 'b.npz'
+    np.savez(a, row_index=np.array([9, 5, 3]), deg_pred=np.array([[9.0], [5.0], [3.0]]))
+    np.savez(b, row_index=np.array([3, 9, 5]), deg_pred=np.array([[1.0], [3.0], [7.0]]))
+    d = msa.load_predicted_delta('%s,%s:deg_pred' % (a, b), ri)
+    assert np.allclose(d[:, 0], [(5 + 7) / 2, (3 + 1) / 2, (9 + 3) / 2])
+    with pytest.raises(AssertionError):
+        msa.load_predicted_delta('%s:deg_pred' % a, np.array([5, 3, 4]))
+
+
+def test_b3c_finds_a_planted_cell_ordering_within_class_and_not_a_class_offset():
+    meas = {'MAPK@A': 10.0, 'MAPK@B': 5.0, 'MAPK@C': 1.0, 'PI3K@A': 3.0, 'PI3K@B': 2.0, 'PI3K@C': 1.0, 'PI3K@D': 0.5, 'ER@A': 2.0}
+    good = {k: v * 0.5 + (100 if k.startswith('MAPK') else 0) for k, v in meas.items()}       # same order within class
+    flat = {k: (7.0 if k.startswith('MAPK') else 1.0) for k in meas}                             # class offsets only
+    rho, p, n = msa.b3c(meas, good, n_perm=2000)
+    assert rho > 0.8 and p < 0.05 and n == 8
+    rho0, p0, _ = msa.b3c(meas, flat, n_perm=2000)
+    assert rho0 <= 0.0 + 1e-9 and p0 > 0.3
+
+
+def _fake_res(a1s, p, frac, d):
+    cells = msa.SCORED_CELLS_ORDER
+    return {'scored_cells': cells, 'a1': {c: {'a1': a1s[k], 'null_mean': 0.5, 'p_value': 0.001} for k, c in enumerate(cells)},
+            'a3_gated': {'T': 1.0, 'p': p, 'frac_positive': frac, 'd_per_unit': d}}
+
+
+def test_stage_b_reader_needs_every_seed_and_beats_mu():
+    meas_d = {'MAPK@MCF7': 5.6, 'MAPK@HT29': 9.4, 'MAPK@MDAMB231': 20.1, 'MAPK@HS578T': 10.9,
+              'PI3K@MCF7': 3.8, 'PI3K@HT29': 1.7, 'PI3K@MDAMB231': 2.4, 'PI3K@HS578T': 3.1, 'PI3K@THP1': 3.4}
+    measured = _fake_res([0.65] * 5, 0.001, 0.9, meas_d)
+    mu = _fake_res([0.58] * 5, 0.001, 0.9, {k: 3.0 for k in meas_d})
+    good = _fake_res([0.62] * 5, 0.001, 0.9, {k: v * 0.4 for k, v in meas_d.items()})
+    out = msa.read_stage_b(measured, [good, good, good], good, mu)
+    assert out['reading_1_expresses_mechanism'] and out['reading_2a_beyond_mu_retrieval']
+    assert out['reading_2b_beyond_mu_cell_specific_pathway']
+    weak = _fake_res([0.59] * 5, 0.001, 0.9, {k: 3.0 for k in meas_d})       # one seed only just above mu, flat pathway
+    out2 = msa.read_stage_b(measured, [good, weak, good], good, mu)
+    assert not out2['reading_2a_beyond_mu_retrieval'] and not out2['reading_2b_beyond_mu_cell_specific_pathway']
+
+
+def test_2b_fails_when_mu_orders_the_cells_as_well_as_v9():
+    meas_d = {'MAPK@MCF7': 5.6, 'MAPK@HT29': 9.4, 'MAPK@MDAMB231': 20.1, 'MAPK@HS578T': 10.9,
+              'PI3K@MCF7': 3.8, 'PI3K@HT29': 1.7, 'PI3K@MDAMB231': 2.4, 'PI3K@HS578T': 3.1, 'PI3K@THP1': 3.4}
+    measured = _fake_res([0.65] * 5, 0.001, 0.9, meas_d)
+    same = _fake_res([0.62] * 5, 0.001, 0.9, {k: v * 0.4 for k, v in meas_d.items()})
+    mu = _fake_res([0.55] * 5, 0.001, 0.9, {k: v * 0.4 for k, v in meas_d.items()})   # mu orders cells exactly as v9 does
+    out = msa.read_stage_b(measured, [same, same, same], same, mu)
+    assert out['per_run']['seed_mean']['B3c_rho'] > 0 and out['per_run']['seed_mean']['B3c_p'] < 0.05
+    assert not out['reading_2b_beyond_mu_cell_specific_pathway']
