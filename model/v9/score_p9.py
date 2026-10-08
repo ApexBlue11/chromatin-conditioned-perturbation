@@ -18,7 +18,7 @@ import scipy.stats
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from score_p7 import check_snapshot_identities
-from coldcell_h2h import per_row_pearson
+from coldcell_h2h import load_profile, per_row_pearson
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 EXPECT_N_FULL = 13364
@@ -43,6 +43,16 @@ REFS = {
         'key': 'ridge_pred',
         'minus_ctl': True,
         'label': 'ridge (bundle: control + ECFP4 + descriptors)',
+    },
+    # RESULTS 97.4: O9's test profile (a pickled dict, as O2's); 97.3 / 97.6 comparator rules apply
+    'xpert_o9': {
+        'path': 'external/kaggle_out/cd1_o9/xpert_trained_split_cold_drug_1_final_test_profile.npy',
+        'key': 'y_pred',
+        'minus_ctl': True,
+        'label': 'XPert as published (O9; checkpoint selected on these test rows)',
+        'run_record': 'external/kaggle_out/cd1_o9/run_record.json',
+        'repro_band': (0.621, 0.669),
+        'win_uninterpretable': True,
     },
 }
 
@@ -202,6 +212,22 @@ def duplicate_lift(r_by_model, molecule, is_dup, n_boot=N_BOOT, seed=0):
     return out
 
 
+def comparator_verdict(v, ref_conf, repro=None, admissible=True):
+    """RESULTS 97.3 / 97.4 / 97.6 item 3, applied to a verdict string for a comparator whose checkpoint saw the test rows:
+    a v9 win needs the run admissible (run_record) and the reproduction not BELOW the band; above the band is flagged only;
+    the comparator's own win is uninterpretable as a model comparison. References without these keys pass through."""
+    if v.startswith('v9 predicts'):
+        if not admissible:
+            return 'NO v9-WIN CLAIM: the comparator run is not admissible for a v9 win (run_record; RESULTS 97.3 item 2)'
+        if repro is not None and repro['below_band']:
+            return 'NO v9-WIN CLAIM: comparator reproduction below the band (possible failure; RESULTS 97.6 item 3)'
+        return v
+    if ref_conf.get('win_uninterpretable') and v.endswith('better than v9'):
+        return ("UNINTERPRETABLE as a model comparison: the comparator's checkpoint was selected on these test rows "
+                '(RESULTS 97.3 item 1)')
+    return v
+
+
 def boot_ci_rows(diff, n_boot=N_BOOT, seed=0, chunk_size=2000):
     """Row bootstrap percentile CI (95%) over diff, drawn in memory-safe chunks."""
     n = len(diff)
@@ -290,7 +316,7 @@ def main(argv=None):
     ref_path = resolve_path(ref_conf['path'])
     if not os.path.exists(ref_path):
         raise SystemExit(f'FATAL: reference file {ref_path} not found')
-    ref_data = np.load(ref_path)
+    ref_data = load_profile(ref_path)
     for k in ('row_index', 'y_true', 'ctl_true', ref_conf['key']):
         if k not in ref_data:
             raise SystemExit(f'FATAL: reference missing required key {k!r}')
@@ -314,6 +340,25 @@ def main(argv=None):
         ref_delta = ref_pred - ref_ctl_true
     else:
         ref_delta = ref_pred
+
+    # RESULTS 97.3 / 97.6: the comparator's admissibility and its reproduction on ALL its rows (the full split, their convention)
+    admissible, repro, run_record = True, None, None
+    if ref_conf.get('run_record'):
+        rr_path = resolve_path(ref_conf['run_record'])
+        if not os.path.exists(rr_path):
+            raise SystemExit('FATAL: the comparator run_record %s is missing (RESULTS 97.3)' % rr_path)
+        run_record = json.load(open(rr_path, encoding='utf-8'))
+        if 'admissible_for_v9_win' not in run_record:
+            raise SystemExit('FATAL: run_record has no admissible_for_v9_win')
+        admissible = bool(run_record['admissible_for_v9_win'])
+    if ref_conf.get('repro_band'):
+        lo, hi = ref_conf['repro_band']
+        r_all = per_row_pearson(np.asarray(ref_data[ref_conf['key']], np.float64) - ref_data['ctl_true'],
+                                np.asarray(ref_data['y_true'], np.float64) - ref_data['ctl_true'])
+        m_all = float(np.nanmean(r_all))
+        repro = {'mean_all_rows': m_all, 'n_rows': int(np.isfinite(r_all).sum()), 'band': [lo, hi],
+                 'below_band': m_all < lo, 'above_band': m_all > hi,
+                 'LABEL': 'row-pooled on all comparator rows (the full split); below: no v9-win claim; above: flagged'}
 
     # Step 5: The row metadata
     bundle_path = resolve_path(BUNDLE)
@@ -414,7 +459,8 @@ def main(argv=None):
 
         # of_record
         of_rec = molecule_reading(r_v9_sub, r_ref_sub, mol_sub, N_BOOT, seed=0)
-        of_rec['verdict'] = verdict(of_rec, ref_conf['label'])
+        of_rec['verdict_unadjusted'] = verdict(of_rec, ref_conf['label'])
+        of_rec['verdict'] = comparator_verdict(of_rec['verdict_unadjusted'], ref_conf, repro, admissible)
 
         # per_seed
         per_seed_list = []
@@ -516,6 +562,8 @@ def main(argv=None):
         'estimand': 'Per-molecule median difference of per-row Pearson correlation against reference, with cluster bootstrap over molecules (RESULTS §96.3 / §96.7).',
         'subsets': subsets_out,
         'duplicate_lift': dup_block,
+        'comparator': {'admissible_for_v9_win': admissible, 'reproduction': repro,
+                       'run_record_sha1': sha1(resolve_path(ref_conf['run_record'])) if run_record is not None else None},
     }
 
     os.makedirs(os.path.dirname(os.path.abspath(out_json)), exist_ok=True)

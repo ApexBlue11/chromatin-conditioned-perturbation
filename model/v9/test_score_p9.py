@@ -777,3 +777,62 @@ def test_main_writes_the_duplicate_lift_block(tmp_path, monkeypatch):
     dl = out['duplicate_lift']
     assert dl['n_dup_rows'] == 10 and dl['n_clean_rows'] == 50 and dl['n_dup_molecules'] == 1
     assert set(dl['models']) == {'v9', 'ridge'} and 'v9_minus_ridge' in dl['did']
+
+
+def test_comparator_verdict_rules():
+    """97.3 / 97.6 item 3: below-band or inadmissible removes a v9 win; above-band leaves it; an XPert win is
+    uninterpretable; ridge (no comparator keys) passes through untouched."""
+    o9, ridge = score_p9.REFS['xpert_o9'], score_p9.REFS['ridge']
+    win, lose = 'v9 predicts unseen compounds better than X', 'X predicts unseen compounds better than v9'
+    below = {'below_band': True, 'above_band': False}
+    above = {'below_band': False, 'above_band': True}
+    inside = {'below_band': False, 'above_band': False}
+    assert score_p9.comparator_verdict(win, o9, inside, True) == win
+    assert score_p9.comparator_verdict(win, o9, above, True) == win
+    assert score_p9.comparator_verdict(win, o9, below, True).startswith('NO v9-WIN CLAIM: comparator reproduction below')
+    assert score_p9.comparator_verdict(win, o9, inside, False).startswith('NO v9-WIN CLAIM: the comparator run is not admissible')
+    assert score_p9.comparator_verdict(lose, o9, inside, True).startswith('UNINTERPRETABLE')
+    assert score_p9.comparator_verdict(lose, ridge, None, True) == lose
+    assert score_p9.comparator_verdict('NO COMPOUND-LEVEL CLAIM', o9, below, False) == 'NO COMPOUND-LEVEL CLAIM'
+
+
+def _o9_fixture(tmp_path, monkeypatch, admissible=True, shift=0.0, with_record=True):
+    o9_conf = dict(score_p9.REFS['xpert_o9'])               # before patch_constants replaces REFS
+    fix = make_synthetic_fixture(tmp_path, seed=21)
+    patch_constants(monkeypatch, fix, tmp_path)
+    z = np.load(fix['ref_path'])
+    prof = {k: np.asarray(z[k]) for k in ('row_index', 'y_true', 'ctl_true')}
+    rng = np.random.default_rng(1)
+    y = prof['y_true'] - prof['ctl_true']
+    prof['y_pred'] = prof['ctl_true'] + y + rng.normal(0, 1.0 + shift, size=y.shape)
+    extra = np.arange(10_000, 10_005)                       # comparator rows P9 does not score (its 13,445 vs 13,364)
+    for k in ('y_true', 'ctl_true', 'y_pred'):
+        prof[k] = np.concatenate([prof[k], rng.normal(size=(5, prof[k].shape[1]))])
+    prof['row_index'] = np.concatenate([prof['row_index'], extra])
+    p = tmp_path / 'o9_profile.npy'
+    np.save(p, prof, allow_pickle=True)
+    rr = tmp_path / 'run_record.json'
+    if with_record:
+        json.dump({'admissible_for_v9_win': admissible}, open(rr, 'w'))
+    monkeypatch.setattr(score_p9, 'REFS', {'xpert_o9': dict(o9_conf, path=str(p), run_record=str(rr))})
+    return fix, prof
+
+
+def test_o9_profile_is_scored_with_reproduction_on_all_its_rows(tmp_path, monkeypatch):
+    fix, prof = _o9_fixture(tmp_path, monkeypatch)
+    score_p9.main(['--p9_dir', str(fix['p9_dir']), '--ref', 'xpert_o9'])
+    out = json.load(open(tmp_path / 'model' / 'results' / 'p9_accuracy_xpert_o9.json', encoding='utf-8'))
+    rep_ = out['comparator']['reproduction']
+    want = float(np.nanmean(score_p9.per_row_pearson(prof['y_pred'] - prof['ctl_true'], prof['y_true'] - prof['ctl_true'])))
+    assert rep_['n_rows'] == 65 and abs(rep_['mean_all_rows'] - want) < 1e-9       # all comparator rows, not P9's 60
+    assert out['comparator']['admissible_for_v9_win'] is True and out['comparator']['run_record_sha1']
+    for sub in ('clean', 'full'):
+        o = out['subsets'][sub]['of_record']
+        assert o['verdict'] == score_p9.comparator_verdict(o['verdict_unadjusted'], score_p9.REFS['xpert_o9'],  # patched
+                                                            rep_, True)
+
+
+def test_o9_needs_its_run_record(tmp_path, monkeypatch):
+    fix, _ = _o9_fixture(tmp_path, monkeypatch, with_record=False)
+    with pytest.raises(SystemExit, match='run_record'):
+        score_p9.main(['--p9_dir', str(fix['p9_dir']), '--ref', 'xpert_o9'])
