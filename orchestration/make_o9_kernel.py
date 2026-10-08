@@ -81,9 +81,18 @@ rep("RECORD['framing'] = ('XPert trained to its published recipe on %s. NOT a re
     "RECORD['framing'] = ('XPert trained to its published recipe on %s, from their seed-2024 state for this fold; '\n"
     "                         'not a replication of their trajectory (O2 deviations, RESULTS 97.1/97.6).' % FOLD)")
 
+# review 068 C1: O2's dataset-RAM measurement (cold-cell fold) restated for this fold, scaled by rows built
+# (55,385 + 2 x 13,445 = 82,275 against 47,509 + 2 x 21,321 = 90,151): 24.7 x 82,275 / 90,151 = 22.5 GB
+rep('on 6,000 tensors. Without it their loader needs ~24.7 GB of dataset RAM on this fold.',
+    "on 6,000 tensors. Without it their loader needs ~22.5 GB of dataset RAM on this fold (O2's measured 24.7 GB,\n"
+    '       scaled by rows built).')
+rep('measured 268 KB/row, 24.7 GB for', "measured 268 KB/row, 24.7 GB (O2's fold) for")
+rep("'storage shared; the unpatched recipe needs ~24.7 GB of dataset RAM on this fold',",
+    "'storage shared; the unpatched recipe needs ~22.5 GB of dataset RAM on this fold (O2 measured 24.7 GB; scaled by rows)',")
+
 # 97.6 item 1: no fold literal of O2 may survive outside the allow-list
 ALLOW = ['#          --nfold split_cold_drug_1,split_cold_cell_1,split_1 --dataset l1000_mdmt']   # their published command
-BAD = re.compile(r'cold[_ -]cell|cc1|47509|21321|21,321|482\.2', re.I)
+BAD = re.compile(r'cold[_ -]cell|cc1|47509|21321|21,321|482\.2|~24\.7', re.I)
 left = [(i + 1, l) for i, l in enumerate(s.split('\n')) if BAD.search(l) and l.strip() not in [a.strip() for a in ALLOW]]
 assert not left, 'O2 literals left in the O9 kernel: %r' % left[:5]
 print('allow-listed historical lines kept:', ALLOW)

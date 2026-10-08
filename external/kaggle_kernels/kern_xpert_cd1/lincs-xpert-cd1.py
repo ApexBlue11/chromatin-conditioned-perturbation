@@ -21,7 +21,8 @@ WHAT IS CHANGED, ALL DECLARED IN RECORD['deviations'] [reviews 008b, 009 C1]
     3. empty __init__.py in datasets/ and models/, so HuggingFace `datasets` cannot shadow theirs [RESULTS 71.9];
     4. ONE executed line of MyDataset.py: the per-row drug tensor copy made once per drug instead [RESULTS 73].
        Correct by construction (the cache key is the same expression as the lookup it replaces), and proven
-       on 6,000 tensors. Without it their loader needs ~24.7 GB of dataset RAM on this fold.
+       on 6,000 tensors. Without it their loader needs ~22.5 GB of dataset RAM on this fold (O2's measured 24.7 GB,
+       scaled by rows built).
   Items 1-3 change no executed line. Item 4 changes storage, not any value. None bears on "as published".
 
 WHY ONE GPU OF TWO
@@ -182,7 +183,7 @@ for pkg in ('datasets', 'models'):
         open(init, 'w').close()
 # MEMORY PATCH [RESULTS 73, packet 009]. Launch v3's one-batch probe was killed by the OS at row ~18,500 of the
 # SECOND test-set build: their MyDataset.load_data copies each drug's (122, 514) float32 block (245 KB) into
-# EVERY row, and the val = test fallback builds the test rows twice -- measured 268 KB/row, 24.7 GB for
+# EVERY row, and the val = test fallback builds the test rows twice -- measured 268 KB/row, 24.7 GB (O2's fold) for
 # train + val + test, against ~29 GB on this image. The patch computes that same tensor once per drug and
 # reuses it. model/v9/prove_mydataset_patch.py builds their dataset both ways on identical rows: 6,000 tensors,
 # every one torch.equal with identical dtype and shape. Values unchanged; storage shared.
@@ -245,7 +246,7 @@ RECORD['activation_checkpointing'] = {'patched': ['Encoder', 'crossEncoder'], 'h
                                      'their files verbatim', 'proof': 'model/v9/prove_checkpoint_exact.py'}
 RECORD['deviations'] = ['flash_attn shim on PYTHONPATH (their model imports it at module scope)',
                         'MyDataset: one tensor per drug instead of one per row -- values proven identical, '
-                        'storage shared; the unpatched recipe needs ~24.7 GB of dataset RAM on this fold',
+                        'storage shared; the unpatched recipe needs ~22.5 GB of dataset RAM on this fold (O2 measured 24.7 GB; scaled by rows)',
                         'activation checkpointing of Encoder/crossEncoder, applied at runtime by a wrapper -- '
                         'same batch 128, same loss, gradients within the noise floor; the unpatched recipe '
                         'needs ~14.95 GiB of activations on a 14.56 GiB T4',
