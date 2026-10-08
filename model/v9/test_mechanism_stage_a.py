@@ -627,7 +627,7 @@ def test_b3c_finds_a_planted_cell_ordering_within_class_and_not_a_class_offset()
 def _fake_res(a1s, p, frac, d):
     cells = msa.SCORED_CELLS_ORDER
     return {'scored_cells': cells, 'a1': {c: {'a1': a1s[k], 'null_mean': 0.5, 'p_value': 0.001} for k, c in enumerate(cells)},
-            'a3_gated': {'T': 1.0, 'p': p, 'frac_positive': frac, 'd_per_unit': d}}
+            'a3_gated': {'T': 1.0, 'p': p, 'frac_positive': frac, 'd_per_unit': d, 'd_std_per_unit': d}}
 
 
 def test_stage_b_reader_needs_every_seed_and_beats_mu():
@@ -653,3 +653,31 @@ def test_2b_fails_when_mu_orders_the_cells_as_well_as_v9():
     out = msa.read_stage_b(measured, [same, same, same], same, mu)
     assert out['per_run']['seed_mean']['B3c_rho'] > 0 and out['per_run']['seed_mean']['B3c_p'] < 0.05
     assert not out['reading_2b_beyond_mu_cell_specific_pathway']
+
+
+
+def test_delta_spec_can_subtract_the_control(tmp_path):
+    a = tmp_path / 'b.npz'
+    np.savez(a, row_index=np.array([1, 2]), pred=np.array([[9.0], [8.0]]), ctl_true=np.array([[7.0], [7.5]]))
+    d = msa.load_predicted_delta('%s:pred-ctl_true' % a, np.array([2, 1]))
+    assert np.allclose(d[:, 0], [0.5, 2.0])
+
+
+def test_standardised_d_removes_a_cell_level_scale(fake_progeny_net):
+    """Review 061 C1: scaling a whole cell's signatures by 5 multiplies its raw d by ~5 but leaves the standardised d."""
+    G = 20
+    genes = [f'GENE_{i}' for i in range(G)]
+    w = fake_progeny_net[fake_progeny_net['source'] == 'MAPK'].set_index('target')['weight']
+    wv = np.array([w.get(g, 0.0) for g in genes])
+    p2t = {('M%d' % i): [('MAP2K1', 'INHIBITOR')] for i in range(4)}
+    p2t.update({('O%d' % i): [('NONE', 'INHIBITOR')] for i in range(8)})
+
+    def world(scale):
+        return {'HT29': {k: {'unit_id': k, 'is_labelled': True,
+                             'sig': scale * ((-2.0 * wv if k.startswith('M') else 0) + np.random.default_rng(j).normal(size=G))}
+                         for j, k in enumerate(p2t)}}
+    r1 = msa.run_a3(world(1.0), ['HT29'], p2t, net=fake_progeny_net, gene_names=genes, gated=True, rng_seed=1, n_perm=20)
+    r5 = msa.run_a3(world(5.0), ['HT29'], p2t, net=fake_progeny_net, gene_names=genes, gated=True, rng_seed=1, n_perm=20)
+    k = 'MAPK@HT29'
+    assert abs(r5['d_std_per_unit'][k] - r1['d_std_per_unit'][k]) < 1e-6
+    assert 'HT29' in r1['activity_scale'] and 'MAPK' in r1['activity_scale']['HT29']['sd']

@@ -701,6 +701,8 @@ def run_a3(cell_units_map, scored_cells_list, parent_to_targets, net=None, landm
 
     # Compute ULM activities per scored cell
     cell_acts = {}
+    cell_acts_std = {}
+    activity_scale = {}
     cell_labelled_list = {}
 
     for cell in scored_cells_list:
@@ -727,6 +729,11 @@ def run_a3(cell_units_map, scored_cells_list, parent_to_targets, net=None, landm
         acts, _ = dc.mt.ulm(mat, net, tmin=tmin)
         cell_acts[cell] = acts
         cell_labelled_list[cell] = u_ids
+        # review 061 C1: each pathway's activity z-scored within the cell over its labelled compounds (removes cell scale)
+        sd = acts.std(axis=0, ddof=1).replace(0, np.nan)
+        cell_acts_std[cell] = (acts - acts.mean(axis=0)) / sd
+        activity_scale[cell] = {'mean': {k: float(v) for k, v in acts.mean(axis=0).items()},
+                                'sd': {k: float(v) for k, v in acts.std(axis=0, ddof=1).items()}}
 
     # Find compounds for each class in each scored cell
     # A unit is a (class_def, cell) with >= 3 compounds
@@ -777,7 +784,8 @@ def run_a3(cell_units_map, scored_cells_list, parent_to_targets, net=None, landm
                 })
 
     if len(eval_units) == 0:
-        return A3Result(T=0.0, p=1.0, d_per_unit={}, frac_positive=0.0, units=[])
+        return A3Result(T=0.0, p=1.0, d_per_unit={}, frac_positive=0.0, units=[], d_std_per_unit={},
+                        activity_scale=activity_scale)
 
     # Compute observed d per unit
     d_per_unit = {}
@@ -803,6 +811,16 @@ def run_a3(cell_units_map, scored_cells_list, parent_to_targets, net=None, landm
         d = float(mu_in - mu_out)
         d_per_unit[f"{u['class']}@{u['cell']}"] = d
         u['d_obs'] = d
+
+    # review 061 C1: the same d on standardised activities (B3c of record uses it; A3's own reading stays on raw d)
+    d_std_per_unit = {}
+    for u in eval_units:
+        z = cell_acts_std[u['cell']]
+        member_set = {uid for uid, _ in u['members']}
+        others = [uid for uid in u['all_units'] if uid not in member_set]
+        mu_in = np.mean([z.loc[uid, u['pathway']] * sgn for uid, sgn in u['members']])
+        mu_out = np.mean([z.loc[uid, u['pathway']] * u['inhibitor_sign'] for uid in others]) if others else 0.0
+        d_std_per_unit[f"{u['class']}@{u['cell']}"] = float(mu_in - mu_out)
 
     T_obs = float(np.mean(list(d_per_unit.values())))
     frac_positive = float(np.mean([d > 0 for d in d_per_unit.values()]))
@@ -854,6 +872,8 @@ def run_a3(cell_units_map, scored_cells_list, parent_to_targets, net=None, landm
         d_per_unit=d_per_unit,
         frac_positive=frac_positive,
         units=[f"{u['class']}@{u['cell']}" for u in eval_units],
+        d_std_per_unit=d_std_per_unit,
+        activity_scale=activity_scale,
     )
 
 
@@ -948,6 +968,9 @@ def load_predicted_delta(spec, row_index):
     """§94.9: 'a.npz[,b.npz,...]:key' -> the mean over the files of key, aligned to row_index by each file's own 'row_index'.
     Every file must hold exactly the Stage A rows."""
     paths, key = spec.rsplit(':', 1)
+    minus = None
+    if '-' in key:
+        key, minus = key.split('-', 1)
     mats = []
     want = np.asarray(row_index, np.int64)
     for path in paths.split(','):
@@ -955,7 +978,11 @@ def load_predicted_delta(spec, row_index):
         ri = np.asarray(z['row_index'], np.int64)
         pos = {int(r): i for i, r in enumerate(ri)}
         assert set(want.tolist()) <= set(pos), '%s lacks some Stage A rows' % path
-        mats.append(np.asarray(z[key], np.float64)[[pos[int(r)] for r in want]])
+        sel = [pos[int(r)] for r in want]
+        m = np.asarray(z[key], np.float64)[sel]
+        if minus:
+            m = m - np.asarray(z[minus], np.float64)[sel]
+        mats.append(m)
     return np.mean(mats, axis=0)
 
 
@@ -1003,14 +1030,17 @@ def _verified_json(path):
 def read_stage_b(measured, v9_seeds, v9_mean, mu, ridge=None):
     """§94.9's mechanical readings. Arguments are Stage-A-format result dicts (measured = Stage A's own)."""
     cells = list(measured['scored_cells'])
-    dm = measured['a3_gated']['d_per_unit']
+    dm = measured['a3_gated']['d_std_per_unit']           # review 061 C1: of record, standardised
+    dm_raw = measured['a3_gated']['d_per_unit']
 
     def one(res):
         a1 = {c: res['a1'][c]['a1'] - res['a1'][c]['null_mean'] for c in cells}
         b1 = sum(1 for c in cells if a1[c] >= 0.05 and res['a1'][c]['p_value'] < 0.01) >= 3
         b3 = res['a3_gated']['p'] < 0.01 and res['a3_gated']['frac_positive'] >= 2.0 / 3.0
-        rho, p, n = b3c(dm, res['a3_gated']['d_per_unit'])
+        rho, p, n = b3c(dm, res['a3_gated']['d_std_per_unit'])
+        rho_raw, p_raw, _ = b3c(dm_raw, res['a3_gated']['d_per_unit'])
         return {'B1_signal': bool(b1), 'B3_signal': bool(b3), 'B3c_rho': rho, 'B3c_p': p, 'B3c_units': n,
+                'reported_B3c_raw_rho': rho_raw, 'reported_B3c_raw_p': p_raw,
                 'A1': {c: res['a1'][c]['a1'] for c in cells}, 'B3_T': res['a3_gated']['T']}
     mu_r = one(mu)
     runs = {'seed_mean': v9_mean}
@@ -1023,16 +1053,21 @@ def read_stage_b(measured, v9_seeds, v9_mean, mu, ridge=None):
         r['expresses'] = r['B1_signal'] and r['B3_signal']
         r['beyond_mu_2a'] = (sum(v > 0 for v in diff.values()) >= 4) and (float(np.mean(list(diff.values()))) >= 0.02)
         r['beyond_mu_2b'] = (r['B3c_rho'] > 0) and (r['B3c_p'] < 0.05) and (r['B3c_rho'] > mu_r['B3c_rho'])
-        r['ceiling_fraction'] = {c: (r['A1'][c] - 0.5) / (measured['a1'][c]['a1'] - 0.5) for c in cells}
+        r['fraction_of_measured_reference'] = {c: (r['A1'][c] - 0.5) / (measured['a1'][c]['a1'] - 0.5) for c in cells}
         per[name] = r
     allrun = lambda k: all(per[n][k] for n in per)                     # noqa: E731 -- seed-mean AND every seed
-    out = {'reading_1_expresses_mechanism': allrun('expresses'), 'reading_2a_beyond_mu_retrieval': allrun('beyond_mu_2a'),
+    mu_expresses = bool(mu_r['B1_signal'] and mu_r['B3_signal'])
+    out = {'reading_1_expresses_mechanism': allrun('expresses'),
+           'reading_1_mu_also_expresses': mu_expresses,           # review 061 C4: stated beside v9's
+           'reading_1_sentence': ("v9's predictions express mechanism" + (' (as does mu)' if mu_expresses else ''))
+           if allrun('expresses') else "v9's predictions do not express mechanism by Stage A's rules", 'reading_2a_beyond_mu_retrieval': allrun('beyond_mu_2a'),
            'reading_2b_beyond_mu_cell_specific_pathway': allrun('beyond_mu_2b'), 'per_run': per, 'mu': mu_r,
-           'mu_ceiling_fraction': {c: (mu_r['A1'][c] - 0.5) / (measured['a1'][c]['a1'] - 0.5) for c in cells},
+           'mu_fraction_of_measured_reference': {c: (mu_r['A1'][c] - 0.5) / (measured['a1'][c]['a1'] - 0.5) for c in cells},
            'measured': {'A1': {c: measured['a1'][c]['a1'] for c in cells}, 'B3_T': measured['a3_gated']['T']},
            'reported_ridge': one(ridge) if ridge else None,
            'scope': 'model predictions, not internal attributions; compounds seen in training (cold-cell split); A3 has no '
-                    'positive-control unit (94.8)'}
+                    'positive-control unit (94.8); the measured values are a reference, not a ceiling for noise-free '
+                    'predictions (fractions > 1 possible); C4 self-retrieval diagnostics are not meaningful on prediction runs'}
     return out
 
 

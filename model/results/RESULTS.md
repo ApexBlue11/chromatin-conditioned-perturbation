@@ -8127,13 +8127,15 @@ G_chr per cell: LNCAP +0.0041, SKBR3 +0.0013, HEK293T +0.0001, VCAP −0.0002, U
 expected pathway direction. Its references are the drug-mean prediction μ and the measured ceiling, registered next.
 
 **What it means** (interpretation, for the critic):
-- **On the earlier nulls:** the measured landmark responses in the unseen test cells carry drug mechanism at two standard
-  readouts. So the earlier model-mechanism nulls (C 4.1a, §86, §88) cannot be blamed on mechanism being absent from the data
-  at these readouts. Note that §86's target-*pathway-membership* readout is a different one.
+- **On the earlier nulls** (review 061 C2b's wording): the measured responses carry mechanism at retrieval and
+  pathway-activity readouts. So the earlier model nulls (C 4.1a, §86, §88) are not explained by the data lacking mechanism in
+  general. Whether the data carry it in the form those readouts sought is separate, and §86's data projection says not at its
+  readout.
 - **The ceilings:** about 0.99 everywhere, so compounds' responses are highly reproducible within a cell. This is
   within-compound identity, not mechanism.
-- **The pathway magnitude is strongly cell-dependent:** the MAPK unit is +20.1 in MDAMB231 against +5.6 in MCF7. That is the
-  kind of cell-specific mechanism a model would have to capture.
+- **The pathway effect varies across cells** (review 061 C2a's wording): MAPK is +20.1 in MDAMB231 against +5.6 in MCF7. But
+  the units contain different compounds in each cell (MAPK: 10 distinct compounds over 4 cells, 3 in every cell; PI3K: 16 over
+  5, with 2), so this mixes cell biology with compound composition and cell-level scale.
 
 ### 94.9 🔒 PRE-REGISTERED: Stage B, do v9's test-cell predictions express the mechanism the measured responses carry, beyond the drug's average? (PI, 2026-10-08; before any prediction value is read)
 **The predictions** (on Stage A's 21,151 rows, units, labels, plate rule, gated table and null seeds):
@@ -8180,6 +8182,34 @@ expected pathway direction. Its references are the drug-mean prediction μ and t
 
 **Code:** `mechanism_stage_a.py` gains `--delta npz:key` (the predicted Δ aligned by `row_index`; asserted equal to Stage A's
 rows) and a Stage B reader over the result files, with tests. Local CPU.
+
+### 94.10 AMENDED by review 061 (C1 MAJOR, C2–C5 upheld; before any prediction value is read, 2026-10-08)
+1. **C1, cell-level scale.**
+   - **The problem:** B3c's within-class centring removed each class's mean across cells, but not a cell's overall response
+     scale. A model predicting larger responses in some cells could beat μ without pathway specificity.
+   - **The fix:**
+     - each pathway's ULM activity is z-scored within each cell over the cell's labelled compounds, and d is recomputed on it
+       (`d_std_per_unit`);
+     - **B3c of record uses the standardised d,** for measured and predicted alike;
+     - the raw-d B3c is reported;
+     - each result file records every cell's per-pathway activity mean and sd.
+   - **A test:** scaling a cell's signatures by 5 leaves the standardised d unchanged.
+   - **The measured standardised d** comes from rerunning Stage A's measured pipeline with this code, asserted to reproduce
+     94.8's A1 and A3 numbers exactly.
+2. **C2:** 94.8's two sentences were reworded in place (composition and scale; the scope of the earlier nulls).
+3. **C3, "the measured reference",** not "the measured ceiling".
+   - Predictions carry no measurement noise, and μ averages over cells, so A1 on predictions can exceed the measured A1.
+   - The fraction is "of the measured reference" and can exceed 1.
+   - The C4 self-retrieval diagnostics are not meaningful on prediction runs.
+4. **C4:** reading 1 is stated beside μ's: *"v9's predictions express mechanism (as does μ)"* when μ passes too.
+5. **C5, and a catch on μ itself.**
+   - **The bundle's baselines are in expression space,** not Δ. `copy_control_pred` equals `ctl_true`, and all baselines have
+     mean ≈ 8.4, despite `mean_drug_delta_pred`'s name. This was a scale check (means only), with no mechanism readout.
+   - **So μ's Δ** = `mean_drug_delta_pred − ctl_true`, and ridge's = `ridge_pred − ctl_true`, via `--delta file:key-ctl_true`.
+   - v9's `deg_pred` is Δ-scale (mean −0.003, mean |Δ| 0.24), as `xpert_arm.py` scores it.
+   - Without this, μ would have been scored on absolute expression.
+6. **Unchanged:** the readings, bars, nulls and the seed-mean-and-every-seed rule (94.9).
+   - **Optional, not added:** C1's paired swap null for 2a.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
