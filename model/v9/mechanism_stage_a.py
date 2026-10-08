@@ -253,7 +253,7 @@ def load_landmark_genes(path=None):
     return genes
 
 
-def load_rows(bundle_path):
+def load_rows(bundle_path, row_index_npz=None):
     """Load test rows from the XPert bundle (split_split_cold_cell_1 == 'test').
 
     Asserts exactly 21,151 rows.
@@ -265,6 +265,11 @@ def load_rows(bundle_path):
     z = np.load(bundle_path, allow_pickle=True)
     lab = z['split_split_cold_cell_1']
     test_idx = np.flatnonzero(lab == 'test')
+    if row_index_npz is not None:
+        # §94.2: the rows are the 21,151 row_index of v9p7_seed0.npz (P7's scored rows; the split's test set has 21,321).
+        # Only the 'row_index' key is read from that file -- never a prediction.
+        keep = set(np.load(row_index_npz)['row_index'].astype(np.int64).tolist())
+        test_idx = test_idx[np.isin(np.asarray(z['row_index'][test_idx]).astype(np.int64), list(keep))]
     assert len(test_idx) == 21151, f'expected 21,151 test rows, got {len(test_idx)}'
 
     X = np.asarray(z['X'][test_idx], dtype=np.float32)
@@ -946,9 +951,9 @@ def sha1_file(path):
     return h.hexdigest()
 
 
-def run_pipeline(bundle_path, labels_tsv, landmarks_file=None):
+def run_pipeline(bundle_path, labels_tsv, landmarks_file=None, row_index_npz=None):
     """Execute complete Stage A analysis pipeline."""
-    rows = load_rows(bundle_path)
+    rows = load_rows(bundle_path, row_index_npz)
     pert_to_parent, parent_to_moa, parent_to_targets = load_labels(labels_tsv)
 
     # Group into units for every cell
@@ -1006,6 +1011,7 @@ def main():
     parser.add_argument('--bundle', help="Path to XPert split bundle (xpert_mdmt_splits.npz)")
     parser.add_argument('--labels', help="Path to ChEMBL DTI labels (chembl_dti_edges.tsv)")
     parser.add_argument('--landmarks', default=None, help="Path to 978 landmark genes txt")
+    parser.add_argument('--rows', default=None, help="npz whose 'row_index' key lists the rows (v9p7_seed0.npz; §94.2)")
     parser.add_argument('--out', help="Output JSON path")
     parser.add_argument('--read', help="Apply read_stage_a to an existing result JSON and print decision")
     args = parser.parse_args()
@@ -1023,7 +1029,7 @@ def main():
     if not args.bundle or not args.labels or not args.out:
         parser.error("--bundle, --labels, and --out are required unless --read is specified.")
 
-    result = run_pipeline(args.bundle, args.labels, landmarks_file=args.landmarks)
+    result = run_pipeline(args.bundle, args.labels, landmarks_file=args.landmarks, row_index_npz=args.rows)
 
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
     with open(args.out, 'w', encoding='utf-8') as f:
