@@ -66,7 +66,7 @@ def test_load_rows_synthetic(tmp_path):
     bad_bundle = tmp_path / 'bad_bundle.npz'
     np.savez(bad_bundle, X=X[:100], X_ctl=X_ctl[:100], meta_pert_id=pert[:100], meta_cell=cell[:100],
              row_index=row_index[:100], split_split_cold_cell_1=split[:100])
-    with pytest.raises(AssertionError, match='expected 21,151 test rows'):
+    with pytest.raises(AssertionError, match='expected 21151 test rows'):
         msa.load_rows(str(bad_bundle))
 
 
@@ -681,3 +681,27 @@ def test_standardised_d_removes_a_cell_level_scale(fake_progeny_net):
     k = 'MAPK@HT29'
     assert abs(r5['d_std_per_unit'][k] - r1['d_std_per_unit'][k]) < 1e-6
     assert 'HT29' in r1['activity_scale'] and 'MAPK' in r1['activity_scale']['HT29']['sd']
+
+
+
+# ---- §95 (cold-drug split), PI ----
+
+def test_cold_drug_gates_and_threshold():
+    try:
+        msa.ACTIVE.clear(); msa.ACTIVE.update(msa.SPLITS['split_cold_drug_1'], name='split_cold_drug_1')
+        mapk = next(c for c in msa.GATED_CLASSES if c['class'] == 'MAPK')
+        p53 = next(c for c in msa.GATED_CLASSES if c['class'] == 'p53')
+        er = next(c for c in msa.GATED_CLASSES if c['class'] == 'ER')
+        assert 'BRAF' in mapk['targets_fn']('A375') and 'BRAF' in mapk['targets_fn']('HT29') and 'BRAF' not in mapk['targets_fn']('PC3')
+        assert 'MDM2' in p53['targets_fn']('A549') and 'MDM2' in p53['targets_fn']('MCF7') and not p53['targets_fn']('HA1E')
+        assert er['targets_fn']('MCF7') and not er['targets_fn']('A549')
+    finally:
+        msa.ACTIVE.clear(); msa.ACTIVE.update(msa.SPLITS['split_cold_cell_1'], name='split_cold_cell_1')
+    assert 'BRAF' not in mapk['targets_fn']('A375')                      # back on cold-cell: A375 has no RAF gate
+    cells = msa.SPLITS['split_cold_drug_1']['scored']
+    res = {'split': 'split_cold_drug_1', 'scored_cells': cells,
+           'a1': {c: ({'a1': 0.7, 'null_mean': 0.5, 'p_value': 0.001} if k < 3 else {'a1': 0.5, 'null_mean': 0.5, 'p_value': 0.5})
+                  for k, c in enumerate(cells)}, 'a3_gated': {'p': 0.5, 'frac_positive': 0.0}}
+    assert not msa.read_stage_a(res).a1_signal                           # 3 of 6 is not enough on cold-drug
+    res['a1'][cells[3]] = {'a1': 0.7, 'null_mean': 0.5, 'p_value': 0.001}
+    assert msa.read_stage_a(res).a1_signal

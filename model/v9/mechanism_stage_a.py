@@ -30,6 +30,15 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fi
 LANDMARKS_FILE_DEFAULT = os.path.join(REPO_ROOT, 'baseline', 'Network Data', 'pathway_landmark_genes.txt')
 PROGENY_SHA1 = 'af40b7a5fe7a7c717d826c898991d232b68c63d6'
 SCORED_CELLS_ORDER = ['MCF7', 'HT29', 'MDAMB231', 'HS578T', 'THP1']
+# §95: per-split constants (cold-cell = §94, unchanged)
+SPLITS = {
+    'split_cold_cell_1': {'scored': SCORED_CELLS_ORDER, 'n_rows': 21151, 'a1_min': 3,
+                          'gates': {'raf': {'HT29'}, 'mdm2': {'MCF7'}, 'er': {'MCF7'}}},
+    'split_cold_drug_1': {'scored': ['MCF7', 'PC3', 'A375', 'HA1E', 'HT29', 'A549'], 'n_rows': 13445, 'a1_min': 4,
+                          'gates': {'raf': {'HT29', 'A375'}, 'mdm2': {'MCF7', 'A549'}, 'er': {'MCF7'}}},
+}
+
+ACTIVE = dict(SPLITS['split_cold_cell_1'], name='split_cold_cell_1')   # set by run_pipeline(split=...)
 
 INHIBITOR_ACTIONS = {'INHIBITOR', 'ANTAGONIST', 'NEGATIVE MODULATOR', 'BLOCKER'}
 AGONIST_ACTIONS = {'AGONIST', 'POSITIVE MODULATOR'}
@@ -43,7 +52,7 @@ GATED_CLASSES = [
         'cells': SCORED_CELLS_ORDER,
         'targets_fn': lambda cell: (
             {'MAP2K1', 'MAP2K2', 'BRAF', 'RAF1', 'ARAF', 'MAPK1', 'MAPK3'}
-            if cell == 'HT29'
+            if cell in ACTIVE['gates']['raf']
             else {'MAP2K1', 'MAP2K2', 'MAPK1', 'MAPK3'}
         ),
     },
@@ -73,14 +82,14 @@ GATED_CLASSES = [
         'pathway': 'p53',
         'inhibitor_sign': +1.0,  # MDM2 inhibitor activates p53
         'cells': ['MCF7'],  # TP53-wild-type only
-        'targets_fn': lambda cell: {'MDM2'} if cell == 'MCF7' else set(),
+        'targets_fn': lambda cell: {'MDM2'} if cell in ACTIVE['gates']['mdm2'] else set(),
     },
     {
         'class': 'ER',
         'pathway': 'Estrogen',
         'inhibitor_sign': -1.0,  # agonist +1.0
         'cells': ['MCF7'],  # ER-positive only
-        'targets_fn': lambda cell: {'ESR1', 'ESR2'} if cell == 'MCF7' else set(),
+        'targets_fn': lambda cell: {'ESR1', 'ESR2'} if cell in ACTIVE['gates']['er'] else set(),
     },
     {
         'class': 'NFkB',
@@ -253,7 +262,7 @@ def load_landmark_genes(path=None):
     return genes
 
 
-def load_rows(bundle_path, row_index_npz=None, delta_spec=None):
+def load_rows(bundle_path, row_index_npz=None, delta_spec=None, split='split_cold_cell_1'):
     """Load test rows from the XPert bundle (split_split_cold_cell_1 == 'test').
 
     Asserts exactly 21,151 rows.
@@ -263,14 +272,15 @@ def load_rows(bundle_path, row_index_npz=None, delta_spec=None):
         bundle_path = os.path.join(bundle_path, 'xpert_mdmt_splits.npz')
 
     z = np.load(bundle_path, allow_pickle=True)
-    lab = z['split_split_cold_cell_1']
+    lab = z['split_' + split]
     test_idx = np.flatnonzero(lab == 'test')
     if row_index_npz is not None:
         # §94.2: the rows are the 21,151 row_index of v9p7_seed0.npz (P7's scored rows; the split's test set has 21,321).
         # Only the 'row_index' key is read from that file -- never a prediction.
         keep = set(np.load(row_index_npz)['row_index'].astype(np.int64).tolist())
         test_idx = test_idx[np.isin(np.asarray(z['row_index'][test_idx]).astype(np.int64), list(keep))]
-    assert len(test_idx) == 21151, f'expected 21,151 test rows, got {len(test_idx)}'
+    want_n = SPLITS[split]['n_rows']
+    assert len(test_idx) == want_n, f'expected {want_n} test rows for {split}, got {len(test_idx)}'
 
     X = np.asarray(z['X'][test_idx], dtype=np.float32)
     X_ctl = np.asarray(z['X_ctl'][test_idx], dtype=np.float32)
@@ -433,7 +443,7 @@ def scored_cells(cell_units_map=None, rows=None, pert_to_parent=None, parent_to_
     qualifying_set = {c for c, n in counts.items() if n >= 25}
 
     # PI: §94.7 item 1 fixed the five scored cells; any other qualifying cell is reported in counts, never scored
-    scored = [c for c in SCORED_CELLS_ORDER if c in qualifying_set]
+    scored = [c for c in ACTIVE['scored'] if c in qualifying_set]
 
     return scored, counts
 
@@ -885,7 +895,7 @@ def read_stage_a(result):
     - A3 signal: p < 0.01 and d > 0 in >= 2/3 of units (on gated table)
     """
     a1_data = result.get('a1', {})
-    scored_cells_list = result.get('scored_cells', SCORED_CELLS_ORDER)
+    scored_cells_list = result.get('scored_cells', SPLITS[result.get('split', 'split_cold_cell_1')]['scored'])
 
     # Evaluate A1 signal
     n_a1_sig_cells = 0
@@ -910,7 +920,7 @@ def read_stage_a(result):
             if act and act.get('a1') is not None and np.isfinite(act.get('a1')):
                 active_a1s.append(act['a1'])
 
-    a1_signal = (n_a1_sig_cells >= 3)
+    a1_signal = (n_a1_sig_cells >= SPLITS[result.get('split', 'split_cold_cell_1')]['a1_min'])
 
     # Evaluate A3 signal (on gated table)
     a3_gated = result.get('a3_gated', {})
@@ -1080,9 +1090,11 @@ def sha1_file(path):
     return h.hexdigest()
 
 
-def run_pipeline(bundle_path, labels_tsv, landmarks_file=None, row_index_npz=None, delta_spec=None):
+def run_pipeline(bundle_path, labels_tsv, landmarks_file=None, row_index_npz=None, delta_spec=None, split='split_cold_cell_1'):
     """Execute complete Stage A analysis pipeline (Stage B: delta_spec gives the predicted delta, §94.9)."""
-    rows = load_rows(bundle_path, row_index_npz, delta_spec)
+    ACTIVE.clear()
+    ACTIVE.update(SPLITS[split], name=split)
+    rows = load_rows(bundle_path, row_index_npz, delta_spec, split=split)
     pert_to_parent, parent_to_moa, parent_to_targets = load_labels(labels_tsv)
 
     # Group into units for every cell
@@ -1125,6 +1137,7 @@ def run_pipeline(bundle_path, labels_tsv, landmarks_file=None, row_index_npz=Non
     a3_ungated = run_a3(cell_units, scored, parent_to_targets, net=net, gene_names=genes, gated=False)
 
     return {
+        'split': split,
         'bundle_path': bundle_path,
         'labels_tsv': labels_tsv,
         'scored_cells': scored,
@@ -1141,6 +1154,7 @@ def main():
     parser.add_argument('--labels', help="Path to ChEMBL DTI labels (chembl_dti_edges.tsv)")
     parser.add_argument('--landmarks', default=None, help="Path to 978 landmark genes txt")
     parser.add_argument('--rows', default=None, help="npz whose 'row_index' key lists the rows (v9p7_seed0.npz; §94.2)")
+    parser.add_argument('--split', default='split_cold_cell_1', choices=sorted(SPLITS))
     parser.add_argument('--delta', default=None, help="§94.9 Stage B: 'a.npz[,b.npz]:key', predicted delta in place of measured")
     parser.add_argument('--read_b', nargs='+', default=None,
                         help="§94.9: MEASURED V9_SEED0 V9_SEED1 V9_SEED2 V9_MEAN MU [RIDGE] (result JSONs with markers)")
@@ -1168,7 +1182,7 @@ def main():
         parser.error("--bundle, --labels, and --out are required unless --read is specified.")
 
     result = run_pipeline(args.bundle, args.labels, landmarks_file=args.landmarks, row_index_npz=args.rows,
-                          delta_spec=args.delta)
+                          delta_spec=args.delta, split=args.split)
     result['delta_source'] = args.delta or 'measured'
 
     os.makedirs(os.path.dirname(os.path.abspath(args.out)), exist_ok=True)
