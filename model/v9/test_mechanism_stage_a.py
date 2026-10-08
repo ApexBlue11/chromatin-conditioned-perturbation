@@ -763,3 +763,14 @@ def test_read_stage_b_uses_the_splits_a1_threshold():
                              'd_std_per_unit': {'EGFR@MCF7': 1.0, 'EGFR@PC3': 2.0}}}
     out = msa.read_stage_b(r(6), [r(3)] * 3, r(3), r(3))
     assert not out['per_run']['seed_mean']['B1_signal']                  # 3 of 6 < the cold-drug minimum of 4
+
+
+
+def test_cold_drug_a3_needs_two_classes_for_the_decision():
+    cells = msa.SPLITS['split_cold_drug_1']['scored']
+    base = {'split': 'split_cold_drug_1', 'scored_cells': cells,
+            'a1': {c: {'a1': 0.5, 'null_mean': 0.5, 'p_value': 0.5} for c in cells},
+            'a3_gated': {'p': 0.001, 'frac_positive': 1.0, 'd_per_unit': {'EGFR@%s' % c: 1.0 for c in cells}}}
+    assert not msa.read_stage_a(base).a3_signal
+    base['a3_gated']['d_per_unit']['DNA@MCF7'] = 1.0
+    assert msa.read_stage_a(base).a3_signal

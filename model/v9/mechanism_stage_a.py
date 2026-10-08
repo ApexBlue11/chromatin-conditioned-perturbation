@@ -948,6 +948,8 @@ def read_stage_a(result):
     a3_signal = (a3_p < 0.01) and (a3_frac >= (2.0 / 3.0))
     a3_classes = sorted({u.split('@')[0] for u in a3_gated.get('d_per_unit', {})})
     split_cfg = SPLITS[result.get('split', 'split_cold_cell_1')]
+    if 'noncns_a1_min' in split_cfg:                     # review 063a: on cold-drug A3 bears on decisions only over >= 2 classes
+        a3_signal = a3_signal and len(a3_classes) >= 2
     p9_gate = None
     if 'noncns_a1_min' in split_cfg:                     # review 063 C1(iii), cold-drug only
         n_nc = sum(1 for c in scored_cells_list
