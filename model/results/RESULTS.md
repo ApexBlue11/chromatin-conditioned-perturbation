@@ -7594,6 +7594,77 @@ excess:
    channel not measured.
 4. **Runtime (review 055 ask 4):** ≈ 65 s per `run_t1`, so about 1–1.5 h in one session.
 
+### 93.13 RESULT, H1 read once: **DOES NOT ADVANCE, an informative null** (MDE_P1 ≤ 0.5 % in both slots). Enhancer and TF-regulon accessibility add nothing over promoter accessibility in T1 (2026-10-08)
+**The run:**
+- **Kernel:** `lincs-chromatin93-h1` version 1, Kaggle CPU, 5,002 s. All 10 pins and the split bundle were verified
+  (`chromatin_h1.py` `5b5f3382`, `c93_features.npz` `23e12b9d`).
+- **Read:** once, by `read_h1.py`, after it verified the marker → `model/results/chromatin93_h1_reading.json`. The raw output
+  is `model/results/c93/chromatin_h1_93.json`.
+- **Cells:**
+  - fitting cells (the bundle's dev-train cells with `has`): A549, HCT116, HELA, HEPG2, HME1, HUH7, JURKAT, MCF10A, PC3;
+  - measured dev cells: HEK293T, HL60, LNCAP, U937, so k = 3 of 4.
+
+**Calibration** (3 draws per slot; ρ = 0.027 for F_enh, 0.008 for F_reg):
+
+| case | F_enh slot: passes · raw Δ C − B | F_reg slot: passes · raw Δ C − B |
+|---|---|---|
+| null | 0 / 3 · −0.0001 to +0.0000 | 0 / 3 · +0.0000 to +0.0005 |
+| P1 gain 0.5 % | **3 / 3** · +0.0043 to +0.0063 | **3 / 3** · +0.0072 to +0.0124 |
+| P1 2 % / 5 % | 3 / 3 · +0.018 to +0.023 / +0.042 to +0.050 | 3 / 3 · +0.031 to +0.039 / +0.073 to +0.083 |
+| P2 drug-specific 0.5 / 2 / 5 % | 0 / 3 · 0 / 3 · 1 / 3 (≤ +0.0041) | 0 / 3 · 0 / 3 · **3 / 3** (+0.0045 to +0.0086) |
+| P3 5 % | 0 / 3 (fails the centred conjunct) | 0 / 3 |
+| G 2 % / 5 % | 0 / 3 · raw +0.007 to +0.020, C − N1 < −0.009 | 0 / 3 · raw −0.008 to −0.003 |
+
+- **Faults:** none.
+- **MDEs:** P1 ≤ 0.005 in both slots. P2: none (F_enh slot), 0.05 (F_reg slot).
+- **G checks:** informative in the F_enh slot, and in the F_reg slot uninformative (its raw Δ is negative), as the reader
+  labels it.
+
+**The real run** (rows of record: drug-known dev rows of the 4 measured cells; T1 score units, B = 0.1573):
+- **C − B:**
+  - **S(C) − S(B) = −0.00008** against a bar of 0.004 (top −0.00017 against 0.008);
+  - > 0 in 2 of 4 cells (HEK293T +0.00008, HL60 +0.00008, LNCAP −0.00016, U937 −0.00008);
+  - centred −0.00010, > 0 in 0 of 4.
+- **C − N1:** −0.00006, > 0 in 1 of 4 (HEK293T).
+- **Reading: DOES NOT ADVANCE**, with every conjunct false. The reader's label: *"informative null (MDE_P1 ≤ 0.005 in both slots;
+  linear T1, richer accessibility features); slot 2 the gene-generic check is uninformative"*.
+- **The real Δ is inside the nothing-planted range** (−0.0001 to +0.0005). A planted 0.5 % gain moves it by +0.004 to +0.012.
+- **Beside the reading (93.12 C2):**
+  - *"HEK293T: 1 sample, 58 promoter genes; its cell sign is low-information."*
+  - Over HL60, LNCAP and U937: C − B > 0 in 1 of 3, and C > N1 in 0 of 3 (reported, not read).
+
+**Reported, never read:**
+- **C′ (replacement, [b, F_enh, F_reg]) against B:** −0.00076, > 0 in 1 of 4.
+- **LOCO over the 9 fitting cells:** B 0.12453, C 0.12447, N1 0.12459, so C − B = −0.00006 and C − N1 = −0.00012.
+- **The shrinkage arm:** λ = 0.75 was chosen by LOCO; −0.00011 against B and −0.00009 against N1. Nothing gains at any λ.
+- **F_reg** covers 520 of 978 genes (93.11).
+
+**The informative negative** (93.3 item 4: *"No pass: S9 is closed for these data"*):
+- *"No drug-conditioned gene-local gain from enhancer-window or TF-regulon motif accessibility beyond promoter accessibility
+  from the same samples, explaining ≥ 0.5 % of the cell-specific residual, of a form linear in the encoded features, on these
+  4 dev cells (9 fitting cells)."*
+- Drug-specific shifts are bounded at 5 % for F_reg and unbounded for F_enh.
+- **The cell-sample caveat:**
+  - the fitting set is 9 cells, two of them very sparse (HME1 17 near-landmark peaks, HUH7 125);
+  - one of the 4 dev cells is sparse (HEK293T);
+  - this is the data v9's own ATAC samples allow.
+
+**What Stage 1 says, taken together** (interpretation, for the critic):
+1. **Of the five hypotheses** for why chromatin does not transfer:
+   - **H1, granularity:** not supported for these samples. Enhancers and TF motifs add nothing over promoters.
+   - **H2, too few fitting cells:** not supported. The curve was flat, and the planted gain was detected from 4 cells.
+   - **H3, a non-linear form:** not supported for the gain form.
+   - **H5, data quality:** within-series measurement noise is not the cause (93.11), though between-lab noise was not measured.
+   - **H4, the shortcut:** E1's seeds 1–2 are still pending.
+2. **What remains consistent with every result:** the cell-specific part of accessibility, though reproducible, carries no
+   drug-conditioned response information that transfers to unseen cells in a gene-local form. What chromatin offers response
+   prediction here is gene-generic (91.12, 93.7).
+3. **Not tested by any Stage 1 test:**
+   - drug-specific interactions that do not act through the drug's own mean response (P2-type), bounded only at 5 %;
+   - effects routed through other genes, not gene-local (network-propagated);
+   - the trained model's use of chromatin beyond the closed forms.
+   These are the remaining routes, each in its own packet (93.5 item 8).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

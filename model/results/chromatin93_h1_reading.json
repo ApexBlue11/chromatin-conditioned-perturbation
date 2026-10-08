@@ -1,0 +1,257 @@
+{
+ "reading": "DOES NOT ADVANCE",
+ "label": "informative null (MDE_P1 <= 0.005 in both slots; linear T1, richer accessibility features); slot 2 the gene-generic check is uninformative (G's raw delta below the bar)",
+ "faults": {
+  "VOID_null": false,
+  "VOID_P3": false,
+  "VOID_G": false
+ },
+ "G_check_informative": {
+  "1": true,
+  "2": false
+ },
+ "MDE": {
+  "1": {
+   "P1": 0.005,
+   "P2": null
+  },
+  "2": {
+   "P1": 0.005,
+   "P2": 0.05
+  }
+ },
+ "conjuncts": {
+  "delta_all_or_top_ge_bar": false,
+  "cells_delta_pos_ge_k": false,
+  "centred_all_ge_bar": false,
+  "cells_centred_pos_ge_k": false,
+  "vs_N1_all_ge_bar": false,
+  "cells_C_gt_N1_ge_k": false
+ },
+ "reported": {
+  "Cp": {
+   "delta": {
+    "all": -0.000764578746134309,
+    "top": -0.0012848175821227326,
+    "per_cell": {
+     "HEK293T": 0.00047819569459116307,
+     "HL60": -0.001168657495331099,
+     "LNCAP": -0.0012786611712986562,
+     "U937": -0.00018033296514829988
+    },
+    "cells_pos": 1,
+    "centred_all": -0.0007179129785285787,
+    "centred_per_cell": {
+     "HEK293T": 0.00031540061222164184,
+     "HL60": -0.001350873667875896,
+     "LNCAP": -0.0010860638766350406,
+     "U937": -0.00045797603417696564
+    },
+    "centred_cells_pos": 1
+   },
+   "reading": {
+    "delta": {
+     "all": -0.000764578746134309,
+     "top": -0.0012848175821227326,
+     "per_cell": {
+      "HEK293T": 0.00047819569459116307,
+      "HL60": -0.001168657495331099,
+      "LNCAP": -0.0012786611712986562,
+      "U937": -0.00018033296514829988
+     },
+     "cells_pos": 1,
+     "centred_all": -0.0007179129785285787,
+     "centred_per_cell": {
+      "HEK293T": 0.00031540061222164184,
+      "HL60": -0.001350873667875896,
+      "LNCAP": -0.0010860638766350406,
+      "U937": -0.00045797603417696564
+     },
+     "centred_cells_pos": 1
+    },
+    "vs_N1": {
+     "all": -0.0007406314375171807,
+     "top": -0.0012093089310836191,
+     "per_cell": {
+      "HEK293T": 0.0007204117136397764,
+      "HL60": -0.0015478378661382963,
+      "LNCAP": -0.0012748523059473438,
+      "U937": -0.0003393652020038662
+     },
+     "cells_pos": 1,
+     "centred_all": -0.0008132118213921014,
+     "centred_per_cell": {
+      "HEK293T": 0.0006793469139897215,
+      "HL60": -0.001678140143133,
+      "LNCAP": -0.001360245259884929,
+      "U937": -0.00035373777336733525
+     },
+     "centred_cells_pos": 1
+    },
+    "conjuncts": {
+     "delta_all_or_top_ge_bar": false,
+     "cells_delta_pos_ge_k": false,
+     "centred_all_ge_bar": false,
+     "cells_centred_pos_ge_k": false,
+     "vs_N1_all_ge_bar": false,
+     "cells_C_gt_N1_ge_k": false
+    },
+    "bars": {
+     "t1": 0.004,
+     "t1_top": 0.008,
+     "t1_centred": 0.002,
+     "t2": 0.0026,
+     "t2_sc": 0.004,
+     "t2_centred": 0.0013
+    },
+    "pass": false
+   }
+  },
+  "loco": {
+   "B": 0.12453008429410933,
+   "C": 0.1244679395813846,
+   "N1": 0.12458787332676059,
+   "Cp": 0.12429307430226265,
+   "S_0.25": 0.12447472135182736,
+   "S_0.5": 0.12449261422378684,
+   "S_0.75": 0.12453108910429611
+  },
+  "loco_C_minus_B": -6.214471272472655e-05,
+  "loco_C_minus_N1": -0.00011993374537598578,
+  "shrinkage": {
+   "best_lambda": 0.75,
+   "reading_vs_B": {
+    "all": -0.00011001467460003411,
+    "top": -0.00023254044550136133,
+    "per_cell": {
+     "HEK293T": 7.171671416728032e-07,
+     "HL60": 0.00011404525801181342,
+     "LNCAP": -0.0001858342329698892,
+     "U937": -4.834829140271113e-05
+    },
+    "cells_pos": 2,
+    "centred_all": -8.845157928633052e-05,
+    "centred_per_cell": {
+     "HEK293T": -0.0003012077571977051,
+     "HL60": -7.869772708851697e-05,
+     "LNCAP": 1.9889050254823237e-05,
+     "U937": -0.00030642500028910113
+    },
+    "centred_cells_pos": 1
+   },
+   "reading_vs_N1": {
+    "all": -8.606736598290587e-05,
+    "top": -0.0001570317944622479,
+    "per_cell": {
+     "HEK293T": 0.00024293318619028614,
+     "HL60": -0.0002651351127953838,
+     "LNCAP": -0.0001820253676185768,
+     "U937": -0.00020738052825827746
+    },
+    "cells_pos": 1,
+    "centred_all": -0.00018375042214985315,
+    "centred_per_cell": {
+     "HEK293T": 6.273854457037459e-05,
+     "HL60": -0.00040596420234562114,
+     "LNCAP": -0.00025429233299506526,
+     "U937": -0.00020218673947947075
+    },
+    "centred_cells_pos": 1
+   },
+   "reading": {
+    "delta": {
+     "all": -0.00011001467460003411,
+     "top": -0.00023254044550136133,
+     "per_cell": {
+      "HEK293T": 7.171671416728032e-07,
+      "HL60": 0.00011404525801181342,
+      "LNCAP": -0.0001858342329698892,
+      "U937": -4.834829140271113e-05
+     },
+     "cells_pos": 2,
+     "centred_all": -8.845157928633052e-05,
+     "centred_per_cell": {
+      "HEK293T": -0.0003012077571977051,
+      "HL60": -7.869772708851697e-05,
+      "LNCAP": 1.9889050254823237e-05,
+      "U937": -0.00030642500028910113
+     },
+     "centred_cells_pos": 1
+    },
+    "vs_N1": {
+     "all": -8.606736598290587e-05,
+     "top": -0.0001570317944622479,
+     "per_cell": {
+      "HEK293T": 0.00024293318619028614,
+      "HL60": -0.0002651351127953838,
+      "LNCAP": -0.0001820253676185768,
+      "U937": -0.00020738052825827746
+     },
+     "cells_pos": 1,
+     "centred_all": -0.00018375042214985315,
+     "centred_per_cell": {
+      "HEK293T": 6.273854457037459e-05,
+      "HL60": -0.00040596420234562114,
+      "LNCAP": -0.00025429233299506526,
+      "U937": -0.00020218673947947075
+     },
+     "centred_cells_pos": 1
+    },
+    "conjuncts": {
+     "delta_all_or_top_ge_bar": false,
+     "cells_delta_pos_ge_k": false,
+     "centred_all_ge_bar": false,
+     "cells_centred_pos_ge_k": false,
+     "vs_N1_all_ge_bar": false,
+     "cells_C_gt_N1_ge_k": false
+    },
+    "bars": {
+     "t1": 0.004,
+     "t1_top": 0.008,
+     "t1_centred": 0.002,
+     "t2": 0.0026,
+     "t2_sc": 0.004,
+     "t2_centred": 0.0013
+    },
+    "pass": false
+   }
+  },
+  "measured_dev_cells": [
+   "HEK293T",
+   "HL60",
+   "LNCAP",
+   "U937"
+  ],
+  "fitting_cells": [
+   "A549",
+   "HCT116",
+   "HELA",
+   "HEPG2",
+   "HME1",
+   "HUH7",
+   "JURKAT",
+   "MCF10A",
+   "PC3"
+  ],
+  "k": 3
+ },
+ "marker": {
+  "pins": {
+   "chromatin_funnel.py": "c56bb6f153596e4234fa74e3372606aba55f2ee4",
+   "chromatin_power.py": "c501cba28b1dfe0c435bd68ab8cc6f4787956424",
+   "score_dev.py": "a9002bceff97ab5552790caf12b6819e7949965e",
+   "chromatin_h1.py": "5b5f3382c27530ee06b1cd017a96a56d17f12a3a",
+   "E_final.npy": "20e9a3e4ce56f0d8a938c185dc5ca9e016590aac",
+   "E_final_mask.npy": "6186bbdd9edae48d0382b5f269c600ff455fdb2f",
+   "lincs_cell_index.json": "5f7bc6b42fe45c56f62a27d06c1925a077056e6d",
+   "cell_lineage.npy": "1efd3dea686816db00b10ca426ed2e54d533c75d",
+   "E_final_provenance.json": "22c249d1e6c8208809e6fa088664d93b1de18c8f",
+   "c93_features.npz": "23e12b9dca69d26f628a197392e0890d30f51bc6"
+  },
+  "splits_sha1": "1444b253d48c5adf066bf7a3cc0ba8ea5fb71464",
+  "outputs": {
+   "chromatin_h1_93.json": "6448b6438e5f09026086644ee91453786ee72b4a"
+  },
+  "complete": true
+ }
+}
