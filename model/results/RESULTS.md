@@ -7698,6 +7698,40 @@ excess:
   SKBR3's ATAC files are empty now and v9's log has `nonzero_genes = 0`. Its source is to be traced before any SKBR3 chromatin
   claim. It does not bear on H1, which excludes SKBR3.
 
+### 93.15 🔒 PRE-REGISTERED: is §91's gene-generic chromatin gain chromatin-specific? A matched per-gene control (PI, 2026-10-08; before any code or run)
+**The question** (review 056, 93.14): T1's N1 − FB = +0.0012 on the drug-known dev rows (§91.12). Is that chromatin content,
+or what any per-gene covariate of the same shape and availability gives T1, i.e. the effect of a per-gene parameter?
+
+**The design.** Everything not stated is §91's T1: the rank_normal encoding, the 11 covered dev-train fitting cells,
+`chromatin_funnel.run_t1` (its LOCO grid), the drug-known dev rows, and the 6 dev cells.
+- **FB and N1** exactly as §91. N1 = [b, the fitting-cell mean (LOCO: held-out cell excluded) of each mark's Ez, where the cell
+  has the mark].
+- **N1perm_d, d = 0, …, 19:** N1 with each mark's mean vector gene-permuted (`default_rng(9500 + 10d + k)`, one permutation per
+  draw and mark, the same in every LOCO fold and in the final fit).
+  - Same marginal, same availability, gene identity destroyed: the capacity null.
+- **N1expr:** N1 with each mark's mean vector replaced by the fitting-cell mean of b (LOCO: held-out cell excluded),
+  **quantile-matched** to that mark's mean vector (rank-for-rank, the mark mean's sorted values assigned in b-mean order).
+  - Same marginal and availability: a per-gene biological covariate that is not chromatin.
+- **The quantities:** G_chr = S(N1) − S(FB), G_perm(d) and G_expr = S(N1expr) − S(FB), each overall and per cell, on the
+  drug-known dev rows.
+- **Harness check:** G_chr must reproduce 91.12's N1 − FB (+0.00121 within 1e-6). If not, nothing is read.
+
+**The reading** (mechanical, one of three):
+1. **NOT DISTINGUISHABLE FROM CAPACITY** iff G_chr ≤ max_d G_perm(d).
+2. **GENE-LEVEL, NOT CHROMATIN-SPECIFIC** iff G_chr > max_d G_perm(d), but G_chr − G_expr ≤ 0 or it is > 0 in fewer than
+   4 of 6 cells.
+3. **CHROMATIN-SPECIFIC** iff G_chr > max_d G_perm(d), G_chr − G_expr > 0, and G_chr − G_expr > 0 in ≥ 4 of 6 cells.
+
+**What each licenses** for §5.3's sentence *"what chromatin does carry is gene-generic"*:
+1. *"…is no more than a per-gene parameter of the same shape provides"*;
+2. *"…is gene-level content that basal-expression gene means match"*;
+3. *"…is gene-level chromatin content beyond a matched per-gene expression covariate"*.
+
+**Cost and code:**
+- About 22 T1 arms in one `run_t1` call, one free Kaggle CPU kernel, ≈ 15 min.
+- `model/v9/chromatin_genegeneric.py` (PI glue on `chromatin_funnel`), a reader in the same file applied once, and tests on
+  `test_chromatin_funnel.world()`. Reviewed before the run.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
