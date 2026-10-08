@@ -1,0 +1,197 @@
+{
+ "reading_1_expresses_mechanism": true,
+ "reading_1_mu_also_expresses": true,
+ "reading_1_sentence": "v9's predictions express mechanism (as does mu)",
+ "reading_2a_beyond_mu_retrieval": false,
+ "reading_2b_beyond_mu_cell_specific_pathway": true,
+ "per_run": {
+  "seed_mean": {
+   "B1_signal": true,
+   "B3_signal": true,
+   "B3c_rho": 0.806372549019608,
+   "B3c_p": 0.0022997700229977,
+   "B3c_units": 17,
+   "reported_B3c_raw_rho": 0.14950980392156862,
+   "reported_B3c_raw_p": 0.3581641835816418,
+   "A1": {
+    "MCF7": 0.6754499338973372,
+    "HT29": 0.6468427241116044,
+    "MDAMB231": 0.7509056322787608,
+    "HS578T": 0.6986109860097153,
+    "THP1": 0.7090398886980652
+   },
+   "B3_T": 5.80545231986335,
+   "A1_minus_mu": {
+    "MCF7": 0.014496102098397357,
+    "HT29": -0.003961281762675184,
+    "MDAMB231": 0.009868024611703663,
+    "HS578T": -0.03616739295443949,
+    "THP1": -0.006298208061945698
+   },
+   "expresses": true,
+   "beyond_mu_2a": false,
+   "beyond_mu_2b": true,
+   "fraction_of_measured_reference": {
+    "MCF7": 1.1481798267938281,
+    "HT29": 1.497659176723929,
+    "MDAMB231": 1.7136696003694372,
+    "HS578T": 1.1599945983856046,
+    "THP1": 1.2671214806159548
+   }
+  },
+  "seed0": {
+   "B1_signal": true,
+   "B3_signal": true,
+   "B3c_rho": 0.7843137254901962,
+   "B3c_p": 0.0038996100389961006,
+   "B3c_units": 17,
+   "reported_B3c_raw_rho": 0.12009803921568628,
+   "reported_B3c_raw_p": 0.391960803919608,
+   "A1": {
+    "MCF7": 0.6719585889028552,
+    "HT29": 0.6442661236621018,
+    "MDAMB231": 0.7533215552450822,
+    "HS578T": 0.7018592515061995,
+    "THP1": 0.7219379100512395
+   },
+   "B3_T": 5.745815500181784,
+   "A1_minus_mu": {
+    "MCF7": 0.011004757103915352,
+    "HT29": -0.00653788221217777,
+    "MDAMB231": 0.012283947578024978,
+    "HS578T": -0.03291912745795522,
+    "THP1": 0.006599813291228607
+   },
+   "expresses": true,
+   "beyond_mu_2a": false,
+   "beyond_mu_2b": true,
+   "fraction_of_measured_reference": {
+    "MCF7": 1.1253317595304486,
+    "HT29": 1.4713802491754606,
+    "MDAMB231": 1.7301702014385254,
+    "HS578T": 1.1789662097035192,
+    "THP1": 1.3453044533291512
+   }
+  },
+  "seed1": {
+   "B1_signal": true,
+   "B3_signal": true,
+   "B3c_rho": 0.8602941176470589,
+   "B3c_p": 0.0004999500049995,
+   "B3c_units": 17,
+   "reported_B3c_raw_rho": 0.15441176470588236,
+   "reported_B3c_raw_p": 0.35536446355364465,
+   "A1": {
+    "MCF7": 0.6716664011102671,
+    "HT29": 0.643468585306544,
+    "MDAMB231": 0.7537151727034662,
+    "HS578T": 0.6919038646877238,
+    "THP1": 0.7204057059328907
+   },
+   "B3_T": 5.5009094421369475,
+   "A1_minus_mu": {
+    "MCF7": 0.010712569311327247,
+    "HT29": -0.007335420567735507,
+    "MDAMB231": 0.012677565036409044,
+    "HS578T": -0.042874514276430964,
+    "THP1": 0.005067609172879739
+   },
+   "expresses": true,
+   "beyond_mu_2a": false,
+   "beyond_mu_2b": true,
+   "fraction_of_measured_reference": {
+    "MCF7": 1.1234196235630372,
+    "HT29": 1.463246099906461,
+    "MDAMB231": 1.7328585837856305,
+    "HS578T": 1.1208214153681937,
+    "THP1": 1.3360168060617326
+   }
+  },
+  "seed2": {
+   "B1_signal": true,
+   "B3_signal": true,
+   "B3c_rho": 0.7279411764705883,
+   "B3c_p": 0.007099290070992901,
+   "B3c_units": 17,
+   "reported_B3c_raw_rho": 0.13480392156862747,
+   "reported_B3c_raw_p": 0.37176282371762825,
+   "A1": {
+    "MCF7": 0.6779929082846899,
+    "HT29": 0.6560472588511915,
+    "MDAMB231": 0.7405772600999349,
+    "HS578T": 0.6988953671559761,
+    "THP1": 0.6940944323064507
+   },
+   "B3_T": 5.683689289079304,
+   "A1_minus_mu": {
+    "MCF7": 0.017039076485750093,
+    "HT29": 0.005243252976911972,
+    "MDAMB231": -0.00046034756712232117,
+    "HS578T": -0.035883011808178655,
+    "THP1": -0.021243664453560185
+   },
+   "expresses": true,
+   "beyond_mu_2a": false,
+   "beyond_mu_2b": true,
+   "fraction_of_measured_reference": {
+    "MCF7": 1.1648215651333838,
+    "HT29": 1.591536867999526,
+    "MDAMB231": 1.6431274715881623,
+    "HS578T": 1.1616555366860124,
+    "THP1": 1.1765277238484264
+   }
+  }
+ },
+ "mu": {
+  "B1_signal": true,
+  "B3_signal": true,
+  "B3c_rho": 0.7181372549019608,
+  "B3c_p": 0.013398660133986601,
+  "B3c_units": 17,
+  "reported_B3c_raw_rho": 0.35539215686274517,
+  "reported_B3c_raw_p": 0.14678532146785322,
+  "A1": {
+   "MCF7": 0.6609538317989399,
+   "HT29": 0.6508040058742796,
+   "MDAMB231": 0.7410376076670572,
+   "HS578T": 0.7347783789641548,
+   "THP1": 0.7153380967600109
+  },
+  "B3_T": 8.231910060205436
+ },
+ "mu_fraction_of_measured_reference": {
+  "MCF7": 1.053314404922181,
+  "HT29": 1.5380605654842645,
+  "MDAMB231": 1.646271616357719,
+  "HS578T": 1.3712315561578556,
+  "THP1": 1.3052988580264788
+ },
+ "measured": {
+  "A1": {
+   "MCF7": 0.652807016638903,
+   "HT29": 0.5980481583485617,
+   "MDAMB231": 0.6464142400756073,
+   "HS578T": 0.671217164533462,
+   "THP1": 0.6649722555381586
+  },
+  "B3_T": 3.9223060675068497
+ },
+ "reported_ridge": {
+  "B1_signal": true,
+  "B3_signal": true,
+  "B3c_rho": 0.6372549019607844,
+  "B3c_p": 0.027497250274972504,
+  "B3c_units": 17,
+  "reported_B3c_raw_rho": 0.16911764705882354,
+  "reported_B3c_raw_p": 0.29017098290170984,
+  "A1": {
+   "MCF7": 0.7019421907785772,
+   "HT29": 0.6464229198264998,
+   "MDAMB231": 0.7358887187988122,
+   "HS578T": 0.7424969774272638,
+   "THP1": 0.6741703816868734
+  },
+  "B3_T": 7.709046267751135
+ },
+ "scope": "model predictions, not internal attributions; compounds seen in training (cold-cell split); A3 has no positive-control unit (94.8); the measured values are a reference, not a ceiling for noise-free predictions (fractions > 1 possible); C4 self-retrieval diagnostics are not meaningful on prediction runs"
+}

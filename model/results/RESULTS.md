@@ -8211,6 +8211,68 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
 6. **Unchanged:** the readings, bars, nulls and the seed-mean-and-every-seed rule (94.9).
    - **Optional, not added:** C1's paired swap null for 2a.
 
+### 94.11 RESULT, Stage B read once: v9's predictions **express mechanism (as does μ)**; **no gain over μ in retrieval (2a)**; **2b passes as registered** on standardised pathway activity, with a small margin over μ and a reversal on raw activity (2026-10-08)
+**The runs:**
+- **Code and clearance:** `mechanism_stage_a.py` 6602e762, cleared by review 061a. Seven local CPU runs, each about 4 min.
+- **The measured rerun:** reproduces 94.8 exactly (asserted on every A1 field, and A3's T, p, frac and d), and adds `d_std`.
+- **The prediction runs:** v9 seeds 0, 1, 2 (`deg_pred`), the seed-mean, μ (`mean_drug_delta_pred − ctl_true`) and ridge
+  (`ridge_pred − ctl_true`).
+- **Read once:** `--read_b` → `model/results/mechanism94/stageB/stage_b_reading.json`. Every input is marker-verified.
+
+**A1 per cell** (MCF7 / HT29 / MDAMB231 / HS578T / THP1):
+
+| source | A1 | B3 T (gated) |
+|---|---|---|
+| measured (the reference) | 0.653 / 0.598 / 0.646 / 0.671 / 0.665 | 3.92 |
+| μ (drug's training-cell average) | 0.661 / 0.651 / 0.741 / 0.735 / 0.715 | 8.23 |
+| v9, seed-mean | 0.675 / 0.647 / 0.751 / 0.699 / 0.709 | 5.81 |
+| v9, seeds 0 / 1 / 2 | MCF7 0.672 / 0.672 / 0.678 … (all seeds within ±0.02 of the mean) | 5.75 / 5.50 / 5.68 |
+| ridge (reported) | 0.702 / 0.646 / 0.736 / 0.742 / 0.674 | 7.71 |
+
+**The readings** (94.9 / 94.10, mechanical; each on the seed-mean and every seed):
+1. **EXPRESSES MECHANISM: yes, as does μ.** B1 and B3 carry signal for every v9 run and for μ.
+   - **The sentence:** *"v9's predictions express mechanism (as does μ)."*
+   - Predictions retrieve mates better than the measured reference, as expected for noise-free predictions (94.10 C3).
+2. **2a, beyond μ in retrieval: NO.**
+   - v9 − μ, seed-mean: MCF7 +0.014, HT29 −0.004, MDAMB231 +0.010, HS578T −0.036, THP1 −0.006. That is 2 of 5 positive, mean
+     −0.004.
+   - Every seed is similar.
+   - **The sentence:** *"v9's predictions express mechanism no better than the drug's training-cell average"* (by retrieval).
+3. **2b, beyond μ in cell-specific pathway magnitude: PASSES as registered.**
+   - **B3c of record** (within-class Spearman of standardised d, 17 units):
+     - v9 seed-mean **0.806 (p 0.002)**; seeds 0.784 (p 0.004), 0.860 (p 0.0005), 0.728 (p 0.007);
+     - μ **0.718** (p 0.013).
+   - Every v9 run is > 0 with p < 0.05 and above μ's.
+   - **The licensed sentence** (review 061a's form): *"v9's predictions in unseen cells indicate in which cells a pathway
+     inhibitor's pathway effect stands out most, relative to that pathway's spread across the cell's compounds, slightly
+     better than the compound's training-cell average does."*
+
+**Beside reading 2b** (descriptive; it must accompany any use of it):
+- **The margin over μ is small:** 0.01 to 0.14 by seed; 0.09 for the seed-mean. 94.9 registered no null for the v9 − μ
+  difference itself. "Seed-mean and every seed" is the only robustness rule applied.
+- **μ already reaches 0.72** without any cell information: through which compounds make up each cell's units (composition)
+  and the within-cell standardisation.
+- **On raw activity the order reverses:** raw-d B3c is v9 0.12–0.15 (p 0.36–0.39) against μ 0.355. The standardised B3c of
+  record removes cell-level scale (review 061 C1). Without it, v9's predicted per-cell magnitudes match the measured ones worse
+  than μ's do.
+- **The z-score's sd includes the class's own members,** which slightly compresses strong units (review 061a note).
+- **Scope:**
+  - 17 units in 5 classes;
+  - no positive-control unit (94.8);
+  - compounds are seen in training;
+  - statements are about the model's predictions, not its internal attributions.
+
+**What Stage B says** (interpretation, for the critic):
+- v9's test-cell predictions carry mechanism structure (retrieval of mechanism-mates; pathway direction), but **essentially
+  the compound's identity**: retrieval does not exceed the drug's training-cell average.
+- The one place v9 goes beyond μ is a modest, standardised-scale signal of which cells' pathway effects stand out. On raw
+  scale it trails μ.
+- **For mechanistic interpretability:**
+  - the model's predictions are mechanism-consistent;
+  - nothing here shows the model *adds* mechanism-relevant, cell-specific information robustly beyond what the drug's average
+    response already carries;
+  - this matches §85.14's cell-level readout, the accuracy gains over μ, and §88's internal null.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
