@@ -7944,6 +7944,88 @@ G_chr per cell: LNCAP +0.0041, SKBR3 +0.0013, HEK293T +0.0001, VCAP −0.0002, U
 - **For the histone marks**, that was tested only on artefact-bearing features (§91's FBC − N1 +0.00023; H3K27ac ≈ 20 % and
   H3K27me3 ≈ 90 % tie-break code).
 
+## 94. 🔒 PRE-REGISTERED: a data-first mechanism programme. Stage A: which drug-mechanism signals do the *measured* responses carry in the held-out test cells? (principal-approved direction, 2026-10-08; no model output is read)
+### 94.1 Why
+- **The record:** three model readouts of drug mechanism were null against their references:
+  - atom→gene attention (C 4.1a);
+  - gradient × activation (§86);
+  - a trained pathway layer (§88).
+- **The clue:** §86's *data* projection showed that the measured responses themselves carry no target-pathway alignment at that
+  readout. A model readout can only recover mechanism that the measurements carry.
+- **Stage A** measures that ceiling with two standard readouts, on the rows where v9 is evaluated (P7's 8 test cells, XPert cold-cell
+  split 1).
+- **Stage B** (v9's predictions) is registered only after Stage A, and only for a readout that carries signal.
+- **What Stage A changes:** it decides what can be asked of the model. It does not change the test-cell reading of §85.14.
+
+### 94.2 Data
+- **Rows:** the P7 test rows, `split_split_cold_cell_1 == 'test'`. They are the 21,151 `row_index` of `v9p7_seed0.npz`, read
+  from `external/xpert_split_bundle/xpert_mdmt_splits.npz`.
+- **Measured response:** Δ = X − X_ctl.
+- **Mechanism labels:** `drug/outputs/dti/chembl_dti_edges.tsv`, with `direct_interaction == 1` and `target_type == SINGLE PROTEIN`.
+  - A compound's **MoA classes** are its set of `mechanism_of_action` strings.
+  - Its **targets** are its `gene_symbol`s, each with its `action_type`.
+- **Scored cells:** those with ≥ 25 labelled compounds in MoA classes that have ≥ 2 members in that cell. By the label count
+  (2026-10-08; identities only, no response read) these are MCF7 312, HT29 239, MDAMB231 52, HS578T 32 and THP1 28.
+  BJAB (8), CD34 (3) and H1975 (7) are reported only.
+- **Compound signature in cell c:** the mean Δ over the compound's rows in c (all doses and times), minus the cell's mean signature
+  over all its compounds.
+
+### 94.3 Readout A1, MoA-mate retrieval (CMap-style)
+- **Per compound:** for each labelled compound i in a scored cell with ≥ 1 MoA-mate there (a compound sharing any MoA string), the
+  AUROC of Pearson(sig_i, sig_j) for mates against non-mates. j runs over the cell's other labelled compounds.
+- **A1_c** = the mean of those AUROCs.
+- **Null:** the MoA label sets permuted across the cell's labelled compounds, 1,000 draws, `default_rng(9400 + k)` for the k-th
+  scored cell in the order above. It gives the null mean and sd and a one-sided p.
+- **Signal in a cell** iff A1_c − null mean ≥ 0.05 and p < 0.01.
+- **A1 carries signal** iff it does in ≥ 3 of the 5 scored cells.
+- **Reported:** the AUROC per MoA class (classes with ≥ 3 members in the cell) and per cell. These name the classes that carry it,
+  e.g. kinase inhibitors against CNS-receptor ligands.
+
+### 94.4 Readout A3, pathway activity in the expected direction (PROGENy)
+- **Network:** `dc.op.progeny(organism='human', top=500)`, restricted to the 978 landmarks. The decoupler version, retrieval date,
+  rows kept and the table's sha1 are recorded.
+- **Activity:** decoupler's univariate linear model (`dc.mt.ulm`) per (compound, cell) signature.
+- **The expected classes, fixed now.** A compound joins a class if any direct target is listed. The expected sign is −1 for
+  INHIBITOR, ANTAGONIST, NEGATIVE MODULATOR or BLOCKER, and +1 for AGONIST or POSITIVE MODULATOR; other action types are excluded.
+
+  | class | target gene symbols | PROGENy pathway | sign for an inhibitor |
+  |---|---|---|---|
+  | MAPK | MAP2K1, MAP2K2, BRAF, RAF1, ARAF, MAPK1, MAPK3 | MAPK | − |
+  | EGFR | EGFR, ERBB2 | EGFR | − |
+  | PI3K | PIK3CA, PIK3CB, PIK3CD, PIK3CG, AKT1, AKT2, AKT3, MTOR | PI3K | − |
+  | JAK | JAK1, JAK2, JAK3, TYK2 | JAK-STAT | − |
+  | AR | AR | Androgen | − (agonist +) |
+  | ER | ESR1, ESR2 | Estrogen | − (agonist +) |
+  | p53 | MDM2 | p53 | + (an MDM2 inhibitor activates p53) |
+  | NFkB | IKBKB, CHUK | NFkB | − |
+
+- **Per unit** (a class and a scored cell with ≥ 3 compounds of that class):
+  - d = the mean of (activity × expected sign) over the class's compounds;
+  - minus the mean of the same pathway's (activity × the class's inhibitor sign) over the cell's other labelled compounds.
+- **The statistic:** T = the mean of d over units.
+- **Null:** class memberships permuted among each cell's labelled compounds, 1,000 draws, `default_rng(9450)`, giving a one-sided
+  p for T.
+- **A3 carries signal** iff p < 0.01 and d > 0 in ≥ 2/3 of the units.
+- **Reported:** d per unit, and the units' compounds.
+
+### 94.5 What Stage A decides (fixed now)
+- **A1 has signal:** Stage B tests whether v9's P7 predicted signatures retrieve MoA-mates. Its references are the drug-mean
+  prediction μ (no cell-specific information) and the measured ceiling, both registered then.
+- **A3 has signal:** Stage B tests whether v9's predicted signatures show the expected pathway direction, against the same
+  references.
+- **Neither has signal:** recorded as *"on these test cells, the measured landmark responses do not carry these mechanism
+  readouts, so model readouts of them cannot be informative"*. That is the reason no model mechanism claim is attempted on this
+  split, and the programme moves to the cold-drug split (registered separately; it needs a v9 training run on
+  `split_cold_drug_1`).
+
+### 94.6 Code and cost
+- **Code:** one module, `model/v9/mechanism_stage_a.py` (worker-written, PI-reviewed), and one reader in it, applied once.
+- **Its tests,** on synthetic data:
+  - planted MoA clusters are retrieved, and an unplanted world gives A1 at its null;
+  - a planted pathway shift in the expected direction is detected, and the null is calibrated;
+  - label handling (dimers and duplicates, the action-type signs) is correct.
+- **Where it runs:** local CPU (hundreds of compounds × 978 genes), so no GPU. The only download is PROGENy through decoupler.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
