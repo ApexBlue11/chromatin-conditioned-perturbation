@@ -21,7 +21,9 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [],
+  "open_packets": [
+    "057_c93_genegeneric_code"
+  ],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -82,7 +84,7 @@
     "056_c93_h1_result"
   ],
   "gpu_hours_spent_this_session": 18.71,
-  "pending_decision": "93 Stage 1 closed (93.13-93.14): the gene-local gain form is closed for these data; P2 weakly bounded; gene-generic finding needs a matched non-chromatin per-gene control. Principal decision pending on what next. E1 seeds 1-2 (kern_v9dev_e1_s1) after Sat 10 Oct 05:30 IST.",
+  "pending_decision": "93.15 gene-generic control: code + pre-registration in packet 057; kernel kern_chromatin93_gg generated, NOT pushed until cleared. Principal decision pending on direction after Stage 1. E1 seeds 1-2 after Sat 10 Oct 05:30 IST.",
   "note_current": "Kaggle weekly GPU quota exhausted (30 h). C8b running (may be cut). C3, C6 queued for the reset. Screens so far: C2 drop (+0.0016), C1 drop (-0.0086), C4 drop (-0.0042). Packet 026: C7 pre-registration; C5 deferred.",
   "challenges_upheld": "223 challenge rows in 56 adjudicated reviews (counted 2026-10-08 incl. review 056: C1-C4 Stage 1 summary scoped, F_enh MDE at the detection edge; review 055: C1 calibration kept F_prom real, C2 HEK293T caveat, C3 split-half scoped; review 054: C1 MAJOR motif accessibility measured peak width, fixed 500-bp windows; C2, C3 upheld; review 053: C1, C2 upheld -- item 2 sat inside the null calibration, items 1/4 lacked the gain-form scope; review 052: C1(b), C2, C3 upheld; C1(a) answered -- a cell-common planted effect is absorbed by mu, so the planted G check cannot clear the raw bar; the test pins that instead); the older running tally (160 of 163) had drifted and is withdrawn",
   "last_human_checkpoint": "2026-09-24 (iteration 24) -- status summary to the principal; loop not paused",
