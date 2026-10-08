@@ -8417,6 +8417,80 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
   - It is a generic DNA-damage → p53 response: robust biology, and possibly easy for chemistry-only references if those
     compounds have close training relatives.
 
+## 96. 🔒 PRE-REGISTERED: P9, v9 on XPert's cold-drug split (accuracy-primary); its XPert comparator; Stage B′ (secondary, pre-scoped). Before any P9 code runs (PI, 2026-10-08)
+### 96.1 Why
+- **Accuracy:** a SOTA paper is asked for **unseen-compound** performance, and P7 covers unseen cells only. XPert reports
+  cold-drug PCC **0.645 ± 0.008** (Supplementary Table R8). The bundle's ridge reaches 0.530 on the delta target (§42).
+- **Mechanism (secondary):** §95.6 opened the P9 gate through A3 on about 8 compounds in 2 classes. Review 064 advised
+  registering P9 accuracy-primary, with Stage B′ secondary and pre-scoped. Adopted.
+
+### 96.2 P9's execution (P7's recipe, §85.12, with only the split changed)
+- **The command:** `xpert_arm.py --bundle xpert_mdmt_splits.npz --split split_cold_drug_1 --dp_seed_mode distinct --seeds 3
+  --seed_start 0 --epochs 12 --d_model 256 --sign_head_w 0.492066 --snapshot_cycles 3 --no_test_metrics --save_pred …
+  --save_ckpt …`. That is all training rows of the split, with no dev carve.
+- **Blinded as P7:** no test metric is computed or printed in the kernel, and outputs are staged and moved only after every guard
+  passes.
+- **The row guard:** each seed's `row_index` has **13,364** rows, with sorted sha1 **`5f85ef0b5bec…`**.
+  - That is the 13,445 test rows less the **81** rows of the **7** of 396 compounds without UniMol / ECFP4 features
+    (`drug_feature_index.json`; `xpert_arm.py:103–123`).
+  - The same rule reproduces P7's 21,151 rows and `be276e23` on cold-cell.
+- **Cost:** ≈ 2 GPU-h per seed, about 6 GPU-h. It is pushed at the Sat 10 Oct quota reset beside E1's seeds 1–2 (Kaggle allows 2
+  concurrent GPU sessions).
+- **The kernel:** `orchestration/make_p9_kernel.py`, P7's builder with the split, the guard and the output names changed.
+
+### 96.3 The accuracy reading (the compound is the unit; the analogue of §71.2)
+- **The row score:** per-row Δ Pearson against y − ctl (their convention). v9's prediction is the mean of its three seeds'
+  `deg_pred`.
+- **The estimand against a reference R:**
+  - d_k = the median over held-out compound k's rows of (r_v9 − r_R);
+  - **the summary** is the unweighted mean of d_k over the 389 compounds, with a **cluster bootstrap over compounds** (20,000
+    draws, seed 0);
+  - **the count** of compounds with d_k > 0, with a sign test;
+  - **reported, labelled not the claim:** the row-pooled paired mean and the per-cell breakdown (40 cells).
+- **The reading per R:**
+  - **"v9 predicts unseen compounds better than R"** iff the mean > 0, the CI excludes 0, and **≥ 60 % of compounds favour v9**
+    (sign p < 0.01);
+  - **"R better"** symmetrically;
+  - **otherwise** no compound-level claim.
+  - **Uninformative:** a CI wider than 0.10.
+- **The references:**
+  1. **ridge,** at once: the bundle's `ridge_pred − ctl_true` (control + ECFP4 + descriptors) on the same rows;
+  2. **our XPert cold-drug run (O9):** registered **separately, before its launch**, reusing:
+     - §84.1's termination handling (their stopper watches test loss; sessions are pushed without reading the logged loss);
+     - §84.2's hardening;
+     - this estimand;
+     - **a reproduction check:** our XPert row-pooled cold-drug score inside [0.621, 0.669] (3 published SDs), else flagged
+       before anything is concluded.
+- **Reported, never a claim:** XPert's published 0.645 (other runs, a five-fold mean).
+
+### 96.4 Stage B′ (secondary; review 064 ask 4, fixed now)
+1. **B3 on v9's predictions by A3's rule** (p < 0.01, ≥ 2/3 of units, units spanning ≥ 2 classes), on the seed-mean and every
+   seed.
+2. **"Beyond chemistry", per reference R** ∈ {ridge, 1-NN, 5-NN, physchem}:
+   - T_v9 > T_R, with a **paired swap null at the (compound, cell) level**: swap v9's and R's signatures per compound-cell, 10,000
+     draws, `default_rng(9470)`, one-sided p < 0.05;
+   - the per-class direction consistency is reported.
+   - **The references:**
+     - **1-NN:** test compound k in cell c gets the mean training Δ in c of its most Tanimoto-similar training compound profiled
+       in c (ECFP4, radius 2, 2,048 bits, RDKit). **The fallback** if none is profiled in c: the nearest compound overall, with
+       its mean Δ across cells (counted).
+     - **5-NN:** the similarity-weighted mean of the 5 nearest, by the same rule.
+     - **physchem:** 5-NN in z-scored descriptor space (cLogP, TPSA, MW, HBD, HBA, number of basic amines), by the same
+       same-cell rule.
+3. **B3c:** reported only.
+4. **Before any P9 prediction is read:** list the A3 member compounds with their max Tanimoto to training and nearest training
+   analogue, flagging any above 0.8. That is identity level.
+5. **The licensed sentence, fixed:** *"for DNA-damaging and EGFR-inhibiting compounds unseen in training, v9's predictions show
+   the expected pathway direction more strongly than chemistry-only references (those R passed)"*. Nothing wider.
+
+### 96.5 Order and budget
+- **Order:**
+  1. P9 and E1's seeds 1–2 at the Sat 10 Oct reset (≈ 9.4 GPU-h);
+  2. E3 after E1's read (≈ 5 GPU-h);
+  3. O9 when registered (≈ 11 GPU-h).
+- **Budget:** about 25 GPU-h, within the 30 h weekly quota, or split over two weeks.
+- **What follows on CPU:** Stage B′ and the accuracy reading.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
