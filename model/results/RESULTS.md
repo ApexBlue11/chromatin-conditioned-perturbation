@@ -8282,6 +8282,50 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
     whatever v9 adds over μ in accuracy is **not visible at these mechanism readouts**;
   - **it is consistent with §88's internal null.**
 
+## 95. 🔒 PRE-REGISTERED: the cold-drug mechanism programme. Does v9 map an **unseen** compound's chemistry to mechanism-consistent responses? Stage A′ (measured) first (PI, 2026-10-08)
+### 95.1 Why
+- **What §94 showed:** on the cold-cell split, v9's predictions express mechanism only as the compound's training-cell average
+  (μ) does. Every compound there was seen in training.
+- **The test of mechanism from chemistry** is the **cold-drug split** (`split_split_cold_drug_1`):
+  - 13,445 test rows, 396 compounds and 40 cells;
+  - **no test compound appears in training;**
+  - μ does not exist for an unseen compound.
+  - So any mechanism structure in v9's predictions there must come from chemistry, through the model.
+- **Order (review 059 C5):** Stage A′ first, on the measured responses of these test rows (local CPU). The v9 cold-drug run
+  and Stage B′ come only if a readout carries signal.
+
+### 95.2 Stage A′ (measured; §94's code, readings and rules unless stated)
+- **Rows:** all 13,445 rows with `split_split_cold_drug_1 == 'test'`. Δ = X − X_ctl.
+- **Labels, units, plate rule, A1, A3, nulls and the reader:** exactly §94 / §94.7 / §94.10.
+- **Scored cells** (identity counts, 2026-10-08; labelled parents in multi-member classes, ≥ 25): MCF7 56, PC3 54, A375 50,
+  HA1E 43, HT29 40, A549 39. The order is fixed as listed (null seeds 9400 + k). Others are reported only.
+- **A1 carries signal** iff ≥ 4 of the 6 scored cells meet Δ ≥ 0.05 and p < 0.01. That keeps §94's two-thirds share.
+- **A3's gates for these cells** (standard cell-line annotations):
+  - **RAF targets** in BRAF-V600 cells only: HT29, A375;
+  - **MDM2** in TP53-wild-type cells only: MCF7, A549. HA1E expresses SV40 large T, which inactivates p53, so it is excluded;
+  - **ER** in MCF7 only;
+  - **AR:** dropped (PC3 is AR-negative);
+  - everything else as §94.7's table.
+- **Outputs:** `model/results/mechanism95/stage_a_prime.json` with its marker, and one `--read`.
+
+### 95.3 What follows, sketched (each registered in its own packet before it runs)
+- **P9, the v9 cold-drug run** (GPU, only if A′ has a readout with signal):
+  - P7's recipe on `split_cold_drug_1`, 3 seeds, about 6 GPU-h;
+  - blinded as P7 was;
+  - its accuracy read against XPert's cold-drug run, which needs its own budget.
+- **Stage B′ (CPU), with chemistry-only references in place of μ:**
+  - the bundle's `ridge_pred` (control + ECFP4 + descriptors; Δ = `ridge_pred − ctl_true`);
+  - a structural-nearest-neighbour reference: the training response of the test compound's most Tanimoto-similar training
+    compound, in the same cell;
+  - each registered then, with B1, B3 and B3c defined as in §94.9 / §94.10.
+- **The claim it could license:** *"for unseen compounds, v9's predictions place a compound near its mechanism-mates better than
+  chemistry-only references do"*. That would be mechanism from structure, beyond structural similarity.
+
+### 95.4 Code and cost
+- **Code:** `mechanism_stage_a.py` gains `--split` (default `split_cold_cell_1`, so §94's runs are unchanged), with the
+  cold-drug gates as a second gated table keyed by cell. A test checks the gates.
+- **Cost:** local CPU, ≈ 4 min.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
