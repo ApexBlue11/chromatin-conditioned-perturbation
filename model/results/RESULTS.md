@@ -8703,6 +8703,85 @@ Review 066 found 96.8's fix right and its mechanism wrong (C1, reworded above). 
    - **The implementation:** Δ_obs = Σ_i g_i, and the null draws random signs. A test checks it against brute-force
      recomputation of both pseudo-models.
 
+## 97. 🔒 PRE-REGISTERED: O9, XPert trained to its published recipe on `split_cold_drug_1`, as P9's head-to-head comparator. Before any O9 code (PI, 2026-10-08)
+### 97.1 Why, and what it adds over O2
+- **The need:** P9 (§96) is read against ridge at once. A SOTA statement about unseen compounds needs XPert on the **same split,
+  rows and scorer**. XPert's published 0.645 ± 0.008 comes from other runs and is a five-fold mean (96.3).
+- **One improvement on O2:** XPert's published commands (`scripts/train.sh:13–17`) train `split_cold_drug_k` **first** in each
+  fold list, right after `set_random_seed(2024)` (`train_xpert.py:402`). A fresh model and `init_weights()` follow per fold
+  (`:425–439`).
+- **So:** O9's fold starts from **the same seed-2024 state as their own run of that fold.** O2's cold-cell fold was second in
+  their list and carried a disclosed seed difference; O9 carries none.
+
+### 97.2 Execution: O2's production machinery, with only fold constants changed
+- **The kernel:** a builder `orchestration/make_o9_kernel.py`, derived from `kern_xpert_cc1/generator/make_prod_kernel.py` and
+  its base and tail by **asserted exact substitutions** (as `make_p9_kernel.py` was from P7's). It keeps every O2 guard and
+  deviation:
+  - DataParallel over both T4s (§81.7);
+  - the ten frozen parameters (§80.5);
+  - full-state resume (§81.7);
+  - §84.1's terminations (FINAL only at their early stop or the **297-epoch horizon**);
+  - §84.2's hardening:
+    - epoch-boundary stops;
+    - the sha1 chain of custody through git, with session k−1's literals committed before session k's push;
+    - the in-process 81.3a recheck;
+    - the torch/CUDA stack pinned to session 1;
+    - session 1's C4 chain test in test mode before real training.
+- **What changes:**
+  - `FOLD = 'split_cold_drug_1'`;
+  - the level counts `{train: 55385, test: 13445}`;
+  - the prediction-row checks: all **13,445** test rows, through O2's row-indexed harness (`xpert_native_eval.py`);
+  - Amendment E's per-epoch projection, repriced by training size: 482.2 s × 55,385 / 47,509 = **562.1 s**;
+  - `RECORD['seed_note']`, rewritten per 97.1;
+  - the slug `lincs-xpert-cd1` and the private state dataset `apexblue/xpert-cd1-state`.
+- **What is never read:** their logged losses and their reported metrics (decisions_locked). Between sessions, only timing,
+  state integrity and quota inform a decision (§84.1 item 3).
+- **Cost:**
+  - **at 562 s per epoch:** about 53 epochs per 8.3-h session;
+  - **if their stopper fires near O2's epoch (90):** 2 sessions, **about 14–17 GPU-h**;
+  - **the worst case to the horizon:** about 46 GPU-h over several weeks.
+  - (96.5's "≈ 11 GPU-h" was low, and is superseded here.)
+  - **Order:** O9's session 1 is pushed when a Kaggle GPU slot frees after P9 / E1. The chain test runs first.
+
+### 97.3 Admissibility, item by item (the analogue of §71.3 / §71.7 / §78.5)
+1. **Their stopper selects on the test set:** the split has only `train` and `test`, so their val = test fallback applies, as in
+   O2.
+   - **A v9 win is conservative.** An **XPert win is uninterpretable** as a model comparison (the test-guided checkpoint) and is
+     reported plainly as *"XPert (checkpoint selected on these test rows)"*.
+2. **Termination** (§84.1):
+   - **No result:** a run that is neither early-stopped nor at the horizon is INCOMPLETE, and is never read.
+   - **At the horizon:** a v9-win claim is admissible only if XPert's best epoch ≤ 252 (§84.1 item 5, unchanged).
+   - **If they early-stop:** `counter_at_end == 50` is asserted.
+3. **`best_epoch < 70`** (selected before their `init_epoch` switch) is disclosed, not vetoed (§71.7).
+4. **Reproduction** (§71.4's analogue, on the **full** split, their convention, review 065 C4):
+   - **The check:** O9's row-pooled per-row Δ Pearson on all 13,445 test rows against XPert's published cold-drug 0.645 ± 0.008.
+   - **Outside [0.621, 0.669]** (3 published SDs): flagged as a possible reproduction failure, and **no head-to-head claim** is
+     made from it. Everything is reported.
+   - **Its limit:** one fold against a five-fold mean can catch a broken run, not validate a good one.
+   - **Expected direction:** the 96.6 duplicates should lift any model's full-split score, so the band is read on the full split
+     only.
+5. **Seeds:** XPert has one run (their seed 2024); v9 has three, scored by score-averaging (96.7 item 2). No statement about
+   XPert's seed variance is licensed.
+
+### 97.4 The reading (same estimand and code as P9 against ridge)
+- **The scorer:** `model/v9/score_p9.py --ref xpert_o9`. It is the same code, guards, molecule unit and verdict rule (96.3 /
+  96.7). A `REFS` entry is added for O9's test profile (`row_index`, `y_pred`, `y_true`, `ctl_true`; the reference delta is
+  `y_pred − ctl_true`).
+- **The pairing:** on P9's 13,364 rows, which O9's 13,445 contain. The targets must agree within 1e-4.
+- **The head-to-head of record:** the **clean subset** (11,983 rows, 346 molecules). The full split is reported as *"the
+  benchmark as defined"* (96.7 item 6).
+- **The verdicts,** with item 1's asymmetry built in:
+  - **v9 better** (mean > 0, CI excludes 0, ≥ 60 % of molecules, sign p < 0.01, CI ≤ 0.10, admissible under 97.3) →
+    *"v9 predicts unseen compounds better than XPert as published"*. It is conservative, and carries 97.3's caveats.
+  - **XPert better** by the mirror rule → *"uninterpretable as a model comparison"*, reported plainly.
+  - **Otherwise** → no compound-level claim.
+- **Reported, never a claim:** the row-pooled numbers, per cell, per similarity stratum, and per seed.
+
+### 97.5 What no outcome licenses
+- **Other folds:** anything about XPert's other four cold-drug folds. Only fold 1 is run, and their leak rates differ (96.7
+  item 3).
+- **Their published numbers:** any statement about them beyond 96.6 / 96.7's identity-level finding.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
