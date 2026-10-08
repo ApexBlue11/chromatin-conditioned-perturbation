@@ -8491,6 +8491,49 @@ rows) and a Stage B reader over the result files, with tests. Local CPU.
 - **Budget:** about 25 GPU-h, within the 30 h weekly quota, or split over two weeks.
 - **What follows on CPU:** Stage B′ and the accuracy reading.
 
+### 96.6 FINDING (identity level, before any P9 run): **XPert's cold-drug split leaks about 10 % of its test rows through same-molecule duplicates**, and P9 is amended to read a molecule-clean subset (PI, 2026-10-08)
+**The audit** (`model/results/mechanism96/cold_drug_molecule_audit.json`; RDKit ECFP4, radius 2, 2,048 bits; InChIKeys from the
+LINCS pert_info; no response read):
+- **Same molecule in training under a different `pert_id`:**
+  - **37 of the 396 cold-drug test compounds (9.3 %)** have a training compound at ECFP4 Tanimoto 1.0;
+  - **38** share an InChIKey first block (the same skeleton up to stereo or salt) with a training compound;
+  - 3 share the full InChIKey.
+  - They carry **1,330 of the 13,445 test rows (9.9 %)**.
+  - Examples: afatinib (`BRD-K66175015` in test, `BRD-A58767537` in train) and doxorubicin (`BRD-K92093830` / `BRD-A52530684`).
+- **Near-duplicates:** 51 compounds have a training compound above Tanimoto 0.8, and 125 above 0.6. The median nearest-training
+  similarity is 0.45.
+- **The cause:** XPert's splits hold out compounds by `pert_id`, and LINCS often gives one molecule several BRD ids (batches,
+  salts, stereo-forms).
+- **So:** every model's "cold-drug" score on this split, XPert's published 0.645 included, partly measures **seen** molecules.
+- **The cold-cell split,** for contrast, shares 1,283 of its 1,419 test compounds with training by design.
+
+**P9 amended** (96.3, before any P9 run):
+1. **The molecule-clean subset:**
+   - **excluded:** test compounds with an InChIKey first-block match or Tanimoto ≥ 0.999 to any training compound (38 compounds,
+     listed in `model/results/mechanism96/cold_drug_clean_subset.json`);
+   - **what remains:** **11,983** scored rows and **351** compounds, sorted row_index sha1 **`6024dbf8a8d5…`**.
+   - **This is the reading of record for any "unseen compound" claim.** The full 13,364-row split is read the same way and
+     reported as *"the benchmark as defined (includes same-molecule duplicates)"*, which is the comparison XPert's published
+     number belongs to.
+2. **Stage B′ (96.4 item 4):**
+   - **The A3 members:** afatinib and doxorubicin (Tanimoto 1.0 to a training copy of themselves) are flagged.
+   - **The "beyond chemistry" comparison is read on members excluding them**; including them is reported.
+   - **The remaining members:**
+
+     | member | class | max Tanimoto to training |
+     |---|---|---|
+     | pelitinib | EGFR | 0.75 |
+     | erlotinib | EGFR | 0.54 |
+     | CP-724714 | EGFR | 0.34 |
+     | decitabine | DNA | 0.63 |
+     | cladribine | DNA | 0.62 |
+     | altretamine | DNA | 0.22 |
+
+3. **The kernel:** P9's training is unchanged (the split as defined), since the clean subset is a scoring restriction. GUARD 6
+   still checks the full 13,364 rows.
+4. **For the paper:** this is a benchmark-integrity finding, with its own short section once reviewed. It bears on every
+   published cold-drug number that uses these splits.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

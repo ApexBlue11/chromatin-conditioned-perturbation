@@ -1,0 +1,95 @@
+{
+ "n_members": 8,
+ "n_train_compounds_fingerprinted": 1529,
+ "members": [
+  {
+   "pert_id": "BRD-K08799216",
+   "name": "pelitinib",
+   "classes": [
+    "EGFR"
+   ],
+   "max_tanimoto": 0.75,
+   "nearest_train": "BRD-K85606544",
+   "nearest_train_name": "neratinib",
+   "flag_gt_0_8": false
+  },
+  {
+   "pert_id": "BRD-K66175015",
+   "name": "afatinib",
+   "classes": [
+    "EGFR"
+   ],
+   "max_tanimoto": 1.0,
+   "nearest_train": "BRD-A58767537",
+   "nearest_train_name": "afatinib",
+   "flag_gt_0_8": true
+  },
+  {
+   "pert_id": "BRD-K67043667",
+   "name": "altretamine",
+   "classes": [
+    "DNA"
+   ],
+   "max_tanimoto": 0.222,
+   "nearest_train": "BRD-K61627029",
+   "nearest_train_name": "BRD-K61627029",
+   "flag_gt_0_8": false
+  },
+  {
+   "pert_id": "BRD-K70401845",
+   "name": "erlotinib",
+   "classes": [
+    "EGFR"
+   ],
+   "max_tanimoto": 0.536,
+   "nearest_train": "BRD-K26603252",
+   "nearest_train_name": "PD-153035",
+   "flag_gt_0_8": false
+  },
+  {
+   "pert_id": "BRD-K76908866",
+   "name": "CP-724714",
+   "classes": [
+    "EGFR"
+   ],
+   "max_tanimoto": 0.338,
+   "nearest_train": "BRD-K50495309",
+   "nearest_train_name": "SRC-kinase-inhibitor-I",
+   "flag_gt_0_8": false
+  },
+  {
+   "pert_id": "BRD-K79254416",
+   "name": "decitabine",
+   "classes": [
+    "DNA"
+   ],
+   "max_tanimoto": 0.633,
+   "nearest_train": "BRD-K18157228",
+   "nearest_train_name": "fdcyd",
+   "flag_gt_0_8": false
+  },
+  {
+   "pert_id": "BRD-K92093830",
+   "name": "doxorubicin",
+   "classes": [
+    "DNA"
+   ],
+   "max_tanimoto": 1.0,
+   "nearest_train": "BRD-A52530684",
+   "nearest_train_name": "doxorubicin",
+   "flag_gt_0_8": true
+  },
+  {
+   "pert_id": "BRD-K93034159",
+   "name": "cladribine",
+   "classes": [
+    "DNA"
+   ],
+   "max_tanimoto": 0.618,
+   "nearest_train": "BRD-K34022604",
+   "nearest_train_name": "clofarabine",
+   "flag_gt_0_8": false
+  }
+ ],
+ "fingerprint": "Morgan radius 2, 2048 bits (ECFP4), RDKit"
+}

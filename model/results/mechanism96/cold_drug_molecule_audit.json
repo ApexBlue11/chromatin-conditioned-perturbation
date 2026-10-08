@@ -1,0 +1,3199 @@
+{
+ "split_cold_drug_1": {
+  "summary": {
+   "n_test_compounds": 396,
+   "same_inchikey": 3,
+   "same_inchikey_block1": 38,
+   "tanimoto_eq_1": 37,
+   "tanimoto_gt_0_8": 51,
+   "tanimoto_gt_0_6": 125,
+   "test_rows_in_tanimoto_eq_1_compounds": 1330,
+   "test_rows_total": 13445,
+   "median_max_tanimoto": 0.44871794871794873
+  },
+  "compounds": [
+   {
+    "pert_id": "BRD-A01636364",
+    "name": "bupivacaine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6888888888888889,
+    "n_test_rows": 7
+   },
+   {
+    "pert_id": "BRD-A08840375",
+    "name": NaN,
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": null,
+    "max_tanimoto": NaN,
+    "n_test_rows": 9
+   },
+   {
+    "pert_id": "BRD-A09533288",
+    "name": "verapamil",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.26666666666666666,
+    "n_test_rows": 64
+   },
+   {
+    "pert_id": "BRD-A10012892",
+    "name": "argatroban",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3010752688172043,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-A10386413",
+    "name": "ascorbic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.1951219512195122,
+    "n_test_rows": 11
+   },
+   {
+    "pert_id": "BRD-A11087911",
+    "name": "BRD-A11087911",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5230769230769231,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-A11990600",
+    "name": "lorazepam",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2833333333333333,
+    "n_test_rows": 54
+   },
+   {
+    "pert_id": "BRD-A12230535",
+    "name": "nutlin-3",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.25510204081632654,
+    "n_test_rows": 105
+   },
+   {
+    "pert_id": "BRD-A15113563",
+    "name": "BRD-A15113563",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.21311475409836064,
+    "n_test_rows": 9
+   },
+   {
+    "pert_id": "BRD-A17411484",
+    "name": "carprofen",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3829787234042553,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-A17462676",
+    "name": "bambuterol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4666666666666667,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-A17655518",
+    "name": "ibuprofen",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4878048780487805,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-A18620900",
+    "name": "estriol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-A19037878",
+    "name": "trichostatin-a",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 138
+   },
+   {
+    "pert_id": "BRD-A19736161",
+    "name": "ondansetron",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.27419354838709675,
+    "n_test_rows": 52
+   },
+   {
+    "pert_id": "BRD-A19952358",
+    "name": "closantel",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2857142857142857,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-A20239487",
+    "name": "atenolol-(+/-)",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6521739130434783,
+    "n_test_rows": 37
+   },
+   {
+    "pert_id": "BRD-A21584801",
+    "name": "brivanib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 66
+   },
+   {
+    "pert_id": "BRD-A22305049",
+    "name": "benfluorex",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5714285714285714,
+    "n_test_rows": 11
+   },
+   {
+    "pert_id": "BRD-A22684332",
+    "name": "procaterol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.21311475409836064,
+    "n_test_rows": 32
+   },
+   {
+    "pert_id": "BRD-A22769835",
+    "name": "homochlorcyclizine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.696969696969697,
+    "n_test_rows": 56
+   },
+   {
+    "pert_id": "BRD-A24191444",
+    "name": "ifenprodil",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.35294117647058826,
+    "n_test_rows": 39
+   },
+   {
+    "pert_id": "BRD-A24514565",
+    "name": "warfarin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7659574468085106,
+    "n_test_rows": 39
+   },
+   {
+    "pert_id": "BRD-A25234499",
+    "name": "aminoglutethimide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3111111111111111,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-A25687296",
+    "name": "emetine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-A26095496",
+    "name": "clobetasol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6891891891891891,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-A26690767",
+    "name": "saquinavir",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.47,
+    "n_test_rows": 13
+   },
+   {
+    "pert_id": "BRD-A26711594",
+    "name": "nicardipine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6885245901639344,
+    "n_test_rows": 44
+   },
+   {
+    "pert_id": "BRD-A27376179",
+    "name": "lestaurtinib",
+    "same_inchikey_in_train": true,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 19
+   },
+   {
+    "pert_id": "BRD-A28787076",
+    "name": "inosine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6326530612244898,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-A29260609",
+    "name": "acebutolol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.43859649122807015,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-A30655177",
+    "name": "LFM-A13",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2631578947368421,
+    "n_test_rows": 23
+   },
+   {
+    "pert_id": "BRD-A33746814",
+    "name": "avicin-g",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.9787234042553191,
+    "n_test_rows": 10
+   },
+   {
+    "pert_id": "BRD-A36318220",
+    "name": "necrostatin-1",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4186046511627907,
+    "n_test_rows": 65
+   },
+   {
+    "pert_id": "BRD-A37704979",
+    "name": "SB-203580",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6666666666666666,
+    "n_test_rows": 65
+   },
+   {
+    "pert_id": "BRD-A39646320",
+    "name": "HC-toxin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.358695652173913,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-A41451487",
+    "name": "PK-11195",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.28,
+    "n_test_rows": 57
+   },
+   {
+    "pert_id": "BRD-A42759514",
+    "name": "ornidazole",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.717948717948718,
+    "n_test_rows": 37
+   },
+   {
+    "pert_id": "BRD-A44090213",
+    "name": "indoprofen",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7111111111111111,
+    "n_test_rows": 39
+   },
+   {
+    "pert_id": "BRD-A47598013",
+    "name": "citalopram",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-A48570745",
+    "name": "ivermectin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6147540983606558,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-A49046702",
+    "name": "SKF-89976A",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3389830508474576,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-A49680073",
+    "name": "cucurbitacin-i",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-A50675702",
+    "name": "fipronil",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-A52193669",
+    "name": "withaferin-a",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-A52650764",
+    "name": "ingenol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.24166666666666667,
+    "n_test_rows": 20
+   },
+   {
+    "pert_id": "BRD-A59431241",
+    "name": "COL-3",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3918918918918919,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-A59985574",
+    "name": "topotecan",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 9
+   },
+   {
+    "pert_id": "BRD-A61154809",
+    "name": "gliclazide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6666666666666666,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-A63583287",
+    "name": "SA-1447005",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5517241379310345,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-A64485570",
+    "name": "trifluridine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.723404255319149,
+    "n_test_rows": 13
+   },
+   {
+    "pert_id": "BRD-A65013509",
+    "name": "oxybutynin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.46551724137931033,
+    "n_test_rows": 45
+   },
+   {
+    "pert_id": "BRD-A65280694",
+    "name": "molindone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.25,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-A67862938",
+    "name": "naftidrofuryl",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3076923076923077,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-A69512159",
+    "name": "carbidopa",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6486486486486487,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-A69592287",
+    "name": "oxetane",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.918918918918919,
+    "n_test_rows": 5
+   },
+   {
+    "pert_id": "BRD-A69636825",
+    "name": "diltiazem",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3,
+    "n_test_rows": 40
+   },
+   {
+    "pert_id": "BRD-A72163687",
+    "name": "DAC-009",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.28,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-A72498772",
+    "name": "BRD-A72498772",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6956521739130435,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-A73558769",
+    "name": "BRD-A73558769",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7843137254901961,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-A75172220",
+    "name": "hydrocortisone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5373134328358209,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-A75479906",
+    "name": "rimantadine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.16326530612244897,
+    "n_test_rows": 35
+   },
+   {
+    "pert_id": "BRD-A75517195",
+    "name": "thiazolopyrimidine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2857142857142857,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-A79768653",
+    "name": "sirolimus",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 222
+   },
+   {
+    "pert_id": "BRD-A80017228",
+    "name": "bendroflumethiazide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5272727272727272,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-A80213327",
+    "name": "NSC-23766",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.39473684210526316,
+    "n_test_rows": 66
+   },
+   {
+    "pert_id": "BRD-A81541225",
+    "name": "oligomycin-a",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2047244094488189,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-A84045418",
+    "name": "calpeptin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5517241379310345,
+    "n_test_rows": 35
+   },
+   {
+    "pert_id": "BRD-A84465106",
+    "name": "nisoldipine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7872340425531915,
+    "n_test_rows": 18
+   },
+   {
+    "pert_id": "BRD-A88080608",
+    "name": "equilin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 30
+   },
+   {
+    "pert_id": "BRD-A89175223",
+    "name": "bisoprolol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6170212765957447,
+    "n_test_rows": 40
+   },
+   {
+    "pert_id": "BRD-A89672324",
+    "name": "CGP-55845",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.30434782608695654,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-A92630576",
+    "name": "trimebutine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3898305084745763,
+    "n_test_rows": 45
+   },
+   {
+    "pert_id": "BRD-A93000692",
+    "name": "ciglitazone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5555555555555556,
+    "n_test_rows": 41
+   },
+   {
+    "pert_id": "BRD-A96456596",
+    "name": "FPL-55712",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4307692307692308,
+    "n_test_rows": 41
+   },
+   {
+    "pert_id": "BRD-A97437073",
+    "name": "rosiglitazone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5245901639344263,
+    "n_test_rows": 85
+   },
+   {
+    "pert_id": "BRD-A97739905",
+    "name": "ketoprofen",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4634146341463415,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-K00088062",
+    "name": "cyanoquinoline-11",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5487804878048781,
+    "n_test_rows": 10
+   },
+   {
+    "pert_id": "BRD-K00317371",
+    "name": "RITA",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2222222222222222,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-K00662280",
+    "name": "CL-218872",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3333333333333333,
+    "n_test_rows": 40
+   },
+   {
+    "pert_id": "BRD-K01192156",
+    "name": "tyrphostin-AG-112",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.36363636363636365,
+    "n_test_rows": 37
+   },
+   {
+    "pert_id": "BRD-K01228321",
+    "name": "cisplatin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.047619047619047616,
+    "n_test_rows": 9
+   },
+   {
+    "pert_id": "BRD-K01567962",
+    "name": "pyrazolanthrone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.35294117647058826,
+    "n_test_rows": 57
+   },
+   {
+    "pert_id": "BRD-K01663662",
+    "name": "diphenidol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.48936170212765956,
+    "n_test_rows": 39
+   },
+   {
+    "pert_id": "BRD-K01877528",
+    "name": "TL-HRAS-61",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.543859649122807,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-K01976263",
+    "name": "emetine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4583333333333333,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K02123250",
+    "name": "JNJ-38877605",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6507936507936508,
+    "n_test_rows": 65
+   },
+   {
+    "pert_id": "BRD-K02715688",
+    "name": "hydrastine-(1r,-9s)",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3582089552238806,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K02992638",
+    "name": "lamivudine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.52,
+    "n_test_rows": 41
+   },
+   {
+    "pert_id": "BRD-K03243820",
+    "name": "trifluridine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.723404255319149,
+    "n_test_rows": 18
+   },
+   {
+    "pert_id": "BRD-K03568209",
+    "name": "MW-STK33-4C",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3404255319148936,
+    "n_test_rows": 12
+   },
+   {
+    "pert_id": "BRD-K03600606",
+    "name": "catechin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.421875,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K03763695",
+    "name": "TUL_XIX002",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5806451612903226,
+    "n_test_rows": 20
+   },
+   {
+    "pert_id": "BRD-K04801023",
+    "name": "SAR-245408",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6666666666666666,
+    "n_test_rows": 67
+   },
+   {
+    "pert_id": "BRD-K04804440",
+    "name": "ciprofloxacin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6727272727272727,
+    "n_test_rows": 7
+   },
+   {
+    "pert_id": "BRD-K05395900",
+    "name": "nicotine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.275,
+    "n_test_rows": 35
+   },
+   {
+    "pert_id": "BRD-K05456756",
+    "name": "BRD-K05456756",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8135593220338984,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K05649647",
+    "name": "BRD-K05649647",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.39215686274509803,
+    "n_test_rows": 44
+   },
+   {
+    "pert_id": "BRD-K06181161",
+    "name": "pentoxyverine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3584905660377358,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K06234293",
+    "name": "LY-364947",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3076923076923077,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K06335600",
+    "name": "tizanidine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2727272727272727,
+    "n_test_rows": 29
+   },
+   {
+    "pert_id": "BRD-K06854232",
+    "name": "AM-580",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8421052631578947,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-K06902185",
+    "name": "minoxidil",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.23728813559322035,
+    "n_test_rows": 32
+   },
+   {
+    "pert_id": "BRD-K06926592",
+    "name": "tretinoin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 19
+   },
+   {
+    "pert_id": "BRD-K07237224",
+    "name": "moclobemide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.43636363636363634,
+    "n_test_rows": 31
+   },
+   {
+    "pert_id": "BRD-K07569193",
+    "name": "SA-1459454",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6533333333333333,
+    "n_test_rows": 7
+   },
+   {
+    "pert_id": "BRD-K07954936",
+    "name": "2-iminobiotin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.34782608695652173,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K08310154",
+    "name": NaN,
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": null,
+    "max_tanimoto": NaN,
+    "n_test_rows": 9
+   },
+   {
+    "pert_id": "BRD-K08316444",
+    "name": "rotenone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.582089552238806,
+    "n_test_rows": 18
+   },
+   {
+    "pert_id": "BRD-K08547377",
+    "name": "irinotecan",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6385542168674698,
+    "n_test_rows": 72
+   },
+   {
+    "pert_id": "BRD-K08703257",
+    "name": "3-amino-benzamide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.43333333333333335,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-K08799216",
+    "name": "pelitinib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.75,
+    "n_test_rows": 84
+   },
+   {
+    "pert_id": "BRD-K09064372",
+    "name": "SA-1919918",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5897435897435898,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K09085930",
+    "name": "TUL_XX087",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7755102040816326,
+    "n_test_rows": 20
+   },
+   {
+    "pert_id": "BRD-K09090949",
+    "name": "CP-945598",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3076923076923077,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K09397065",
+    "name": "SR-57227A",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.27450980392156865,
+    "n_test_rows": 54
+   },
+   {
+    "pert_id": "BRD-K09537769",
+    "name": "NU-7026",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6521739130434783,
+    "n_test_rows": 53
+   },
+   {
+    "pert_id": "BRD-K09711437",
+    "name": "varespladib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3125,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K10211010",
+    "name": "BRD-K10211010",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5641025641025641,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K10361096",
+    "name": "BRD-K10361096",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6212121212121212,
+    "n_test_rows": 42
+   },
+   {
+    "pert_id": "BRD-K11433652",
+    "name": "aspirin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.53125,
+    "n_test_rows": 54
+   },
+   {
+    "pert_id": "BRD-K11540476",
+    "name": "EMF-BCA1-64",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7976190476190477,
+    "n_test_rows": 57
+   },
+   {
+    "pert_id": "BRD-K11590034",
+    "name": "morin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6756756756756757,
+    "n_test_rows": 15
+   },
+   {
+    "pert_id": "BRD-K11696279",
+    "name": "BU-239",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6388888888888888,
+    "n_test_rows": 12
+   },
+   {
+    "pert_id": "BRD-K12219985",
+    "name": "glipizide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5857142857142857,
+    "n_test_rows": 39
+   },
+   {
+    "pert_id": "BRD-K12244279",
+    "name": "MEK1-2-inhibitor",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3333333333333333,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-K12502280",
+    "name": "TG-101348",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.38372093023255816,
+    "n_test_rows": 127
+   },
+   {
+    "pert_id": "BRD-K12539581",
+    "name": "nocodazole",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5740740740740741,
+    "n_test_rows": 34
+   },
+   {
+    "pert_id": "BRD-K12737986",
+    "name": "veliparib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 13
+   },
+   {
+    "pert_id": "BRD-K12762134",
+    "name": "XAV-939",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.24074074074074073,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-K13094524",
+    "name": "PFI-1",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.27692307692307694,
+    "n_test_rows": 11
+   },
+   {
+    "pert_id": "BRD-K13154216",
+    "name": "everolimus",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 26
+   },
+   {
+    "pert_id": "BRD-K13390322",
+    "name": "AT-7519",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.30985915492957744,
+    "n_test_rows": 160
+   },
+   {
+    "pert_id": "BRD-K13662825",
+    "name": "dinaciclib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.27358490566037735,
+    "n_test_rows": 39
+   },
+   {
+    "pert_id": "BRD-K13926615",
+    "name": "vardenafil",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5897435897435898,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-K14091022",
+    "name": "SA-1472702",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K14618467",
+    "name": "IKK-16",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.463768115942029,
+    "n_test_rows": 17
+   },
+   {
+    "pert_id": "BRD-K14622703",
+    "name": "BRD-K14622703",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6103896103896104,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K14700434",
+    "name": "MW-SHH-151",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6338028169014085,
+    "n_test_rows": 15
+   },
+   {
+    "pert_id": "BRD-K14765469",
+    "name": "vesamicol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2916666666666667,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K15236393",
+    "name": NaN,
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": null,
+    "max_tanimoto": NaN,
+    "n_test_rows": 18
+   },
+   {
+    "pert_id": "BRD-K15409150",
+    "name": "penfluridol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.42028985507246375,
+    "n_test_rows": 32
+   },
+   {
+    "pert_id": "BRD-K15507868",
+    "name": "tesaglitazar",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.29508196721311475,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K16077845",
+    "name": "fentiazac",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.425,
+    "n_test_rows": 22
+   },
+   {
+    "pert_id": "BRD-K16195444",
+    "name": "oxymetazoline",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3448275862068966,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-K16406336",
+    "name": "methylene-blue",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.21568627450980393,
+    "n_test_rows": 20
+   },
+   {
+    "pert_id": "BRD-K16444452",
+    "name": "ibudilast",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.26785714285714285,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-K16542329",
+    "name": "zaprinast",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K16732600",
+    "name": "MK-0893",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3333333333333333,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K16803204",
+    "name": "filgotinib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2826086956521739,
+    "n_test_rows": 41
+   },
+   {
+    "pert_id": "BRD-K17075857",
+    "name": "chloroxine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.71875,
+    "n_test_rows": 56
+   },
+   {
+    "pert_id": "BRD-K17119186",
+    "name": "BAS-00535043",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.29213483146067415,
+    "n_test_rows": 42
+   },
+   {
+    "pert_id": "BRD-K17203476",
+    "name": "LY-2874455",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2839506172839506,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K17513304",
+    "name": "firategrast",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5967741935483871,
+    "n_test_rows": 31
+   },
+   {
+    "pert_id": "BRD-K17705806",
+    "name": "JTC-801",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.30985915492957744,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-K18324993",
+    "name": "budipine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2682926829268293,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K18850819",
+    "name": "MK-0752",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.36486486486486486,
+    "n_test_rows": 23
+   },
+   {
+    "pert_id": "BRD-K19416115",
+    "name": "sitagliptin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.24615384615384617,
+    "n_test_rows": 50
+   },
+   {
+    "pert_id": "BRD-K19540840",
+    "name": "saracatinib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.32323232323232326,
+    "n_test_rows": 186
+   },
+   {
+    "pert_id": "BRD-K19919069",
+    "name": "BRD-K19919069",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5567010309278351,
+    "n_test_rows": 6
+   },
+   {
+    "pert_id": "BRD-K20141153",
+    "name": "atomoxetine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7297297297297297,
+    "n_test_rows": 52
+   },
+   {
+    "pert_id": "BRD-K20696416",
+    "name": "NVP-AEW541",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.828125,
+    "n_test_rows": 60
+   },
+   {
+    "pert_id": "BRD-K20986251",
+    "name": "lithocholic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7735849056603774,
+    "n_test_rows": 34
+   },
+   {
+    "pert_id": "BRD-K21283037",
+    "name": "riluzole",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2916666666666667,
+    "n_test_rows": 41
+   },
+   {
+    "pert_id": "BRD-K21396683",
+    "name": "marimastat",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4067796610169492,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K21548250",
+    "name": "moracizine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3157894736842105,
+    "n_test_rows": 34
+   },
+   {
+    "pert_id": "BRD-K21672174",
+    "name": "Ro-28-1675",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.22784810126582278,
+    "n_test_rows": 23
+   },
+   {
+    "pert_id": "BRD-K22031190",
+    "name": "diflunisal",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.325,
+    "n_test_rows": 53
+   },
+   {
+    "pert_id": "BRD-K22822991",
+    "name": "odanacatib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2647058823529412,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K23478508",
+    "name": "digoxin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 26
+   },
+   {
+    "pert_id": "BRD-K23499943",
+    "name": "alvespimycin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K23623013",
+    "name": "UTMB-00042",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2535211267605634,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K23672206",
+    "name": "BCI-540",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.35185185185185186,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K23677682",
+    "name": "voreloxin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.24731182795698925,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K24515980",
+    "name": "QL-XI-92",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5405405405405406,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-K24681473",
+    "name": "YM-155",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.25316455696202533,
+    "n_test_rows": 22
+   },
+   {
+    "pert_id": "BRD-K24723746",
+    "name": "solifenacin-succinate",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3333333333333333,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K25114078",
+    "name": "aminoguanidine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.25,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K25340465",
+    "name": "OSI-930",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2911392405063291,
+    "n_test_rows": 22
+   },
+   {
+    "pert_id": "BRD-K25837718",
+    "name": "josamycin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2923076923076923,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K26581628",
+    "name": "BRD-K26581628",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6206896551724138,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K26657438",
+    "name": "imiquimod",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.27450980392156865,
+    "n_test_rows": 70
+   },
+   {
+    "pert_id": "BRD-K26684619",
+    "name": "BRD-K26684619",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3617021276595745,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K26849279",
+    "name": "SA-424936",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K27499107",
+    "name": "carbacyclin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.640625,
+    "n_test_rows": 29
+   },
+   {
+    "pert_id": "BRD-K28360340",
+    "name": "TW-37",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.27692307692307694,
+    "n_test_rows": 54
+   },
+   {
+    "pert_id": "BRD-K28470988",
+    "name": "L-690330",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.35135135135135137,
+    "n_test_rows": 45
+   },
+   {
+    "pert_id": "BRD-K28731095",
+    "name": "calcitriol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 27
+   },
+   {
+    "pert_id": "BRD-K28761891",
+    "name": "ramelteon",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2328767123287671,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K28984613",
+    "name": "dutasteride",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6376811594202898,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K30020243",
+    "name": "aliskiren",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.24691358024691357,
+    "n_test_rows": 27
+   },
+   {
+    "pert_id": "BRD-K30064966",
+    "name": "BRD-K30064966",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.35,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K30466858",
+    "name": "ellagic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K30645599",
+    "name": "BRD-K30645599",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8625,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K30649484",
+    "name": "mafenide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3333333333333333,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K31111078",
+    "name": "dimethyl-fumarate",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2727272727272727,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K31135544",
+    "name": "IB-MECA",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K31309378",
+    "name": "lucitanib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.44871794871794873,
+    "n_test_rows": 23
+   },
+   {
+    "pert_id": "BRD-K31542390",
+    "name": "mycophenolic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.65625,
+    "n_test_rows": 11
+   },
+   {
+    "pert_id": "BRD-K31553917",
+    "name": "BRD-K31553917",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6037735849056604,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-K31627533",
+    "name": "rimexolone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-K32536677",
+    "name": "AGK-2",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.26436781609195403,
+    "n_test_rows": 60
+   },
+   {
+    "pert_id": "BRD-K32744045",
+    "name": "disulfiram",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.25806451612903225,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-K33852358",
+    "name": "arofylline",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.26582278481012656,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K34079378",
+    "name": "BRD-K34079378",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3611111111111111,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K34157611",
+    "name": "cimetidine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.23943661971830985,
+    "n_test_rows": 50
+   },
+   {
+    "pert_id": "BRD-K34713073",
+    "name": "PD-123319",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3023255813953488,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K35329391",
+    "name": NaN,
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": null,
+    "max_tanimoto": NaN,
+    "n_test_rows": 9
+   },
+   {
+    "pert_id": "BRD-K35586044",
+    "name": "yohimbine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5,
+    "n_test_rows": 44
+   },
+   {
+    "pert_id": "BRD-K35669573",
+    "name": "TUL-XX023",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5806451612903226,
+    "n_test_rows": 20
+   },
+   {
+    "pert_id": "BRD-K36111658",
+    "name": "BRD-K36111658",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2711864406779661,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K36198571",
+    "name": "WAY-170523",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.40963855421686746,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-K36324071",
+    "name": "NF-449",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3333333333333333,
+    "n_test_rows": 51
+   },
+   {
+    "pert_id": "BRD-K36386086",
+    "name": "dolutegravir",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.23958333333333334,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K36701739",
+    "name": "BRD-K36701739",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5542168674698795,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K37127624",
+    "name": "BRD-K37127624",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5769230769230769,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-K37289225",
+    "name": "clozapine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5370370370370371,
+    "n_test_rows": 39
+   },
+   {
+    "pert_id": "BRD-K37417543",
+    "name": "MW-SHH-28",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.647887323943662,
+    "n_test_rows": 22
+   },
+   {
+    "pert_id": "BRD-K37516142",
+    "name": "idebenone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.20454545454545456,
+    "n_test_rows": 37
+   },
+   {
+    "pert_id": "BRD-K37694030",
+    "name": "doxepin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6842105263157895,
+    "n_test_rows": 47
+   },
+   {
+    "pert_id": "BRD-K37798499",
+    "name": "etoposide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 32
+   },
+   {
+    "pert_id": "BRD-K37846922",
+    "name": "3,3'-diindolylmethane",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.72,
+    "n_test_rows": 19
+   },
+   {
+    "pert_id": "BRD-K38003476",
+    "name": "clocortolone-pivalate",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3977272727272727,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K38323065",
+    "name": "phenacetin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5333333333333333,
+    "n_test_rows": 7
+   },
+   {
+    "pert_id": "BRD-K38340366",
+    "name": "MW-STK33-1C",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8269230769230769,
+    "n_test_rows": 28
+   },
+   {
+    "pert_id": "BRD-K38524184",
+    "name": "BRD-K38524184",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5411764705882353,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K38596918",
+    "name": "BRD-K38596918",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2459016393442623,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K38622866",
+    "name": "BRD-K38622866",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6470588235294118,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K39256324",
+    "name": "rottlerin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K39965020",
+    "name": "doconexent",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7142857142857143,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K40758391",
+    "name": "BRD-K40758391",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5957446808510638,
+    "n_test_rows": 73
+   },
+   {
+    "pert_id": "BRD-K41260949",
+    "name": "valproic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3333333333333333,
+    "n_test_rows": 67
+   },
+   {
+    "pert_id": "BRD-K41731458",
+    "name": "triclosan",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.26,
+    "n_test_rows": 51
+   },
+   {
+    "pert_id": "BRD-K41859756",
+    "name": "NVP-AUY922",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.43023255813953487,
+    "n_test_rows": 54
+   },
+   {
+    "pert_id": "BRD-K42191735",
+    "name": "buparlisib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2857142857142857,
+    "n_test_rows": 69
+   },
+   {
+    "pert_id": "BRD-K42728290",
+    "name": "NVP-BGJ398",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6265060240963856,
+    "n_test_rows": 26
+   },
+   {
+    "pert_id": "BRD-K42828737",
+    "name": "sunitinib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8095238095238095,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K43579410",
+    "name": "BRD-K43579410",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8023255813953488,
+    "n_test_rows": 6
+   },
+   {
+    "pert_id": "BRD-K43887077",
+    "name": "dopamine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5,
+    "n_test_rows": 35
+   },
+   {
+    "pert_id": "BRD-K43966462",
+    "name": "BRD-K43966462",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6705882352941176,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K44227013",
+    "name": "ponatinib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.47959183673469385,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-K44353683",
+    "name": "nateglinide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4074074074074074,
+    "n_test_rows": 31
+   },
+   {
+    "pert_id": "BRD-K45192137",
+    "name": NaN,
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": null,
+    "max_tanimoto": NaN,
+    "n_test_rows": 18
+   },
+   {
+    "pert_id": "BRD-K45401373",
+    "name": "betulinic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6567164179104478,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-K45435259",
+    "name": "SCH-23390",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3090909090909091,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K46018455",
+    "name": "bezafibrate",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6097560975609756,
+    "n_test_rows": 34
+   },
+   {
+    "pert_id": "BRD-K46056750",
+    "name": "AZD-7762",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3333333333333333,
+    "n_test_rows": 137
+   },
+   {
+    "pert_id": "BRD-K46062088",
+    "name": "ST-4062971",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K46625679",
+    "name": "MW-STK33-97",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6896551724137931,
+    "n_test_rows": 20
+   },
+   {
+    "pert_id": "BRD-K47084999",
+    "name": "BRD-K47084999",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6666666666666666,
+    "n_test_rows": 22
+   },
+   {
+    "pert_id": "BRD-K47105409",
+    "name": "AG-490",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6078431372549019,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K47539947",
+    "name": "tetradecylthioacetic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3142857142857143,
+    "n_test_rows": 31
+   },
+   {
+    "pert_id": "BRD-K47639036",
+    "name": "flavoxate",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3088235294117647,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-K47869605",
+    "name": "podophyllotoxin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5135135135135135,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-K47977047",
+    "name": "BRD-K47977047",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K48188942",
+    "name": "BG-STK33-59",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6666666666666666,
+    "n_test_rows": 20
+   },
+   {
+    "pert_id": "BRD-K48367671",
+    "name": "febuxostat",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3246753246753247,
+    "n_test_rows": 45
+   },
+   {
+    "pert_id": "BRD-K48488978",
+    "name": "YM-201636",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6338028169014085,
+    "n_test_rows": 74
+   },
+   {
+    "pert_id": "BRD-K49049886",
+    "name": "CGS-15943",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2692307692307692,
+    "n_test_rows": 35
+   },
+   {
+    "pert_id": "BRD-K49071277",
+    "name": "securinine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.19642857142857142,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K49075727",
+    "name": "nintedanib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4875,
+    "n_test_rows": 87
+   },
+   {
+    "pert_id": "BRD-K49807096",
+    "name": "benazepril",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.43243243243243246,
+    "n_test_rows": 56
+   },
+   {
+    "pert_id": "BRD-K49865102",
+    "name": "PD-0325901",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5625,
+    "n_test_rows": 157
+   },
+   {
+    "pert_id": "BRD-K50289629",
+    "name": "ARG-CSC-22",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6326530612244898,
+    "n_test_rows": 42
+   },
+   {
+    "pert_id": "BRD-K50387473",
+    "name": "XMD-892",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7183098591549296,
+    "n_test_rows": 63
+   },
+   {
+    "pert_id": "BRD-K50498985",
+    "name": "taladegib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.25806451612903225,
+    "n_test_rows": 26
+   },
+   {
+    "pert_id": "BRD-K50590187",
+    "name": "capsaicin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.40384615384615385,
+    "n_test_rows": 57
+   },
+   {
+    "pert_id": "BRD-K50776152",
+    "name": "BRD-K50776152",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2916666666666667,
+    "n_test_rows": 75
+   },
+   {
+    "pert_id": "BRD-K50859149",
+    "name": "sulfafurazole",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5,
+    "n_test_rows": 50
+   },
+   {
+    "pert_id": "BRD-K51671335",
+    "name": "levosulpiride",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 30
+   },
+   {
+    "pert_id": "BRD-K51967704",
+    "name": "BIIB-021",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.32857142857142857,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-K52020312",
+    "name": "metronidazole",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.631578947368421,
+    "n_test_rows": 32
+   },
+   {
+    "pert_id": "BRD-K52313696",
+    "name": "tacedinaline",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.675,
+    "n_test_rows": 72
+   },
+   {
+    "pert_id": "BRD-K53325797",
+    "name": "BRD-K53325797",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.717391304347826,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K53523901",
+    "name": "arctigenin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.40816326530612246,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K53857191",
+    "name": "risperidone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.26436781609195403,
+    "n_test_rows": 50
+   },
+   {
+    "pert_id": "BRD-K53913732",
+    "name": "SB-408124",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3150684931506849,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-K56032964",
+    "name": "AP-26113",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5529411764705883,
+    "n_test_rows": 17
+   },
+   {
+    "pert_id": "BRD-K56277358",
+    "name": "MGCD-265",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.33962264150943394,
+    "n_test_rows": 25
+   },
+   {
+    "pert_id": "BRD-K56558538",
+    "name": "ambroxol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.18181818181818182,
+    "n_test_rows": 40
+   },
+   {
+    "pert_id": "BRD-K56800335",
+    "name": "guanabenz",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2909090909090909,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-K58306044",
+    "name": "YL-54",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8153846153846154,
+    "n_test_rows": 7
+   },
+   {
+    "pert_id": "BRD-K58443469",
+    "name": "ST-059620",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5116279069767442,
+    "n_test_rows": 15
+   },
+   {
+    "pert_id": "BRD-K58547375",
+    "name": "BRD-K58547375",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4857142857142857,
+    "n_test_rows": 19
+   },
+   {
+    "pert_id": "BRD-K59058747",
+    "name": "acetylcysteine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2553191489361702,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-K59058766",
+    "name": "chlorprothixene",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5416666666666666,
+    "n_test_rows": 45
+   },
+   {
+    "pert_id": "BRD-K59067695",
+    "name": "SU-11274",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 18
+   },
+   {
+    "pert_id": "BRD-K59325863",
+    "name": "delanzomib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.42028985507246375,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K59332007",
+    "name": "linopirdine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3269230769230769,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-K60160658",
+    "name": "tiagabine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2857142857142857,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-K60230970",
+    "name": "MG-132",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6037735849056604,
+    "n_test_rows": 40
+   },
+   {
+    "pert_id": "BRD-K60932973",
+    "name": "BRD-K60932973",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2923076923076923,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K61662457",
+    "name": "CAY-10594",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5606060606060606,
+    "n_test_rows": 55
+   },
+   {
+    "pert_id": "BRD-K61829047",
+    "name": "7b-cis",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3150684931506849,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K61860715",
+    "name": "ZG-10",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.890625,
+    "n_test_rows": 9
+   },
+   {
+    "pert_id": "BRD-K62200014",
+    "name": "anagrelide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.23333333333333334,
+    "n_test_rows": 57
+   },
+   {
+    "pert_id": "BRD-K63195589",
+    "name": "tipifarnib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 26
+   },
+   {
+    "pert_id": "BRD-K63736853",
+    "name": "acipimox",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2702702702702703,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-K63750851",
+    "name": "mycophenolic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.65625,
+    "n_test_rows": 31
+   },
+   {
+    "pert_id": "BRD-K64302725",
+    "name": "KUC105208",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.20987654320987653,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K64402243",
+    "name": "ivachtin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3055555555555556,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-K64970062",
+    "name": "BRD-K64970062",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-K64994968",
+    "name": "progesterone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 5
+   },
+   {
+    "pert_id": "BRD-K66175015",
+    "name": "afatinib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 145
+   },
+   {
+    "pert_id": "BRD-K66296774",
+    "name": "fluvastatin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.44,
+    "n_test_rows": 12
+   },
+   {
+    "pert_id": "BRD-K66952385",
+    "name": "SA-102096",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K67043667",
+    "name": "altretamine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2222222222222222,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-K67439147",
+    "name": "SIB-1893",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3111111111111111,
+    "n_test_rows": 7
+   },
+   {
+    "pert_id": "BRD-K67783091",
+    "name": "haloperidol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5490196078431373,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-K69577666",
+    "name": NaN,
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": null,
+    "max_tanimoto": NaN,
+    "n_test_rows": 9
+   },
+   {
+    "pert_id": "BRD-K69726342",
+    "name": "atorvastatin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3103448275862069,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K69776681",
+    "name": "volasertib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6304347826086957,
+    "n_test_rows": 12
+   },
+   {
+    "pert_id": "BRD-K70330367",
+    "name": "amantadine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.18181818181818182,
+    "n_test_rows": 40
+   },
+   {
+    "pert_id": "BRD-K70358946",
+    "name": "aripiprazole",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3670886075949367,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-K70401845",
+    "name": "erlotinib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5357142857142857,
+    "n_test_rows": 208
+   },
+   {
+    "pert_id": "BRD-K70490179",
+    "name": "rimcazole",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.4339622641509434,
+    "n_test_rows": 47
+   },
+   {
+    "pert_id": "BRD-K70507123",
+    "name": "doxofylline",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5531914893617021,
+    "n_test_rows": 14
+   },
+   {
+    "pert_id": "BRD-K70555272",
+    "name": "oligomycin-a",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2047244094488189,
+    "n_test_rows": 6
+   },
+   {
+    "pert_id": "BRD-K71142328",
+    "name": "BRD-K71142328",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3333333333333333,
+    "n_test_rows": 48
+   },
+   {
+    "pert_id": "BRD-K72414522",
+    "name": "AZD-5438",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2948717948717949,
+    "n_test_rows": 105
+   },
+   {
+    "pert_id": "BRD-K73109821",
+    "name": "diazoxide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3,
+    "n_test_rows": 47
+   },
+   {
+    "pert_id": "BRD-K73541271",
+    "name": "etofenamate",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.32432432432432434,
+    "n_test_rows": 15
+   },
+   {
+    "pert_id": "BRD-K74065929",
+    "name": "doramapimod",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.32989690721649484,
+    "n_test_rows": 44
+   },
+   {
+    "pert_id": "BRD-K74148702",
+    "name": "curcumin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5869565217391305,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K74228917",
+    "name": "BRD-K74228917",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.26666666666666666,
+    "n_test_rows": 7
+   },
+   {
+    "pert_id": "BRD-K75627148",
+    "name": "BRD-K75627148",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 6
+   },
+   {
+    "pert_id": "BRD-K76205745",
+    "name": "losartan",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5068493150684932,
+    "n_test_rows": 81
+   },
+   {
+    "pert_id": "BRD-K76775527",
+    "name": "nimesulide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3392857142857143,
+    "n_test_rows": 45
+   },
+   {
+    "pert_id": "BRD-K76908866",
+    "name": "CP-724714",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3375,
+    "n_test_rows": 137
+   },
+   {
+    "pert_id": "BRD-K77771411",
+    "name": "moxonidine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2777777777777778,
+    "n_test_rows": 38
+   },
+   {
+    "pert_id": "BRD-K77950083",
+    "name": NaN,
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": null,
+    "max_tanimoto": NaN,
+    "n_test_rows": 9
+   },
+   {
+    "pert_id": "BRD-K78113049",
+    "name": "enoxacin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6491228070175439,
+    "n_test_rows": 7
+   },
+   {
+    "pert_id": "BRD-K78778188",
+    "name": "BRD-K78778188",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8658536585365854,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K78959463",
+    "name": "FPL-64176",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.32075471698113206,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K79254416",
+    "name": "decitabine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6326530612244898,
+    "n_test_rows": 82
+   },
+   {
+    "pert_id": "BRD-K79602928",
+    "name": "metformin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.25,
+    "n_test_rows": 52
+   },
+   {
+    "pert_id": "BRD-K79873567",
+    "name": "BRD-K79873567",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7976190476190477,
+    "n_test_rows": 5
+   },
+   {
+    "pert_id": "BRD-K80684056",
+    "name": "cantharidin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.21212121212121213,
+    "n_test_rows": 6
+   },
+   {
+    "pert_id": "BRD-K80738081",
+    "name": "resveratrol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6296296296296297,
+    "n_test_rows": 102
+   },
+   {
+    "pert_id": "BRD-K80786583",
+    "name": "BRD-K80786583",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 33
+   },
+   {
+    "pert_id": "BRD-K81128206",
+    "name": "edrophonium",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3170731707317073,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K82236179",
+    "name": "dicoumarol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.40384615384615385,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-K82261406",
+    "name": "anisomycin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2857142857142857,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K82462147",
+    "name": "BRD-K82462147",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5487804878048781,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K82846253",
+    "name": "repaglinide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2857142857142857,
+    "n_test_rows": 47
+   },
+   {
+    "pert_id": "BRD-K83699324",
+    "name": "NMS-1286937",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3684210526315789,
+    "n_test_rows": 10
+   },
+   {
+    "pert_id": "BRD-K84085265",
+    "name": "CG-930",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.29411764705882354,
+    "n_test_rows": 40
+   },
+   {
+    "pert_id": "BRD-K85751432",
+    "name": "refametinib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.36363636363636365,
+    "n_test_rows": 26
+   },
+   {
+    "pert_id": "BRD-K85925969",
+    "name": "zalcitabine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5416666666666666,
+    "n_test_rows": 52
+   },
+   {
+    "pert_id": "BRD-K87343924",
+    "name": "wortmannin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 42
+   },
+   {
+    "pert_id": "BRD-K88510285",
+    "name": "bortezomib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5873015873015873,
+    "n_test_rows": 46
+   },
+   {
+    "pert_id": "BRD-K88544581",
+    "name": "CI-976",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.32142857142857145,
+    "n_test_rows": 68
+   },
+   {
+    "pert_id": "BRD-K88573743",
+    "name": "A-443654",
+    "same_inchikey_in_train": true,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 0.7936507936507936,
+    "n_test_rows": 51
+   },
+   {
+    "pert_id": "BRD-K88611939",
+    "name": "aniracetam",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.32653061224489793,
+    "n_test_rows": 42
+   },
+   {
+    "pert_id": "BRD-K88701661",
+    "name": "dimercaptosuccinic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.25,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K88742110",
+    "name": "PCI-34051",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3392857142857143,
+    "n_test_rows": 60
+   },
+   {
+    "pert_id": "BRD-K88759641",
+    "name": "EMD-66684",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K89104321",
+    "name": "gaboxadol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.21153846153846154,
+    "n_test_rows": 11
+   },
+   {
+    "pert_id": "BRD-K89375097",
+    "name": "pirenzepine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3484848484848485,
+    "n_test_rows": 37
+   },
+   {
+    "pert_id": "BRD-K91263825",
+    "name": "nortriptyline",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6111111111111112,
+    "n_test_rows": 41
+   },
+   {
+    "pert_id": "BRD-K91301684",
+    "name": "noscapine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3194444444444444,
+    "n_test_rows": 42
+   },
+   {
+    "pert_id": "BRD-K91336023",
+    "name": "mesulergine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2608695652173913,
+    "n_test_rows": 39
+   },
+   {
+    "pert_id": "BRD-K91966436",
+    "name": "daunorubicin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 18
+   },
+   {
+    "pert_id": "BRD-K92093830",
+    "name": "doxorubicin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 78
+   },
+   {
+    "pert_id": "BRD-K92317137",
+    "name": "BRD-K92317137",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.26229508196721313,
+    "n_test_rows": 19
+   },
+   {
+    "pert_id": "BRD-K92778217",
+    "name": "mefenamic-acid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7142857142857143,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-K92870997",
+    "name": "pterostilbene",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K93034159",
+    "name": "cladribine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6181818181818182,
+    "n_test_rows": 55
+   },
+   {
+    "pert_id": "BRD-K93460210",
+    "name": "lamotrigine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.29545454545454547,
+    "n_test_rows": 45
+   },
+   {
+    "pert_id": "BRD-K93618743",
+    "name": "ipriflavone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.32075471698113206,
+    "n_test_rows": 41
+   },
+   {
+    "pert_id": "BRD-K93880770",
+    "name": "BRD-K93880770",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.47674418604651164,
+    "n_test_rows": 7
+   },
+   {
+    "pert_id": "BRD-K93918653",
+    "name": "quizartinib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2803738317757009,
+    "n_test_rows": 109
+   },
+   {
+    "pert_id": "BRD-K94441233",
+    "name": "mevastatin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5675675675675675,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K94512704",
+    "name": "spiramide",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7142857142857143,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K94649603",
+    "name": "taxifolin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5652173913043478,
+    "n_test_rows": 18
+   },
+   {
+    "pert_id": "BRD-K95149906",
+    "name": "BRD-K95149906",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.22807017543859648,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-K95237249",
+    "name": "probenecid",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.38095238095238093,
+    "n_test_rows": 45
+   },
+   {
+    "pert_id": "BRD-K95435023",
+    "name": "PHA-665752",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5051546391752577,
+    "n_test_rows": 101
+   },
+   {
+    "pert_id": "BRD-K95722922",
+    "name": "BRD-K95722922",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5180722891566265,
+    "n_test_rows": 3
+   },
+   {
+    "pert_id": "BRD-K95739795",
+    "name": "tetrabenazine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.48214285714285715,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-K95773607",
+    "name": "darifenacin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.36486486486486486,
+    "n_test_rows": 16
+   },
+   {
+    "pert_id": "BRD-K95986273",
+    "name": "MW-MITF24",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.27586206896551724,
+    "n_test_rows": 13
+   },
+   {
+    "pert_id": "BRD-K96042922",
+    "name": "etanidazole",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.2765957446808511,
+    "n_test_rows": 28
+   },
+   {
+    "pert_id": "BRD-K96319534",
+    "name": "phentermine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5384615384615384,
+    "n_test_rows": 37
+   },
+   {
+    "pert_id": "BRD-K96396151",
+    "name": "BRD-K96396151",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.6266666666666667,
+    "n_test_rows": 4
+   },
+   {
+    "pert_id": "BRD-K96527333",
+    "name": "dehydroisoandosterone",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.5901639344262295,
+    "n_test_rows": 8
+   },
+   {
+    "pert_id": "BRD-K96740444",
+    "name": "itopride",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.7959183673469388,
+    "n_test_rows": 42
+   },
+   {
+    "pert_id": "BRD-K97158071",
+    "name": "droperidol",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.43548387096774194,
+    "n_test_rows": 43
+   },
+   {
+    "pert_id": "BRD-K97440753",
+    "name": "dihydroergocristine",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8555555555555555,
+    "n_test_rows": 42
+   },
+   {
+    "pert_id": "BRD-K97799481",
+    "name": "theophylline",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.45714285714285713,
+    "n_test_rows": 35
+   },
+   {
+    "pert_id": "BRD-K98948170",
+    "name": "BRD-K98948170",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 47
+   },
+   {
+    "pert_id": "BRD-K99545815",
+    "name": "PF-562271",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.8133333333333334,
+    "n_test_rows": 156
+   },
+   {
+    "pert_id": "BRD-K99616396",
+    "name": "motesanib",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3088235294117647,
+    "n_test_rows": 87
+   },
+   {
+    "pert_id": "BRD-K99792991",
+    "name": "hexachlorophene",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.24242424242424243,
+    "n_test_rows": 24
+   },
+   {
+    "pert_id": "BRD-U22633929",
+    "name": "XMD11-85H",
+    "same_inchikey_in_train": true,
+    "same_inchikey_block1_in_train": true,
+    "max_tanimoto": 1.0,
+    "n_test_rows": 69
+   },
+   {
+    "pert_id": "BRD-U88459701",
+    "name": "atorvastatin",
+    "same_inchikey_in_train": false,
+    "same_inchikey_block1_in_train": false,
+    "max_tanimoto": 0.3103448275862069,
+    "n_test_rows": 8
+   }
+  ]
+ },
+ "split_cold_cell_1": {
+  "summary": {
+   "n_test_compounds": 1419,
+   "same_inchikey": 1266,
+   "same_inchikey_block1": 1283,
+   "tanimoto_eq_1": 1283,
+   "tanimoto_gt_0_8": 1294,
+   "tanimoto_gt_0_6": 1329,
+   "test_rows_in_tanimoto_eq_1_compounds": 20314,
+   "test_rows_total": 21321,
+   "median_max_tanimoto": 1.0
+  },
+  "compounds": null
+ }
+}
