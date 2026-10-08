@@ -81,32 +81,45 @@ def test_tie_encoding_ties_the_no_peak_block_and_only_it(monkeypatch):
     assert t['b'] is ctx.enc['rank_normal']['b'] and np.array_equal(t['has'], ctx.enc['rank_normal']['has'])
 
 
-def _res(g_chr, g_perm_max, x_chr, x_perm_max, x_pos=6):
+def _res(g_chr, g_perm_max, x_chr, x_perm_max, x_pos=6, v9_g=0.0012):
+    """Fabricated scores: the 'tie' set carries the case; the 'v9' set carries the harness value and a capacity-null case."""
     cells = list(cf.DEV_CELLS)
     flat = lambda v: {'all': v, 'per_cell': {c: v for c in cells}}      # noqa: E731
-    s = {'FB': flat(0.10), 'N1': flat(0.10 + g_chr), 'E': flat(0.20), 'E+N1': flat(0.20 + x_chr)}
-    for j, c in enumerate(cells):
-        if j >= x_pos:
-            s['E+N1']['per_cell'][c] = 0.20 - 0.001
-    for d in range(20):
-        s['N1perm_%d' % d] = flat(0.10 + g_perm_max * d / 19)
-        s['E+perm_%d' % d] = flat(0.20 + x_perm_max * d / 19)
+    s = {'FB': flat(0.10)}
+    for f, (gc, gp, xc, xp) in (('tie', (g_chr, g_perm_max, x_chr, x_perm_max)), ('v9', (v9_g, 0.01, 0.0, 0.01))):
+        s['N1_' + f], s['E_' + f], s['E_%s+N1' % f] = flat(0.10 + gc), flat(0.20), flat(0.20 + xc)
+        for j, c in enumerate(cells):
+            if f == 'tie' and j >= x_pos:
+                s['E_%s+N1' % f]['per_cell'][c] = 0.20 - 0.001
+        for d in range(20):
+            s['N1perm_%s_%d' % (f, d)] = flat(0.10 + gp * d / 19)
+            s['E_%s+perm_%d' % (f, d)] = flat(0.20 + xp * d / 19)
     return {'scores': s, 'n_perm': 20, 'dev_cells': cells}
 
 
-def test_the_amended_reading_and_its_harness_check():
-    r = lambda *a, **k: gg.reading(_res(*a, **k), a[0])['reading']      # noqa: E731
+def test_the_reading_of_record_is_on_the_tie_corrected_features_with_the_v9_harness():
+    r = lambda *a, **k: gg.reading(_res(*a, **k), 0.0012)['reading']   # noqa: E731
     assert r(0.0012, 0.0015, 0.001, 0.0) == 'NOT DISTINGUISHABLE FROM CAPACITY'
     assert r(0.0012, 0.0005, 0.0003, 0.0004) == 'GENE-LEVEL, MATCHED BY EXPRESSION (2a)'
     assert r(0.0012, 0.0005, 0.0008, 0.0004, x_pos=3) == 'GENE-LEVEL, EXCESS NOT ESTABLISHED ACROSS CELLS (2b)'
     assert r(0.0012, 0.0005, 0.0008, 0.0004, x_pos=4) == 'CHROMATIN-SPECIFIC'
-    assert gg.reading(_res(0.0012, 0.0005, 0.0008, 0.0004), 0.0099)['reading'] == 'HARNESS_FAULT'
+    out = gg.reading(_res(0.0012, 0.0005, 0.0008, 0.0004), 0.0012)
+    assert out['reported_v9_features']['reading'] == 'NOT DISTINGUISHABLE FROM CAPACITY' and 'tie-break' in out['reported_v9_features']['artefact']
+    assert gg.reading(_res(0.0030, 0.0005, 0.0008, 0.0004, v9_g=0.0012), 0.0099)['reading'] == 'HARNESS_FAULT'   # harness is v9's N1
+    assert gg.reading(_res(0.0030, 0.0005, 0.0008, 0.0004, v9_g=0.0012), 0.0012)['reading'] != 'HARNESS_FAULT'   # not the tie N1
 
 
 def test_run_on_a_world_and_the_marker_refusal(tmp_path):
     ctx = world(seed=4, n_perts=4)
-    res = gg.run(ctx, ctx.y, n_perm=2, with_tie=False)
-    assert set(res['scores']) == {'FB', 'N1', 'E', 'E+N1', 'N1perm_0', 'N1perm_1', 'E+perm_0', 'E+perm_1'}
+    rng = np.random.default_rng(1)
+    gg.install_tie(ctx, rng.random((len(ctx.cells), cf.G, 3)).astype(np.float32), {c: i for i, c in enumerate(ctx.cells)})
+    res = gg.run(ctx, ctx.y, n_perm=2)
+    want = {'FB'} | {k % f for f in ('tie', 'v9') for k in ('N1_%s', 'E_%s', 'E_%s+N1', 'N1perm_%s_0', 'N1perm_%s_1', 'E_%s+perm_0', 'E_%s+perm_1')}
+    assert set(res['scores']) == want
+    v9n1, cfn1 = res['scores']['N1_v9']['all'], cf.score(ctx, ctx.y, cf.run_t1(ctx, ctx.y, {'N1': (cf.feature_builder(
+        ctx, 'rank_normal', 'N1', list(ctx.enc['rank_normal']['cov_dt'])), ['full'])}, list(ctx.enc['rank_normal']['cov_dt']))[0][
+        ('N1', 'full')]['y_hat_dev'], cf.run_t1(ctx, ctx.y, {}, list(ctx.enc['rank_normal']['cov_dt']))[2][ctx.dev_mask] <= 2)['all']
+    assert abs(v9n1 - cfn1) < 1e-9                                           # N1_v9 is §91's N1, scored the same way
     p = tmp_path / gg.OUT
     p.write_text(json.dumps(cf.jsonable(res)))
     (tmp_path / gg.MARKER).write_text(json.dumps({'complete': True, 'outputs': {gg.OUT: '0' * 40}}))
@@ -114,6 +127,10 @@ def test_run_on_a_world_and_the_marker_refusal(tmp_path):
         gg.read(str(tmp_path))
     (tmp_path / gg.MARKER).write_text(json.dumps({'complete': True, 'outputs': {gg.OUT: hashlib.sha1(p.read_bytes()).hexdigest()}}))
     assert gg.read(str(tmp_path))['reading'] == 'HARNESS_FAULT'          # a synthetic world does not reproduce 91.12
+
+
+def test_tie_encoding_covers_all_three_marks():
+    assert set(gg.TIE) == {0, 1, 2}
 
 
 def test_the_pinned_tie_blocks_describe_the_real_E_final():

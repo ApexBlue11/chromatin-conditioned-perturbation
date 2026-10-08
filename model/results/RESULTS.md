@@ -7770,7 +7770,27 @@ means. This keeps their joint structure and destroys only gene identity. It is u
 **Reported, never read (93.16):** the same N1 and E+N1 built from **tie-corrected** marks, N1tie and E+N1tie. The quantities
 are G_tie = S(N1tie) − S(FB) and Δ_tie|E = S(E+N1tie) − S(E).
 
-### 93.16 FINDING (desk, outcome-free): v9's ATAC and H3K27ac channels carry tie-break artefacts in every gene without a peak (PI, 2026-10-08)
+### 93.15b AMENDED by review 057a (C1 MAJOR, C2, C3 upheld; before any 93.15 run, 2026-10-08): the tie-corrected features are the arms of record
+- **Why:** §91's features are ≈ 21 % (ATAC), 20 % (H3K27ac) and 90 % (H3K27me3) tie-break codes (93.16, corrected). A reading
+  on them cannot answer *"is the gain chromatin?"*.
+- **The arms of record** use `rank_normal_tie`: every present (cell, mark) after its step10/step12 tie block (value ≤
+  (Z − 0.5)/(N − 1)) is set to one tied value, then rank_normal.
+  - **Block sizes:** ATAC Z = 6,465 and H3K27ac Z = 6,726, both exact from `E_peaks_log`. H3K27me3 Z = 22,778, **an estimate**
+    from `E_final`'s value bands.
+  - **The arms:**
+    - N1_tie against FB, with its own permutation null N1perm_tie_d;
+    - E_tie (x1–x3 matched to the **corrected** mark means, C3) against E_tie+N1 and E_tie+perm_d.
+  - All of 93.15a's rules apply to these arms: the shared permutation, readings 1, 2a, 2b and 3, and 4 of 6 cells.
+- **The harness check:** §91's own N1 − FB (N1_v9) must equal 91.12's +0.0012099 within 1e-6. Otherwise nothing is read.
+- **Reported, never read:** the same five-arm reading on §91's features (`*_v9`), worded *"§91's encoded chromatin features
+  (≈ 21 % / 20 % / 90 % of entries tie-break codes in ATAC / H3K27ac / H3K27me3)"*.
+- **The licensed sentences are 93.15a's,** applied to *"the tie-corrected chromatin features"*. §91.12's per-gene-parameter
+  caveat stays beside every reading.
+- **Code:** `chromatin_genegeneric.py` with `TIE` on all three marks and `FEATURE_SETS = (tie, v9)`, in one `run_t1` call of
+  ~87 specs. 8 tests; 5 of 5 new mutants caught (reading of record on v9, harness on tie, H3K27me3 untied, per-mark permutation,
+  cells ≥ 3).
+
+### 93.16 FINDING (desk, outcome-free): **all three** of v9's chromatin channels carry tie-break artefacts in every tied (no-peak / zero-coverage) entry (PI, 2026-10-08; H3K27me3 added by review 057a)
 - **The mechanism:** `step10_extract_peak_tensor.py:133–136` rank-normalises each mark across **all** covered (cell, gene)
   entries jointly with `vals.argsort().argsort()`. Equal values, here every gene without a peak (raw 0), get **distinct**
   ranks ordered by the sort's tie-breaking, not equal ranks.
@@ -7778,19 +7798,29 @@ are G_tie = S(N1tie) − S(FB) and Δ_tie|E = S(E+N1tie) − S(E).
   - a non-biological value in [0, b_k] for each such entry, with b = 0.2068 for ATAC and 0.1967 for H3K27ac;
   - in some cells the values run almost exactly along gene order: Spearman(value, gene index) inside the block is +0.999 for
     HEK293T's ATAC, −0.997 for HL60's ATAC and +0.999 for HL60's H3K27ac.
-  - H3K27me3 (bigWig coverage, step13) is not affected.
+  - **H3K27me3 is affected too, and most** (review 057a C1; the earlier *"not affected"* is withdrawn).
+    - `step12_h3k27me3_coverage.py:118–121` ranks every covered entry jointly with the same `argsort().argsort()`.
+    - Step12's raw tensor and log are not in the repo. The block is estimated from `E_final`: entries below the boundary form
+      long per-cell value bands, and cells interleave above it (0 → 163 cell changes per 200 entries).
+    - Its size is Z ≈ **22,778 of 25,402 (89.7 %)**, b ≈ 0.897. The critic's estimate and the PI's agree (first short run at
+      entry 22,778).
 - **Its size, verified exactly against `E_peaks_log.txt`'s nonzero_genes:** Σ(covered − nonzero) = 6,465 ATAC entries
   (20.7 %) and 6,726 H3K27ac entries (19.7 %). The entries at or below b_k number exactly the same.
 - **Share of each dev cell's channel that is artefact:**
 
-  | dev cell | ATAC | H3K27ac |
-  |---|---|---|
-  | SKBR3 | **100 %** | 9 % |
-  | HEK293T | **94 %** | 6 % |
-  | U937 | 44 % | — |
-  | LNCAP | 37 % | 12 % |
-  | HL60 | 9 % | 18 % |
-  | VCAP | — | 9 % |
+  | dev cell | ATAC | H3K27ac | H3K27me3 |
+  |---|---|---|---|
+  | SKBR3 | **100 %** | 9 % | **94 %** |
+  | HEK293T | **94 %** | 6 % | 99 % (failed track, dropped by rank_normal) |
+  | U937 | 44 % | — | — |
+  | LNCAP | 37 % | 12 % | **93 %** |
+  | HL60 | 9 % | 18 % | **80 %** |
+  | VCAP | — | 9 % | 99 % (failed track) |
+
+  - **Fitting cells' H3K27me3, which rank_normal keeps:** A549 86 %, HCT116 94 %, HEPG2 75 %, MCF10A 96 %, PC3 94 %; JURKAT
+    2 %.
+  - So §91.8's failed-track exclusion dropped only the near-empty tracks. **Every other H3K27me3 track in §91, Stage 1a, N1 and
+    E1's clean encoding is mostly tie-break code.**
 
 - **What inherits it:**
   - v9 itself (z-scored per cell);
@@ -7804,8 +7834,9 @@ are G_tie = S(N1tie) − S(FB) and Δ_tie|E = S(E+N1tie) − S(E).
   - E1, still pending, does not remove it.
   - **The fix** (an encoding packet of its own): give the no-peak entries one tied value per (cell, mark) before any
     transform, e.g. 0, or mask them.
-- **What H1 adds:** with clean features from the same samples (93.13), the gene-local gain is null too. So the artefact is not
-  what hid a chromatin signal in that form.
+- **What H1 adds** (scoped by review 057a C2): with clean features from the same samples (93.13), the gene-local gain is null
+  too. So, for **accessibility**, the artefact is not what hid a gene-local gain. **The histone channels (H3K27ac ≈ 20 %,
+  H3K27me3 ≈ 90 % artefact) have not been tested free of it.**
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

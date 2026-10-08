@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""RESULTS 93.15 as amended by 93.15a (review 057): is §91's gene-generic chromatin gain (T1's N1 - FB, +0.0012)
-chromatin-specific? PI glue on chromatin_funnel.
+"""RESULTS 93.15 as amended by 93.15a (review 057) and 93.15b (review 057a): is §91's gene-generic chromatin gain (T1's N1 - FB,
++0.0012) chromatin-specific? PI glue on chromatin_funnel.
 
     python model/v9/chromatin_genegeneric.py --data_dir <dir> --provenance <json> --out <json>      # Kaggle: scores only
     python model/v9/chromatin_genegeneric.py --read DIR                                             # local: the one reading
@@ -9,7 +9,9 @@ Arms (one run_t1 call, §91's T1, drug-known dev rows):
   FB, N1 (§91); N1perm_d (mark means gene-permuted, ONE permutation per draw shared across marks, rng 9500 + d), d = 0..19;
   E = [b, x1, x2, x3]: over the fitting cells (held-out excluded) x1 = mean b, x2 = sd b, x3 = (mean b)^2, each quantile-matched
   to mark k's mean vector and present where the cell has mark k; E+N1 and E+perm_d add the (permuted) mark means to E.
-  Reported only (93.16): N1tie and E+N1tie, built from marks whose no-peak entries are tied before rank_normal.
+  93.15b: the arms OF RECORD use the tie-corrected marks ('rank_normal_tie': every step10/step12 tie-break block tied before
+  rank_normal, all three marks), with their own permutation null and E matched to the corrected means. The same arms on §91's
+  features are reported, and §91's N1 - FB is the harness check.
 """
 import argparse
 import hashlib
@@ -29,8 +31,10 @@ F91 = os.path.join(REPO, 'model', 'results', 'chromatin_funnel_91.json')
 N_PERM = 20
 OUT = 'chromatin_genegeneric_93.json'
 MARKER = 'CHROMATIN93_GG_COMPLETE.json'
-# 93.16: step10 ranked each mark jointly over all covered entries; the Z no-peak entries hold ranks 0..Z-1 of N-1.
-TIE = {0: (6465, 31264), 1: (6726, 34195)}          # mark -> (Z no-peak entries from E_peaks_log, N covered entries)
+# 93.16: step10 (ATAC, H3K27ac) and step12 (H3K27me3) ranked each mark jointly over all covered entries; the Z tied (no-peak /
+# zero-coverage) entries hold ranks 0..Z-1 of N-1. ATAC and H3K27ac: Z exact from E_peaks_log. H3K27me3: step12's RAW tensor and
+# log are not in the repo, so Z is the E_final estimate (the end of the per-cell value bands, review 057a; 93.15b).
+TIE = {0: (6465, 31264), 1: (6726, 34195), 2: (22778, 25402)}
 
 
 def _quantile_match(x, target):
@@ -94,43 +98,43 @@ def install_tie(ctx, E, cidx):
     return ctx.enc['rank_normal_tie']
 
 
-def run(ctx, y, n_perm=N_PERM, with_tie=True):
+FEATURE_SETS = (('tie', 'rank_normal_tie'), ('v9', 'rank_normal'))   # 93.15b: 'tie' is of record; 'v9' (§91's) is reported
+
+
+def run(ctx, y, n_perm=N_PERM, sets=FEATURE_SETS):
+    """One run_t1 call. For each feature set f: N1_f, N1perm_f_d, E_f (matched to f's mark means), E_f+N1, E_f+perm_d. FB is
+    shared. 'N1_v9' is §91's N1 (cf.feature_builder), the harness check."""
     fit = list(ctx.enc['rank_normal']['cov_dt'])
-    rn = 'rank_normal'
-    specs = {'FB': cf.feature_builder(ctx, rn, 'FB', fit), 'N1': cf.feature_builder(ctx, rn, 'N1', fit),
-             'E': variant(ctx, rn, fit, 'E'), 'E+N1': variant(ctx, rn, fit, 'E+N1')}
-    for d in range(n_perm):
-        specs['N1perm_%d' % d] = variant(ctx, rn, fit, 'perm', d)
-        specs['E+perm_%d' % d] = variant(ctx, rn, fit, 'E+perm', d)
-    if with_tie:
-        specs['N1tie'] = variant(ctx, 'rank_normal_tie', fit, 'N1')
-        specs['E+N1tie'] = variant(ctx, 'rank_normal_tie', fit, 'E+N1')
+    specs = {'FB': cf.feature_builder(ctx, 'rank_normal', 'FB', fit)}
+    for f, enc in sets:
+        specs['N1_' + f] = (cf.feature_builder(ctx, enc, 'N1', fit) if enc == 'rank_normal' else variant(ctx, enc, fit, 'N1'))
+        specs['E_' + f] = variant(ctx, enc, fit, 'E', ref_enc=enc)
+        specs['E_%s+N1' % f] = variant(ctx, enc, fit, 'E+N1', ref_enc=enc)
+        for d in range(n_perm):
+            specs['N1perm_%s_%d' % (f, d)] = variant(ctx, enc, fit, 'perm', d)
+            specs['E_%s+perm_%d' % (f, d)] = variant(ctx, enc, fit, 'E+perm', d, ref_enc=enc)
     out, mu, level = cf.run_t1(ctx, y, {k: (v, ['full']) for k, v in specs.items()}, fit)
     known = level[ctx.dev_mask] <= 2
     sc = {k: cf.score(ctx, y, out[(k, 'full')]['y_hat_dev'], known) for k in specs}
     return {'scores': {k: {'all': v['all'], 'top': v['top'], 'per_cell': v['per_cell'], 'centred_all': v['centred_all']}
                        for k, v in sc.items()},
             'kappa': {k: [out[(k, 'full')]['kappa'], out[(k, 'full')]['kappa_d']] for k in specs},
-            'fitting_cells': fit, 'n_perm': n_perm, 'dev_cells': list(cf.DEV_CELLS)}
+            'fitting_cells': fit, 'n_perm': n_perm, 'dev_cells': list(cf.DEV_CELLS), 'sets': [f for f, _ in sets]}
 
 
-def reading(res, n1_minus_fb_91):
-    """93.15a's mechanical reading. HARNESS_FAULT if N1 - FB does not reproduce 91.12."""
+def reading_on(res, f):
+    """93.15a's mechanical reading on feature set f (no harness check here)."""
     s, cells, n = res['scores'], res['dev_cells'], res['n_perm']
     d = lambda a, b: s[a]['all'] - s[b]['all']                                          # noqa: E731
     dc = lambda a, b: {c: s[a]['per_cell'][c] - s[b]['per_cell'][c] for c in cells}     # noqa: E731
-    g_chr, g_perm = d('N1', 'FB'), [d('N1perm_%d' % k, 'FB') for k in range(n)]
-    x_chr, x_perm = d('E+N1', 'E'), [d('E+perm_%d' % k, 'E') for k in range(n)]
-    x_cells = dc('E+N1', 'E')
+    g_chr, g_perm = d('N1_' + f, 'FB'), [d('N1perm_%s_%d' % (f, k), 'FB') for k in range(n)]
+    x_chr, x_perm = d('E_%s+N1' % f, 'E_' + f), [d('E_%s+perm_%d' % (f, k), 'E_' + f) for k in range(n)]
+    x_cells = dc('E_%s+N1' % f, 'E_' + f)
     out = {'G_chr': g_chr, 'G_perm_max': max(g_perm), 'G_perm': g_perm, 'D_chr_given_E': x_chr, 'D_perm_given_E_max': max(x_perm),
-           'D_perm_given_E': x_perm, 'D_chr_given_E_per_cell': x_cells, 'cells_D_chr_given_E_pos': int(sum(v > 0 for v in x_cells.values())),
-           'G_chr_per_cell': dc('N1', 'FB'), 'G_E': d('E', 'FB'),
-           'reported_tie': ({'G_tie': d('N1tie', 'FB'), 'D_tie_given_E': d('E+N1tie', 'E')} if 'N1tie' in s else None),
-           'harness': {'N1_minus_FB': g_chr, '91_12': n1_minus_fb_91, 'reproduces': bool(abs(g_chr - n1_minus_fb_91) < 1e-6)},
-           'caveat': '91.12: a per-gene parameter (e.g. v9 gene embedding) could represent it; not tested'}
-    if not out['harness']['reproduces']:
-        out['reading'] = 'HARNESS_FAULT'
-    elif g_chr <= max(g_perm):
+           'D_perm_given_E': x_perm, 'D_chr_given_E_per_cell': x_cells,
+           'cells_D_chr_given_E_pos': int(sum(v > 0 for v in x_cells.values())), 'G_chr_per_cell': dc('N1_' + f, 'FB'),
+           'G_E': d('E_' + f, 'FB')}
+    if g_chr <= max(g_perm):
         out['reading'] = 'NOT DISTINGUISHABLE FROM CAPACITY'
     elif x_chr <= max(x_perm):
         out['reading'] = 'GENE-LEVEL, MATCHED BY EXPRESSION (2a)'
@@ -138,6 +142,22 @@ def reading(res, n1_minus_fb_91):
         out['reading'] = 'GENE-LEVEL, EXCESS NOT ESTABLISHED ACROSS CELLS (2b)'
     else:
         out['reading'] = 'CHROMATIN-SPECIFIC'
+    return out
+
+
+def reading(res, n1_minus_fb_91):
+    """93.15b: HARNESS_FAULT unless §91's N1 - FB reproduces 91.12; the reading of record is on the tie-corrected features;
+    §91's features are read the same way and reported, with the artefact named."""
+    g = res['scores']['N1_v9']['all'] - res['scores']['FB']['all']
+    harness = {'N1_v9_minus_FB': g, '91_12': n1_minus_fb_91, 'reproduces': bool(abs(g - n1_minus_fb_91) < 1e-6)}
+    out = {'harness': harness, 'caveat': '91.12: a per-gene parameter (e.g. v9 gene embedding) could represent it; not tested'}
+    if not harness['reproduces']:
+        out['reading'] = 'HARNESS_FAULT'
+        return out
+    rec = reading_on(res, 'tie')
+    out.update({'reading': rec['reading'], 'of_record_tie_corrected': rec,
+                'reported_v9_features': dict(reading_on(res, 'v9'), artefact='§91 features: ~21 % / 20 % / 90 % of ATAC / '
+                                             'H3K27ac / H3K27me3 entries are step10/step12 tie-break codes (93.16)')})
     return out
 
 
