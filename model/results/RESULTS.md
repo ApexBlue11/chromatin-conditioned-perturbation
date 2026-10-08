@@ -8822,6 +8822,18 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
      only its timing.
    - **Why:** completing O9 only when v9 looks good would make its result conditional on P9's.
 
+### 97.7 NOTE (PI check, answering review 068a's one unassessed item): the horizon admissibility rule, as the kernel implements it
+- **What 068a couldn't assess:** whether O2's `finalize` (inherited unchanged by O9, `lincs-xpert-cd1.py:632–650`) sets
+  `admissible_for_v9_win` per §84.1 item 5.
+- **It does:**
+  - **at their early stop:** it asserts `counter_at_end == patience == marker counter` (50), then sets admissible;
+  - **at the horizon:** admissible iff `counter_at_end >= 45` (§71.7, unchanged), where
+    `counter_at_end = last_epoch_index − best_epoch`, read from the marker and from their checkpoint.
+- **The indexing:** epochs are 0-indexed (O2: early stop at index 90, best 40, counter 50). 297 completed epochs end at index
+  296, so the rule is **best-epoch index ≤ 251**, which is epoch **252** counted from 1. That is §84.1 item 5's and 97.3 item 2's
+  "at or before 252". It is the same threshold, not an off-by-one.
+- **The governing definition** is §71.7's counter.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
