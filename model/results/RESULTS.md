@@ -8498,13 +8498,18 @@ LINCS pert_info; no response read):
   - **37 of the 396 cold-drug test compounds (9.3 %)** have a training compound at ECFP4 Tanimoto 1.0;
   - **38** share an InChIKey first block (the same skeleton up to stereo or salt) with a training compound;
   - 3 share the full InChIKey.
-  - They carry **1,330 of the 13,445 test rows (9.9 %)**.
+  - **The 37 Tanimoto-1.0 compounds** carry **1,330 of the 13,445 test rows (9.9 %)**.
+  - **The 38 excluded compounds** (InChIKey first block ∪ Tanimoto ≥ 0.999; here the 37 are a subset of the 38) remove
+    **1,381 of the 13,364 scored rows (10.3 %)** (review 065 C3a).
   - Examples: afatinib (`BRD-K66175015` in test, `BRD-A58767537` in train) and doxorubicin (`BRD-K92093830` / `BRD-A52530684`).
 - **Near-duplicates:** 51 compounds have a training compound above Tanimoto 0.8, and 125 above 0.6. The median nearest-training
   similarity is 0.45.
 - **The cause:** XPert's splits hold out compounds by `pert_id`, and LINCS often gives one molecule several BRD ids (batches,
   salts, stereo-forms).
-- **So:** every model's "cold-drug" score on this split, XPert's published 0.645 included, partly measures **seen** molecules.
+- **So:** every model's "cold-drug" score on this split partly measures **seen** molecules.
+  - **The same holds on all five of XPert's folds, measured in 96.7 item 3** (review 065 C3b), so their published 0.645, a
+    five-fold mean, includes same-molecule duplicates.
+  - **Not measured:** how much the duplicates move any model's score.
 - **The cold-cell split,** for contrast, shares 1,283 of its 1,419 test compounds with training by design.
 
 **P9 amended** (96.3, before any P9 run):
@@ -8533,6 +8538,63 @@ LINCS pert_info; no response read):
    still checks the full 13,364 rows.
 4. **For the paper:** this is a benchmark-integrity finding, with its own short section once reviewed. It bears on every
    published cold-drug number that uses these splits.
+
+### 96.7 AMENDMENT (before any P9 output exists): review 065's four MINOR points, the five-fold leak, and one PI catch in 96.3 (PI, 2026-10-08)
+Review 065 cleared P9's kernel, pin and GUARD 6 (SOUND-WITH-CAVEATS). Each item below binds the P9 reading.
+
+1. **The unit is the molecule, not the `pert_id`** (C1):
+   - **The problem:** 5 molecules appear under 2 test `pert_id`s each (InChIKey first block), so 10 test "compounds" are 5
+     molecules.
+   - **The rule:** each scored test `pert_id` maps to its InChIKey first block (else itself). That map is in
+     `model/results/mechanism96/cold_drug_units.json`, sha1 `953abb636e82…`.
+   - **The estimand:** d_k is computed per **molecule**, from all its rows. Everything else in 96.3 is unchanged.
+   - **n:** 384 molecules on the full split (13,364 rows, `5f85ef0b`) and **346 on the clean subset** (11,983 rows,
+     `6024dbf8`).
+2. **v9's row score averages per-seed scores, not predictions** (PI catch, against 96.3):
+   - **What 96.3 said:** "v9's prediction is the mean of its three seeds' `deg_pred`". That departs from P7's convention
+     (§85.2 rule 10, W22: the row score is the **mean of the three per-seed per-row Pearsons**, scores averaged, never
+     predictions).
+   - **Why P7's convention:** the references (ridge, O9) are single runs, and a seed ensemble would favour v9 for averaging alone.
+   - **Amended:** the row score of record is P7's. The prediction-mean ensemble is reported, labelled *"v9 seed ensemble (not
+     the claim)"*.
+   - **The target is unchanged:** on P7's seed-0 file, `deg_pred` equals `y_pred − ctl_true` to 1.9e-6, and the bundle's
+     `y_true` / `ctl_true` in `baselines_split_cold_cell_1.npz` equal P7's on all 21,151 shared rows. So the row score is
+     per-row Pearson of (prediction − ctl, y − ctl) for every model.
+   - **The P9 scorer** refuses to pair any two files that disagree on `y_true` / `ctl_true` (as `coldcell_h2h.py` does).
+3. **The leak on all five folds, measured** (C3b; identity level, `model/v9/cold_drug_leak.py` with its split list;
+   `model/results/mechanism96/cold_drug_molecule_audit_folds2to5.json`, sha1 `df5a8dd08c83…`):
+
+   | fold | test compounds | InChIKey-1 match | Tanimoto 1.0 | rows at Tanimoto 1.0 | > 0.8 | median max-T |
+   |---|---|---|---|---|---|---|
+   | 1 | 396 | 38 | 37 | 1,330 / 13,445 (9.9 %) | 51 | 0.449 |
+   | 2 | 396 | 27 | 27 | 758 / 14,337 (5.3 %) | 39 | 0.451 |
+   | 3 | 395 | 41 | 41 | 1,038 / 13,882 (7.5 %) | 58 | 0.444 |
+   | 4 | 395 | 31 | 31 | 842 / 13,897 (6.1 %) | 48 | 0.421 |
+   | 5 | 395 | 41 | 40 | 1,151 / 13,269 (8.7 %) | 50 | 0.430 |
+
+   - **The finding:** every fold of XPert's cold-drug benchmark puts 27–41 test compounds (6.8–10.4 %) in training as the same
+     molecule under another BRD id, on 5.3–9.9 % of its test rows. The published 0.645 is their mean, so it includes seen
+     molecules on every fold.
+   - **Not measured:** the size of the effect on their score.
+   - **The critic's limit:** review 065 said only fold 1 was in the bundle, but `xpert_mdmt_splits.npz` carries all five folds
+     (provenance: XPert's `l1000_mdmt_68830_subset.h5ad`).
+4. **Similarity strata, reported and not a reading** (C3c, answer to ask 2):
+   - **The stratification:** d_k is reported per molecule max-Tanimoto stratum, the max over its `pert_id`s. On the clean
+     subset: < 0.6 (261 molecules), 0.6–0.8 (71), 0.8–0.999 (14).
+   - **Near-duplicates stay in the subset of record:** an analogue is an unseen compound.
+5. **Stage B′ without afatinib and doxorubicin** (C2):
+   - **The unit rule stays at ≥ 3 members.** The excluding reading is **4 units from 6 compounds**:
+     - **DNA** in MCF7, A375 and A549 (altretamine, cladribine, decitabine);
+     - **EGFR** in MCF7 only (CP-724714, erlotinib, pelitinib).
+   - **The 2-class condition still holds.** The licensed sentence (96.4 item 5) carries beside it: *"EGFR: one cell (MCF7)
+     after excluding afatinib."*
+6. **O9's readings** (C4; for its own registration, before its launch):
+   - **reproduction:** on the **full** split, [0.621, 0.669];
+   - **the head-to-head of record:** on the **clean subset**, both models restricted to the same 11,983 rows and 346 molecules;
+   - **the full-split head-to-head:** reported as *"the benchmark as defined"*.
+7. **For the record** (review 065, ask 1):
+   - **P9's encoding:** P9 is P7's model, so it uses the default `v9` chromatin encoding with the 93.16 tie-break codes.
+   - **If E3 is adopted:** a P9-style run on it is its own registration.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

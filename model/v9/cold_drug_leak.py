@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 """Identity-level audit: how many of XPert's cold-drug TEST compounds are the same molecule as a TRAINING compound under a
-different pert_id? (InChIKey, InChIKey first block, ECFP4 Tanimoto.) No response is read. Run with drug/.venv-drug."""
+different pert_id? (InChIKey, InChIKey first block, ECFP4 Tanimoto.) No response is read. Run with drug/.venv-drug.
+
+    python cold_drug_leak.py OUT.json [SPLIT ...]    # default: split_cold_drug_1 split_cold_cell_1 (96.6)
+"""
 import json
 import sys
 
@@ -16,7 +19,7 @@ info = pd.concat([pd.read_csv(ROOT + r'\Data Info\GSE92742_Broad_LINCS_pert_info
                   pd.read_csv(ROOT + r'\Data Info\GSE70138_Broad_LINCS_pert_info_2017-03-06.txt\GSE70138_Broad_LINCS_pert_info.txt', sep='\t')])
 info = info.drop_duplicates('pert_id').set_index('pert_id')
 out = {}
-for sp in ('split_cold_drug_1', 'split_cold_cell_1'):
+for sp in (sys.argv[2:] or ['split_cold_drug_1', 'split_cold_cell_1']):
     lab = z['split_' + sp]
     te = sorted(set(pert[lab == 'test']))
     tr = sorted(set(pert[lab == 'train']))
@@ -50,6 +53,6 @@ for sp in ('split_cold_drug_1', 'split_cold_cell_1'):
             'test_rows_in_tanimoto_eq_1_compounds': int(df.loc[df.max_tanimoto >= 0.999, 'n_test_rows'].sum()),
             'test_rows_total': int(df.n_test_rows.sum()),
             'median_max_tanimoto': float(df.max_tanimoto.median())}
-    out[sp] = {'summary': summ, 'compounds': df.to_dict('records') if sp == 'split_cold_drug_1' else None}
+    out[sp] = {'summary': summ, 'compounds': df.to_dict('records') if sp.startswith('split_cold_drug') else None}
     print(sp, summ)
 json.dump(out, open(sys.argv[1], 'w'), indent=1, default=str)
