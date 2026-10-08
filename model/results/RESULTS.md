@@ -7168,6 +7168,12 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
 - **The block sizes** are 93.15b's `TIE`: ATAC 6,465 / 31,264; H3K27ac 6,726 / 34,195; H3K27me3 22,778 / 25,402 (an estimate).
 - **Everything else is E1's:** the P2 recipe, the dev carve, seeds 0–2, guards 1–5 and the kernel pattern.
 
+**Review 059 C8, before the code:**
+- Every (cell, mark) with fewer than 10 non-tied genes becomes **missing** (mask off), mirroring the failed-ChIP rule, rather
+  than a present constant.
+- That newly masks two channels: SKBR3's ATAC (0 non-tied) and HME1's ATAC (9). The H3K27me3 channels it would catch (H1299,
+  HEK293T, HELA, MDAMB231, NKDBA, PHH, SKMEL1, SKMEL28, VCAP) are all on the failed list already.
+
 **Acceptance** (92.9 items 1–2, applied to E3 against P2):
 - rule 7, and Δ_centred > 0;
 - rule 8, with `align_dev.py --chromatin_encoding tie` (`ENCODING_SHA1` extended with E3's checkpoints);
@@ -7849,6 +7855,11 @@ are G_tie = S(N1tie) − S(FB) and Δ_tie|E = S(E+N1tie) − S(E).
       long per-cell value bands, and cells interleave above it (0 → 163 cell changes per 200 entries).
     - Its size is Z ≈ **22,778 of 25,402 (89.7 %)**, b ≈ 0.897. The critic's estimate and the PI's agree (first short run at
       entry 22,778).
+    - **Exact for 19 of 26 cells** (review 059): for the 19 cells whose H3K27me3 appears in `E_peaks_log.txt`, each cell's zero
+      count (covered − nonzero_genes) equals its count inside the block (16,830 entries). The other 5,948 entries are the 7 cells
+      absent from that log (A549, A673, HCT116, HEPG2, HL60, MCF7, PC3).
+    - **Provenance:** for those 19 cells, channel 2's zero pattern matches step10's narrowPeak counts exactly. So the channel is a
+      narrowPeak / coverage hybrid, not the bigWig coverage that step13's docstring describes.
 - **Its size, verified exactly against `E_peaks_log.txt`'s nonzero_genes:** Σ(covered − nonzero) = 6,465 ATAC entries
   (20.7 %) and 6,726 H3K27ac entries (19.7 %). The entries at or below b_k number exactly the same.
 - **Share of each dev cell's channel that is artefact:**
@@ -8025,6 +8036,55 @@ G_chr per cell: LNCAP +0.0041, SKBR3 +0.0013, HEK293T +0.0001, VCAP −0.0002, U
   - a planted pathway shift in the expected direction is detected, and the null is calibrated;
   - label handling (dimers and duplicates, the action-type signs) is correct.
 - **Where it runs:** local CPU (hundreds of compounds × 978 genes), so no GPU. The only download is PROGENy through decoupler.
+
+### 94.7 AMENDED by review 059 (C1–C2 MAJOR, C3–C7 MINOR, all upheld; before any Stage A code or data, 2026-10-08). Every change is identity-level
+1. **C1, labels.**
+   - **The filter:** direct interactions with **`organism == Homo sapiens`** and **any target type**, replacing
+     `target_type == SINGLE PROTEIN`.
+     - The old filter dropped the strongest transcriptional classes (proteasome, tubulin, HDAC, CDK, topoisomerase, DNA) and
+       96 of 104 PI3K rows, but kept non-human targets.
+     - Nucleic-acid and protein–nucleic-acid targets are kept, so DNA and ribosome mechanisms count; this is a superset of the
+       critic's list.
+   - **A1's class** is the `mechanism_of_action` string. **A3's membership** is by the rows' `gene_symbol`.
+   - **The recount** (identities only, after C3's collapse): labelled parent compounds in multi-member classes number MCF7 409,
+     HT29 297, MDAMB231 57, HS578T 37, THP1 25. Reported only: BJAB 2, CD34 2, H1975 3. **The same 5 scored cells.**
+2. **C2, A3's signs gated on genotype and receptor status** (standard cell-line annotations, Cellosaurus / COSMIC Cell Lines):
+
+   | class | rule | scored cells it applies to |
+   |---|---|---|
+   | MAPK | MEK/ERK targets (MAP2K1/2, MAPK1/3) in every cell. RAF targets (BRAF, RAF1, ARAF) only in BRAF-V600 cells, since RAF inhibitors activate ERK output in BRAF-wild-type and RAS-mutant cells | MEK/ERK: all 5. RAF: HT29 only |
+   | EGFR | EGFR, ERBB2 | all |
+   | PI3K | PIK3CA/B/D/G, AKT1–3, MTOR (now including complex-group rows, C1) | all |
+   | JAK | JAK1–3, TYK2 | all |
+   | p53 | MDM2 inhibitors only in TP53-wild-type cells (+) | MCF7 only (HT29 R273H, MDAMB231 R280K, HS578T V157F, THP1 null) |
+   | ER | ESR1/2, in ER-positive cells only | MCF7 only |
+   | AR | **dropped:** no scored cell is clearly AR-dependent | — |
+   | NFkB | IKBKB, CHUK | all |
+   | **Hypoxia (positive control, added)** | EGLN1/2/3 inhibitors (+: they stabilise HIF) | all |
+
+   - **Reported, never read:** the same A3 statistics on the ungated table.
+3. **C3, duplicates.** Compounds are collapsed by `parent_chembl_id`: one signature per parent per cell, from all its rows. Mates
+   must be distinct parents.
+4. **The plate confound** (the review's open point, now fixed). `X_ctl` is plate-matched (§24), and 36 % of dose-neighbour pairs
+   share an identical control (91.12). So in A1, a compound pair that shares any identical `X_ctl` profile among its rows (same
+   plate) is **excluded** from the AUROC, as mate and as non-mate.
+5. **C4, the null sentence scoped.** Reported, never read, per scored cell:
+   - a **self-retrieval ceiling:** each compound's rows split into fixed halves by sorted row_index parity; the AUROC of its own
+     other half against the other compounds;
+   - **A1 on a label-blind active subset:** compounds whose split-half self-correlation is ≥ 0.2, with labels permuted within the
+     subset;
+   - the number of compounds with ≥ 1 mate, and the null sd.
+   - A null is then worded *"… do not carry these readouts (self-retrieval ceiling X; active-subset A1 Y)"*.
+6. **C5, the fallback.** If neither readout has signal, the next step is **Stage A on the cold-drug split's test rows**
+   (`split_split_cold_drug_1`; measured data only, local CPU). A cold-drug v9 run is registered only for a readout that carries
+   signal there.
+7. **C6, no class selection for Stage B.** Stage B uses Stage A's readout as registered: all scored cells and all classes. Any
+   class restriction is registered as one, with its source.
+8. **C7, PROGENy footprints** (`dc.op.progeny(organism='human', top=500)`, decoupler 2.2.0, 2026-10-08, table sha1 `af40b7a5`).
+   - **The minimum:** a pathway needs ≥ 15 landmark genes.
+   - **Landmark genes per pathway:** Hypoxia 64, NFkB 61, MAPK 60, TNFa 57, Estrogen 53, Androgen 48, p53 41, TGFb 38, EGFR 37,
+     JAK-STAT 33, PI3K 30, VEGF 17, WNT 13, Trail 3.
+   - So Trail and WNT are below it. Neither is in the table, and every class row's pathway clears it.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
