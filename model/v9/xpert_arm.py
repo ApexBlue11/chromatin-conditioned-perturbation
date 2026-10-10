@@ -75,6 +75,59 @@ def carve_dev(rows_per_cell, K, seed, min_rows=200, max_rows=2000):
     chosen = rng.choice(len(pool), K, replace=False)
     return sorted([pool[i] for i in chosen])
 
+# RESULTS 93.15b / 93.16: v9's step10 / step12 tie blocks (Z tied entries of N covered) in E_final, per mark
+TIE = {0: (6465, 31264), 1: (6726, 34195), 2: (22778, 25402)}
+TIE_MIN_NONTIED = 10                                          # 92.11, review 059 C8: fewer non-tied genes -> channel missing
+TIE_EXPECTED_MASKED = [('HME1', 0), ('SKBR3', 0)]             # 92.11: the channels that rule newly masks (identity level)
+
+
+def encode_chromatin(E, Em, cidx, failed, encoding, tie=TIE):
+    """The chromatin encoding of every cell line (E: cells x genes x marks, float32, modified in place; Em: the mask).
+    'v9':    z-score per present (cell, mark) -- the model of record (P2, P7, P9).
+    'clean': RESULTS 92 E1 (S12, from 91.8 / 91.11 / 91.12): failed-ChIP H3K27me3 tracks become MISSING (mask and values), and
+             every present (cell, mark) is a rank-based inverse-normal transform across genes (bounded; no z-score re-inflation).
+    'tie':   RESULTS 92.11 E3: as 'clean', but first every entry in its mark's step10/step12 tie block (value <= (Z - 0.5) /
+             (N - 1); 93.16) is set to 0, so a cell's no-peak genes share one tied value; a (cell, mark) left with fewer than
+             TIE_MIN_NONTIED non-tied genes becomes missing (review 059 C8). The pinned block sizes must describe THIS E.
+    Returns (E, Em, info)."""
+    if encoding == 'v9':
+        for k in range(E.shape[2]):
+            has = Em[:, :, k].any(1)
+            for c in np.where(has)[0]:
+                v = E[c, :, k]
+                E[c, :, k] = (v - v.mean()) / (v.std() + 1e-6)
+        return E, Em, {}
+    if encoding not in ('clean', 'tie'):
+        raise ValueError(encoding)
+    from scipy.stats import norm, rankdata
+    if encoding == 'tie':
+        for k, (Z, N) in tie.items():
+            if int(Em[:, :, k].sum()) != N or int((E[:, :, k][Em[:, :, k]] <= (Z - 0.5) / (N - 1)).sum()) != Z:
+                raise SystemExit('FATAL: the pinned tie block of mark %d does not describe this E_final (93.16)' % k)
+    Em = Em.copy()
+    for cname, j in cidx.items():
+        if cname in failed:
+            Em[j, :, 2] = False
+            E[j, :, 2] = 0.0
+    tie_masked = []
+    if encoding == 'tie':
+        row_to_cell = {j: c for c, j in cidx.items()}
+        for k, (Z, N) in tie.items():
+            thr = (Z - 0.5) / (N - 1)
+            for c in np.where(Em[:, :, k].any(1))[0]:
+                tied = E[c, :, k] <= thr
+                if int((~tied & Em[c, :, k]).sum()) < TIE_MIN_NONTIED:
+                    Em[c, :, k] = False
+                    E[c, :, k] = 0.0
+                    tie_masked.append((row_to_cell.get(int(c), int(c)), int(k)))
+                else:
+                    E[c, tied, k] = 0.0
+    for k in range(E.shape[2]):
+        for c in np.where(Em[:, :, k].any(1))[0]:
+            E[c, :, k] = norm.ppf((rankdata(E[c, :, k], method='average') - 0.5) / E.shape[1]).astype(np.float32)
+    return E, Em, {'failed': sorted(c for c in failed if c in cidx), 'tie_masked': sorted(tie_masked)}
+
+
 class XPertData:
     """Their rows, presented in the v9 batch format."""
 
@@ -187,29 +240,17 @@ class XPertData:
         cidx = cidx.get('cell_id_to_row', cidx)
         E = np.load(find('E_final.npy', roots)).astype(np.float32)
         Em = np.load(find('E_final_mask.npy', roots))
-        if chromatin_encoding == 'clean':
-            # RESULTS 92 E1 (S12, from 91.8 / 91.11 / 91.12): failed-ChIP H3K27me3 tracks become MISSING (mask and values), and
-            # every present (cell, mark) is a rank-based inverse-normal transform across genes (bounded; no z-score re-inflation).
-            from scipy.stats import norm, rankdata
-            failed = set(json.load(open(find('E_final_provenance.json', roots)))['h3k27me3_failed_chip_downweighted'])
-            Em = Em.copy()
-            for cname, j in cidx.items():
-                if cname in failed:
-                    Em[j, :, 2] = False
-                    E[j, :, 2] = 0.0
-            for k in range(E.shape[2]):
-                for c in np.where(Em[:, :, k].any(1))[0]:
-                    E[c, :, k] = norm.ppf((rankdata(E[c, :, k], method='average') - 0.5) / E.shape[1]).astype(np.float32)
-            print('CHROMATIN ENCODING clean: failed H3K27me3 tracks missing for %s; rank-normal per (cell, mark)'
-                  % sorted(c for c in failed if c in cidx), flush=True)
-        elif chromatin_encoding == 'v9':
-            for k in range(E.shape[2]):
-                has = Em[:, :, k].any(1)
-                for c in np.where(has)[0]:
-                    v = E[c, :, k]
-                    E[c, :, k] = (v - v.mean()) / (v.std() + 1e-6)
-        else:
-            raise ValueError(chromatin_encoding)
+        failed = (set(json.load(open(find('E_final_provenance.json', roots)))['h3k27me3_failed_chip_downweighted'])
+                  if chromatin_encoding in ('clean', 'tie') else set())
+        E, Em, enc_info = encode_chromatin(E, Em, cidx, failed, chromatin_encoding)
+        if chromatin_encoding == 'tie' and enc_info['tie_masked'] != TIE_EXPECTED_MASKED:
+            raise SystemExit('FATAL: tie encoding masked %r, registered %r (92.11, review 059 C8)'
+                             % (enc_info['tie_masked'], TIE_EXPECTED_MASKED))
+        if chromatin_encoding != 'v9':
+            print('CHROMATIN ENCODING %s: failed H3K27me3 tracks missing for %s; rank-normal per (cell, mark)%s'
+                  % (chromatin_encoding, enc_info['failed'],
+                     ('; tie blocks tied, channels with < %d non-tied genes missing: %s' % (TIE_MIN_NONTIED, enc_info['tie_masked'])
+                      if chromatin_encoding == 'tie' else '')), flush=True)
         lin = np.load(find('cell_lineage.npy', roots)).astype(np.float32)
         G = self.X.shape[1]
         self.E = np.zeros((len(self.X), G, E.shape[2]), np.float32)
@@ -300,7 +341,7 @@ def main():
                          'architecture, parameter count and reliability channel are unchanged and only '
                          'the CELL-SPECIFIC chromatin information is removed. This is the '
                          'ablate-to-the-mean convention of this project, applied at training time.')
-    ap.add_argument('--chromatin_encoding', choices=['v9', 'clean'], default='v9',
+    ap.add_argument('--chromatin_encoding', choices=['v9', 'clean', 'tie'], default='v9',
                     help='RESULTS 92 E1: clean = failed-ChIP H3K27me3 tracks missing + rank-normal per (cell, mark); '
                          'v9 (default) = per-(cell, mark) z-score as before')
     ap.add_argument('--save_ckpt', default=None,

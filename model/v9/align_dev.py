@@ -182,7 +182,7 @@ def main():
     ap.add_argument('--readout', choices=['mean', 'aux'], default='mean')
     ap.add_argument('--no_nulls', action='store_true', help='skip the permutation and cell-shuffle nulls (slow)')
     ap.add_argument('--rows', choices=['dev', 'test'], default='dev')
-    ap.add_argument('--chromatin_encoding', choices=['v9', 'clean'], default='v9',
+    ap.add_argument('--chromatin_encoding', choices=['v9', 'clean', 'tie'], default='v9',
                     help='the encoding the checkpoint was TRAINED with (RESULTS 92 E1: clean); checkpoints do not record it')
     a = ap.parse_args()
     dev = 'cuda' if torch.cuda.is_available() else 'cpu'

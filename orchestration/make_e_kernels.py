@@ -3,6 +3,7 @@
 
     python orchestration/make_e_kernels.py e2 [--seed_start 0 --seeds 1]
     python orchestration/make_e_kernels.py e1 [--seed_start 0 --seeds 1]
+    python orchestration/make_e_kernels.py e3 --seed_start 0 --seeds 3     # RESULTS 92.11: the tie-fixed encoding
 
 E2 = + --ablate_epi: WITHOUT CELL-SPECIFIC chromatin (training-time mean ablation: every row carries the same per-gene
      dev-train mean, a gene-generic constant; review 044 C2b). Runs on the current lincs-v9-src upload or the new one.
@@ -18,10 +19,14 @@ ROOT = r'C:\Projects\LINCS\external\kaggle_kernels'
 IMG = 'gcr.io/kaggle-private-byod/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461'
 UPLOAD_NOW = '75c58f52051296b326e57613feee7be8f7097d1b'     # xpert_arm.py in the current lincs-v9-src (P7 pins it)
 UPLOAD_E1 = '60bdcd48039a1ae3be4ebbfdce087c142f5d8f44'      # xpert_arm.py at 3495ada (the --chromatin_encoding flag)
+UPLOAD_E3 = '50ff83da08c55f6b3ad78bf31dfc790e7cc762b4'      # xpert_arm.py with encode_chromatin + 'tie' (RESULTS 92.11)
 ARMS = {'e2': {'flags': ['--ablate_epi'], 'tag': '_noepi', 'suffix': '', 'needs': ['ablate_epi'],
                'xpert_arm_sha1': [UPLOAD_NOW, UPLOAD_E1]},
         'e1': {'flags': ['--chromatin_encoding', 'clean'], 'tag': '', 'suffix': '_chromclean',
-               'needs': ['chromatin_encoding', "E_final_provenance.json", 'rankdata'], 'xpert_arm_sha1': [UPLOAD_E1]}}
+               'needs': ['chromatin_encoding', "E_final_provenance.json", 'rankdata'], 'xpert_arm_sha1': [UPLOAD_E1]},
+        'e3': {'flags': ['--chromatin_encoding', 'tie'], 'tag': '', 'suffix': '_chromtie',
+               'needs': ['def encode_chromatin', 'TIE_EXPECTED_MASKED', 'TIE_MIN_NONTIED', "E_final_provenance.json"],
+               'xpert_arm_sha1': [UPLOAD_E3]}}
 
 CODE = r'''# RESULTS 92 (pre-registered): __ARM__ on the P2 recipe, dev carve, seeds __SEEDS__. Guards as the V2 dev kernel, plus the arm's.
 import sys, os, glob, torch, numpy as np
