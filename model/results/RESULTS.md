@@ -7200,6 +7200,53 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
 - ≈ 5 GPU-h (three seeds at ≈ 1.7 h each).
 - **Either acceptance is development:** a test-cell claim needs its own registration (a P8).
 
+### 92.12 E1 at three seeds, read by 92.3 / 92.9 — **NOT ACCEPTED**: Δ +0.00287 falls short of the 0.003 floor, while every other conjunct passes (2026-10-10)
+**The runs:**
+- **Seed 0:** §92.8.
+- **Seeds 1–2:** `lincs-v9dev-e1-s1` v1, pushed by hand at 13:18 IST on 10 Oct (the armed sleeper had died), COMPLETE by 18:11.
+- **Its log:**
+  - `mounted code verified for e1 (xpert_arm.py 60bdcd48039a)`;
+  - GUARD 4 (dev rows `51e7e4ab…`) OK;
+  - GUARD 5 distinct on every epoch for seeds 1 ([1, 1001]) and 2 ([2, 1002]).
+- **The checkpoints:** seed 1 `bfdb2d34…` and seed 2 `e84afc78…` are added to `align_dev.py`'s `ENCODING_SHA1` as `clean`
+  (92.9 item 2).
+- **Scored** by `score_dev.py --centred --preds <E1 ×3> --baseline <P2 ×3>` → `model/results/v9_dev_score_E1_3seed.json`.
+
+**Rule 7:**
+
+| conjunct | value | needed | |
+|---|---|---|---|
+| 3-seed mean Δ, per-row mean | **+0.00287** (E1 0.43980, sd 0.0014; P2 0.43693, sd 0.0017) | ≥ max(0.003, 2√(s0²/3 + s_v²/3)) = **0.0030** (the floor) | **✗** |
+| Δ on the mean of per-cell means | +0.0028 | > 0 | ✓ |
+| dev cells favouring E1 | 4 of 6 | ≥ 4 of 6 | ✓ |
+
+- **Seed-paired Δ:** +0.0063 / +0.0003 / +0.0020, every seed positive.
+- **Centred Δ:** +0.0021 > 0 ✓ (seed-paired +0.0058 / +0.0005 / +0.0000).
+- **Rule 8** (`align_dev.py --readout aux --no_nulls --chromatin_encoding clean`, three final checkpoints;
+  `v9_dev_align_E1_3seed_aux.json`): alignment 0.2731 / 0.2591 / 0.2807, mean **0.2709** ≥ 0.2532 and > 0.2292 ✓.
+- **In-cell rule:** 6 of 6 cells; seed means +0.081 / +0.065 / +0.068 ✓.
+- **Verdict:** every conjunct but rule 7's magnitude passes. **By the registered rule, E1 is not accepted.**
+- **Rule 7a's floor is the binding term:** the seed-noise term, 2√(…) = 0.0018, is below it, and Δ misses it by 0.00013.
+
+**Per cell** (3-seed median Δ against P2):
+
+| HEK293T | LNCAP | VCAP | U937 | SKBR3 | HL60 |
+|---|---|---|---|---|---|
+| **+0.0079** | +0.0002 | **+0.0117** | +0.0041 | −0.0017 | −0.0049 |
+
+**92.9's decision table:** E2 not accepted (92.10) and E1 not accepted, so **no change to the recipe**. P2's chromatin encoding
+stays the model of record, and P7 and P9 are unaffected.
+
+**Permitted reading:** *"the cleaned chromatin encoding raised the per-row dev score by +0.0029 at three seeds, every seed
+positive and in 4 of 6 cells, short of the registered 0.003 floor"*. No accepted change.
+
+**Carried caveat (93.16):** E1's clean encoding still carries the tie-break codes (ATAC 20 %, H3K27ac 20 %, H3K27me3 90 % of
+entries).
+- **E3** (92.11) is the training-time test without them.
+- **Its decision row** is "E1 not accepted", so E3 is read **against P2**.
+- **Its code** follows now, under the 92.9 item 5 freeze, which lifts with this read. `lincs-v9-src` is versioned only after
+  P9, which pins its current version, completes.
+
 ## 93. 🔒 PRE-REGISTERED (packet 050, amended by review 050): why chromatin does not transfer — H2 and H3 on the §91 features, H1 on richer accessibility features (principal's request, 2026-10-03/06)
 ### 93.1 The question, and what is already known
 - **The principal's argument** (2026-10-03): chromatin is a cell's own context. Baseline expression is downstream of it, so
