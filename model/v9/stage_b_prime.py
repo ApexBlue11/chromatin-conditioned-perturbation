@@ -38,6 +38,10 @@ SWAP_P_MAX = 0.05
 REF_KEYS = {'nn1': '1-NN', 'nn5': '5-NN', 'physchem': 'physchem 5-NN', 'ridge_pred-ctl_true': 'ridge'}
 AVERAGING_KEYS = {'nn5', 'physchem', 'ridge_pred-ctl_true'}      # 96.12 item 1: a licence needs one of these
 P9_SEED_RE = r'v9p9_seed[0-2]\.npz'
+V9_KEY = 'deg_pred'                       # review 069a C1: the registered predicted-delta key, and no other
+REF_FILE_SHA1 = {'nn1': 'c27e405545f2732a1f2fcc7225fd6e9e195309dd', 'nn5': 'c27e405545f2732a1f2fcc7225fd6e9e195309dd',
+                 'physchem': 'c27e405545f2732a1f2fcc7225fd6e9e195309dd',          # refs_cold_drug_1.npz (96.10)
+                 'ridge_pred-ctl_true': 'ade7d96524b53658d3cd8e08662e7aa0a99b247f'}  # baselines_split_cold_drug_1.npz
 NOTE_1NN = ("1-NN's signature is one training neighbour's measured response, not a denoised prediction; v9's margin over it "
             "may partly reflect smoothness (96.8 item 1).")
 
@@ -662,6 +666,8 @@ def check_v9_specs(specs):
     parts = [sp.rsplit(':', 1) for sp in specs]
     if any(len(pp) != 2 for pp in parts) or len({pp[1] for pp in parts}) != 1:
         raise SystemExit('REFUSED: the v9 specs must share one key: %r' % (specs,))
+    if parts[0][1] != V9_KEY:
+        raise SystemExit('REFUSED: the v9 key must be %r (predicted delta), got %r' % (V9_KEY, parts[0][1]))
     singles = [pp[0] for pp in parts[:3]]
     for k, path in enumerate(singles):
         if ',' in path or not re.fullmatch(P9_SEED_RE.replace('[0-2]', str(k)), os.path.basename(path)):
@@ -696,7 +702,15 @@ def compare(bundle_path, labels_path, rows_npz_path, v9_specs, ref_spec, ref_lab
     if len(v9_specs) != 4:
         raise SystemExit(f"REFUSED: expected exactly 4 v9 specs, got {len(v9_specs)}")
     check_v9_specs(v9_specs)
+    for sp in v9_specs[:3]:                                  # review 069a C1: the key really is the prediction's delta
+        zz = np.load(sp.rsplit(':', 1)[0])
+        if not {'deg_pred', 'y_pred', 'ctl_true'} <= set(zz.files):
+            raise SystemExit(f"REFUSED: {sp} lacks deg_pred / y_pred / ctl_true")
+        if float(np.abs(zz['deg_pred'] - (zz['y_pred'] - zz['ctl_true'])).max()) > 1e-4:
+            raise SystemExit(f"REFUSED: {sp}: deg_pred is not y_pred - ctl_true")
     ref_file = ref_spec.rsplit(':', 1)[0].split(',')[0]
+    if ref_spec.rsplit(':', 1)[1] in ('nn1', 'nn5', 'physchem') and not os.path.exists(ref_file + '.marker'):
+        raise SystemExit(f"REFUSED: {ref_file} has no marker (review 069a C2)")
     if os.path.exists(ref_file + '.marker'):                 # 96.12 item 2: the references npz is not in git
         with open(ref_file + '.marker', 'r', encoding='utf-8') as f:
             rmk = json.load(f)
@@ -855,7 +869,7 @@ def compare(bundle_path, labels_path, rows_npz_path, v9_specs, ref_spec, ref_lab
     return out_data
 
 
-def read_b_prime(b3_jsons, cmp_jsons):
+def read_b_prime(b3_jsons, cmp_jsons, p9_score_json):
     """Mechanical reading of Stage B' (RESULTS 96.4 / 96.8 / 96.9 / 96.12). Item 1: B3 on v9's four predictions (seed0, seed1,
     seed2, seed-mean) by A3's rule. Item 2: per registered reference, the excluding z block passes for all four. A licence
     needs item 1 and at least one averaging or fitted reference passed (96.12 item 1)."""
@@ -877,6 +891,23 @@ def read_b_prime(b3_jsons, cmp_jsons):
     for p, d in zip(cmp_jsons, cmp_data):
         if d.get('v9_specs') != sources:
             raise SystemExit(f"REFUSED: {p} compared other v9 inputs than item 1's B3 sources")
+    # review 069a C2: each reference is the registered file
+    for p, key, d in zip(cmp_jsons, keys, cmp_data):
+        if d.get('input_sha1s', {}).get('ref_file') != REF_FILE_SHA1[key]:
+            raise SystemExit(f"REFUSED: {p}: the {key} reference file is not the registered one (sha1)")
+    # review 069a C3: the v9 seed files, by content, are the ones P9 was scored on, every comparison used, and on disk now
+    p9 = _verified_json(p9_score_json)
+    scored = {f: h for f, h in p9['inputs']['manifest']['files'].items() if re.fullmatch(P9_SEED_RE, f)}
+    if len(scored) != 3:
+        raise SystemExit(f"REFUSED: {p9_score_json} records {len(scored)} P9 seed files, not 3")
+    for p, d in zip(cmp_jsons, cmp_data):
+        used = {f: d.get('input_sha1s', {}).get(f) for f in scored}
+        if used != scored:
+            raise SystemExit(f"REFUSED: {p} used v9 seed files other than those P9 was scored on")
+    for sp in sources[:3]:
+        path = sp.rsplit(':', 1)[0]
+        if sha1_file(path) != scored[os.path.basename(path)]:
+            raise SystemExit(f"REFUSED: {path} on disk is not the file P9 was scored on")
 
     item1_variants_pass, variant_details = [], []
     for idx, d in enumerate(b3_data):
@@ -949,6 +980,7 @@ def main():
     parser.add_argument('--read', action='store_true', help="Execute mechanical reading of Stage B'")
     parser.add_argument('--b3', nargs='+', default=None, help="Four B3 result JSONs (seed0 seed1 seed2 seed_mean)")
     parser.add_argument('--cmp', nargs='+', default=None, help="Comparison JSONs (e.g. CMP_ridge CMP_nn1 CMP_nn5 CMP_physchem)")
+    parser.add_argument('--p9_score', default=None, help="score_p9.py's output JSON (its manifest pins the seed files)")
 
     args = parser.parse_args()
 
@@ -967,9 +999,9 @@ def main():
         return
 
     if args.read:
-        if not args.b3 or not args.cmp:
-            parser.error("--read requires --b3 (4 JSONs) and --cmp (>= 1 JSON)")
-        read_b_prime(args.b3, args.cmp)
+        if not args.b3 or not args.cmp or not args.p9_score:
+            parser.error("--read requires --b3 (4 JSONs), --cmp (4 JSONs) and --p9_score")
+        read_b_prime(args.b3, args.cmp, args.p9_score)
         return
 
     parser.print_help()

@@ -349,7 +349,7 @@ def _p9_specs(tmp_path, deg):
     paths = []
     for k in range(3):
         p = d / ('v9p9_seed%d.npz' % k)
-        np.savez(p, row_index=np.array([0, 1, 2]), deg_pred=deg)
+        np.savez(p, row_index=np.array([0, 1, 2]), deg_pred=deg, y_pred=deg + 1.0, ctl_true=np.ones_like(deg))
         paths.append(str(p))
     return [p + ':deg_pred' for p in paths] + [','.join(paths) + ':deg_pred']
 
@@ -701,16 +701,37 @@ def _b3(spec, p=0.001, frac=0.8, split='split_cold_drug_1'):
             'a3_gated': {'p': p, 'frac_positive': frac, 'd_per_unit': {'EGFR@MCF7': 1.0, 'DNA@MCF7': 1.0}}}
 
 
-def _cmp(key, pvals=(0.01, 0.01, 0.01, 0.01), specs=None):
+SEED_SHA1 = {}
+
+
+@pytest.fixture(autouse=True)
+def _p9_seed_files(tmp_path, monkeypatch):
+    """Real seed files at SEEDS (relative to a tmp cwd), so the reader can hash them; their sha1s pin everything else."""
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / 'external' / 'kaggle_out' / 'v9p9').mkdir(parents=True)
+    SEED_SHA1.clear()
+    for k, p in enumerate(SEEDS):
+        np.savez(p, row_index=np.arange(3), deg_pred=np.full((3, 2), float(k)))
+        SEED_SHA1[os.path.basename(p)] = sbp.sha1_file(p)
+
+
+def _cmp(key, pvals=(0.01, 0.01, 0.01, 0.01), specs=None, ref_sha1=None, seed_sha1=None):
     pv = dict(zip(['seed0', 'seed1', 'seed2', 'seed_mean'], pvals))
-    return {'ref_spec': REF_SPECS[key], 'ref_label': 'free text', 'v9_specs': list(specs or SPECS),
+    sh = dict(seed_sha1 or SEED_SHA1)
+    sh['ref_file'] = ref_sha1 or sbp.REF_FILE_SHA1[key]
+    return {'ref_spec': REF_SPECS[key], 'ref_label': 'free text', 'v9_specs': list(specs or SPECS), 'input_sha1s': sh,
             'per_variant': {v: {'excluding': {'z': {'p_value': x, 'pass': bool(x < 0.05)}}} for v, x in pv.items()}}
 
 
-def _read(tmp_path, b3s, cmps, tag='r'):
+def _p9_score(tmp_path, files=None):
+    return _write_marked(str(tmp_path / 'p9_accuracy_ridge.json'),
+                         {'inputs': {'manifest': {'files': dict(files or SEED_SHA1, **{'P9_other.json': 'x'})}}})
+
+
+def _read(tmp_path, b3s, cmps, tag='r', p9=None):
     bp = [_write_marked(str(tmp_path / ('%s_b3_%d.json' % (tag, i))), o) for i, o in enumerate(b3s)]
     cp = [_write_marked(str(tmp_path / ('%s_cmp_%d.json' % (tag, i))), o) for i, o in enumerate(cmps)]
-    return sbp.read_b_prime(bp, cp)
+    return sbp.read_b_prime(bp, cp, p9 or _p9_score(tmp_path))
 
 
 FAIL = (0.2, 0.2, 0.2, 0.2)
@@ -783,4 +804,38 @@ def test_compare_refuses_unpinned_specs_and_a_changed_reference_file(tmp_path, m
     np.savez(ref, row_index=np.array([0, 1, 2]), nn1=np.zeros((3, 4)))
     _ = (tmp_path / 'refs.npz.marker').write_text(json.dumps({'complete': True, 'sha1': 'not-its-sha1'}))
     with pytest.raises(SystemExit, match='does not match its marker'):
+        sbp.compare('b.npz', 'l.tsv', 'r.npz', specs, str(ref) + ':nn1', 'R')
+
+
+
+def test_review_069a_pins(tmp_path):
+    """C1: only deg_pred is a v9 key. C2: each reference is the registered file. C3: the seed files, by content, are the ones
+    P9 was scored on, every comparison used, and the ones on disk."""
+    for bad in ('y_true-ctl_true', 'y_pred', 'ctl_true'):
+        with pytest.raises(SystemExit, match='the v9 key must be'):
+            sbp.check_v9_specs([p + ':' + bad for p in SEEDS] + [','.join(SEEDS) + ':' + bad])
+    good_b3 = [_b3(sp) for sp in SPECS]
+    good = [_cmp(k) for k in REF_SPECS]
+    assert _read(tmp_path, good_b3, good, 'ok')['status'] == 'LICENSED'
+    with pytest.raises(SystemExit, match='not the registered one'):
+        _read(tmp_path, good_b3, good[:3] + [_cmp('ridge_pred-ctl_true', ref_sha1='f' * 40)], 'ref')
+    other = dict(SEED_SHA1, **{'v9p9_seed1.npz': 'e' * 40})
+    with pytest.raises(SystemExit, match='other than those P9 was scored on'):
+        _read(tmp_path, good_b3, good[:3] + [_cmp('ridge_pred-ctl_true', seed_sha1=other)], 'cmpseed')
+    with pytest.raises(SystemExit, match='other than those P9 was scored on'):
+        _read(tmp_path, good_b3, good, 'p9seed', p9=_p9_score(tmp_path, other))
+    np.savez(SEEDS[2], row_index=np.arange(3), deg_pred=np.full((3, 2), 9.0))      # the file changed on disk
+    with pytest.raises(SystemExit, match='on disk is not the file'):
+        _read(tmp_path, good_b3, good, 'disk')
+
+
+def test_compare_checks_deg_pred_and_requires_the_references_marker(tmp_path):
+    specs = _p9_specs(tmp_path, np.zeros((3, 4)))
+    ref = tmp_path / 'refs.npz'
+    np.savez(ref, row_index=np.array([0, 1, 2]), nn1=np.zeros((3, 4)))
+    with pytest.raises(SystemExit, match='has no marker'):
+        sbp.compare('b.npz', 'l.tsv', 'r.npz', specs, str(ref) + ':nn1', 'R')
+    p0 = specs[0].rsplit(':', 1)[0]
+    np.savez(p0, row_index=np.array([0, 1, 2]), deg_pred=np.zeros((3, 4)), y_pred=np.ones((3, 4)), ctl_true=np.zeros((3, 4)))
+    with pytest.raises(SystemExit, match='deg_pred is not y_pred - ctl_true'):
         sbp.compare('b.npz', 'l.tsv', 'r.npz', specs, str(ref) + ':nn1', 'R')
