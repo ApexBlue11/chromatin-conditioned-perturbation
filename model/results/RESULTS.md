@@ -8745,6 +8745,32 @@ code and inputs, and its marker and sidecar are committed):
 - **Next (96.8 item 4):** B3 on the four references (1-NN, 5-NN, physchem, ridge) runs now. It reads predictions and labels only.
   The swap comparison waits for P9.
 
+### 96.11 RESULT (before any P9 output; reported, not a reading): **every chemistry-only reference passes B3**, so the "beyond chemistry" comparison carries the whole Stage B′ claim (PI, 2026-10-10)
+`mechanism_stage_a.py --split split_cold_drug_1 --rows rows_cold_drug_13364.npz --delta <reference>`, as 96.8 item 4 allows
+(predictions and labels only). Files: `model/results/mechanism96/stageBprime/b3_{nn1,nn5,physchem,ridge}.json` with markers.
+
+| delta | T (raw) | p | units with d > 0 | mean d_std | DNA d_std (A375, A549, MCF7) | EGFR d_std, 6 cells (mean) |
+|---|---|---|---|---|---|---|
+| measured (Stage A′, 13,445 rows) | 2.72 | 0.001 | 8 / 9 | 0.95 | 1.55, 1.81, 1.76 | 0.57 |
+| 1-NN | 2.51 | 0.001 | 8 / 9 | 1.08 | 0.80, 2.19, 1.83 | 0.82 |
+| 5-NN | 3.56 | 0.001 | 9 / 9 | 1.29 | 1.03, 2.18, 1.91 | 1.08 |
+| physchem 5-NN | 2.85 | 0.001 | 8 / 9 | 0.88 | 1.51, 1.78, 1.70 | 0.49 |
+| ridge | 5.26 | 0.001 | 9 / 9 | 1.84 | 1.22, 1.77, 1.65 | 1.98 |
+
+- **What it says:** for these two classes, the expected pathway direction is recoverable **from chemistry alone**. A
+  nearest-structure lookup, or a linear map from control + structure (ridge), reproduces it at least as strongly as the
+  measured data does.
+- **What follows for Stage B′:**
+  - **Item 1 alone is uninformative about mechanism:** a v9 pass of B3 would show nothing beyond chemistry, which is why 96.4
+    registered item 2.
+  - **Item 2 is the claim.** Against ridge its bar is high: mean d_std 1.84, with EGFR units at 1.8–2.2, near the ceiling the
+    standardisation allows. That is fixed now, before v9's predictions exist.
+- **Why the references exceed the measured data:** this is consistent with 96.8 / review 066. Standardised d still rises with a
+  signature's signal-to-noise below saturation, and model predictions are smoother than single-condition measurements. So the
+  v9-against-reference comparison (two smooth models) is the fair one, which is how it was registered. A comparison against the
+  measured data would not be.
+- **Not a claim, and not a reading:** reported to fix expectations before P9 is read.
+
 ## 97. 🔒 PRE-REGISTERED: O9, XPert trained to its published recipe on `split_cold_drug_1`, as P9's head-to-head comparator. Before any O9 code (PI, 2026-10-08)
 ### 97.1 Why, and what it adds over O2
 - **The need:** P9 (§96) is read against ridge at once. A SOTA statement about unseen compounds needs XPert on the **same split,
