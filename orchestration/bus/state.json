@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "073_p10_prereg"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -99,7 +97,8 @@
     "069a_amendment_96_12",
     "070_e1_result_e3_code",
     "071_p9_result",
-    "072_stage_b_prime_result"
+    "072_stage_b_prime_result",
+    "073_p10_prereg"
   ],
   "gpu_hours_spent_this_session": 18.71,
   "pending_decision": "P9 (96.13) and Stage B' (96.14) read and reviewed. O9 s1 RUNNING (18:12); E3 RUNNING (20:01). Next: O9 session chain (handoff -> xpert-cd1-state dataset + session 2 kernel), E3 read against P2, manuscript.",

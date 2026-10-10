@@ -9234,6 +9234,58 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
   is unreleased.
 - **No claim that v9 is better than a model whose code we cannot run.**
 
+### 98.6 AMENDMENT (review 073, before any P10 code): R2 carries the inference; floors and strata; four pins (PI, 2026-10-10)
+- **C1 (MAJOR), adopted: the readings become a 2 × 2.** This replaces 98.3's R1 and R2 bullets.
+  - **The reason:** M differs from v9 in the compound, and also in dose, time, `x_cell`, chromatin, lineage, the architecture and
+    about 10 % of the rows. B1 differs from v9 only in the compound.
+  - **R1 (v9 against M) is a benchmark statement only:** "v9 does (not) beat a drug-free model on unseen compounds". It licenses
+    nothing about whether v9 uses the compound.
+  - **R2 (v9 against B1) carries the inference:**
+    - **R2 PASS:** "v9 needs the compound on unseen compounds; Bai et al.'s finding does not hold for v9". That is the first such
+      evidence in this project (the sentence moved here from R1).
+    - **R2 FAIL with mean ≤ 0:** "v9's unseen-compound accuracy does not depend on the compound". Only then is P9's headline
+      restated, as *a margin that does not depend on the compound* (not "basal-profile"; B1 keeps dose, time and cell
+      context), and manuscript §5.5 rewritten.
+    - **Otherwise:** "not separable from v9's drug-blind twin at this power".
+  - **The counter-case this allows:** R1 FAIL with R2 PASS. A drug-free MLP can match v9's accuracy while v9 still uses the
+    compound.
+- **C2, adopted: reported beside every contrast, never read.**
+  - **F0, a zero-parameter drug-free floor:** −(X_ctl − x̄_ctl,cell) + Δ̄_cell, both means over the cell's training rows. Rows
+    whose cell has no training rows are excluded from F0 and counted. The critic measured 0.391 per row on the clean rows.
+  - **The distinct-control stratum:** clean scored rows whose X_ctl is not byte-identical to any training row's.
+    - **The counts:** 2,091 rows, 267 molecules, sorted `row_index` sha1 **`def96fc0ab19…`**. That reproduces the critic's 2,091.
+    - **The sharing:** 10,922 of 13,364 scored rows (9,892 of 11,983 clean) share a training control.
+    - **Its file:** `model/results/p10/p10_carves.json` from `model/v9/p10_carves.py`, committed with this amendment.
+  - **The control-noise-free target:** X − x̄_ctl,cell (training rows), with every arm's prediction mapped to the same target.
+- **C3, settled from Bai et al.'s code** (`experiments/_shared/training/train_mlp.py`, read 2026-10-10):
+  - **The input** is `adata.obsm['X_ctl']`, indexed by the same mask as `adata.X`: the row's own paired control, the field
+    XPert's h5ad carries. So M's input is our bundle's `X_ctl`, as registered.
+  - **The target and loss:** the network outputs a delta, and the loss (MSE plus their DEG-correlation term) is on the rebuilt
+    profile `x1 + delta` against `adata.X`. 98.2's "the target is Δ" is corrected to this.
+  - **The other recipe values:** patience 50 (one evaluation per epoch), Adam 1e-4, gradient clipping at 1.0, dropout 0.1, and
+    500 epochs.
+  - **Their fallback is disabled.** With an empty validation split, their code uses the test set for selection; the adapter must
+    always supply the carve.
+  - **Their evaluator** (`compute_deg_corr`) is used as-is for early stopping and for the 0.637 calibration row. Every reading
+    uses `score_p9.py`.
+- **The validation carve, fixed:**
+  - 150 of 1,497 training molecules, which is 5,539 rows; M fits on 49,846;
+  - sorted `row_index` sha1 **`ba6996e6c15e…`** (same file);
+  - five carve molecules share an InChIKey block 1 with a test compound (the 96.6 leak). Disclosed, not altered.
+- **C4, pinned for B1:**
+  - **(a) The mean atom** is atom-weighted over the unique training compounds: each compound's atoms are counted once, whatever
+    its row count.
+  - **(b) Two guards on the trained B1 checkpoint and the real bundle:**
+    - assert that `u_feats`, `atoms` and `atom_mask` are identical across every row of every batch;
+    - the permutation test.
+  - **(c) Disclosure:** dose and time are compound-informative in LINCS (dose series are programme-specific). B1 keeps that
+    little. It strengthens B1, which is conservative for an R2 PASS.
+- **C5, adopted:** **M+dt**, the same network with log-dose and time appended to X_ctl (standardised on the fit rows). Same carve
+  and seeds, Kaggle CPU. A **reported** row only, never read.
+- **C6, adopted:** D's gate counts the drug-embedding precompute. MolT5 and BioLinkBERT need their weights uploaded as a private
+  dataset for an internet-off kernel. If that is not a pure data step, D is recorded as "not run (adapter)".
+- **The order (agreed):** M and M+dt now (CPU); B1 next week, before D; D last, gated.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
