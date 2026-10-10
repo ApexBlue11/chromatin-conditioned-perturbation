@@ -283,6 +283,15 @@ head is in the final model by the pre-registered rule, not because it was shown 
     in trained v9 (three seeds, against untrained controls; §86.4), and a trained drug-dependent pathway layer (C8b, three
     seeds, against five untrained initialisations; §88). The readout that passes its registered test is cell-level and
     drug-independent (against a training-row prior, without permutation nulls; §85.14).
+- **Unseen compounds' pathway direction does not go beyond chemistry, at this power** [§96.11, §96.14]:
+  - **Direction:** for DNA-damaging and EGFR-inhibiting compounds held out of training, v9's predictions show the expected pathway
+    direction (PROGENy p53 / EGFR, A3's rule, all three seeds).
+  - **The catch:** so do chemistry-only references. A nearest-structure lookup, a physicochemical neighbour average and ridge all
+    pass the same test.
+  - **Against them:** on the pre-registered set (4 units, 6 compounds, with the two test compounds that have training twins
+    excluded), v9's standardised effect exceeds each reference's in point estimate. But a paired swap test separates it from none
+    of them in every seed.
+  - **So:** no claim that v9 captures mechanism beyond chemistry is supported, and none that it captures nothing beyond it.
 
 ### 5.5 Unseen compounds: the cold-drug split
 - **The run:** the final v9 recipe (three seeds), trained on all training rows of XPert's `split_cold_drug_1`, scored once on its

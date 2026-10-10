@@ -8952,7 +8952,7 @@ molecules, on the molecule-clean subset; every seed alone passes."*
 - anything about other folds;
 - anything about seed variance beyond the three seeds.
 
-### 96.14 RESULT: Stage B′ (96.4 / 96.8 / 96.9 / 96.12) — **B3 holds; no beyond-chemistry claim**: v9's standardised pathway direction exceeds every chemistry-only reference in point estimate, but against none in all four variants (PI, 2026-10-10)
+### 96.14 RESULT: Stage B′ (96.4 / 96.8 / 96.9 / 96.12) — **B3 holds; no beyond-chemistry claim**: the seed-mean's standardised pathway direction exceeds each chemistry-only reference in point estimate, but no reference is beaten in all four variants (PI, 2026-10-10; wording per review 072)
 **The runs** (`post_p9.sh bprime`, after P9 was scored):
 - `mechanism_stage_a.py --split split_cold_drug_1 --rows v9p9_seed0.npz` on the four v9 specs (`deg_pred`);
 - `stage_b_prime.py --compare` against 1-NN, 5-NN, physchem 5-NN and ridge;
@@ -8974,7 +8974,12 @@ molecules, on the molecule-clean subset; every seed alone passes."*
 | physchem 5-NN | 0.91 | (same) | **0.020 / 0.030** / 0.123 / **0.044** | **no** (seed 2) |
 | ridge | 1.30 | (same) | 0.194 / 0.224 / 0.502 / 0.279 | no |
 
+- **Beside the table** (review 072 C2a): the near-pass against physchem is carried by **EGFR@MCF7** (3 compounds), where
+  physchem's own d_std points the wrong way (−0.56; 96.11's table). It reflects physchem failing on one unit, not v9 exceeding
+  chemistry across the set.
 - **The reading** (`read_b_prime`, mechanical): **B3_ONLY**, *"B3 holds; no beyond-chemistry claim"*.
+  - **The independent check:** review 072 recomputed physchem and ridge with its own ULM, z, exclusion and brute-force swap null,
+    and matched T and Δ_obs to the third decimal and p within Monte Carlo error.
 - **The licensed sentence of 96.4 item 5 is not licensed.**
 - **Reported, not readings:**
   - **Per-class direction:**
@@ -8987,9 +8992,11 @@ molecules, on the molecule-clean subset; every seed alone passes."*
 - **What it means, within the registration:**
   - v9's predictions carry the expected pathway direction for DNA-damaging and EGFR-inhibiting unseen compounds (item 1). So do
     chemistry-only references (96.11).
-  - On the 4-unit excluding set, v9's point estimate exceeds each of them, but the paired swap test can't separate them at
-    p < 0.05 in every variant.
+  - On the 4-unit excluding set, the seed-mean's point estimate exceeds each of them (1.44 against 0.91–1.30; seed 2 ties
+    ridge, 1.299 against 1.302). But the paired swap test can't separate v9 from any reference at p < 0.05 in every variant.
   - **So no claim that v9's pathway direction goes beyond chemistry is supported** by this readout: 4 units, 6 compounds.
+  - **Nor does it show that v9 adds nothing beyond chemistry** (review 072 C2b): with 4 units and 6 compounds the test has
+    little power.
 - **Seed 2 is the weakest variant against every reference.** That is reported, and no reading depends on it.
 
 ## 97. 🔒 PRE-REGISTERED: O9, XPert trained to its published recipe on `split_cold_drug_1`, as P9's head-to-head comparator. Before any O9 code (PI, 2026-10-08)
