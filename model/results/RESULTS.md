@@ -8883,6 +8883,58 @@ Review 069 found the Stage B′ code faithful, and both of its outputs reproduce
      - records the v9 specs;
      - refuses unless spec 4 is specs 1–3 joined, with the same key.
 
+### 96.13 RESULT: P9 against ridge, scored once (96.3 / 96.7) — **v9 predicts unseen compounds better than ridge**: +0.119 per molecule [0.111, 0.126], 338 of 346 molecules (PI, 2026-10-10)
+**The run:**
+- **`lincs-v9p9` v1:** pushed by hand at 13:18 IST on 10 Oct, COMPLETE at 20:01 (24,111 s).
+- **Its log:**
+  - `mounted code verified (strings + 6 pinned sha1s)`;
+  - GUARD 5 distinct on all 12 epochs for seeds 0, 1 and 2;
+  - **GUARD 6:** every one of the 15 prediction files holds 13,364 rows, sha1 `5f85ef0b…`;
+  - `P9 complete: 20 files + P9_COMPLETE.json`.
+- **The scoring:**
+  - `score_p9.py --dry_check` passed every input guard (manifest sha1s, snapshot identities, row sets, target agreement with
+    ridge, the units and clean files);
+  - then `score_p9.py --ref ridge`, once → `model/results/p9_accuracy_ridge.json` (sha1 `d7519f60907a…`, marker).
+
+**The reading of record** (clean subset: 11,983 rows, 346 molecules; v9's row score = the mean of the three per-seed Pearsons):
+
+| | mean d_m (per molecule) | 95 % cluster CI | molecules favouring v9 | sign p | verdict |
+|---|---|---|---|---|---|
+| **clean (of record)** | **+0.1186** | [+0.1113, +0.1260] (width 0.015) | **338 of 346 (97.7 %)** | 6.7e-89 | **v9 better than ridge** |
+| full (as defined) | +0.1160 | [+0.1094, +0.1230] | 376 of 384 (97.9 %) | 5.7e-100 | v9 better than ridge |
+
+**Reported, not the claim:**
+- **Each seed alone:** clean +0.1187 / +0.1181 / +0.1184, every one passing the rule. The seed ensemble gives +0.1242.
+- **Row-pooled (the field's convention):**
+  - **clean:** v9 0.6417 against ridge 0.5217; paired +0.1200 [0.1182, 0.1218];
+  - **full:** v9 **0.6467** against ridge 0.5294.
+  - XPert's published cold-drug 0.645 ± 0.008 is a five-fold mean from other runs and is **not compared** here. O9 (§97) is
+    the head-to-head.
+- **By similarity stratum (clean):** the margin is largest for the compounds least like any training compound.
+  - < 0.6: +0.127 [0.118, 0.135] (261 molecules);
+  - 0.6–0.8: +0.096 [0.083, 0.110] (71);
+  - 0.8–0.999: +0.085 [0.052, 0.128] (14);
+  - full only, ≥ 0.999 (the same-molecule duplicates): +0.095 (37).
+- **Per cell:**
+  - **34 of 40 test cells favour v9.** The large cells sit at +0.107 to +0.140 (MCF7 1,883 rows, PC3, A375, HA1E, A549, HT29,
+    HELA).
+  - **The 6 cells with median ≤ 0** (H1975, NCIH1975, NCIH2073, NCIH508, NCIH596, SUDHL4) each hold **one** molecule and 5–6
+    rows (35 rows in all).
+- **What the same-molecule duplicates do** (97.6 item 5; reported, never a claim):
+  - v9 scores +0.049 [0.021, 0.077] higher on duplicate-compound rows than on clean rows, and ridge +0.075 [0.043, 0.102].
+  - **The difference-in-differences,** v9 − ridge, is **−0.026 [−0.044, −0.007]**. Ridge, which reads ECFP4 directly, profits
+    more from seeing the molecule than v9 does.
+  - The contrast also reflects which compounds are duplicates (97.6). XPert's lift follows with O9.
+
+**The licensed sentence (96.3):** *"v9 predicts unseen compounds better than ridge (control + ECFP4 + descriptors) on XPert's
+cold-drug split: per-molecule margin +0.119 [0.111, 0.126], 338 of 346 molecules, on the molecule-clean subset; every seed
+alone passes."*
+
+**Not licensed:**
+- any comparison with XPert, until O9;
+- anything about other folds;
+- anything about seed variance beyond the three seeds.
+
 ## 97. 🔒 PRE-REGISTERED: O9, XPert trained to its published recipe on `split_cold_drug_1`, as P9's head-to-head comparator. Before any O9 code (PI, 2026-10-08)
 ### 97.1 Why, and what it adds over O2
 - **The need:** P9 (§96) is read against ridge at once. A SOTA statement about unseen compounds needs XPert on the **same split,
