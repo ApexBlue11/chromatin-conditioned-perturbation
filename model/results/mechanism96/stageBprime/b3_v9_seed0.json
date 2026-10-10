@@ -1,0 +1,821 @@
+{
+  "split": "split_cold_drug_1",
+  "bundle_path": "external/xpert_split_bundle/xpert_mdmt_splits.npz",
+  "labels_tsv": "drug/outputs/dti/chembl_dti_edges.tsv",
+  "scored_cells": [
+    "MCF7",
+    "PC3",
+    "A375",
+    "HA1E",
+    "HT29",
+    "A549"
+  ],
+  "cell_counts": {
+    "A375": 50,
+    "A549": 39,
+    "AGS": 0,
+    "BJAB": 0,
+    "BT20": 8,
+    "CD34": 0,
+    "H1975": 2,
+    "HA1E": 43,
+    "HCC515": 3,
+    "HCT116": 0,
+    "HEC108": 0,
+    "HEK293T": 0,
+    "HELA": 5,
+    "HEPG2": 8,
+    "HL60": 0,
+    "HME1": 2,
+    "HMELZ": 0,
+    "HPTEC": 0,
+    "HS578T": 4,
+    "HT29": 40,
+    "HUH7": 0,
+    "JURKAT": 0,
+    "LNCAP": 2,
+    "MCF10A": 18,
+    "MCF7": 56,
+    "MDAMB231": 10,
+    "NCIH1975": 2,
+    "NCIH2073": 2,
+    "NCIH508": 2,
+    "NCIH596": 2,
+    "NOMO1": 0,
+    "NPC": 2,
+    "PC3": 54,
+    "PHH": 0,
+    "SKBR3": 10,
+    "SUDHL4": 2,
+    "THP1": 0,
+    "U2OS": 8,
+    "U937": 0,
+    "VCAP": 0
+  },
+  "a1": {
+    "MCF7": {
+      "a1": 0.5589707234326518,
+      "null_mean": 0.4998071043090081,
+      "null_sd": 0.04265799148100992,
+      "p_value": 0.08191808191808192,
+      "n_scored": 53,
+      "per_class_auroc": {
+        "Cyclooxygenase inhibitor": 0.5349877870767725,
+        "Sulfonylurea receptor 1, Kir6.2 blocker": 0.4574442006056276,
+        "Dopamine D2 receptor antagonist": 0.5593840985442329,
+        "Serotonin 2a (5-HT2a) receptor antagonist": 0.5201644264695426,
+        "Epidermal growth factor receptor erbB1 inhibitor": 0.8736559139784946,
+        "Sodium channel alpha subunit blocker": 0.10553451178451179,
+        "Stem cell growth factor receptor inhibitor": 0.504831827309237,
+        "Vascular endothelial growth factor receptor inhibitor": 0.48897771317829464,
+        "Platelet-derived growth factor receptor inhibitor": 0.36186509604308714,
+        "DNA inhibitor": 0.6382283099733581
+      },
+      "n_with_mate": 53,
+      "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+      "a1_noncns": {
+        "a1": 0.6236504800849121,
+        "null_mean": 0.4991400634877596,
+        "null_sd": 0.058549938182080666,
+        "p_value": 0.015984015984015984,
+        "n_scored": 27,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.5657622162751512,
+          "Epidermal growth factor receptor erbB1 inhibitor": 0.7927101200686106,
+          "Stem cell growth factor receptor inhibitor": 0.4705136471093918,
+          "Vascular endothelial growth factor receptor inhibitor": 0.476936026936027,
+          "Platelet-derived growth factor receptor inhibitor": 0.3474496740454187,
+          "DNA inhibitor": 0.5911255439399457
+        },
+        "n_with_mate": 27,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only"
+      },
+      "self_retrieval_ceiling": 0.9919348059285101,
+      "self_retrieval_ceiling_no_shared_plate": 0.9723310023082066,
+      "n_self_retrieval_units": 105,
+      "active_subset": {
+        "a1": 0.5611520690111077,
+        "null_mean": 0.49904384371157895,
+        "null_sd": 0.0451407833376811,
+        "p_value": 0.08791208791208792,
+        "n_scored": 52,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.5372976264603666,
+          "Sulfonylurea receptor 1, Kir6.2 blocker": 0.4636801473587588,
+          "Dopamine D2 receptor antagonist": 0.5539714724410578,
+          "Serotonin 2a (5-HT2a) receptor antagonist": 0.5042686568529267,
+          "Epidermal growth factor receptor erbB1 inhibitor": 0.8669443368203539,
+          "Sodium channel alpha subunit blocker": 0.10698924731182796,
+          "Stem cell growth factor receptor inhibitor": 0.507290201593999,
+          "Vascular endothelial growth factor receptor inhibitor": 0.4930041152263374,
+          "Platelet-derived growth factor receptor inhibitor": 0.3632572797832994,
+          "DNA inhibitor": 0.6350082943279257
+        },
+        "n_with_mate": 52,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+        "n_active": 99
+      }
+    },
+    "PC3": {
+      "a1": 0.5370139099888303,
+      "null_mean": 0.5008782044245742,
+      "null_sd": 0.04132059499779698,
+      "p_value": 0.18281718281718282,
+      "n_scored": 53,
+      "per_class_auroc": {
+        "Cyclooxygenase inhibitor": 0.5855733155733156,
+        "Beta-1 adrenergic receptor antagonist": 0.5921119800152058,
+        "Sulfonylurea receptor 1, Kir6.2 blocker": 0.5671186250072661,
+        "Dopamine D2 receptor antagonist": 0.4437716654185392,
+        "Serotonin 2a (5-HT2a) receptor antagonist": 0.4564930500148055,
+        "Phosphodiesterase 4 inhibitor": 0.35765160765160764,
+        "Sodium channel alpha subunit blocker": 0.6017566662727953,
+        "DNA inhibitor": 0.572180607573866
+      },
+      "n_with_mate": 53,
+      "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+      "a1_noncns": {
+        "a1": 0.5794714942193617,
+        "null_mean": 0.5029754667541823,
+        "null_sd": 0.06339515582793806,
+        "p_value": 0.11588411588411589,
+        "n_scored": 25,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.6244489795918369,
+          "Phosphodiesterase 4 inhibitor": 0.3542752485609628,
+          "DNA inhibitor": 0.5442458521870287
+        },
+        "n_with_mate": 25,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only"
+      },
+      "self_retrieval_ceiling": 0.9613116521278517,
+      "self_retrieval_ceiling_no_shared_plate": 0.8854263098278462,
+      "n_self_retrieval_units": 98,
+      "active_subset": {
+        "a1": 0.5633495841038947,
+        "null_mean": 0.5000450534937423,
+        "null_sd": 0.04282334334610033,
+        "p_value": 0.08191808191808192,
+        "n_scored": 49,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.5998812571877392,
+          "Beta-1 adrenergic receptor antagonist": 0.5826757532281205,
+          "Sulfonylurea receptor 1, Kir6.2 blocker": 0.5686232961943534,
+          "Dopamine D2 receptor antagonist": 0.455594170583056,
+          "Serotonin 2a (5-HT2a) receptor antagonist": 0.5338165433623394,
+          "Phosphodiesterase 4 inhibitor": 0.36354943583859245,
+          "Sodium channel alpha subunit blocker": 0.6114339711788329,
+          "DNA inhibitor": 0.5632530120481927
+        },
+        "n_with_mate": 49,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+        "n_active": 90
+      }
+    },
+    "A375": {
+      "a1": 0.6266640943262181,
+      "null_mean": 0.4996485412914701,
+      "null_sd": 0.0419831796345126,
+      "p_value": 0.000999000999000999,
+      "n_scored": 47,
+      "per_class_auroc": {
+        "Cyclooxygenase inhibitor": 0.6021973925474419,
+        "Beta-1 adrenergic receptor antagonist": 0.5771552213338343,
+        "Dopamine D2 receptor antagonist": 0.5890274887504223,
+        "Serotonin 2a (5-HT2a) receptor antagonist": 0.5939289331169827,
+        "Sulfonylurea receptor 1, Kir6.2 blocker": 0.8202274258308742,
+        "Phosphodiesterase 4 inhibitor": 0.5031783350748867,
+        "Sodium channel alpha subunit blocker": 0.666774290757243,
+        "DNA inhibitor": 0.53958389022543
+      },
+      "n_with_mate": 47,
+      "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+      "a1_noncns": {
+        "a1": 0.6097816268923272,
+        "null_mean": 0.4970570392894068,
+        "null_sd": 0.062227121191121254,
+        "p_value": 0.04195804195804196,
+        "n_scored": 22,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.6629334021757057,
+          "Phosphodiesterase 4 inhibitor": 0.6055614657210402,
+          "DNA inhibitor": 0.5102083333333334
+        },
+        "n_with_mate": 22,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only"
+      },
+      "self_retrieval_ceiling": 0.9861539321170735,
+      "self_retrieval_ceiling_no_shared_plate": 0.9335236000558582,
+      "n_self_retrieval_units": 94,
+      "active_subset": {
+        "a1": 0.6286550024055514,
+        "null_mean": 0.5009834831088466,
+        "null_sd": 0.04295324759354859,
+        "p_value": 0.001998001998001998,
+        "n_scored": 46,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.6053040461733731,
+          "Beta-1 adrenergic receptor antagonist": 0.5757227516337126,
+          "Dopamine D2 receptor antagonist": 0.5591800889862598,
+          "Serotonin 2a (5-HT2a) receptor antagonist": 0.5926279870504555,
+          "Sulfonylurea receptor 1, Kir6.2 blocker": 0.8256144259397203,
+          "Phosphodiesterase 4 inhibitor": 0.5054363796650015,
+          "Sodium channel alpha subunit blocker": 0.6826364692218351,
+          "DNA inhibitor": 0.5399854461507578
+        },
+        "n_with_mate": 46,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+        "n_active": 89
+      }
+    },
+    "HA1E": {
+      "a1": 0.5479585634724788,
+      "null_mean": 0.49919271209365873,
+      "null_sd": 0.04519944904674941,
+      "p_value": 0.13586413586413587,
+      "n_scored": 40,
+      "per_class_auroc": {
+        "Cyclooxygenase inhibitor": 0.6320390285390285,
+        "Beta-1 adrenergic receptor antagonist": 0.38894110275689225,
+        "Dopamine D2 receptor antagonist": 0.3456876827151104,
+        "Serotonin 2a (5-HT2a) receptor antagonist": 0.48229425002880383,
+        "Sulfonylurea receptor 1, Kir6.2 blocker": 0.8113413111907088,
+        "Phosphodiesterase 4 inhibitor": 0.3775440874175051,
+        "Sodium channel alpha subunit blocker": 0.0189873417721519,
+        "DNA inhibitor": 0.6083299611780624
+      },
+      "n_with_mate": 40,
+      "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+      "a1_noncns": {
+        "a1": 0.5735230747314892,
+        "null_mean": 0.49836185513835607,
+        "null_sd": 0.06840536553808363,
+        "p_value": 0.13886113886113885,
+        "n_scored": 20,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.6551440996137536,
+          "Phosphodiesterase 4 inhibitor": 0.34043927648578814,
+          "DNA inhibitor": 0.5623477297895902
+        },
+        "n_with_mate": 20,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only"
+      },
+      "self_retrieval_ceiling": 0.994614506445411,
+      "self_retrieval_ceiling_no_shared_plate": 0.9859696502057614,
+      "n_self_retrieval_units": 86,
+      "active_subset": {
+        "a1": 0.5542713445975992,
+        "null_mean": 0.4986332680832753,
+        "null_sd": 0.04865659977814379,
+        "p_value": 0.11888111888111888,
+        "n_scored": 35,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.7085906512339082,
+          "Beta-1 adrenergic receptor antagonist": 0.3940225373174184,
+          "Dopamine D2 receptor antagonist": 0.33895100277553947,
+          "Serotonin 2a (5-HT2a) receptor antagonist": 0.4767308934089756,
+          "Phosphodiesterase 4 inhibitor": 0.3780627105979219,
+          "Sodium channel alpha subunit blocker": 0.019736842105263157,
+          "DNA inhibitor": 0.6164027726356494
+        },
+        "n_with_mate": 35,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+        "n_active": 82
+      }
+    },
+    "HT29": {
+      "a1": 0.6092805589826413,
+      "null_mean": 0.5015454316458658,
+      "null_sd": 0.04762173143974451,
+      "p_value": 0.012987012987012988,
+      "n_scored": 37,
+      "per_class_auroc": {
+        "Cyclooxygenase inhibitor": 0.4872197855750487,
+        "Dopamine D2 receptor antagonist": 0.4721070716536663,
+        "Serotonin 2a (5-HT2a) receptor antagonist": 0.5481663445921597,
+        "Sulfonylurea receptor 1, Kir6.2 blocker": 0.8155936166012782,
+        "Sodium channel alpha subunit blocker": 0.6248196248196248,
+        "DNA inhibitor": 0.5725282324578099
+      },
+      "n_with_mate": 37,
+      "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+      "a1_noncns": {
+        "a1": 0.5989253238109945,
+        "null_mean": 0.5042688384502954,
+        "null_sd": 0.07644534877285918,
+        "p_value": 0.11188811188811189,
+        "n_scored": 16,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.49326215789630423,
+          "DNA inhibitor": 0.557892626947505
+        },
+        "n_with_mate": 16,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only"
+      },
+      "self_retrieval_ceiling": 0.9993824759936984,
+      "self_retrieval_ceiling_no_shared_plate": 0.998501250548905,
+      "n_self_retrieval_units": 82,
+      "active_subset": {
+        "a1": 0.609744288053842,
+        "null_mean": 0.49884743141127874,
+        "null_sd": 0.04828963653315438,
+        "p_value": 0.008991008991008992,
+        "n_scored": 37,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.4904508734086198,
+          "Dopamine D2 receptor antagonist": 0.4723979591836735,
+          "Serotonin 2a (5-HT2a) receptor antagonist": 0.5491504250369944,
+          "Sulfonylurea receptor 1, Kir6.2 blocker": 0.8131274828457927,
+          "Sodium channel alpha subunit blocker": 0.6286154575628261,
+          "DNA inhibitor": 0.57235371379207
+        },
+        "n_with_mate": 37,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+        "n_active": 81
+      }
+    },
+    "A549": {
+      "a1": 0.6291398273304678,
+      "null_mean": 0.49990519586155285,
+      "null_sd": 0.05270800985989565,
+      "p_value": 0.004995004995004995,
+      "n_scored": 36,
+      "per_class_auroc": {
+        "Voltage-gated L-type calcium channel blocker": 0.29766115163375434,
+        "Cyclooxygenase inhibitor": 0.6512272696483222,
+        "Dopamine D2 receptor antagonist": 0.6453335957775639,
+        "Serotonin 2a (5-HT2a) receptor antagonist": 0.6462223218538282,
+        "Sulfonylurea receptor 1, Kir6.2 blocker": 0.9151006907856223,
+        "DNA inhibitor": 0.5881436013478267
+      },
+      "n_with_mate": 36,
+      "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+      "a1_noncns": {
+        "a1": 0.6939400971564887,
+        "null_mean": 0.500601300381576,
+        "null_sd": 0.0794079908362232,
+        "p_value": 0.008991008991008992,
+        "n_scored": 17,
+        "per_class_auroc": {
+          "Cyclooxygenase inhibitor": 0.7139222941720629,
+          "DNA inhibitor": 0.5514664648810991
+        },
+        "n_with_mate": 17,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only"
+      },
+      "self_retrieval_ceiling": 0.9917621701299109,
+      "self_retrieval_ceiling_no_shared_plate": 0.9871040071040071,
+      "n_self_retrieval_units": 81,
+      "active_subset": {
+        "a1": 0.6129031141866996,
+        "null_mean": 0.498607231408303,
+        "null_sd": 0.05148388533130922,
+        "p_value": 0.017982017982017984,
+        "n_scored": 33,
+        "per_class_auroc": {
+          "Voltage-gated L-type calcium channel blocker": 0.29884108302784745,
+          "Cyclooxygenase inhibitor": 0.6452777777777777,
+          "Dopamine D2 receptor antagonist": 0.6409115248954871,
+          "Serotonin 2a (5-HT2a) receptor antagonist": 0.6410644205767966,
+          "Sulfonylurea receptor 1, Kir6.2 blocker": 0.9127590102015603,
+          "DNA inhibitor": 0.5811090982286634
+        },
+        "n_with_mate": 33,
+        "per_class_auroc_meaning": "mean, over the class members, of each member's AUROC against all its mates (any shared MoA string); reported only",
+        "n_active": 79
+      }
+    }
+  },
+  "a3_gated": {
+    "T": 3.3475980795213456,
+    "p": 0.000999000999000999,
+    "d_per_unit": {
+      "EGFR@MCF7": 2.766211740632659,
+      "DNA@MCF7": 6.297468098915758,
+      "EGFR@PC3": -0.3223136421361536,
+      "EGFR@A375": 1.9551562053380451,
+      "DNA@A375": 6.3424440866965766,
+      "EGFR@HA1E": 0.9271421102526085,
+      "EGFR@HT29": 2.01638630324918,
+      "EGFR@A549": 2.8374409554410907,
+      "DNA@A549": 7.308446857302347
+    },
+    "frac_positive": 0.8888888888888888,
+    "units": [
+      "EGFR@MCF7",
+      "DNA@MCF7",
+      "EGFR@PC3",
+      "EGFR@A375",
+      "DNA@A375",
+      "EGFR@HA1E",
+      "EGFR@HT29",
+      "EGFR@A549",
+      "DNA@A549"
+    ],
+    "d_std_per_unit": {
+      "EGFR@MCF7": 1.5376511402502768,
+      "DNA@MCF7": 2.1946205933841023,
+      "EGFR@PC3": -0.22425783307969765,
+      "EGFR@A375": 1.0975575217092597,
+      "DNA@A375": 1.6274495398763213,
+      "EGFR@HA1E": 0.5446421569166122,
+      "EGFR@HT29": 1.1278357117595235,
+      "EGFR@A549": 1.1934052013014254,
+      "DNA@A549": 2.3399441701923402
+    },
+    "activity_scale": {
+      "MCF7": {
+        "mean": {
+          "Androgen": 0.03040676245836991,
+          "EGFR": -0.24906872126038934,
+          "Estrogen": -0.025047760568685726,
+          "Hypoxia": -0.21633406314192646,
+          "JAK-STAT": 0.12226565125997091,
+          "MAPK": -0.19671082493506623,
+          "NFkB": -0.14148178040802914,
+          "PI3K": 0.11973903359378875,
+          "TGFb": -0.14553754469655106,
+          "TNFa": -0.18265459439377965,
+          "VEGF": 0.3319930437351707,
+          "p53": -0.2938629804279481
+        },
+        "sd": {
+          "Androgen": 0.7976243875027396,
+          "EGFR": 1.7989852627966147,
+          "Estrogen": 1.2551611252632116,
+          "Hypoxia": 1.0899092186901618,
+          "JAK-STAT": 0.9933611908880821,
+          "MAPK": 1.8700987587877456,
+          "NFkB": 1.702282041027429,
+          "PI3K": 1.3626891064397397,
+          "TGFb": 0.9413473012142414,
+          "TNFa": 1.5108056758455977,
+          "VEGF": 1.0400290099693212,
+          "p53": 2.869501962161519
+        }
+      },
+      "PC3": {
+        "mean": {
+          "Androgen": -0.17917379620581853,
+          "EGFR": -0.1521967713222918,
+          "Estrogen": -0.11404933607344296,
+          "Hypoxia": -0.23212814544488514,
+          "JAK-STAT": 0.18362945742249434,
+          "MAPK": -0.062388544425811404,
+          "NFkB": -0.41261141934388706,
+          "PI3K": 0.21499854365288854,
+          "TGFb": -0.3541698124296912,
+          "TNFa": -0.3985487804288589,
+          "VEGF": 0.07579939015423767,
+          "p53": -0.31235554790387265
+        },
+        "sd": {
+          "Androgen": 0.8434202953813982,
+          "EGFR": 1.4372458598652762,
+          "Estrogen": 0.8481015309821109,
+          "Hypoxia": 1.1485514308224294,
+          "JAK-STAT": 0.9679499519401343,
+          "MAPK": 1.678546776410871,
+          "NFkB": 1.8632232504601471,
+          "PI3K": 1.0185578483518438,
+          "TGFb": 1.2462412967816372,
+          "TNFa": 1.6303082440187562,
+          "VEGF": 0.9538847074338976,
+          "p53": 2.1278575630175234
+        }
+      },
+      "A375": {
+        "mean": {
+          "Androgen": -0.0956442046600636,
+          "EGFR": -0.19442344516664004,
+          "Estrogen": 0.06524282054535081,
+          "Hypoxia": -0.12268348515155357,
+          "JAK-STAT": -0.176111955850792,
+          "MAPK": -0.10613764214680407,
+          "NFkB": -0.22457199234139724,
+          "PI3K": 0.2655715736715323,
+          "TGFb": -0.068944332879962,
+          "TNFa": -0.3148395650203229,
+          "VEGF": -0.075638456572116,
+          "p53": -0.8661912531649346
+        },
+        "sd": {
+          "Androgen": 0.9470631430041047,
+          "EGFR": 1.781370148412104,
+          "Estrogen": 1.01972933787644,
+          "Hypoxia": 0.9078387584740334,
+          "JAK-STAT": 0.8940542513025133,
+          "MAPK": 2.4294359330975426,
+          "NFkB": 1.5146308151199372,
+          "PI3K": 1.543252160972506,
+          "TGFb": 1.0834689061634761,
+          "TNFa": 1.4437551722355275,
+          "VEGF": 1.0813383785051998,
+          "p53": 3.897167888338077
+        }
+      },
+      "HA1E": {
+        "mean": {
+          "Androgen": 0.024739648733602713,
+          "EGFR": -0.23057191294659282,
+          "Estrogen": 0.24552148078690608,
+          "Hypoxia": 0.09396067035668675,
+          "JAK-STAT": 0.07043358943091385,
+          "MAPK": -0.1680780169881424,
+          "NFkB": 0.24539793493577464,
+          "PI3K": 0.051528360835372405,
+          "TGFb": 0.19165206341857688,
+          "TNFa": 0.2946977753815121,
+          "VEGF": 0.04578429397681899,
+          "p53": -0.3990599763127127
+        },
+        "sd": {
+          "Androgen": 0.9165043044868835,
+          "EGFR": 1.7022958992037025,
+          "Estrogen": 1.144566158804583,
+          "Hypoxia": 1.1161308745929917,
+          "JAK-STAT": 1.378001414422349,
+          "MAPK": 1.9149011574747152,
+          "NFkB": 1.6872017654600744,
+          "PI3K": 1.0175281500185072,
+          "TGFb": 1.1935101348769224,
+          "TNFa": 1.4062225269382216,
+          "VEGF": 0.9361021793727827,
+          "p53": 2.4660125003073072
+        }
+      },
+      "HT29": {
+        "mean": {
+          "Androgen": -0.041658419371767286,
+          "EGFR": 0.18319840443522872,
+          "Estrogen": 0.0277167223942291,
+          "Hypoxia": -0.13650162549625838,
+          "JAK-STAT": -0.18759697542095075,
+          "MAPK": 0.18818577156919863,
+          "NFkB": -0.09873062210491186,
+          "PI3K": 0.5021654086739264,
+          "TGFb": 0.03137963179463971,
+          "TNFa": -0.05847243320734494,
+          "VEGF": -0.11958903922452503,
+          "p53": -0.20887731345298824
+        },
+        "sd": {
+          "Androgen": 0.794464752454224,
+          "EGFR": 1.787836900556588,
+          "Estrogen": 1.1789891319999957,
+          "Hypoxia": 1.0128050560954711,
+          "JAK-STAT": 1.2764118397403181,
+          "MAPK": 2.2059070024206604,
+          "NFkB": 1.4618941544712831,
+          "PI3K": 1.322507436342043,
+          "TGFb": 1.211358611550905,
+          "TNFa": 1.3551178626322138,
+          "VEGF": 1.0353706537333895,
+          "p53": 1.955410540329751
+        }
+      },
+      "A549": {
+        "mean": {
+          "Androgen": -0.17738029472467312,
+          "EGFR": -0.5094459786169935,
+          "Estrogen": 0.11263373433145321,
+          "Hypoxia": -0.36470532960052715,
+          "JAK-STAT": -0.19498694528435317,
+          "MAPK": -0.42535361961868134,
+          "NFkB": -0.33828876252662393,
+          "PI3K": 0.3124645443584806,
+          "TGFb": -0.12729707402554558,
+          "TNFa": -0.3401563247961593,
+          "VEGF": 0.26947618032547693,
+          "p53": -0.5141247150133731
+        },
+        "sd": {
+          "Androgen": 1.0861594651960138,
+          "EGFR": 2.3776006274707204,
+          "Estrogen": 1.0209804750925393,
+          "Hypoxia": 1.297282483281027,
+          "JAK-STAT": 0.8818080810383973,
+          "MAPK": 2.90442252426214,
+          "NFkB": 1.6999649409501454,
+          "PI3K": 1.3979678963486835,
+          "TGFb": 1.070099422776345,
+          "TNFa": 1.3715408572789538,
+          "VEGF": 1.4141481512852403,
+          "p53": 3.123342407225726
+        }
+      }
+    }
+  },
+  "a3_ungated": {
+    "T": 1.6966706121295718,
+    "p": 0.002997002997002997,
+    "d_per_unit": {
+      "EGFR@MCF7": 2.766211740632659,
+      "EGFR@PC3": -0.3223136421361536,
+      "EGFR@A375": 1.9551562053380451,
+      "EGFR@HA1E": 0.9271421102526085,
+      "EGFR@HT29": 2.01638630324918,
+      "EGFR@A549": 2.8374409554410907
+    },
+    "frac_positive": 0.8333333333333334,
+    "units": [
+      "EGFR@MCF7",
+      "EGFR@PC3",
+      "EGFR@A375",
+      "EGFR@HA1E",
+      "EGFR@HT29",
+      "EGFR@A549"
+    ],
+    "d_std_per_unit": {
+      "EGFR@MCF7": 1.5376511402502768,
+      "EGFR@PC3": -0.22425783307969765,
+      "EGFR@A375": 1.0975575217092597,
+      "EGFR@HA1E": 0.5446421569166122,
+      "EGFR@HT29": 1.1278357117595235,
+      "EGFR@A549": 1.1934052013014254
+    },
+    "activity_scale": {
+      "MCF7": {
+        "mean": {
+          "Androgen": 0.03040676245836991,
+          "EGFR": -0.24906872126038934,
+          "Estrogen": -0.025047760568685726,
+          "Hypoxia": -0.21633406314192646,
+          "JAK-STAT": 0.12226565125997091,
+          "MAPK": -0.19671082493506623,
+          "NFkB": -0.14148178040802914,
+          "PI3K": 0.11973903359378875,
+          "TGFb": -0.14553754469655106,
+          "TNFa": -0.18265459439377965,
+          "VEGF": 0.3319930437351707,
+          "p53": -0.2938629804279481
+        },
+        "sd": {
+          "Androgen": 0.7976243875027396,
+          "EGFR": 1.7989852627966147,
+          "Estrogen": 1.2551611252632116,
+          "Hypoxia": 1.0899092186901618,
+          "JAK-STAT": 0.9933611908880821,
+          "MAPK": 1.8700987587877456,
+          "NFkB": 1.702282041027429,
+          "PI3K": 1.3626891064397397,
+          "TGFb": 0.9413473012142414,
+          "TNFa": 1.5108056758455977,
+          "VEGF": 1.0400290099693212,
+          "p53": 2.869501962161519
+        }
+      },
+      "PC3": {
+        "mean": {
+          "Androgen": -0.17917379620581853,
+          "EGFR": -0.1521967713222918,
+          "Estrogen": -0.11404933607344296,
+          "Hypoxia": -0.23212814544488514,
+          "JAK-STAT": 0.18362945742249434,
+          "MAPK": -0.062388544425811404,
+          "NFkB": -0.41261141934388706,
+          "PI3K": 0.21499854365288854,
+          "TGFb": -0.3541698124296912,
+          "TNFa": -0.3985487804288589,
+          "VEGF": 0.07579939015423767,
+          "p53": -0.31235554790387265
+        },
+        "sd": {
+          "Androgen": 0.8434202953813982,
+          "EGFR": 1.4372458598652762,
+          "Estrogen": 0.8481015309821109,
+          "Hypoxia": 1.1485514308224294,
+          "JAK-STAT": 0.9679499519401343,
+          "MAPK": 1.678546776410871,
+          "NFkB": 1.8632232504601471,
+          "PI3K": 1.0185578483518438,
+          "TGFb": 1.2462412967816372,
+          "TNFa": 1.6303082440187562,
+          "VEGF": 0.9538847074338976,
+          "p53": 2.1278575630175234
+        }
+      },
+      "A375": {
+        "mean": {
+          "Androgen": -0.0956442046600636,
+          "EGFR": -0.19442344516664004,
+          "Estrogen": 0.06524282054535081,
+          "Hypoxia": -0.12268348515155357,
+          "JAK-STAT": -0.176111955850792,
+          "MAPK": -0.10613764214680407,
+          "NFkB": -0.22457199234139724,
+          "PI3K": 0.2655715736715323,
+          "TGFb": -0.068944332879962,
+          "TNFa": -0.3148395650203229,
+          "VEGF": -0.075638456572116,
+          "p53": -0.8661912531649346
+        },
+        "sd": {
+          "Androgen": 0.9470631430041047,
+          "EGFR": 1.781370148412104,
+          "Estrogen": 1.01972933787644,
+          "Hypoxia": 0.9078387584740334,
+          "JAK-STAT": 0.8940542513025133,
+          "MAPK": 2.4294359330975426,
+          "NFkB": 1.5146308151199372,
+          "PI3K": 1.543252160972506,
+          "TGFb": 1.0834689061634761,
+          "TNFa": 1.4437551722355275,
+          "VEGF": 1.0813383785051998,
+          "p53": 3.897167888338077
+        }
+      },
+      "HA1E": {
+        "mean": {
+          "Androgen": 0.024739648733602713,
+          "EGFR": -0.23057191294659282,
+          "Estrogen": 0.24552148078690608,
+          "Hypoxia": 0.09396067035668675,
+          "JAK-STAT": 0.07043358943091385,
+          "MAPK": -0.1680780169881424,
+          "NFkB": 0.24539793493577464,
+          "PI3K": 0.051528360835372405,
+          "TGFb": 0.19165206341857688,
+          "TNFa": 0.2946977753815121,
+          "VEGF": 0.04578429397681899,
+          "p53": -0.3990599763127127
+        },
+        "sd": {
+          "Androgen": 0.9165043044868835,
+          "EGFR": 1.7022958992037025,
+          "Estrogen": 1.144566158804583,
+          "Hypoxia": 1.1161308745929917,
+          "JAK-STAT": 1.378001414422349,
+          "MAPK": 1.9149011574747152,
+          "NFkB": 1.6872017654600744,
+          "PI3K": 1.0175281500185072,
+          "TGFb": 1.1935101348769224,
+          "TNFa": 1.4062225269382216,
+          "VEGF": 0.9361021793727827,
+          "p53": 2.4660125003073072
+        }
+      },
+      "HT29": {
+        "mean": {
+          "Androgen": -0.041658419371767286,
+          "EGFR": 0.18319840443522872,
+          "Estrogen": 0.0277167223942291,
+          "Hypoxia": -0.13650162549625838,
+          "JAK-STAT": -0.18759697542095075,
+          "MAPK": 0.18818577156919863,
+          "NFkB": -0.09873062210491186,
+          "PI3K": 0.5021654086739264,
+          "TGFb": 0.03137963179463971,
+          "TNFa": -0.05847243320734494,
+          "VEGF": -0.11958903922452503,
+          "p53": -0.20887731345298824
+        },
+        "sd": {
+          "Androgen": 0.794464752454224,
+          "EGFR": 1.787836900556588,
+          "Estrogen": 1.1789891319999957,
+          "Hypoxia": 1.0128050560954711,
+          "JAK-STAT": 1.2764118397403181,
+          "MAPK": 2.2059070024206604,
+          "NFkB": 1.4618941544712831,
+          "PI3K": 1.322507436342043,
+          "TGFb": 1.211358611550905,
+          "TNFa": 1.3551178626322138,
+          "VEGF": 1.0353706537333895,
+          "p53": 1.955410540329751
+        }
+      },
+      "A549": {
+        "mean": {
+          "Androgen": -0.17738029472467312,
+          "EGFR": -0.5094459786169935,
+          "Estrogen": 0.11263373433145321,
+          "Hypoxia": -0.36470532960052715,
+          "JAK-STAT": -0.19498694528435317,
+          "MAPK": -0.42535361961868134,
+          "NFkB": -0.33828876252662393,
+          "PI3K": 0.3124645443584806,
+          "TGFb": -0.12729707402554558,
+          "TNFa": -0.3401563247961593,
+          "VEGF": 0.26947618032547693,
+          "p53": -0.5141247150133731
+        },
+        "sd": {
+          "Androgen": 1.0861594651960138,
+          "EGFR": 2.3776006274707204,
+          "Estrogen": 1.0209804750925393,
+          "Hypoxia": 1.297282483281027,
+          "JAK-STAT": 0.8818080810383973,
+          "MAPK": 2.90442252426214,
+          "NFkB": 1.6999649409501454,
+          "PI3K": 1.3979678963486835,
+          "TGFb": 1.070099422776345,
+          "TNFa": 1.3715408572789538,
+          "VEGF": 1.4141481512852403,
+          "p53": 3.123342407225726
+        }
+      }
+    }
+  },
+  "delta_source": "external/kaggle_out/v9p9/v9p9_seed0.npz:deg_pred"
+}

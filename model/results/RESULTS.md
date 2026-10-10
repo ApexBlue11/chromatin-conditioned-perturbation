@@ -8910,7 +8910,12 @@ Review 069 found the Stage B′ code faithful, and both of its outputs reproduce
   - **full:** v9 **0.6467** against ridge 0.5294.
   - XPert's published cold-drug 0.645 ± 0.008 is a five-fold mean from other runs and is **not compared** here. O9 (§97) is
     the head-to-head.
-- **By similarity stratum (clean):** the margin is largest for the compounds least like any training compound.
+- **By similarity stratum (clean):** the margin is largest for the compounds least like any training compound, **mainly
+  because ridge falls** (review 071 C2).
+  - **The per-model levels** (molecule means of per-row scores): v9 is 0.636 / 0.648 / 0.611 and ridge 0.505 / 0.545 / 0.528
+    across < 0.6 / 0.6–0.8 / 0.8–0.999.
+  - **So:** v9's own score is also lower on the least-similar compounds. The larger margin there is not evidence that v9 does
+    better in absolute terms on novel chemistry.
   - < 0.6: +0.127 [0.118, 0.135] (261 molecules);
   - 0.6–0.8: +0.096 [0.083, 0.110] (71);
   - 0.8–0.999: +0.085 [0.052, 0.128] (14);
@@ -8918,22 +8923,74 @@ Review 069 found the Stage B′ code faithful, and both of its outputs reproduce
 - **Per cell:**
   - **34 of 40 test cells favour v9.** The large cells sit at +0.107 to +0.140 (MCF7 1,883 rows, PC3, A375, HA1E, A549, HT29,
     HELA).
-  - **The 6 cells with median ≤ 0** (H1975, NCIH1975, NCIH2073, NCIH508, NCIH596, SUDHL4) each hold **one** molecule and 5–6
-    rows (35 rows in all).
+  - **The 6 cells with median ≤ 0** (H1975, NCIH1975, NCIH2073, NCIH508, NCIH596, SUDHL4) are **one molecule's evidence**
+    (review 071 C4). They form one panel that profiled only afatinib and erlotinib, so on the clean subset each holds erlotinib
+    (`BRD-K70401845`) alone, 5–6 rows (35 rows in all).
 - **What the same-molecule duplicates do** (97.6 item 5; reported, never a claim):
-  - v9 scores +0.049 [0.021, 0.077] higher on duplicate-compound rows than on clean rows, and ridge +0.075 [0.043, 0.102].
-  - **The difference-in-differences,** v9 − ridge, is **−0.026 [−0.044, −0.007]**. Ridge, which reads ECFP4 directly, profits
-    more from seeing the molecule than v9 does.
+  - **Row-pooled:** v9 scores +0.049 [0.021, 0.077] higher on duplicate-compound rows than on clean rows, and ridge +0.075
+    [0.043, 0.102].
+  - **Molecule-weighted** (review 071 C3a): v9 +0.030, ridge +0.055. So the individual lifts depend on the weighting.
+  - **The difference-in-differences,** v9 − ridge, is stable: **−0.026 [−0.044, −0.007]** row-pooled, −0.025
+    molecule-weighted. Ridge's score rises more on duplicate rows than v9's.
+  - **How to read it** (C3b): that is consistent with ridge exploiting exact-structure matches, but the contrast also reflects
+    which compounds are duplicates. A model × compound-type interaction can't be separated from the leak.
   - The contrast also reflects which compounds are duplicates (97.6). XPert's lift follows with O9.
 
-**The licensed sentence (96.3):** *"v9 predicts unseen compounds better than ridge (control + ECFP4 + descriptors) on XPert's
-cold-drug split: per-molecule margin +0.119 [0.111, 0.126], 338 of 346 molecules, on the molecule-clean subset; every seed
-alone passes."*
+**The licensed sentence (96.3; C1, naming the fold):** *"v9 predicts unseen compounds better than ridge (control + ECFP4 +
+descriptors) on fold 1 of XPert's cold-drug split (`split_cold_drug_1`): per-molecule margin +0.119 [0.111, 0.126], 338 of 346
+molecules, on the molecule-clean subset; every seed alone passes."*
+
+**Review 071** (SOUND):
+- **The rescore:** the reviewer's own scorer, which shares no code with `score_p9.py`, reproduced every number above.
+- **A post hoc diagnostic** (labelled so; **not registered**): the cell-centred version of the same estimand (90.2's centring per
+  test cell) gives +0.1224 [+0.1154, +0.1297], 341 / 346 molecules.
+  - **The scale of the cell average:** a test-derived oracle predicting each cell's mean Δ scores only 0.164 per row.
+  - **So:** the margin is not a cell-average artefact.
 
 **Not licensed:**
 - any comparison with XPert, until O9;
 - anything about other folds;
 - anything about seed variance beyond the three seeds.
+
+### 96.14 RESULT: Stage B′ (96.4 / 96.8 / 96.9 / 96.12) — **B3 holds; no beyond-chemistry claim**: v9's standardised pathway direction exceeds every chemistry-only reference in point estimate, but against none in all four variants (PI, 2026-10-10)
+**The runs** (`post_p9.sh bprime`, after P9 was scored):
+- `mechanism_stage_a.py --split split_cold_drug_1 --rows v9p9_seed0.npz` on the four v9 specs (`deg_pred`);
+- `stage_b_prime.py --compare` against 1-NN, 5-NN, physchem 5-NN and ridge;
+- `--read` with `--p9_score p9_accuracy_ridge.json`, every input guard passing.
+
+**Item 1 (B3 on v9's predictions, A3's rule):**
+- seed 0 / 1 / 2 / mean: T = 3.35 / 3.57 / 3.13 / 3.38;
+- p 0.001 each (the 1,000-permutation floor);
+- 8 of 9 units positive;
+- 2 classes;
+- **so it passes for all four.** Mean d_std 1.27 / 1.33 / 1.17 / 1.26.
+
+**Item 2 (the excluding set of record, standardised, paired sign-flip swap, 10,000 draws):**
+
+| reference | T_R | v9 T (seeds 0 / 1 / 2 / mean) | swap p (seeds 0 / 1 / 2 / mean) | passes in all four |
+|---|---|---|---|---|
+| 1-NN | 0.92 | 1.53 / 1.48 / 1.30 / 1.44 | 0.137 / 0.147 / 0.238 / 0.167 | no |
+| 5-NN | 1.15 | (same) | 0.030 / 0.078 / 0.243 / 0.094 | no |
+| physchem 5-NN | 0.91 | (same) | **0.020 / 0.030** / 0.123 / **0.044** | **no** (seed 2) |
+| ridge | 1.30 | (same) | 0.194 / 0.224 / 0.502 / 0.279 | no |
+
+- **The reading** (`read_b_prime`, mechanical): **B3_ONLY**, *"B3 holds; no beyond-chemistry claim"*.
+- **The licensed sentence of 96.4 item 5 is not licensed.**
+- **Reported, not readings:**
+  - **Per-class direction:**
+    - against 1-NN, both classes favour v9 in every variant;
+    - against physchem, EGFR strongly (+1.8 per unit) and DNA weakly (+0.1 to +0.2, −0.09 for seed 2);
+    - **against ridge, the classes disagree:** DNA favours v9 (+0.14 to +0.46) and EGFR@MCF7 favours ridge (−0.35 to −0.46).
+  - **The including reading** (9 units, twins in): no reference passes. Against ridge v9 is **below** it (Δ −0.51 to −0.67,
+    p > 0.98), since ridge's EGFR units are strong on all six cells (96.11).
+  - **The raw-activity comparison:** no pass anywhere.
+- **What it means, within the registration:**
+  - v9's predictions carry the expected pathway direction for DNA-damaging and EGFR-inhibiting unseen compounds (item 1). So do
+    chemistry-only references (96.11).
+  - On the 4-unit excluding set, v9's point estimate exceeds each of them, but the paired swap test can't separate them at
+    p < 0.05 in every variant.
+  - **So no claim that v9's pathway direction goes beyond chemistry is supported** by this readout: 4 units, 6 compounds.
+- **Seed 2 is the weakest variant against every reference.** That is reported, and no reading depends on it.
 
 ## 97. 🔒 PRE-REGISTERED: O9, XPert trained to its published recipe on `split_cold_drug_1`, as P9's head-to-head comparator. Before any O9 code (PI, 2026-10-08)
 ### 97.1 Why, and what it adds over O2
