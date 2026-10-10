@@ -8703,6 +8703,48 @@ Review 066 found 96.8's fix right and its mechanism wrong (C1, reworded above). 
    - **The implementation:** Δ_obs = Σ_i g_i, and the null draws random signs. A test checks it against brute-force
      recomputation of both pseudo-models.
 
+### 96.10 Stage B′ code, and the chemistry-only references built (identity level; no test response read; PI, 2026-10-10)
+**The code** (8a89a89): `stage_b_prime_chem.py` (RDKit) and `stage_b_prime.py`. W35 wrote the body; the PI reviewed it.
+- **Mutation check:** 11 of 24 mutants survived W35's 13 tests.
+- **PI additions:**
+  - a v9/R **pairing guard**: identical labelled units per cell, and identical eval units, before any swap;
+  - a **provenance guard** on the reader: B3 inputs must be predicted-delta runs on `split_cold_drug_1`;
+  - 6 tests.
+- **Now:** 14 + 5 tests pass, and 0 of 27 mutants survive.
+
+**The chemistry file** (`model/results/mechanism96/stageBprime/chem_cold_drug_1.npz`, sha1 `7c19ae3bd1a3…`). Its counts reproduce
+review 066's identity-level counts exactly:
+- **training:** 1,581 compounds, 1,529 parsable;
+- **test:** 396, 389 parsable (the 389 featurisable);
+- **multi-fragment SMILES:** 4 in training, 0 in test;
+- **training molecules spanning more than one `pert_id`:** 63.
+
+**The references** (`refs_cold_drug_1.npz`, sha1 `c27e405545f2…`, 157 MB, not in git; it regenerates in about 21 s from committed
+code and inputs, and its marker and sidecar are committed):
+- **Training molecules:** 1,445 usable.
+- **Fallbacks:** 1 (compound, cell) pair has no training candidate in its cell (the same pair for 1-NN, 5-NN and physchem).
+- **The row set:** the 13,364 registered rows (`rows_cold_drug_13364.npz`, `row_index` only, sorted sha1 `5f85ef0b…`).
+- **Cross-check against the 96.6 audit:** each test compound's max Tanimoto to training matches on **387 of 389**.
+  - **The 2 differences** (0.531 against 0.590; 0.253 against 0.300) trace to **one** training molecule (InChIKey block
+    `BNRNXUUZRGQAQC`). Its two `pert_id`s have different fingerprints, and 96.9 item 2's smallest-`pert_id` representative is
+    the farther one.
+  - **So:** the registered rule acting as written, not a defect.
+- **The members' 1-NN in the excluding reading's cells:**
+
+  | member | class | MCF7 | A375 | A549 |
+  |---|---|---|---|---|
+  | decitabine | DNA | 0.617 | 0.617 | 0.617 |
+  | cladribine | DNA | 0.618 | 0.509 | 0.618 |
+  | altretamine | DNA | 0.222 | 0.222 | 0.222 |
+  | pelitinib | EGFR | 0.75 | (not profiled) | (not profiled) |
+  | erlotinib | EGFR | 0.536 | 0.536 | 0.536 |
+  | CP-724714 | EGFR | 0.293 | 0.293 | 0.293 |
+
+  The excluded doxorubicin's 1-NN is its own training twin (1.0) in every scored cell, and afatinib's is in MCF7 (1.0). That is
+  why the excluding reading is of record.
+- **Next (96.8 item 4):** B3 on the four references (1-NN, 5-NN, physchem, ridge) runs now. It reads predictions and labels only.
+  The swap comparison waits for P9.
+
 ## 97. 🔒 PRE-REGISTERED: O9, XPert trained to its published recipe on `split_cold_drug_1`, as P9's head-to-head comparator. Before any O9 code (PI, 2026-10-08)
 ### 97.1 Why, and what it adds over O2
 - **The need:** P9 (§96) is read against ridge at once. A SOTA statement about unseen compounds needs XPert on the **same split,

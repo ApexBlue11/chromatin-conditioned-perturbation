@@ -1,0 +1,15 @@
+{
+  "compounds_per_role": {
+    "train": 1581,
+    "test": 396
+  },
+  "parsable_per_role": {
+    "train": 1529,
+    "test": 389
+  },
+  "multi_fragment_per_role": {
+    "train": 4,
+    "test": 0
+  },
+  "multi_pert_id_molecules_train": 63
+}

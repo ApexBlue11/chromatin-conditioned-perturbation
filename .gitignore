@@ -80,3 +80,6 @@ phase2_assembly/outputs/chip_atlas_human_epi.tab
 # External third-party model releases (XPert Zenodo, ~14GB) - never commit
 external/
 LINCS/
+
+# 96.10: 157 MB, regenerates in ~21 s from committed code; sha1 in its committed marker
+model/results/mechanism96/stageBprime/refs_cold_drug_1.npz
