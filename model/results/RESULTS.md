@@ -9130,6 +9130,110 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
   "at or before 252". It is the same threshold, not an off-by-one.
 - **The governing definition** is §71.7's counter.
 
+## 98. 🔒 PRE-REGISTERED: P10, the drug-free controls on `split_cold_drug_1` (Bai et al.'s MLP; v9 retrained drug-blind), and the newest published L1000 model with code (PertDiT). Before any P10 code (PI, 2026-10-10)
+### 98.1 Why
+- **The principal's question (2026-10-10):** is XPert old, and should a newer SOTA be compared, if the GPU cost is small?
+- **The survey (PI, 2026-10-10):**
+  - **XPert is not old.** It is Nature Machine Intelligence, January 2026. Both independent 2026 benchmarks still put it at or
+    near the top of the open models on L1000:
+    - Bai et al. (bioRxiv, 15 May 2026; §50, verified against the full text): the strongest of seven full-feature models, 0.633.
+    - Bison (Liu et al., arXiv 2609.32467, 26 Sep 2026; read from the HTML full text): L1000 overall-response Pearson ×100,
+      XPert 29.6 / 15.6 (P1 / P2), against State 27.2 / 11.7, Ridge 15.6 / 6.3, PRnet 15.5 / 5.1 and chemCPA 14.3 / 6.0. CellFlow
+      has no L1000 entry. Bison's own model scores 34.3 / 20.7, but its code is not released ("will be provided in the
+      supplementary files").
+  - **The newest L1000 model with runnable code is PertDiT** (Hu, Chen & Gu, *Quantitative Biology* 14(1) e70016, 2026). It is
+    vendored, at a pinned upstream commit, in Bai et al.'s MIT harness. There it scores at or below XPert's 0.633 drug-blind:
+    Bai et al. name XPert the strongest of the seven, and the exact PertDiT value is only in their Fig. 2a.
+  - **Not runnable or not applicable:**
+    - DEPICT: still not found (§50.6).
+    - The biological-response compound representation (bioRxiv, 28 Sep 2026): it represents a compound by its *measured*
+      response in a reference cell line. That is undefined for an unseen compound.
+- **The gap that matters more than a newer model:**
+  - Bai et al.'s **drug-free MLP** (the basal profile only, predicting Δ) matched all seven published models on unseen compounds,
+    at 0.637.
+  - §50.5 required it beside ridge in every table. It was never run.
+  - P9's headline (§96.13: v9 beats ridge by +0.119 per molecule on unseen compounds) is against a model that *uses* the compound.
+    It does not show that v9 needs the compound.
+  - So the comparison the SOTA question needs most is the drug-free control, and v9's own drug-blind twin (IDEAS B1).
+  - **Why the drug-free MLP can score so well:** Δ = X − X_ctl carries X_ctl's measurement noise, and X_ctl is the input. A model
+    can therefore predict part of Δ with no compound information at all (the shared-control effect, §91.12). Bai et al. do not
+    test that. Every arm here receives the same X_ctl, so the paired comparison is fair to it.
+
+### 98.2 The arms (all on `split_cold_drug_1`, all trained on that split's training rows, all scored by `score_p9.py`)
+- **M — Bai et al.'s drug-free MLP, as published.**
+  - **The code:** their `experiments/_shared/training/train_mlp.py` (MIT), at a commit pinned in the kernel, changed only by a
+    data adapter (the diff is committed and reviewed).
+  - **The recipe (their Methods):**
+    - the input is the row's basal profile X_ctl only (978 genes); the target is Δ;
+    - three hidden layers of 2,048 units, ReLU, dropout 0.1;
+    - Adam at 1e-4, batch 512, at most 500 epochs, early stopping on validation PCC_DEG with their patience.
+  - **The validation set:**
+    - `split_cold_drug_1` has no validation partition (55,385 training / 13,445 test rows).
+    - So a **molecule-disjoint** validation set is carved from training: 10 % of the training molecules (InChIKey block 1), drawn by
+      `default_rng(9810)`.
+    - The carve's sorted `row_index` sha1 is committed before any M run. It is the same for all seeds.
+    - M therefore trains on about 90 % of the rows v9 trained on. Disclosed; it favours v9 slightly.
+  - **Seeds:** 131419, 131420, 131421 (their default, then +1, +2). M's row score is the mean of its three per-seed Pearsons, as
+    v9's is.
+  - **Dose and time:** not inputs, as published. The model is blind to the compound and its condition.
+- **B1 — v9 retrained drug-blind** (IDEAS B1; §50.5 item 1).
+  - **P9's command exactly** (96.2), plus one new flag, `--drug_blind`.
+  - **What `--drug_blind` must do:** **no input may vary with the compound** except dose and time. Concretely:
+    - the global drug vector `u` (UniMol CLS + descriptors + ECFP4) is set to its training-row mean for every row;
+    - every row gets the same atom set: one token, the mean of all training atoms. The atom count can then carry nothing either;
+    - anything else indexed by compound is held constant in the same way.
+  - **The functional test** (worker's): permuting the compound identities across rows, with dose and time held, must leave every
+    prediction unchanged to float tolerance. That is checked on the real bundle.
+  - Retrained from scratch, 3 seeds, row guard 13,364 / `5f85ef0b` as P9's.
+- **D — PertDiT through Bai et al.'s harness** (the newest model with code).
+  - **Run only if** the harness runs it on the mdmt bundle with a data adapter alone (no model change), **and** a one-epoch timing
+    on a Kaggle T4 projects ≤ 6 GPU-h for one seed to their stopping rule.
+  - Otherwise it is recorded as "not run (adapter / cost)". Either way it is reported here.
+  - One seed, their checkpoint selection (validation), with M's validation carve.
+  - **Its drug embeddings** (MolT5, BioLinkBERT, per-dose) are computed by their own precompute scripts.
+  - No reproduction band exists for it on this bundle. It is disclosed as "our run of their harness".
+
+### 98.3 The estimand and the readings: P9's, unchanged (§96.3, 96.12)
+- **Rows and contrast:**
+  - The clean subset is the reading of record (11,983 rows, 346 molecules, `6024dbf8`); the full 13,364 rows are reported "as
+    defined".
+  - The contrast is the per-molecule median of r_v9 − r_ref, with the cluster bootstrap over molecules.
+  - **The verdict:** mean > 0, CI excluding 0, ≥ 60 % of molecules favouring, sign p < 0.01. A CI wider than 0.10 is
+    UNINFORMATIVE.
+- **R1, v9 against M (primary):**
+  - **PASS:** "v9 predicts unseen compounds better than a drug-free model". That would be the first evidence in this project that
+    v9's unseen-compound accuracy uses the compound beyond the basal profile.
+  - **M at or above v9 (mean ≤ 0):** P9's headline is restated. v9's margin over ridge is a basal-profile margin, so v9 inherits
+    the field's problem (Bai et al.), and manuscript §5.5 is rewritten to say so.
+  - **Otherwise:** "not separable from a drug-free model at this power".
+- **R2, v9 against B1 (primary for the mechanism line):** the same rule.
+  - **PASS:** the trained v9 needs the compound on unseen compounds; Bai et al.'s finding does not hold for v9.
+  - **FAIL with mean ≤ 0:** it holds for v9 too.
+- **Reported, never read:**
+  - ridge against M (is ridge simply a weaker basal-profile model?);
+  - M's row-pooled PCC_DEG beside Bai et al.'s 0.637 (different data: single-dose, five folds; a calibration only, not a
+    reproduction);
+  - the post hoc cell-centred version of every contrast (review 071's diagnostic).
+- **D, v9 against PertDiT:** the same rule, read as a head-to-head with the newest published model that has code. It is labelled
+  "our run of their harness", with no reproduction check.
+- **XPert (O9)** stays the head-to-head of record with the published SOTA (§97). P10 adds controls and a second model; it does not
+  replace O9.
+
+### 98.4 Order and cost
+1. **M first** (this week). It runs on free Kaggle CPU kernels, three seeds in parallel. A T4 is used only if a CPU projection
+   exceeds 10 h per seed (≈ 0.3 GPU-h per seed if so).
+2. **B1:** ≈ 6 GPU-h, the same as P9. Next week's quota (resets Sat 17 Oct, 05:30 IST), after O9's next session.
+3. **D:** the timing first, then at most 6 GPU-h, also next week.
+- **This week's GPU quota is committed:** P9, E1 seeds 1–2, E3 and O9 session 1 come to about 22.6 of 30 h, and O9 session 2
+  needs the rest.
+
+### 98.5 What P10 does not do
+- **No cold-cell versions** (§50.5 item 2). Those are registered separately if R1/R2 are informative.
+- **No shuffle ablation:** zero (mean) ablation only.
+- **No other models:** State and CellFlow are below XPert on L1000 in Bison's benchmark (or have no L1000 entry), and Bison's code
+  is unreleased.
+- **No claim that v9 is better than a model whose code we cannot run.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
