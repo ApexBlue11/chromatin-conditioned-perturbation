@@ -284,6 +284,31 @@ head is in the final model by the pre-registered rule, not because it was shown 
     seeds, against five untrained initialisations; §88). The readout that passes its registered test is cell-level and
     drug-independent (against a training-row prior, without permutation nulls; §85.14).
 
+### 5.5 Unseen compounds: the cold-drug split
+- **The run:** the final v9 recipe (three seeds), trained on all training rows of XPert's `split_cold_drug_1`, scored once on its
+  held-out compounds [§96]. Pre-registered before any output existed, with the estimand, the scorer and its guards reviewed in
+  advance [§96.3–96.12].
+- **The estimand:**
+  - **the unit** is the **molecule** (InChIKey first block), not the identifier;
+  - **the reading of record** is the **molecule-clean subset**: 346 molecules and 11,983 rows, after removing the test compounds
+    that appear in training under another identifier (§2);
+  - **v9's row score** is the mean of its three per-seed scores.
+- **Against ridge** (control + ECFP4 + descriptors), v9 predicts unseen compounds better:
+  - **the margin:** a per-molecule margin of **+0.119 [0.111, 0.126]**;
+  - **consistency:** **338 of 346** molecules favour v9 (sign p 7 × 10⁻⁸⁹), and each seed alone passes;
+  - **row-pooled:** v9 0.642 against ridge 0.522;
+  - **the full split** ("the benchmark as defined") gives +0.116, with v9 at 0.647 row-pooled [§96.13].
+- **It is not a cell-average effect.**
+  - **The post hoc check** (not registered): a reviewer's cell-centred version of the same estimand gives +0.122.
+  - **The scale of the cell average:** an oracle predicting each test cell's mean response scores only 0.164 per row.
+- **By similarity to training,** the margin is largest for the least-similar compounds (+0.127 below Tanimoto 0.6). That is
+  mainly because ridge falls there; v9's own score is also lower on them.
+- **The duplicates:** same-molecule duplicates raise ridge's score more than v9's (difference-in-differences −0.026
+  [−0.044, −0.007]). That is consistent with a fingerprint model exploiting exact matches; the contrast also reflects which
+  compounds happen to be duplicates.
+- **Against XPert:** the head-to-head with XPert trained to its published recipe on the same fold is running (§97). XPert's
+  published cold-drug 0.645 is a five-fold mean from other runs, and is not compared here.
+
 ## 6. Methods lessons (each with its measurement)
 1. **Chance for pathway alignment is not 0.5**: an untrained model scores 0.218 against a label-permutation null of 0.229 [C 4.15].
 2. **A column-permutation null is not enough either**: a cell-agnostic prior reaches 0.229 of a readout's 0.273 [§85.10].
