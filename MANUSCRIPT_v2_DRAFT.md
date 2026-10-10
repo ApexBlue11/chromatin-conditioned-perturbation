@@ -283,14 +283,14 @@ head is in the final model by the pre-registered rule, not because it was shown 
     in trained v9 (three seeds, against untrained controls; §86.4), and a trained drug-dependent pathway layer (C8b, three
     seeds, against five untrained initialisations; §88). The readout that passes its registered test is cell-level and
     drug-independent (against a training-row prior, without permutation nulls; §85.14).
-- **Unseen compounds' pathway direction does not go beyond chemistry, at this power** [§96.11, §96.14]:
+- **Unseen compounds' pathway direction: not shown to go beyond chemistry, at this power** [§96.11, §96.14]:
   - **Direction:** for DNA-damaging and EGFR-inhibiting compounds held out of training, v9's predictions show the expected pathway
     direction (PROGENy p53 / EGFR, A3's rule, all three seeds).
   - **The catch:** so do chemistry-only references. A nearest-structure lookup, a physicochemical neighbour average and ridge all
     pass the same test.
   - **Against them:** on the pre-registered set (4 units, 6 compounds, with the two test compounds that have training twins
-    excluded), v9's standardised effect exceeds each reference's in point estimate. But a paired swap test separates it from none
-    of them in every seed.
+    excluded), the seed-mean's standardised effect exceeds each reference's in point estimate (one seed ties ridge). But a paired
+    swap test separates v9 from none of them in every seed.
   - **So:** no claim that v9 captures mechanism beyond chemistry is supported, and none that it captures nothing beyond it.
 
 ### 5.5 Unseen compounds: the cold-drug split
@@ -307,7 +307,7 @@ head is in the final model by the pre-registered rule, not because it was shown 
   - **consistency:** **338 of 346** molecules favour v9 (sign p 7 × 10⁻⁸⁹), and each seed alone passes;
   - **row-pooled:** v9 0.642 against ridge 0.522;
   - **the full split** ("the benchmark as defined") gives +0.116, with v9 at 0.647 row-pooled [§96.13].
-- **It is not a cell-average effect.**
+- **Not explained by cell averages (post hoc check).**
   - **The post hoc check** (not registered): a reviewer's cell-centred version of the same estimand gives +0.122.
   - **The scale of the cell average:** an oracle predicting each test cell's mean response scores only 0.164 per row.
 - **By similarity to training,** the margin is largest for the least-similar compounds (+0.127 below Tanimoto 0.6). That is
