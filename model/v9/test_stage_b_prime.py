@@ -342,6 +342,18 @@ def test_exclusion_rule():
     assert 'PAR_DOX' not in surv_u['others']
 
 
+def _p9_specs(tmp_path, deg):
+    """Three P9-named seed files holding the same synthetic deg_pred, and the four registered specs (96.12 item 2)."""
+    d = tmp_path / 'v9p9'
+    d.mkdir(exist_ok=True)
+    paths = []
+    for k in range(3):
+        p = d / ('v9p9_seed%d.npz' % k)
+        np.savez(p, row_index=np.array([0, 1, 2]), deg_pred=deg)
+        paths.append(str(p))
+    return [p + ':deg_pred' for p in paths] + [','.join(paths) + ':deg_pred']
+
+
 def test_guards(monkeypatch, tmp_path, fake_progeny_net):
     """Guards: unit set != constant, equivalence mismatch, row count/sha1 mismatch, non-finite z."""
     G = 20
@@ -397,7 +409,9 @@ def test_guards(monkeypatch, tmp_path, fake_progeny_net):
     )
 
     fake_v9 = tmp_path / 'fake_v9.npz'
-    np.savez(fake_v9, row_index=np.array([0, 1, 2]), deg_pred=rng.normal(size=(3, G)))
+    deg = rng.normal(size=(3, G))
+    np.savez(fake_v9, row_index=np.array([0, 1, 2]), deg_pred=deg)
+    v9_specs = _p9_specs(tmp_path, deg)
 
     # Monkeypatch INCLUDING_UNITS so that EGFR@MCF7 matches
     monkeypatch.setattr(sbp, 'INCLUDING_UNITS', {'EGFR@MCF7'})
@@ -405,7 +419,7 @@ def test_guards(monkeypatch, tmp_path, fake_progeny_net):
 
     with pytest.raises(SystemExit, match='REFUSED: equivalence guard failed'):
         sbp.compare(str(fake_bundle), str(fake_labels), str(fake_rows),
-                    [str(fake_v9) + ':deg_pred'] * 4, str(fake_v9) + ':deg_pred', 'R',
+                    v9_specs, str(fake_v9) + ':deg_pred', 'R',
                     net=fake_progeny_net, genes=genes)
 
     # Unit set mismatch guard
@@ -413,7 +427,7 @@ def test_guards(monkeypatch, tmp_path, fake_progeny_net):
     monkeypatch.setattr(sbp, 'INCLUDING_UNITS', {'NONEXISTENT@MCF7'})
     with pytest.raises(SystemExit, match='REFUSED: unit set'):
         sbp.compare(str(fake_bundle), str(fake_labels), str(fake_rows),
-                    [str(fake_v9) + ':deg_pred'] * 4, str(fake_v9) + ':deg_pred', 'R',
+                    v9_specs, str(fake_v9) + ':deg_pred', 'R',
                     net=fake_progeny_net, genes=genes)
 
     # 3. Non-finite z guard
@@ -518,71 +532,6 @@ def test_references_construction(tmp_path, monkeypatch):
     # Check fallback: cell C2 has no training candidate
     assert sidecar['fallbacks']['nn1'] == 1
     # Fallback uses Δ_m overall across all cells
-
-
-def test_reader_decisions():
-    """Reader: licensed sentence with right labels, B3-only, NO CLAIM, beyond_R requiring all 4 variants, 2-class rule."""
-    def make_b3(p=0.001, frac=0.8, n_classes=2):
-        classes = ['MAPK', 'DNA'][:n_classes]
-        d_units = {f'{cls}@MCF7': 1.0 for cls in classes}
-        return {'split': 'split_cold_drug_1', 'delta_source': 'v9p9_seed0.npz:deg_pred',
-                'a3_gated': {'p': p, 'frac_positive': frac, 'd_per_unit': d_units}}
-
-    def make_cmp(p_values):
-        per_v = {}
-        for idx, name in enumerate(['seed0', 'seed1', 'seed2', 'seed_mean']):
-            p_val = p_values[idx]
-            per_v[name] = {'excluding': {'z': {'p_value': p_val, 'pass': bool(p_val < 0.05)}}}
-        return {'ref_label': '1-NN', 'per_variant': per_v}
-
-    # 1. Full pass -> LICENSED
-    b3_pass = [make_b3()] * 4
-    cmp_pass = [make_cmp([0.01, 0.02, 0.01, 0.03])]
-    # verified json mock
-    b3_files = []
-    cmp_files = []
-    # Save files with markers
-    import tempfile
-    td = tempfile.mkdtemp()
-    for i, b in enumerate(b3_pass):
-        p = os.path.join(td, f'b3_{i}.json')
-        with open(p, 'w') as f: json.dump(b, f)
-        with open(p + '.marker', 'w') as f: json.dump({'complete': True, 'sha1': sbp.sha1_file(p)}, f)
-        b3_files.append(p)
-
-    for i, c in enumerate(cmp_pass):
-        p = os.path.join(td, f'cmp_{i}.json')
-        with open(p, 'w') as f: json.dump(c, f)
-        with open(p + '.marker', 'w') as f: json.dump({'complete': True, 'sha1': sbp.sha1_file(p)}, f)
-        cmp_files.append(p)
-
-    res_lic = sbp.read_b_prime(b3_files, cmp_files)
-    assert res_lic['status'] == 'LICENSED'
-    assert 'chemistry-only references (1-NN)' in res_lic['decision']
-    assert any('EGFR: one cell (MCF7) after excluding afatinib.' in n for n in res_lic['notes'])
-
-    # 2. One variant p=0.06 kills beyond_R -> B3_ONLY
-    cmp_fail1 = [make_cmp([0.01, 0.02, 0.06, 0.03])]
-    p_fail = os.path.join(td, 'cmp_fail.json')
-    with open(p_fail, 'w') as f: json.dump(cmp_fail1[0], f)
-    with open(p_fail + '.marker', 'w') as f: json.dump({'complete': True, 'sha1': sbp.sha1_file(p_fail)}, f)
-
-    res_b3_only = sbp.read_b_prime(b3_files, [p_fail])
-    assert res_b3_only['status'] == 'B3_ONLY'
-    assert res_b3_only['decision'] == 'B3 holds; no beyond-chemistry claim'
-
-    # 3. Item 1 fails due to 1-class only -> NO_CLAIM
-    b3_1class = [make_b3(n_classes=1)] * 4
-    b3_1class_files = []
-    for i, b in enumerate(b3_1class):
-        p = os.path.join(td, f'b3_1c_{i}.json')
-        with open(p, 'w') as f: json.dump(b, f)
-        with open(p + '.marker', 'w') as f: json.dump({'complete': True, 'sha1': sbp.sha1_file(p)}, f)
-        b3_1class_files.append(p)
-
-    res_noclaim = sbp.read_b_prime(b3_1class_files, cmp_files)
-    assert res_noclaim['status'] == 'NO_CLAIM'
-    assert 'NO STAGE B' in res_noclaim['decision']
 
 
 
@@ -711,17 +660,19 @@ def test_post_exclusion_unit_guard_refuses(tmp_path, monkeypatch, fake_progeny_n
         + ''.join("P%d\tCHEMBL_P%d\t1\tHomo sapiens\tEGFR inhibitor\tEGFR\tINHIBITOR\n" % (i, i) for i in range(3)),
         encoding='utf-8')
     v9 = tmp_path / 'v9.npz'
-    np.savez(v9, row_index=np.array([0, 1, 2]), deg_pred=rng.normal(size=(3, G)))
+    deg = rng.normal(size=(3, G))
+    np.savez(v9, row_index=np.array([0, 1, 2]), deg_pred=deg)
+    v9_specs = _p9_specs(tmp_path, deg)
     monkeypatch.setattr(sbp, 'INCLUDING_UNITS', {'EGFR@MCF7'})
     monkeypatch.setattr(sbp, 'EXCLUDING_UNITS', {'DNA@MCF7'})
     with pytest.raises(SystemExit, match='post-exclusion unit set'):
-        sbp.compare(str(bundle), str(labels), str(rows), [str(v9) + ':deg_pred'] * 4, str(v9) + ':deg_pred', 'R',
+        sbp.compare(str(bundle), str(labels), str(rows), v9_specs, str(v9) + ':deg_pred', 'R',
                     net=fake_progeny_net, genes=genes)
     # with the right unit sets, compare must call the pairing guard for every v9 variant
     monkeypatch.setattr(sbp, 'EXCLUDING_UNITS', {'EGFR@MCF7'})
     calls = []
     monkeypatch.setattr(sbp, 'check_pairing', lambda el_v, el_R, name='v9': calls.append(name))
-    sbp.compare(str(bundle), str(labels), str(rows), [str(v9) + ':deg_pred'] * 4, str(v9) + ':deg_pred', 'R',
+    sbp.compare(str(bundle), str(labels), str(rows), v9_specs, str(v9) + ':deg_pred', 'R',
                 net=fake_progeny_net, genes=genes)
     assert calls == ['seed0', 'seed1', 'seed2', 'seed_mean']
 
@@ -739,22 +690,97 @@ def test_pairing_guard():
         sbp.check_pairing(el, {'cell_acts': {'C': df}, 'eval_units': [dict(unit, others=[])]})
 
 
-def test_reader_item1_thresholds_and_provenance(tmp_path):
-    """Item 1 needs p < 0.01, frac >= 2/3 and two classes in EVERY variant; B3 inputs must be predicted cold-drug runs."""
-    def b3(p=0.001, frac=0.8, src='v9p9_seed0.npz:deg_pred', split='split_cold_drug_1'):
-        return {'split': split, 'delta_source': src,
-                'a3_gated': {'p': p, 'frac_positive': frac, 'd_per_unit': {'EGFR@MCF7': 1.0, 'DNA@MCF7': 1.0}}}
-    cmp = {'ref_label': '1-NN', 'per_variant': {v: {'excluding': {'z': {'p_value': 0.01, 'pass': True}}}
-                                                 for v in ('seed0', 'seed1', 'seed2', 'seed_mean')}}
-    c = _write_marked(str(tmp_path / 'cmp.json'), cmp)
+SEEDS = ['external/kaggle_out/v9p9/v9p9_seed%d.npz' % k for k in range(3)]
+SPECS = [p + ':deg_pred' for p in SEEDS] + [','.join(SEEDS) + ':deg_pred']
+REF_SPECS = {'nn1': 'refs_cold_drug_1.npz:nn1', 'nn5': 'refs_cold_drug_1.npz:nn5', 'physchem': 'refs_cold_drug_1.npz:physchem',
+             'ridge_pred-ctl_true': 'baselines_split_cold_drug_1.npz:ridge_pred-ctl_true'}
 
-    def run(objs, tag):
-        return sbp.read_b_prime([_write_marked(str(tmp_path / ('%s_%d.json' % (tag, i))), o) for i, o in enumerate(objs)], [c])
-    assert run([b3()] * 4, 'ok')['status'] == 'LICENSED'
-    assert run([b3(frac=0.6)] * 4, 'frac')['status'] == 'NO_CLAIM'                 # 0.6 < 2/3
-    assert run([b3(p=0.03)] * 4, 'p')['status'] == 'NO_CLAIM'                      # 0.03 >= 0.01
-    assert run([b3()] * 3 + [b3(p=0.02)], 'one')['status'] == 'NO_CLAIM'          # every variant must pass
+
+def _b3(spec, p=0.001, frac=0.8, split='split_cold_drug_1'):
+    return {'split': split, 'delta_source': spec,
+            'a3_gated': {'p': p, 'frac_positive': frac, 'd_per_unit': {'EGFR@MCF7': 1.0, 'DNA@MCF7': 1.0}}}
+
+
+def _cmp(key, pvals=(0.01, 0.01, 0.01, 0.01), specs=None):
+    pv = dict(zip(['seed0', 'seed1', 'seed2', 'seed_mean'], pvals))
+    return {'ref_spec': REF_SPECS[key], 'ref_label': 'free text', 'v9_specs': list(specs or SPECS),
+            'per_variant': {v: {'excluding': {'z': {'p_value': x, 'pass': bool(x < 0.05)}}} for v, x in pv.items()}}
+
+
+def _read(tmp_path, b3s, cmps, tag='r'):
+    bp = [_write_marked(str(tmp_path / ('%s_b3_%d.json' % (tag, i))), o) for i, o in enumerate(b3s)]
+    cp = [_write_marked(str(tmp_path / ('%s_cmp_%d.json' % (tag, i))), o) for i, o in enumerate(cmps)]
+    return sbp.read_b_prime(bp, cp)
+
+
+FAIL = (0.2, 0.2, 0.2, 0.2)
+
+
+def test_reader_licence_needs_an_averaging_reference(tmp_path):
+    """96.12 item 1: an averaging/fitted pass licenses (with the 1-NN note if 1-NN also passed); 1-NN alone does not."""
+    b3s = [_b3(sp) for sp in SPECS]
+    r = _read(tmp_path, b3s, [_cmp('nn1'), _cmp('nn5'), _cmp('physchem', FAIL), _cmp('ridge_pred-ctl_true', FAIL)], 'a')
+    assert r['status'] == 'LICENSED' and '(1-NN, 5-NN)' in r['decision'] and sbp.NOTE_1NN in r['notes']
+    r = _read(tmp_path, b3s, [_cmp('nn1', FAIL), _cmp('nn5', FAIL), _cmp('physchem', FAIL), _cmp('ridge_pred-ctl_true')], 'b')
+    assert r['status'] == 'LICENSED' and '(ridge)' in r['decision'] and sbp.NOTE_1NN not in r['notes']
+    r = _read(tmp_path, b3s, [_cmp('nn1'), _cmp('nn5', FAIL), _cmp('physchem', FAIL), _cmp('ridge_pred-ctl_true', FAIL)], 'c')
+    assert r['status'] == 'B3_ONLY_1NN' and 'only the 1-NN' in r['decision']
+    r = _read(tmp_path, b3s, [_cmp(k, FAIL) for k in REF_SPECS], 'd')
+    assert r['status'] == 'B3_ONLY'
+    r = _read(tmp_path, b3s, [_cmp('nn1'), _cmp('nn5', (0.01, 0.01, 0.06, 0.01)), _cmp('physchem', FAIL),
+                              _cmp('ridge_pred-ctl_true', FAIL)], 'e')
+    assert r['status'] == 'B3_ONLY_1NN'                      # one variant at p = 0.06 removes 5-NN's pass
+
+
+def test_reader_item1_thresholds(tmp_path):
+    cmps = [_cmp(k) for k in REF_SPECS]
+    assert _read(tmp_path, [_b3(sp) for sp in SPECS], cmps, 'ok')['status'] == 'LICENSED'
+    assert _read(tmp_path, [_b3(sp, frac=0.6) for sp in SPECS], cmps, 'fr')['status'] == 'NO_CLAIM'
+    assert _read(tmp_path, [_b3(sp, p=0.03) for sp in SPECS], cmps, 'pv')['status'] == 'NO_CLAIM'
+    assert _read(tmp_path, [_b3(sp) for sp in SPECS[:3]] + [_b3(SPECS[3], p=0.02)], cmps, 'one')['status'] == 'NO_CLAIM'
+    one_class = [dict(_b3(sp), a3_gated={'p': 0.001, 'frac_positive': 0.8, 'd_per_unit': {'DNA@MCF7': 1.0, 'DNA@A375': 1.0}})
+                 for sp in SPECS]
+    assert _read(tmp_path, one_class, cmps, 'cl')['status'] == 'NO_CLAIM'
+
+
+def test_reader_refuses_wrong_inputs(tmp_path):
+    good_b3 = [_b3(sp) for sp in SPECS]
+    good_cmp = [_cmp(k) for k in REF_SPECS]
     with pytest.raises(SystemExit, match='not a predicted-delta B3'):
-        run([b3(src='measured')] + [b3()] * 3, 'meas')
+        _read(tmp_path, [_b3('measured')] + good_b3[1:], good_cmp, 'm')
     with pytest.raises(SystemExit, match='not a predicted-delta B3'):
-        run([b3(split='split_cold_cell_1')] + [b3()] * 3, 'cc')
+        _read(tmp_path, [_b3(SPECS[0], split='split_cold_cell_1')] + good_b3[1:], good_cmp, 'cc')
+    with pytest.raises(SystemExit, match='share one key|is not P9 seed'):  # a reference's B3 in item 1's place
+        _read(tmp_path, [_b3('refs_cold_drug_1.npz:nn1')] + good_b3[1:], good_cmp, 'ref')
+    with pytest.raises(SystemExit, match='distinct'):
+        _read(tmp_path, [good_b3[0]] * 4, good_cmp, 'dup')
+    with pytest.raises(SystemExit, match='is not P9 seed'):                 # out of order
+        _read(tmp_path, [good_b3[1], good_b3[0]] + good_b3[2:], good_cmp, 'ord')
+    with pytest.raises(SystemExit, match='specs 1-3 joined'):
+        bad_mean = ','.join([SEEDS[0], SEEDS[1], SEEDS[1]]) + ':deg_pred'
+        _read(tmp_path, good_b3[:3] + [_b3(bad_mean)], good_cmp, 'mean')
+    with pytest.raises(SystemExit, match='exactly 4 comparison'):
+        _read(tmp_path, good_b3, good_cmp[:3], 'three')
+    with pytest.raises(SystemExit, match='must be exactly'):
+        _read(tmp_path, good_b3, good_cmp[:3] + [_cmp('nn1')], 'twice')
+    with pytest.raises(SystemExit, match='other v9 inputs'):
+        other = [p.replace('v9p9/', 'v9p9b/') for p in SPECS]
+        _read(tmp_path, good_b3, good_cmp[:3] + [_cmp('ridge_pred-ctl_true', specs=other)], 'oth')
+
+
+def test_check_v9_specs():
+    sbp.check_v9_specs(SPECS)
+    with pytest.raises(SystemExit, match='share one key'):
+        sbp.check_v9_specs(SPECS[:3] + [','.join(SEEDS) + ':y_pred'])
+
+
+def test_compare_refuses_unpinned_specs_and_a_changed_reference_file(tmp_path, monkeypatch, fake_progeny_net):
+    """96.12 item 2: compare pins its v9 specs, and checks a references file against its marker before using it."""
+    with pytest.raises(SystemExit, match='distinct'):
+        sbp.compare('b.npz', 'l.tsv', 'r.npz', ['x.npz:deg_pred'] * 4, 'r.npz:nn1', 'R')
+    specs = _p9_specs(tmp_path, np.zeros((3, 4)))
+    ref = tmp_path / 'refs.npz'
+    np.savez(ref, row_index=np.array([0, 1, 2]), nn1=np.zeros((3, 4)))
+    _ = (tmp_path / 'refs.npz.marker').write_text(json.dumps({'complete': True, 'sha1': 'not-its-sha1'}))
+    with pytest.raises(SystemExit, match='does not match its marker'):
+        sbp.compare('b.npz', 'l.tsv', 'r.npz', specs, str(ref) + ':nn1', 'R')

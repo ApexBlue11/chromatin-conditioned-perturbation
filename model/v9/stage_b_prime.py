@@ -15,6 +15,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import sys
 
 import numpy as np
@@ -33,6 +34,12 @@ EXCLUDING_UNITS = {'DNA@MCF7', 'DNA@A375', 'DNA@A549', 'EGFR@MCF7'}
 N_SWAP = 10000
 SWAP_SEED = 9470
 SWAP_P_MAX = 0.05
+# RESULTS 96.12: the four registered references, identified by the key of their spec (never the free-text label)
+REF_KEYS = {'nn1': '1-NN', 'nn5': '5-NN', 'physchem': 'physchem 5-NN', 'ridge_pred-ctl_true': 'ridge'}
+AVERAGING_KEYS = {'nn5', 'physchem', 'ridge_pred-ctl_true'}      # 96.12 item 1: a licence needs one of these
+P9_SEED_RE = r'v9p9_seed[0-2]\.npz'
+NOTE_1NN = ("1-NN's signature is one training neighbour's measured response, not a denoised prediction; v9's margin over it "
+            "may partly reflect smoothness (96.8 item 1).")
 
 B_PRIME_MEMBER_PERTS = {
     'BRD-K66175015',  # afatinib
@@ -648,6 +655,21 @@ def run_swap_test(eval_units, cell_acts_v9, cell_acts_R, excluded_parents=None, 
     }
 
 
+def check_v9_specs(specs):
+    """96.12 item 2: specs are P9's seed0, seed1, seed2 files and their seed-mean (the three joined), with one key."""
+    if len(specs) != 4 or len(set(specs)) != 4:
+        raise SystemExit('REFUSED: need 4 distinct v9 specs, got %r' % (specs,))
+    parts = [sp.rsplit(':', 1) for sp in specs]
+    if any(len(pp) != 2 for pp in parts) or len({pp[1] for pp in parts}) != 1:
+        raise SystemExit('REFUSED: the v9 specs must share one key: %r' % (specs,))
+    singles = [pp[0] for pp in parts[:3]]
+    for k, path in enumerate(singles):
+        if ',' in path or not re.fullmatch(P9_SEED_RE.replace('[0-2]', str(k)), os.path.basename(path)):
+            raise SystemExit('REFUSED: v9 spec %d is not P9 seed %d: %r' % (k + 1, k, path))
+    if parts[3][0].split(',') != singles:
+        raise SystemExit('REFUSED: v9 spec 4 must be specs 1-3 joined (the seed-mean): %r' % (parts[3][0],))
+
+
 def check_pairing(el_v, el_R, name='v9'):
     """PI guard: the swap pairs element (unit, cell) of v9 with the SAME element of R, so both models must have identical
     labelled units per cell (in order) and identical eval units (class, cell, pathway, members with signs, others)."""
@@ -667,6 +689,19 @@ def compare(bundle_path, labels_path, rows_npz_path, v9_specs, ref_spec, ref_lab
     """Execute complete Stage B' comparison across 4 v9 variants and one reference R."""
     msa.ACTIVE.clear()
     msa.ACTIVE.update(msa.SPLITS[SPLIT], name=SPLIT)
+
+    # 0. The inputs are pinned before any data is loaded (96.12 item 2)
+    if isinstance(v9_specs, str):
+        v9_specs = [s.strip() for s in v9_specs.split() if s.strip()]
+    if len(v9_specs) != 4:
+        raise SystemExit(f"REFUSED: expected exactly 4 v9 specs, got {len(v9_specs)}")
+    check_v9_specs(v9_specs)
+    ref_file = ref_spec.rsplit(':', 1)[0].split(',')[0]
+    if os.path.exists(ref_file + '.marker'):                 # 96.12 item 2: the references npz is not in git
+        with open(ref_file + '.marker', 'r', encoding='utf-8') as f:
+            rmk = json.load(f)
+        if not rmk.get('complete') or rmk.get('sha1') != sha1_file(ref_file):
+            raise SystemExit(f"REFUSED: {ref_file} does not match its marker")
 
     # 1. Check rows_npz
     z_rows = np.load(rows_npz_path)
@@ -689,10 +724,6 @@ def compare(bundle_path, labels_path, rows_npz_path, v9_specs, ref_spec, ref_lab
     if genes is None:
         genes = msa.load_landmark_genes()
 
-    if isinstance(v9_specs, str):
-        v9_specs = [s.strip() for s in v9_specs.split() if s.strip()]
-    if len(v9_specs) != 4:
-        raise SystemExit(f"REFUSED: expected exactly 4 v9 specs, got {len(v9_specs)}")
 
     variant_names = ['seed0', 'seed1', 'seed2', 'seed_mean']
     all_specs = list(v9_specs) + [ref_spec]
@@ -791,7 +822,6 @@ def compare(bundle_path, labels_path, rows_npz_path, v9_specs, ref_spec, ref_lab
 
     # Fallback counts if R is a REFS reference
     fallbacks = None
-    ref_file = ref_spec.rsplit(':', 1)[0].split(',')[0]
     if os.path.exists(ref_file + '.json'):
         try:
             with open(ref_file + '.json', 'r', encoding='utf-8') as f:
@@ -800,9 +830,12 @@ def compare(bundle_path, labels_path, rows_npz_path, v9_specs, ref_spec, ref_lab
         except Exception:
             pass
 
+    input_sha1s['ref_file'] = sha1_file(ref_file)
     out_data = {
         'ref_spec': ref_spec,
+        'ref_key': ref_spec.rsplit(':', 1)[1],
         'ref_label': ref_label,
+        'v9_specs': list(v9_specs),
         'input_sha1s': input_sha1s,
         'fallbacks': fallbacks,
         'per_variant': per_variant,
@@ -823,75 +856,60 @@ def compare(bundle_path, labels_path, rows_npz_path, v9_specs, ref_spec, ref_lab
 
 
 def read_b_prime(b3_jsons, cmp_jsons):
-    """Mechanical reading of Stage B' cold-drug benchmark."""
-    # 1. Verification of all files
+    """Mechanical reading of Stage B' (RESULTS 96.4 / 96.8 / 96.9 / 96.12). Item 1: B3 on v9's four predictions (seed0, seed1,
+    seed2, seed-mean) by A3's rule. Item 2: per registered reference, the excluding z block passes for all four. A licence
+    needs item 1 and at least one averaging or fitted reference passed (96.12 item 1)."""
     b3_data = [_verified_json(p) for p in b3_jsons]
     cmp_data = [_verified_json(p) for p in cmp_jsons]
-
     if len(b3_data) != 4:
         raise SystemExit(f"REFUSED: expected 4 B3 JSONs, got {len(b3_data)}")
-    for p, d in zip(b3_jsons, b3_data):     # PI guard: item 1 reads v9's PREDICTED delta on the cold-drug split only
+    for p, d in zip(b3_jsons, b3_data):     # item 1 reads v9's PREDICTED delta on the cold-drug split only
         if d.get('split') != SPLIT or d.get('delta_source', 'measured') == 'measured':
             raise SystemExit(f"REFUSED: {p} is not a predicted-delta B3 on {SPLIT} "
                              f"(split={d.get('split')!r}, delta_source={d.get('delta_source')!r})")
+    sources = [d['delta_source'] for d in b3_data]
+    check_v9_specs(sources)                  # P9's seed files, in order, the seed-mean the three joined
+    if len(cmp_data) != 4:
+        raise SystemExit(f"REFUSED: expected exactly 4 comparison JSONs (one per registered reference), got {len(cmp_data)}")
+    keys = [d.get('ref_spec', '').rsplit(':', 1)[-1] for d in cmp_data]
+    if sorted(keys) != sorted(REF_KEYS):
+        raise SystemExit(f"REFUSED: the comparisons must be exactly {sorted(REF_KEYS)}, got {keys}")
+    for p, d in zip(cmp_jsons, cmp_data):
+        if d.get('v9_specs') != sources:
+            raise SystemExit(f"REFUSED: {p} compared other v9 inputs than item 1's B3 sources")
 
-    # 2. Item 1 per v9 variant
-    item1_variants_pass = []
-    variant_details = []
+    item1_variants_pass, variant_details = [], []
     for idx, d in enumerate(b3_data):
         a3_g = d.get('a3_gated', {})
-        p_val = a3_g.get('p', 1.0)
-        frac_pos = a3_g.get('frac_positive', 0.0)
-        d_units = a3_g.get('d_per_unit', {})
-        classes = sorted(set(u.split('@')[0] for u in d_units))
+        p_val, frac_pos = a3_g.get('p', 1.0), a3_g.get('frac_positive', 0.0)
+        classes = sorted(set(u.split('@')[0] for u in a3_g.get('d_per_unit', {})))
         passes = (p_val < 0.01) and (frac_pos >= (2.0 / 3.0)) and (len(classes) >= 2)
         item1_variants_pass.append(passes)
-        variant_details.append({
-            'index': idx,
-            'p': p_val,
-            'frac_positive': frac_pos,
-            'classes': classes,
-            'pass': passes,
-        })
-
+        variant_details.append({'index': idx, 'p': p_val, 'frac_positive': frac_pos, 'classes': classes, 'pass': passes})
     item1_pass = bool(all(item1_variants_pass))
 
-    # 3. Item 2 per R
     ref_results = []
-    for d in cmp_data:
-        r_label = d.get('ref_label', d.get('ref_spec', 'Unknown'))
-        per_var = d.get('per_variant', d.get('variants', {}))
-        var_pass = {}
-        var_p = {}
-        for v_name, v_data in per_var.items():
-            excl_z = v_data.get('excluding', {}).get('z', {})
-            var_pass[v_name] = bool(excl_z.get('pass', False))
-            var_p[v_name] = excl_z.get('p_value', 1.0)
+    for key, d in zip(keys, cmp_data):
+        per_var = d.get('per_variant', {})
+        var_pass = {v: bool(x.get('excluding', {}).get('z', {}).get('pass', False)) for v, x in per_var.items()}
+        var_p = {v: x.get('excluding', {}).get('z', {}).get('p_value', 1.0) for v, x in per_var.items()}
+        beyond_R = bool(sorted(var_pass) == sorted(['seed0', 'seed1', 'seed2', 'seed_mean']) and all(var_pass.values()))
+        ref_results.append({'key': key, 'label': REF_KEYS[key], 'beyond_R': beyond_R, 'variant_p': var_p,
+                            'variant_pass': var_pass})
+    passed_keys = [r['key'] for r in ref_results if r['beyond_R']]
+    passed_refs = [REF_KEYS[k] for k in passed_keys]
 
-        beyond_R = bool(len(var_pass) == 4 and all(var_pass.values()))
-        ref_results.append({
-            'label': r_label,
-            'beyond_R': beyond_R,
-            'variant_p': var_p,
-            'variant_pass': var_pass,
-        })
-
-    passed_refs = [r['label'] for r in ref_results if r['beyond_R']]
-
-    # 4. Formulate decision
-    notes = [
-        "EGFR: one cell (MCF7) after excluding afatinib.",
-        "A3's signal is carried by the DNA \u2192 p53 row (4 compounds \u00d7 3 TP53-wild-type cells).",
-    ]
-
-    if item1_pass and len(passed_refs) > 0:
-        labels_str = ", ".join(passed_refs)
-        statement = (
-            f"for DNA-damaging and EGFR-inhibiting compounds unseen in training, "
-            f"v9's predictions show the expected pathway direction more strongly than "
-            f"chemistry-only references ({labels_str})"
-        )
+    notes = ["EGFR: one cell (MCF7) after excluding afatinib.",
+             "A3's signal is carried by the DNA \u2192 p53 row (4 compounds \u00d7 3 TP53-wild-type cells)."]
+    if item1_pass and set(passed_keys) & AVERAGING_KEYS:
+        statement = ("for DNA-damaging and EGFR-inhibiting compounds unseen in training, v9's predictions show the expected "
+                     "pathway direction more strongly than chemistry-only references (%s)" % ", ".join(passed_refs))
         status = 'LICENSED'
+        if 'nn1' in passed_keys:
+            notes.append(NOTE_1NN)
+    elif item1_pass and passed_keys == ['nn1']:
+        statement = 'B3 holds; v9 exceeds only the 1-NN reference, which is not denoised: no beyond-chemistry claim'
+        status = 'B3_ONLY_1NN'
     elif item1_pass:
         statement = 'B3 holds; no beyond-chemistry claim'
         status = 'B3_ONLY'
@@ -899,38 +917,19 @@ def read_b_prime(b3_jsons, cmp_jsons):
         statement = 'NO STAGE B\u2032 CLAIM'
         status = 'NO_CLAIM'
 
-    # 5. Build table
-    table_lines = []
-    table_lines.append("=" * 60)
-    table_lines.append(f"Stage B' Reading Decision: {statement}")
-    table_lines.append(f"Status: {status} (Item 1 pass: {item1_pass})")
+    lines = ["=" * 66, f"Stage B' Reading Decision: {statement}", f"Status: {status} (Item 1 pass: {item1_pass})"]
     if status == 'LICENSED':
-        for n in notes:
-            table_lines.append(f"  * {n}")
-    table_lines.append("=" * 60)
-    table_lines.append("Per-Reference Comparison (Excluding z-block, p < 0.05 on all 4 variants):")
-    table_lines.append(f"{'Reference':<18} {'seed0 p':<10} {'seed1 p':<10} {'seed2 p':<10} {'mean p':<10} {'beyond_R':<8}")
-    table_lines.append("-" * 66)
+        lines += [f"  * {n}" for n in notes]
+    lines += ["=" * 66, "Per reference (excluding z block, p < 0.05 on all 4 variants):",
+              f"{'Reference':<16} {'seed0 p':<10} {'seed1 p':<10} {'seed2 p':<10} {'mean p':<10} {'beyond_R':<8}", "-" * 66]
     for r in ref_results:
-        p_s0 = f"{r['variant_p'].get('seed0', 1.0):.4f}"
-        p_s1 = f"{r['variant_p'].get('seed1', 1.0):.4f}"
-        p_s2 = f"{r['variant_p'].get('seed2', 1.0):.4f}"
-        p_sm = f"{r['variant_p'].get('seed_mean', 1.0):.4f}"
-        table_lines.append(f"{r['label']:<18} {p_s0:<10} {p_s1:<10} {p_s2:<10} {p_sm:<10} {str(r['beyond_R']):<8}")
-    table_lines.append("=" * 60)
-
-    table_text = "\n".join(table_lines)
+        vp = r['variant_p']
+        lines.append(f"{r['label']:<16} {vp.get('seed0', 1.0):<10.4f} {vp.get('seed1', 1.0):<10.4f} "
+                     f"{vp.get('seed2', 1.0):<10.4f} {vp.get('seed_mean', 1.0):<10.4f} {str(r['beyond_R']):<8}")
+    table_text = "\n".join(lines)
     print(table_text)
-
-    return {
-        'status': status,
-        'decision': statement,
-        'item1_pass': item1_pass,
-        'passed_references': passed_refs,
-        'ref_results': ref_results,
-        'notes': notes,
-        'table': table_text,
-    }
+    return {'status': status, 'decision': statement, 'item1_pass': item1_pass, 'item1_variants': variant_details,
+            'passed_references': passed_refs, 'ref_results': ref_results, 'notes': notes, 'table': table_text}
 
 
 def main():

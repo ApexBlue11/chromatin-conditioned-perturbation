@@ -8611,6 +8611,10 @@ Review 065a found 96.7 SOUND and asked, optionally, for P7's snapshot-identity c
    - **Amended:** the comparison of record uses each model's **standardised** activities. Per pathway, they are z-scored within
      the cell over that cell's labelled compounds, on **that model's own** predictions. That is review 061 C1's `d_std`, already
      computed in `run_a3`. The swap exchanges these standardised elements, and the raw-activity comparison is reported, labelled.
+   - **What it removes** (corrected per review 069 C1): the **scale** of each model's t-values. It only **reduces** the
+     smoothness term, because the reliability attenuation of the member-versus-others contrast by per-compound noise remains.
+     T_v9 − T_R therefore still carries a smoothness term wherever the two models differ in noise. That term is largest
+     against 1-NN, whose signature is a training neighbour's measured mean response (96.12 item 1).
    - **Item 1 is unaffected:** B3 against its own label-permutation null permutes within one model, so it's scale-free.
 2. **The swap null, exactly:**
    - **The elements:** every labelled (compound, cell) in the cells holding a B′ unit, members and others alike, each carrying
@@ -8726,8 +8730,14 @@ code and inputs, and its marker and sidecar are committed):
 - **The row set:** the 13,364 registered rows (`rows_cold_drug_13364.npz`, `row_index` only, sorted sha1 `5f85ef0b…`).
 - **Cross-check against the 96.6 audit:** each test compound's max Tanimoto to training matches on **387 of 389**.
   - **The 2 differences** (0.531 against 0.590; 0.253 against 0.300) trace to **one** training molecule (InChIKey block
-    `BNRNXUUZRGQAQC`). Its two `pert_id`s have different fingerprints, and 96.9 item 2's smallest-`pert_id` representative is
-    the farther one.
+    `BNRNXUUZRGQAQC`, sildenafil).
+    - **The cause** (per review 069 C4b): its two `pert_id`s are drawn as the 4H and 6H lactam tautomers. Standard InChI's
+      mobile-H layer merges them; ECFP4 doesn't. 96.9 item 2's smallest-`pert_id` representative (`BRD-K50128260`) is the less
+      common 4H drawing.
+    - **The effect:** immaterial to B′. The only affected labelled compound, vardenafil, is an "other" element with weight about
+      1/|O| ≈ 1/100.
+  - **Physchem standardisation** (review 069 C4a) uses the **usable training molecules'** mean and population sd (1,445,
+    ddof 0), consistent with 96.9's collapse. 96.8 item 4's "training compounds" means these molecules.
   - **So:** the registered rule acting as written, not a defect.
 - **The members' 1-NN in the excluding reading's cells:**
 
@@ -8757,19 +8767,59 @@ code and inputs, and its marker and sidecar are committed):
 | physchem 5-NN | 2.85 | 0.001 | 8 / 9 | 0.88 | 1.51, 1.78, 1.70 | 0.49 |
 | ridge | 5.26 | 0.001 | 9 / 9 | 1.84 | 1.22, 1.77, 1.65 | 1.98 |
 
-- **What it says:** for these two classes, the expected pathway direction is recoverable **from chemistry alone**. A
-  nearest-structure lookup, or a linear map from control + structure (ridge), reproduces it at least as strongly as the
-  measured data does.
+- **What it says** (corrected per review 069 C2): for these two classes, the expected pathway direction is recoverable **from
+  chemistry alone**. Every reference passes B3.
+  - **On the 9-unit set,** 1-NN, 5-NN and ridge exceed the measured data's mean d_std, and physchem doesn't (0.88 against
+    0.95). That set includes doxorubicin and afatinib, whose 1-NN and 5-NN references are training measurements of the
+    **same molecule** (Tanimoto 1.0), so the 9-unit excess partly reflects those two twins.
+  - **On the excluding set of record** (4 units, the same standardisation; computed by the PI, and matching the reviewer's
+    independent numbers), only 5-NN and ridge reach the measured data:
+
+    | delta | DNA@A375 | DNA@A549 | DNA@MCF7 | EGFR@MCF7 | mean d_std |
+    |---|---|---|---|---|---|
+    | measured (13,364 rows) | +1.17 | +0.92 | +1.32 | +0.90 | **1.08** |
+    | 1-NN | −0.08 | +1.60 | +1.49 | +0.68 | **0.92** |
+    | 5-NN | +0.49 | +1.84 | +1.75 | +0.51 | **1.15** |
+    | physchem 5-NN | +1.30 | +1.41 | +1.47 | −0.56 | **0.91** |
+    | ridge | +0.78 | +1.42 | +1.31 | +1.70 | **1.30** |
 - **What follows for Stage B′:**
   - **Item 1 alone is uninformative about mechanism:** a v9 pass of B3 would show nothing beyond chemistry, which is why 96.4
     registered item 2.
-  - **Item 2 is the claim.** Against ridge its bar is high: mean d_std 1.84, with EGFR units at 1.8–2.2, near the ceiling the
-    standardisation allows. That is fixed now, before v9's predictions exist.
-- **Why the references exceed the measured data:** this is consistent with 96.8 / review 066. Standardised d still rises with a
-  signature's signal-to-noise below saturation, and model predictions are smoother than single-condition measurements. So the
-  v9-against-reference comparison (two smooth models) is the fair one, which is how it was registered. A comparison against the
-  measured data would not be.
+  - **Item 2 is the claim.** Against ridge its bar is high: mean d_std 1.30 on the excluding set of record (1.84 on 9 units).
+    That is fixed now, before v9's predictions exist. (The first wording said "near the ceiling the standardisation allows";
+    that was false. A unit's largest attainable d_std, √(n(n−1) / (m(n−m))), is 4.6–5.8 here; review 069 C2a.)
+- **Where a reference exceeds the measured data** (5-NN and ridge on the excluding set): that is **consistent with**
+  signal-to-noise (standardised d rises with a signature's reliability; the averaging and fitted references are less noisy than
+  single-condition measurements), but **untested**.
+  - **It doesn't cover 1-NN,** whose signature is itself one neighbour's measurement.
+  - **The consequence** for reading the comparison is drawn in 96.12 item 1. v9 is compared with each reference, never with
+    the measured data, as registered.
 - **Not a claim, and not a reading:** reported to fix expectations before P9 is read.
+
+### 96.12 AMENDMENT (review 069, before any P9 output): how a 1-NN pass is read, and the reader's input guards (PI, 2026-10-10)
+Review 069 found the Stage B′ code faithful, and both of its outputs reproduce from independent code (SOUND-WITH-CAVEATS;
+1 MAJOR, 3 MINOR). All four are adopted; C2 and C4 are corrected in place above.
+
+1. **A 1-NN pass alone licenses nothing** (C1, MAJOR; the stricter of the two options offered):
+   - **The rule:** the licensed sentence (96.4 item 5) requires **at least one averaging or fitted reference** (5-NN, physchem
+     5-NN or ridge) among the references v9 passes.
+   - **When 1-NN is among those passed,** the sentence carries beside it: *"1-NN's signature is one training neighbour's
+     measured response, not a denoised prediction; v9's margin over it may partly reflect smoothness (96.8 item 1)."*
+   - **If v9 passes against 1-NN only,** the reading is *"B3 holds; v9 exceeds only the 1-NN reference, which is not denoised:
+     no beyond-chemistry claim"*.
+   - **Why:** standardisation removes the t-scale but not reliability attenuation (96.8 item 1, corrected). So a margin over the
+     one undenoised reference could be denoising rather than anything beyond chemistry.
+2. **The reader's inputs are pinned** (C3):
+   - **Item 1's four B3 JSONs:** predicted-delta runs on `split_cold_drug_1` whose `delta_source` files are P9's seed files.
+     They must be distinct, in seed0 / seed1 / seed2 / seed-mean order, with the seed-mean the three joined.
+   - **Item 2's comparison JSONs:** exactly **four**, one per registered reference, identified by the reference key in
+     `ref_spec` (`nn1`, `nn5`, `physchem`, `ridge_pred-ctl_true`), not by the free-text label. Each must record the same four v9
+     specs as item 1's sources.
+   - **`compare`:**
+     - verifies a references file against its marker and records its sha1 (the 157 MB npz isn't in git; its sha1, `c27e4055…`,
+       is the link to what was reviewed);
+     - records the v9 specs;
+     - refuses unless spec 4 is specs 1–3 joined, with the same key.
 
 ## 97. 🔒 PRE-REGISTERED: O9, XPert trained to its published recipe on `split_cold_drug_1`, as P9's head-to-head comparator. Before any O9 code (PI, 2026-10-08)
 ### 97.1 Why, and what it adds over O2
