@@ -19,14 +19,14 @@ ROOT = r'C:\Projects\LINCS\external\kaggle_kernels'
 IMG = 'gcr.io/kaggle-private-byod/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461'
 UPLOAD_NOW = '75c58f52051296b326e57613feee7be8f7097d1b'     # xpert_arm.py in the current lincs-v9-src (P7 pins it)
 UPLOAD_E1 = '60bdcd48039a1ae3be4ebbfdce087c142f5d8f44'      # xpert_arm.py at 3495ada (the --chromatin_encoding flag)
-UPLOAD_E3 = '50ff83da08c55f6b3ad78bf31dfc790e7cc762b4'      # xpert_arm.py with encode_chromatin + 'tie' (RESULTS 92.11)
+UPLOAD_E3 = 'dc7a542add4bec2df935394e0eec0c1eedcffa0c'      # xpert_arm.py with encode_chromatin + 'tie' (RESULTS 92.11)
 ARMS = {'e2': {'flags': ['--ablate_epi'], 'tag': '_noepi', 'suffix': '', 'needs': ['ablate_epi'],
                'xpert_arm_sha1': [UPLOAD_NOW, UPLOAD_E1]},
         'e1': {'flags': ['--chromatin_encoding', 'clean'], 'tag': '', 'suffix': '_chromclean',
                'needs': ['chromatin_encoding', "E_final_provenance.json", 'rankdata'], 'xpert_arm_sha1': [UPLOAD_E1]},
         'e3': {'flags': ['--chromatin_encoding', 'tie'], 'tag': '', 'suffix': '_chromtie',
                'needs': ['def encode_chromatin', 'TIE_EXPECTED_MASKED', 'TIE_MIN_NONTIED', "E_final_provenance.json"],
-               'xpert_arm_sha1': [UPLOAD_E3]}}
+               'xpert_arm_sha1': [UPLOAD_E3], 'src': 'apexblue/lincs-v9-src-e3'}}   # review 070: lincs-v9-src stays frozen
 
 CODE = r'''# RESULTS 92 (pre-registered): __ARM__ on the P2 recipe, dev carve, seeds __SEEDS__. Guards as the V2 dev kernel, plus the arm's.
 import sys, os, glob, torch, numpy as np
@@ -119,7 +119,8 @@ def main():
     io.open(os.path.join(d, slug + '.py'), 'w', encoding='utf-8', newline='\n').write(code)
     meta = {'id': 'apexblue/' + slug, 'title': slug.replace('-', ' '), 'code_file': slug + '.py', 'language': 'python',
             'kernel_type': 'script', 'is_private': True, 'enable_gpu': True, 'enable_tpu': False, 'enable_internet': False,
-            'keywords': ['gpu'], 'dataset_sources': ['apexblue/lincs-v9-bundle', 'apexblue/lincs-v9-src', 'apexblue/xpert-mdmt-benchmark'],
+            'keywords': ['gpu'], 'dataset_sources': ['apexblue/lincs-v9-bundle', arm.get('src', 'apexblue/lincs-v9-src'),
+                                                     'apexblue/xpert-mdmt-benchmark'],
             'kernel_sources': [], 'competition_sources': [], 'model_sources': [], 'docker_image': IMG, 'machine_shape': 'NvidiaTeslaT4'}
     io.open(os.path.join(d, 'kernel-metadata.json'), 'w', encoding='utf-8', newline='\n').write(json.dumps(meta, indent=1) + '\n')
     print('wrote', d, a.arm, 'seeds', seeds, 'flags', arm['flags'], 'json glob', 'v9_xpert_arm_*%s_dev6s0%s.json' % (tag, arm['suffix']))

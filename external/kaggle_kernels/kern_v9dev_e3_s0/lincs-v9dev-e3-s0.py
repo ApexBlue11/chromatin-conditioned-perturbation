@@ -39,8 +39,8 @@ if _miss:
 # GUARD PIN (review 044 C2a): the arm's code identity, not just strings.
 import hashlib
 _h = hashlib.sha1(open(os.path.join(SRC, 'xpert_arm.py'), 'rb').read()).hexdigest()
-if _h not in ['50ff83da08c55f6b3ad78bf31dfc790e7cc762b4']:
-    raise SystemExit('FATAL: mounted xpert_arm.py sha1 %s is not an allowed version %r. Refusing.' % (_h, ['50ff83da08c55f6b3ad78bf31dfc790e7cc762b4']))
+if _h not in ['dc7a542add4bec2df935394e0eec0c1eedcffa0c']:
+    raise SystemExit('FATAL: mounted xpert_arm.py sha1 %s is not an allowed version %r. Refusing.' % (_h, ['dc7a542add4bec2df935394e0eec0c1eedcffa0c']))
 print('mounted code verified for e3 (xpert_arm.py %s)' % _h[:12], flush=True)
 sys.argv = ['xpert_arm.py', '--bundle', 'xpert_mdmt_splits.npz', '--split', 'split_cold_cell_1',
             '--dev_cells', '6', '--dev_seed', '0', '--dp_seed_mode', 'distinct',

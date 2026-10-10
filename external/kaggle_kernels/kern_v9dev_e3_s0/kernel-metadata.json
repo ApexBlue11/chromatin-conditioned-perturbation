@@ -13,7 +13,7 @@
  ],
  "dataset_sources": [
   "apexblue/lincs-v9-bundle",
-  "apexblue/lincs-v9-src",
+  "apexblue/lincs-v9-src-e3",
   "apexblue/xpert-mdmt-benchmark"
  ],
  "kernel_sources": [],

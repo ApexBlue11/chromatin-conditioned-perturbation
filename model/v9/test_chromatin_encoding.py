@@ -153,3 +153,32 @@ def test_the_tie_threshold_keeps_the_first_non_tied_rank_out_of_the_block():
     tied_val = out[c, ranks[c] < Z, 0]
     assert np.allclose(tied_val, tied_val[0])
     assert out[c, g, 0] > tied_val[0] + 1e-6
+
+
+LOG = os.path.join(REPO, 'external', 'kaggle_c93_inputs', 'E_peaks_log.txt')
+
+
+@pytest.mark.skipif(not (os.path.exists(LOG) and os.path.exists(os.path.join(DATA, 'E_final.npy'))), reason='log not present')
+def test_tie_blocks_match_the_peak_log_channel_by_channel():
+    """Review 070 C2: the guard can only check N (E_final's covered values are an exact rank grid, so #<=thr == Z for any Z).
+    What validates Z: for every present channel the log covers, the non-tied count equals the log's nonzero_genes."""
+    import re as _re
+    E = np.load(os.path.join(DATA, 'E_final.npy')).astype(np.float32)
+    Em = np.load(os.path.join(DATA, 'E_final_mask.npy'))
+    cidx = json.load(open(os.path.join(DATA, 'lincs_cell_index.json')))
+    cidx = cidx.get('cell_id_to_row', cidx)
+    marks = {'ATAC-seq': 0, 'H3K27ac': 1, 'H3K27me3': 2}
+    n_checked, bad = 0, []
+    for line in open(LOG, encoding='utf-8'):
+        m = _re.match(r'(\S+)/(ATAC-seq|H3K27ac|H3K27me3) .*nonzero_genes=(\d+)', line)
+        if not m or m.group(1) not in cidx:
+            continue
+        j, k, nz = cidx[m.group(1)], marks[m.group(2)], int(m.group(3))
+        if not Em[j, :, k].any():
+            continue
+        Z, N = xa.TIE[k]
+        nontied = int(((E[j, :, k] > (Z - 0.5) / (N - 1)) & Em[j, :, k]).sum())
+        n_checked += 1
+        if nontied != nz:
+            bad.append((m.group(1), m.group(2), nontied, nz))
+    assert not bad and n_checked == 86, (n_checked, bad[:5])

@@ -88,7 +88,9 @@ def encode_chromatin(E, Em, cidx, failed, encoding, tie=TIE):
              every present (cell, mark) is a rank-based inverse-normal transform across genes (bounded; no z-score re-inflation).
     'tie':   RESULTS 92.11 E3: as 'clean', but first every entry in its mark's step10/step12 tie block (value <= (Z - 0.5) /
              (N - 1); 93.16) is set to 0, so a cell's no-peak genes share one tied value; a (cell, mark) left with fewer than
-             TIE_MIN_NONTIED non-tied genes becomes missing (review 059 C8). The pinned block sizes must describe THIS E.
+             TIE_MIN_NONTIED non-tied genes becomes missing (review 059 C8). The guard checks each mark's N (covered count)
+             against THIS E; Z is not checkable from E_final's joint-rank grid (review 070 C2), and is validated instead
+             channel by channel against E_peaks_log.txt in test_chromatin_encoding.py.
     Returns (E, Em, info)."""
     if encoding == 'v9':
         for k in range(E.shape[2]):

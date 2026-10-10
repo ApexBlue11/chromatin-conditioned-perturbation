@@ -7226,7 +7226,9 @@ T4b re-scored this way, `v9_dev_score_T4b_failed_tracks.json`):
   `v9_dev_align_E1_3seed_aux.json`): alignment 0.2731 / 0.2591 / 0.2807, mean **0.2709** ≥ 0.2532 and > 0.2292 ✓.
 - **In-cell rule:** 6 of 6 cells; seed means +0.081 / +0.065 / +0.068 ✓.
 - **Verdict:** every conjunct but rule 7's magnitude passes. **By the registered rule, E1 is not accepted.**
-- **Rule 7a's floor is the binding term:** the seed-noise term, 2√(…) = 0.0018, is below it, and Δ misses it by 0.00013.
+- **Rule 7a's floor is the binding term:** the seed-noise term, 2√((0.001689² + 0.001439²) / 3) = 0.0026, is below it,
+  and Δ misses it by 0.00013. (The first version said 0.0018, an arithmetic slip; corrected per review 070 C1. The verdict is
+  unchanged.)
 
 **Per cell** (3-seed median Δ against P2):
 
@@ -7246,6 +7248,19 @@ entries).
 - **Its decision row** is "E1 not accepted", so E3 is read **against P2**.
 - **Its code** follows now, under the 92.9 item 5 freeze, which lifts with this read. `lincs-v9-src` is versioned only after
   P9, which pins its current version, completes.
+
+### 92.13 E3's code reviewed (review 070 SOUND), and where it runs (PI, 2026-10-10)
+- **Review 070:** found E3's code faithful.
+  - **The identity:** the reviewer checked the `v9` / `clean` identity independently on the real `E_final`: byte-identical values
+    and masks.
+  - **The tie identification:** checked against `E_peaks_log.txt` channel by channel, 86 of 86 present channels.
+- **C2, adopted:** the block-size guard can only check N. `E_final`'s covered values are an exact joint-rank grid, so
+  #≤thr = Z for any Z. Z is validated instead by the 86-channel log match, now a test (`test_chromatin_encoding.py`, 8 pass).
+  - **The cost:** the docstring change moves `xpert_arm.py` to `dc7a542add4b…`, and the E3 kernel pins that.
+- **Where E3 runs** (the reviewer's planning note): E3 mounts its own private dataset, `apexblue/lincs-v9-src-e3`.
+  - **What's in it:** `lincs-v9-src`'s files with only `xpert_arm.py` replaced.
+  - **Why:** `lincs-v9-src` stays frozen at `60bdcd48`, so P7 and P9 can always be rerun under their pins. E3 doesn't have to
+    wait for P9.
 
 ## 93. 🔒 PRE-REGISTERED (packet 050, amended by review 050): why chromatin does not transfer — H2 and H3 on the §91 features, H1 on richer accessibility features (principal's request, 2026-10-03/06)
 ### 93.1 The question, and what is already known
