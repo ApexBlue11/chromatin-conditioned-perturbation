@@ -7262,6 +7262,57 @@ entries).
   - **Why:** `lincs-v9-src` stays frozen at `60bdcd48`, so P7 and P9 can always be rerun under their pins. E3 doesn't have to
     wait for P9.
 
+### 92.14 E3 at three seeds, read by 92.11 against P2 — **NOT ACCEPTED**: Δ −0.00087, 2 of 6 cells; with E1 also not accepted, **no change to the recipe** (2026-10-11)
+**The run:**
+- `lincs-v9dev-e3-s0` v1 (seeds 0–2), pushed 2026-10-10 20:01 IST, COMPLETE by 10:04 on 11 Oct, 5.01 h wall.
+- **Its log:**
+  - `mounted code verified for e3 (xpert_arm.py dc7a542add4b)`;
+  - `CHROMATIN ENCODING tie`, with tie-masked channels exactly `[('HME1', 0), ('SKBR3', 0)]` (the registered set; the kernel
+    refuses otherwise);
+  - failed H3K27me3 tracks missing for the nine registered cells;
+  - GUARD 4 (dev rows `51e7e4ab…`) OK;
+  - GUARD 5 distinct on every epoch for seeds 0, 1 and 2.
+- **The checkpoints:** `0cdd33cc…`, `31f8f3b2…` and `e35937a9…` are added to `align_dev.py`'s `ENCODING_SHA1` as `tie`.
+- **Scored** by `score_dev.py --centred --preds <E3 ×3> --baseline <P2 ×3>` → `model/results/v9_dev_score_E3_3seed.json`.
+
+**Rule 7:**
+
+| conjunct | value | needed | |
+|---|---|---|---|
+| 3-seed mean Δ, per-row mean | **−0.00087** (E3 0.43606, sd 0.0011; P2 0.43693, sd 0.0017) | ≥ max(0.003, 2√(s0²/3 + s_v²/3)) = **0.0030** (the floor; noise term 0.0023) | **✗** |
+| Δ on the mean of per-cell means | +0.0002 | > 0 | ✓ |
+| dev cells favouring E3 | **2 of 6** | ≥ 4 of 6 | **✗** |
+
+- **Seed-paired Δ:** −0.0002 / −0.0013 / −0.0011; every seed negative.
+- **Centred Δ:** −0.0007, not > 0 **✗** (seed-paired +0.0045 / −0.0035 / −0.0029).
+- **Rule 8** (`align_dev.py --readout aux --no_nulls --chromatin_encoding tie`, three final checkpoints;
+  `v9_dev_align_E3_3seed_aux.json`): alignment 0.2632 / 0.2723 / 0.2716, mean **0.2691** ≥ 0.2532 and > 0.2292 ✓.
+- **In-cell rule:** 6 of 6 cells; seed means +0.071 / +0.087 / +0.094 ✓.
+- **Verdict:** rule 7 fails on its magnitude, its cell count and the centred conjunct. **By the registered rule, E3 is not
+  accepted.**
+
+**Per cell** (3-seed median Δ against P2; reported, never read):
+
+| HEK293T | LNCAP | VCAP | U937 | SKBR3 | HL60 |
+|---|---|---|---|---|---|
+| −0.0014 | −0.0058 | **+0.0113** | **+0.0192** | −0.0061 | **−0.0136** |
+
+**E3 − E1** (the tie fix alone; `v9_dev_score_E3_vs_E1.json`; reported, never read):
+- Δ **−0.0037**;
+- per cell: HEK293T −0.0072, LNCAP −0.0060, VCAP +0.0003, U937 +0.0182, SKBR3 −0.0037, HL60 −0.0090.
+- Removing the tie-break codes lowered the score in 4 of 6 cells relative to E1's clean encoding.
+- That is the opposite of 93.16's motivating guess, that the codes were noise E1 kept.
+
+**92.11's decision table:** E1 not accepted (92.12) and E3 not accepted, so **no change to the recipe**. P2's chromatin encoding
+stays the model of record, and P7, P9 and O9 are unaffected.
+
+**Permitted reading:** *"the tie-fixed chromatin encoding did not raise the dev score (−0.0009 at three seeds, every seed
+negative, 2 of 6 cells)"*.
+
+**The chromatin line on the dev carve is closed:** E2 (no chromatin, 92.10), E1 (cleaned, 92.12) and E3 (tie-fixed) are each
+not accepted. That matches the principal-approved direction (close chromatin for transfer; move the effort to
+interpretability).
+
 ## 93. 🔒 PRE-REGISTERED (packet 050, amended by review 050): why chromatin does not transfer — H2 and H3 on the §91 features, H1 on richer accessibility features (principal's request, 2026-10-03/06)
 ### 93.1 The question, and what is already known
 - **The principal's argument** (2026-10-03): chromatin is a cell's own context. Baseline expression is downstream of it, so

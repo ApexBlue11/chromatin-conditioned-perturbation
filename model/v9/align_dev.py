@@ -38,7 +38,10 @@ DEV_SHA1 = '51e7e4ab8b9c3c3709d43da7fa4a8c80b77d5980'
 # are added when they land (RESULTS 92.9).
 ENCODING_SHA1 = {'4c95150f4ad9dbaee7ac356238ac9c0f2830687b': 'clean',   # E1 s0 (lincs-v9dev-e1-s0 v1)
                  'bfdb2d34032b9245387f1ff1ba4ba024db86d4cf': 'clean',   # E1 s1 (lincs-v9dev-e1-s1 v1; RESULTS 92.9 item 2)
-                 'e84afc78cd7d43c8f688c9bcf41c6885dcdc55e8': 'clean'}   # E1 s2 (lincs-v9dev-e1-s1 v1)
+                 'e84afc78cd7d43c8f688c9bcf41c6885dcdc55e8': 'clean',   # E1 s2 (lincs-v9dev-e1-s1 v1)
+                 '0cdd33ccb37446e2a5fc459f34123c3d305d2365': 'tie',     # E3 s0 (lincs-v9dev-e3-s0 v1; RESULTS 92.14)
+                 '31f8f3b2083b358190ccc8a99c1823ec5facf51b': 'tie',     # E3 s1 (lincs-v9dev-e3-s0 v1)
+                 'e35937a929127892928f6de31df6c3b57b73df33': 'tie'}     # E3 s2 (lincs-v9dev-e3-s0 v1)
 P7_SHA1 = ['9e94007ad60d5cd183ad56e14f2790451f475239', 'daba6a0b204fc957672d77c72dc5c2609105ee57', 'b106bf67fc476082744118bd68689e718846e223']  # from P7_COMPLETE.json (lincs-v9p7 v1, 2026-10-03), seeds 0-2
 
 
