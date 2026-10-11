@@ -148,6 +148,18 @@ wall_s = int(time.time() - t0)
 if proc.returncode != 0:
     fatal(f"trainer exited with code {proc.returncode}")
 
+# GUARD 3 (review 075 C1): what the TRAINER itself saw. Their main() falls back to the TEST set for validation when the
+# 'valid' mask is empty; its echoed val_deg lines would then be test PCC and its checkpoint test-selected. Refuse unless
+# the trainer's own split counts are the registered ones and it printed no fallback -- before anything is echoed.
+with open(log_file, "r", encoding="utf-8", errors="replace") as f_log:
+    trainer_text = f_log.read()
+for need in ("  train: 49846 samples", "  valid: 5539 samples", "  test: 13445 samples"):
+    if need not in trainer_text:
+        fatal(f"GUARD 3: trainer log lacks {need.strip()!r} (review 075 C1)")
+if "No valid set found" in trainer_text:
+    fatal("GUARD 3: the trainer fell back to the test set for validation (review 075 C1)")
+print("GUARD 3: trainer saw train 49846 / valid 5539 / test 13445, no test fallback", flush=True)
+
 # 5. Blinding: print only allowed lines
 print("=== Validation curve (blinded test) ===", flush=True)
 with open(log_file, "r", encoding="utf-8", errors="replace") as f_log:

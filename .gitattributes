@@ -1,0 +1,2 @@
+# Review 075 C3: pinned by its exact bytes (CRLF, as written); never line-ending-normalise
+model/results/p10/p10_carves.json -text

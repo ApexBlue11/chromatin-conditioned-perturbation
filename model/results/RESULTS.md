@@ -9396,6 +9396,38 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
   dataset for an internet-off kernel. If that is not a pure data step, D is recorded as "not run (adapter)".
 - **The order (agreed):** M and M+dt now (CPU); B1 next week, before D; D last, gated.
 
+### 98.7 P10 arm M's code reviewed (review 075 SOUND; four MINOR adopted before any run), and where it runs (PI, 2026-10-11)
+- **The code** (a93ef5a; W36 / W37 bodies, the PI's contracts and fixes):
+  - `p10_mlp.py`, the adapter: guards (a)–(e), the M+dt trainer by 7 asserted substitutions, the converter;
+  - `make_p10_m_kernels.py`, six blinded Kaggle CPU kernels running Bai et al.'s `train_mlp.py` **unchanged**, vendored at
+    `1d750cd` with its MIT `LICENSE` / `NOTICE`;
+  - `score_p10.py`, the scorer.
+- **The mutation checks:** 15 of 27 → 0 of 27 (adapter and kernels); 6 of 23 → 2 of 23, both equivalent (scorer). The PI
+  rewrote the reader (W37's matched verdict strings that `score_p9.verdict` never emits) and removed a dict bypass of guard (a).
+- **Review 075's points, adopted:**
+  - **C1:** each kernel now refuses, before echoing anything, unless the **trainer's own** log shows `train: 49846`,
+    `valid: 5539` and `test: 13445 samples`, and no "No valid set found". Their `main()` validates on the test set when
+    'valid' is empty.
+  - **C2:**
+    - at download the PI writes `P10_<ARM>_COMPLETE.json`, the sha1 of each npz and record;
+    - the scorer checks it, plus each kernel record's in-run verified sha1s against the pinned bytes (bundle `1444b253`,
+      `train_mlp` `ddc0725e`, `p10_mlp` `97f84874`, carves `d6fc7844`, and for M+dt the trainer `09bcf0b2`), its arm, seed and
+      `n_test == 13445`;
+    - the npz sha1s go into the output's `inputs`.
+  - **C3:** `p10_carves.json` is committed as its exact CRLF bytes (`.gitattributes`: `-text`), so its pinned sha1
+    `d6fc7844` is the git blob's on any OS.
+  - **C4** (wording; it replaces 98.6's R2 sentence for the mean ≤ 0 case): *"no detectable dependence of v9's unseen-compound
+    accuracy on the compound: its contribution is at most {ci_hi} per molecule (95 % cluster CI)"*. P9's headline is restated
+    in those words. The case logic is unchanged.
+- **The seeds' source** (review 075's record point): 131419 is the `--seed` default of Bai et al.'s paper-default launcher,
+  `experiments/mlp_baseline/train_default.py:38` at `1d750cd` (their `train_mlp.py`'s own default is 42). 131420 and 131421 are
+  +1 and +2.
+- **Where it runs:**
+  - free Kaggle CPU kernels `lincs-p10-m-s{0,1,2}` and `lincs-p10-mdt-s{0,1,2}`;
+  - datasets `xpert-mdmt-benchmark`, `p10-wheels` (scanpy 1.12.4, anndata 0.13.3) and `lincs-p10-src` (the reviewed bytes);
+  - at most 5.5 h each at 500 epochs (39.7 s per CPU epoch, measured).
+- **R1 is read** with `score_p10.py --ref mlp_m` once the three M seeds exist. R2 waits for B1.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

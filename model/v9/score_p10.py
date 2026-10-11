@@ -55,7 +55,13 @@ EXPECT_N_DISTINCT = 2091
 EXPECT_SHA1_DISTINCT = 'def96fc0ab190fcb6e8c1c0cfb28493229167680'
 
 REFS_P10 = ('mlp_m', 'mlp_mdt', 'f0', 'v9_drugblind')
-MLP_SEEDS = {131419, 131420, 131421}
+MLP_SEEDS = {131419, 131420, 131421}   # Bai et al.'s experiments/mlp_baseline/train_default.py:38 default (1d750cd), +1, +2
+
+# Review 075 C2: the bytes every M / M+dt kernel verified in-run (their records' 'sha1s'), pinned here.
+PIN_SHA1 = {'bundle': '1444b253d48c5adf066bf7a3cc0ba8ea5fb71464', 'train_mlp': 'ddc0725ee0a7d73bae0ac478d92e5f8a879b13bd',
+            'p10_mlp': '97f84874df4609c463289fbc9bf387de3ff8775a', 'carves': 'd6fc78447228b87641cbd5af8ff0143a714edeb8'}
+PIN_DT_SHA1 = '09bcf0b2d0c1afebdd87324043f21dc65f460644'
+EXPECT_N_TEST_M = 13445
 
 REF_LABELS = {
     'mlp_m': 'mlp_m',
@@ -205,6 +211,37 @@ def load_p9_and_metadata(p9_dir, bundle_path=None, units_path=None, clean_path=N
         'units_path': units_path,
         'clean_path': clean_path,
     }
+
+
+def check_m_provenance(ref_dir, arm):
+    """Review 075 C2: the download manifest P10_<ARM>_COMPLETE.json (sha1 of each npz and record, written at download), and
+    each kernel record's in-run verified sha1s against the pinned bytes, its arm, seed and n_test. Returns the npz sha1s."""
+    mf = os.path.join(ref_dir, 'P10_%s_COMPLETE.json' % arm.upper())
+    if not os.path.exists(mf):
+        raise SystemExit(f'FATAL: no download manifest {mf} (review 075 C2)')
+    with open(mf, encoding='utf-8') as f:
+        man = json.load(f)
+    want_files = {f'p10_{arm}_seed{k}.npz' for k in range(3)} | {f'p10_{arm}_seed{k}_record.json' for k in range(3)}
+    if not man.get('complete') or man.get('arm') != arm or set(man.get('files', {})) != want_files:
+        raise SystemExit(f'FATAL: manifest {mf} incomplete or not arm {arm!r}: files {sorted(man.get("files", {}))}')
+    for name, h in man['files'].items():
+        fp = os.path.join(ref_dir, name)
+        if not os.path.exists(fp) or sha1(fp) != h:
+            raise SystemExit(f'FATAL: {name} missing or sha1 differs from the download manifest')
+    pins = dict(PIN_SHA1, **({'dt_script': PIN_DT_SHA1} if arm == 'mdt' else {}))
+    npz_sha1 = {}
+    for k in range(3):
+        with open(os.path.join(ref_dir, f'p10_{arm}_seed{k}_record.json'), encoding='utf-8') as f:
+            rec = json.load(f)
+        if rec.get('sha1s') != pins:
+            raise SystemExit(f'FATAL: seed {k} record verified {rec.get("sha1s")}, not the pinned {pins} (review 075 C2)')
+        if rec.get('arm') != arm or int(rec.get('n_test', -1)) != EXPECT_N_TEST_M:
+            raise SystemExit(f'FATAL: seed {k} record arm {rec.get("arm")!r} / n_test {rec.get("n_test")} != {arm!r} / {EXPECT_N_TEST_M}')
+        z = np.load(os.path.join(ref_dir, f'p10_{arm}_seed{k}.npz'), allow_pickle=True)
+        if int(z['seed']) != int(rec.get('seed', -1)) or int(rec['seed']) != 131419 + k:
+            raise SystemExit(f'FATAL: seed {k}: npz seed {int(z["seed"])}, record seed {rec.get("seed")}, expected {131419 + k}')
+        npz_sha1[f'p10_{arm}_seed{k}.npz'] = man['files'][f'p10_{arm}_seed{k}.npz']
+    return {'manifest': mf, 'manifest_sha1': sha1(mf), 'npz_sha1': npz_sha1}
 
 
 def load_carves(carves_path=None, clean_rows=None):
@@ -555,8 +592,10 @@ def score_p10(p9_dir, ref, ref_dir=None, dry_check=False, n_boot=N_BOOT, carves_
     # Step 5b: load carves
     distinct_rows, c_path = load_carves(carves_path=carves_path, clean_rows=p9_data['clean_rows'])
 
-    # Step 4: load reference
+    # Step 4: load reference (and, for M / M+dt, its download provenance; review 075 C2)
     ref_data = load_ref(ref, ref_dir, p9_data, bundle_data=p9_data['bundle_data'])
+    provenance = (check_m_provenance(ref_data['ref_dir'], 'm' if ref == 'mlp_m' else 'mdt')
+                  if ref in ('mlp_m', 'mlp_mdt') else None)
 
     if dry_check:
         print('P10 inputs verified')
@@ -670,6 +709,9 @@ def score_p10(p9_dir, ref, ref_dir=None, dry_check=False, n_boot=N_BOOT, carves_
             'name': ref,
             'label': ref_label,
             'dir': ref_data.get('ref_dir'),
+            'provenance': provenance,
+            'files_sha1': ({f: sha1(os.path.join(ref_data['ref_dir'], f)) for f in ref_data.get('files', [])}
+                           if ref_data.get('ref_dir') else None),
         },
     }
 
@@ -764,7 +806,8 @@ R1_SENTENCE = {
 }
 R2_SENTENCE = {
     'pass': "v9 needs the compound on unseen compounds; Bai et al.'s finding does not hold for v9",
-    'mean_le_0': "v9's unseen-compound accuracy does not depend on the compound",
+    'mean_le_0': ("no detectable dependence of v9's unseen-compound accuracy on the compound: its contribution is at most "
+                  "{ci_hi:+.3f} per molecule (95 % cluster CI)"),   # review 075 C4: the bound, not 'does not depend'
     'otherwise': "not separable from v9's drug-blind twin at this power",
     'uninformative': 'UNINFORMATIVE',
 }
@@ -781,8 +824,10 @@ def read_p10(r1_json, r2_json=None):
     if r2_json is None:
         out.update(r2_case=None, r2='pending (B1)', restate_p9_headline=None)
     else:
-        d2 = _decide(_load_marked(r2_json, 'v9_drugblind'))
-        out.update(r2_case=d2, r2=R2_SENTENCE[d2], restate_p9_headline=(d2 == 'mean_le_0'))
+        data2 = _load_marked(r2_json, 'v9_drugblind')
+        d2 = _decide(data2)
+        out.update(r2_case=d2, r2=R2_SENTENCE[d2].format(ci_hi=data2['of_record']['ci_hi']),
+                   restate_p9_headline=(d2 == 'mean_le_0'))
     return out
 
 

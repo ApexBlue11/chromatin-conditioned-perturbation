@@ -803,3 +803,19 @@ def test_pi_kernel_template_pins(tmp_path):
             assert '/kaggle/working' in code and code.count('working_dir, ') == 4   # npz, ckpt, rlog, record: nothing else
             lit = {n.value for n in ast.walk(tree) if isinstance(n, ast.Constant) and isinstance(n.value, str)}
             assert len([v for v in lit if len(v) == 40 and all(ch in '0123456789abcdef' for ch in v)]) == 5   # five sha1 pins
+
+
+def test_pi_kernel_guard3_trainer_split_counts(tmp_path):
+    """Review 075 C1: before anything is echoed, each kernel refuses unless the TRAINER's own log shows the registered split
+    counts and no fallback to the test set (their main() validates on test when 'valid' is empty)."""
+    out_root = str(tmp_path / 'k')
+    make_p10_m_kernels.build_kernels(out_root)
+    for arm in ('m', 'mdt'):
+        code = open(os.path.join(out_root, 'kern_p10_%s_s0' % arm, 'lincs-p10-%s-s0.py' % arm), encoding='utf-8').read()
+        for need in ('"  train: 49846 samples"', '"  valid: 5539 samples"', '"  test: 13445 samples"', '"No valid set found"'):
+            assert need in code
+        g, e = code.index('GUARD 3 (review 075 C1)'), code.index('=== Validation curve (blinded test) ===')
+        assert g < e                                                         # the guard runs before the echo
+    # their trainer prints exactly these lines (main(): print(f"  {split_value}: {len(self.x1)} samples"))
+    src = open(TRAIN_MLP_SRC, encoding='utf-8').read()
+    assert 'print(f"  {split_value}: {len(self.x1)} samples")' in src and 'No valid set found' in src

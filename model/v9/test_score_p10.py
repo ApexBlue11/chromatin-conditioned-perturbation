@@ -17,6 +17,23 @@ def file_sha1(path):
     return hashlib.sha1(open(path, 'rb').read()).hexdigest()
 
 
+def write_m_provenance(ref_dir, arm, n_test, record_overrides=None):
+    """What the PI writes at download (review 075 C2): each kernel's record (as the kernel writes it) and the manifest."""
+    pins = dict(score_p10.PIN_SHA1, **({'dt_script': score_p10.PIN_DT_SHA1} if arm == 'mdt' else {}))
+    files = {}
+    for k in range(3):
+        rec = {'seed': 131419 + k, 'arm': arm, 'sha1s': dict(pins), 'best_epoch': 10, 'n_epochs_run': 20, 'wall_s': 1,
+               'n_test': n_test}
+        rec.update((record_overrides or {}).get(k, {}))
+        rp = os.path.join(str(ref_dir), f'p10_{arm}_seed{k}_record.json')
+        with open(rp, 'w', encoding='utf-8') as f:
+            json.dump(rec, f)
+        for name in (f'p10_{arm}_seed{k}.npz', f'p10_{arm}_seed{k}_record.json'):
+            files[name] = file_sha1(os.path.join(str(ref_dir), name))
+    with open(os.path.join(str(ref_dir), f'P10_{arm.upper()}_COMPLETE.json'), 'w', encoding='utf-8') as f:
+        json.dump({'complete': True, 'arm': arm, 'files': files}, f)
+
+
 def make_p10_fixture(tmp_path, n_train=30, n_test=60, n_clean=50, n_genes=10, seed=42):
     """Build a complete synthetic fixture in tmp_path with valid inputs satisfying all guards."""
     rng = np.random.default_rng(seed)
@@ -145,6 +162,7 @@ def make_p10_fixture(tmp_path, n_train=30, n_test=60, n_clean=50, n_genes=10, se
             n_epochs_run=np.int64(20),
         )
 
+    write_m_provenance(ref_dir_m, 'm', n_test)
     clean_rows = test_row_index[:n_clean]
 
     return {
@@ -184,6 +202,7 @@ def patch_constants(monkeypatch, fix, tmp_path):
     monkeypatch.setattr(score_p10, 'EXPECT_N_DISTINCT', len(fix['distinct_rows']))
     monkeypatch.setattr(score_p10, 'EXPECT_SHA1_DISTINCT', fix['distinct_sha1'])
     monkeypatch.setattr(score_p10, 'N_BOOT', 100)
+    monkeypatch.setattr(score_p10, 'EXPECT_N_TEST_M', len(fix['test_row_index']))
 
 
 # =========================================================================
@@ -619,9 +638,10 @@ def test_reader_r2_each_world_and_restate_only_on_mean_le_0(tmp_path, world):
     assert res['r2_case'] == EXPECT[world]
     assert res['restate_p9_headline'] is (EXPECT[world] == 'mean_le_0')
     want = {'pass': "v9 needs the compound on unseen compounds; Bai et al.'s finding does not hold for v9",
-            'mean_le_0': "v9's unseen-compound accuracy does not depend on the compound",
+            'mean_le_0': ("no detectable dependence of v9's unseen-compound accuracy on the compound: its contribution is at "
+                          "most %+.3f per molecule (95 %% cluster CI)" % WORLDS[world]['ci_hi']),
             'otherwise': "not separable from v9's drug-blind twin at this power", 'uninformative': 'UNINFORMATIVE'}
-    assert res['r2'] == want[EXPECT[world]]
+    assert res['r2'] == want[EXPECT[world]]                                  # review 075 C4: the bound is carried
 
 
 def test_reader_r1_sentences_exact(tmp_path):
@@ -718,6 +738,7 @@ def test_mlp_mdt_scoring_and_guards(tmp_path, monkeypatch):
             seed=np.int64(s),
             arm=np.str_('mdt'),
         )
+    write_m_provenance(ref_dir_mdt, 'mdt', len(fix['test_row_index']))
 
     out = score_p10.score_p10(p9_dir=str(fix['p9_dir']), ref='mlp_mdt', ref_dir=str(ref_dir_mdt))
     assert out['LABEL'] == 'reported, never read (RESULTS 98.6)'
@@ -871,6 +892,7 @@ def test_pi_dropped_fraction_cap(tmp_path, monkeypatch):
         z['delta_pred'] = np.array(z['delta_pred'], copy=True)
         z['delta_pred'][0] = 0.0                                             # a constant row: Pearson undefined
         np.savez(fp, **z)
+    write_m_provenance(fix['ref_dir_m'], 'm', len(fix['test_row_index']))
     with pytest.raises(SystemExit, match='MAX_DROPPED_FRAC'):
         score_p10.score_p10(p9_dir=str(fix['p9_dir']), ref='mlp_m', ref_dir=str(fix['ref_dir_m']), n_boot=50)
 
@@ -883,3 +905,48 @@ def test_pi_of_record_is_the_clean_subset(tmp_path, monkeypatch):
     assert out['of_record']['n_molecules'] == 5
     assert out['full']['n_molecules'] == 6
     assert out['row_pooled']['n_rows'] == len(fix['clean_rows'])
+
+
+# =========================================================================
+# Review 075 C2: M's download provenance, each guard isolated (PI)
+# =========================================================================
+def _score_m(fix):
+    return score_p10.score_p10(p9_dir=str(fix['p9_dir']), ref='mlp_m', ref_dir=str(fix['ref_dir_m']), n_boot=50)
+
+
+def test_c2_provenance_recorded_in_inputs(tmp_path, monkeypatch):
+    fix = make_p10_fixture(tmp_path)
+    patch_constants(monkeypatch, fix, tmp_path)
+    out = _score_m(fix)
+    prov = out['inputs']['ref']['provenance']
+    assert set(prov['npz_sha1']) == {'p10_m_seed0.npz', 'p10_m_seed1.npz', 'p10_m_seed2.npz'}
+    assert prov['npz_sha1']['p10_m_seed1.npz'] == file_sha1(fix['ref_dir_m'] / 'p10_m_seed1.npz')
+
+
+@pytest.mark.parametrize('case, overrides, msg', [
+    ('pin', {1: {'sha1s': dict(score_p10.PIN_SHA1, p10_mlp='0' * 40)}}, 'pinned'),
+    ('n_test', {2: {'n_test': 59}}, 'n_test'),
+    ('record seed', {0: {'seed': 131420}}, 'record seed'),
+    ('record arm', {0: {'arm': 'mdt'}}, 'arm'),
+    ('dt pin on m', {0: {'sha1s': dict(score_p10.PIN_SHA1, dt_script=score_p10.PIN_DT_SHA1)}}, 'pinned'),
+])
+def test_c2_record_guards_isolated(tmp_path, monkeypatch, case, overrides, msg):
+    fix = make_p10_fixture(tmp_path)
+    patch_constants(monkeypatch, fix, tmp_path)
+    write_m_provenance(fix['ref_dir_m'], 'm', len(fix['test_row_index']), record_overrides=overrides)
+    with pytest.raises(SystemExit, match=msg):
+        _score_m(fix)
+
+
+def test_c2_manifest_guards_isolated(tmp_path, monkeypatch):
+    fix = make_p10_fixture(tmp_path)
+    patch_constants(monkeypatch, fix, tmp_path)
+    _score_m(fix)                                                            # the clean world scores
+    os.remove(tmp_path / 'model' / 'results' / 'p10_accuracy_mlp_m.json')
+    with open(fix['ref_dir_m'] / 'p10_m_seed2.npz', 'ab') as f:              # an npz changed after download
+        f.write(b'x')
+    with pytest.raises(SystemExit, match='download manifest'):
+        _score_m(fix)
+    os.remove(fix['ref_dir_m'] / 'P10_M_COMPLETE.json')
+    with pytest.raises(SystemExit, match='no download manifest'):
+        _score_m(fix)
