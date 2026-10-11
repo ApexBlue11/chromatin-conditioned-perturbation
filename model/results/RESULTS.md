@@ -9220,6 +9220,26 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
     best_score and counter at epoch 59 (§97.8). Every O9 decision is mechanical (97.3 / 97.4 / 97.6). The only discretionary
     act after that point, session 2's budget, rests on the quota arithmetic from kernel logs."*
 
+### 97.9 RECORD: session 2 ended at its boundary; session 3 is built and waits for the Sat 17 Oct reset (PI, 2026-10-11)
+- **Session 2** (`lincs-xpert-cd1` v2, pushed 10:10 IST, `BUDGET_H` 6.0):
+  - `stopped_by` **session_boundary**, after 44 epochs (indices 60–103), 5.89 h wall;
+  - the after-session output was read with `best_score` and counter stripped (review 074 C3).
+- **The handoff:**
+  - `full_state.pt` `aa0a310a…`, `resume_from.pt` `7d42ed07…`, `best.pth` `3ef8d973…`; torch 2.11.0+cu128, CUDA 12.8;
+  - each sha1 verified on download;
+  - uploaded as a new version of `apexblue/xpert-cd1-state`.
+- **Session 3's kernel:** built (`make_o9_kernel.py 3 …`, default `BUDGET_H` 8.3) and committed with its PREV literal here.
+  - The diff from session 2 is exactly `BUDGET_H`, `SESSION` and `PREV`.
+  - It mounts the dataset's latest version, and fails fast if the mounted sha1s are not PREV's.
+- **The quota:** the week now stands at **29.2 of 30 T4-h** (23.3 + 5.89), so session 3 is pushed **at the Sat 17 Oct 05:30 IST
+  reset**, ahead of P10's B1 and D.
+- **A further disclosure (unavoidable in the chain of custody):** `best.pth`'s sha1 differs from session 1's (`3b6f74ef…` →
+  `3ef8d973…`).
+  - So the handoff itself reveals that their test-selected best checkpoint changed during session 2, i.e. that their test loss
+    improved at least once in epochs 60–103.
+  - It carries no magnitude, and no registered rule reads it.
+  - It is repeated with 97.8's disclosure beside the O9 result.
+
 ## 98. 🔒 PRE-REGISTERED: P10, the drug-free controls on `split_cold_drug_1` (Bai et al.'s MLP; v9 retrained drug-blind), and the newest published L1000 model with code (PertDiT). Before any P10 code (PI, 2026-10-10)
 ### 98.1 Why
 - **The principal's question (2026-10-10):** is XPert old, and should a newer SOTA be compared, if the GPU cost is small?
