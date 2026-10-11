@@ -8,9 +8,10 @@ PREV_JSON (session k > 1) is session k-1's handoff {"sha1": {...}, "final_epoch"
 kernel as a LITERAL and committed before the push (O2's chain of custody, §84.2 C3). Session k > 1 also mounts the private
 state dataset apexblue/xpert-cd1-state.
 
-BUDGET_H (default 8.3, O2's) is the session's wall-clock guard. It is operational only: resume is bitwise exact and a session
-ends only at an epoch boundary, so a shorter budget moves the boundary, never the trajectory (RESULTS 97.8: session 2 is
-sized to the week's remaining quota).
+BUDGET_H (default 8.3, O2's) is the session's wall-clock guard. It is operational: the restored state is bitwise exact (81.3a)
+and a session ends only at an epoch boundary, so a shorter budget moves the boundary. It changes the trajectory only within
+the GPU nondeterminism already disclosed: production is not deterministic, and each session re-autotunes cuDNN (RESULTS 97.8,
+review 074 C2; session 2 is sized to the week's remaining quota).
 """
 import ast
 import hashlib

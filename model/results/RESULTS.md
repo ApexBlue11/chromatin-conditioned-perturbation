@@ -7309,9 +7309,16 @@ stays the model of record, and P7, P9 and O9 are unaffected.
 **Permitted reading:** *"the tie-fixed chromatin encoding did not raise the dev score (−0.0009 at three seeds, every seed
 negative, 2 of 6 cells)"*.
 
-**The chromatin line on the dev carve is closed:** E2 (no chromatin, 92.10), E1 (cleaned, 92.12) and E3 (tie-fixed) are each
-not accepted. That matches the principal-approved direction (close chromatin for transfer; move the effort to
-interpretability).
+**The finding:** no chromatin-encoding change was accepted on the dev carve (E2 92.10, E1 92.12, E3 92.14). Removing
+cell-specific chromatin (E2) was not accepted either, so the record supports "no change", neither "chromatin is useless" nor
+"chromatin helps".
+
+**The decision** (the PI's, following the principal-approved direction to close chromatin for transfer and move the effort to
+interpretability): no further dev-carve encodings are planned. Wording per review 074 C1.
+
+**A note on E3 − E1** (review 074): the −0.0037 is larger than its seed-noise term (about 0.0021). 93.16 also found that the
+codes run along gene order inside the no-peak blocks. So they were never only noise: they carry a gene-position pattern a model
+could use. Nothing more is read from it at three seeds on the dev carve.
 
 ## 93. 🔒 PRE-REGISTERED (packet 050, amended by review 050): why chromatin does not transfer — H2 and H3 on the §91 features, H1 on richer accessibility features (principal's request, 2026-10-03/06)
 ### 93.1 The question, and what is already known
@@ -9193,17 +9200,25 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
 - **Session 2's budget is 6.0 h, not 8.3 h.**
   - **Why:** this week's T4 use is P9 6.70 h, E1 seeds 1–2 3.40 h, E3 5.01 h and O9 session 1 8.19 h (kernel logs): 23.3 of
     30 h. An 8.3-h session would overrun the quota.
-  - **Why it is operational only:** resume is bitwise exact (§81.7), and a session ends only at an epoch boundary. A shorter budget
-    moves the next boundary; it cannot change the trajectory.
+  - **Why it is operational only** (wording per review 074 C2):
+    - The restored **state** is bitwise exact (81.3a), and a session ends only at an epoch boundary. A shorter budget moves the
+      boundary.
+    - It changes the trajectory only within the GPU nondeterminism already disclosed (review 067 C2). Production does not run
+      in deterministic mode: 81.3b's bitwise continuation held only under `use_deterministic_algorithms`. And each session
+      re-autotunes cuDNN (`cudnn.benchmark = True`, `train_xpert.py:413`).
+    - So a split run is not bitwise reproducible, and neither is a single-session run.
   - **How it is applied:** `make_o9_kernel.py` takes an optional `BUDGET_H` (bounded to [1, 8.3]), applied by one asserted
     substitution. The kernel diff against session 1 is exactly: the state mount, `BUDGET_H`, `SESSION` and `PREV`.
 - **Disclosure (84.1 item 3):**
   - the PI's after-session script printed the kernel's last `LINCS STATE SAVED` line;
-  - that line carries their stopper's `best_score` (**0.3771**, counter 5 at epoch 59). The PI therefore saw XPert's logged
-    selection score.
-  - It is their stopper's internal score (test-selected, 97.3), not the registered estimand, which is scored only by
-    `score_p9.py` at FINAL.
-  - The script now strips `best_score` from that line.
+  - that line carries their stopper's `best_score` (**0.3771**) and counter (**5**) at epoch 59;
+  - both are test-derived: the score is their test-selected internal metric (97.3), and the counter is the number of epochs since
+    their test loss last improved (review 074 C3). So the PI saw both.
+  - Neither is the registered estimand, which is scored only by `score_p9.py` at FINAL, and no registered rule reads either.
+  - The script now strips both from that line.
+  - **When O9 is read, this disclosure is repeated beside the result** (review 074 ask 4b): *"the PI saw XPert's stopper
+    best_score and counter at epoch 59 (§97.8). Every O9 decision is mechanical (97.3 / 97.4 / 97.6). The only discretionary
+    act after that point, session 2's budget, rests on the quota arithmetic from kernel logs."*
 
 ## 98. 🔒 PRE-REGISTERED: P10, the drug-free controls on `split_cold_drug_1` (Bai et al.'s MLP; v9 retrained drug-blind), and the newest published L1000 model with code (PertDiT). Before any P10 code (PI, 2026-10-10)
 ### 98.1 Why
