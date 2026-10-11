@@ -9130,6 +9130,30 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
   "at or before 252". It is the same threshold, not an off-by-one.
 - **The governing definition** is §71.7's counter.
 
+### 97.8 RECORD: session 1 ended at its boundary; session 2 is sized to the week's quota; one disclosure (PI, 2026-10-11)
+- **Session 1** (`lincs-xpert-cd1` v1, pushed 2026-10-10 18:12 IST):
+  - `stopped_by` **session_boundary**, after 60 epochs (indices 0–59), 8.19 h wall;
+  - Amendment E: first two epochs 477.2 s mean against the 562.1 s projection, so no repricing before session 2.
+- **The handoff:**
+  - `full_state.pt` `3dead757…`, `resume_from.pt` `3358edde…`, `best.pth` `3b6f74ef…`; torch 2.11.0+cu128, CUDA 12.8;
+  - downloaded and **each sha1 verified** against the handoff;
+  - uploaded as the private dataset `apexblue/xpert-cd1-state`;
+  - committed as session 2's PREV literal before its push (§84.2).
+- **Session 2's budget is 6.0 h, not 8.3 h.**
+  - **Why:** this week's T4 use is P9 6.70 h, E1 seeds 1–2 3.40 h, E3 5.01 h and O9 session 1 8.19 h (kernel logs): 23.3 of
+    30 h. An 8.3-h session would overrun the quota.
+  - **Why it is operational only:** resume is bitwise exact (§81.7), and a session ends only at an epoch boundary. A shorter budget
+    moves the next boundary; it cannot change the trajectory.
+  - **How it is applied:** `make_o9_kernel.py` takes an optional `BUDGET_H` (bounded to [1, 8.3]), applied by one asserted
+    substitution. The kernel diff against session 1 is exactly: the state mount, `BUDGET_H`, `SESSION` and `PREV`.
+- **Disclosure (84.1 item 3):**
+  - the PI's after-session script printed the kernel's last `LINCS STATE SAVED` line;
+  - that line carries their stopper's `best_score` (**0.3771**, counter 5 at epoch 59). The PI therefore saw XPert's logged
+    selection score.
+  - It is their stopper's internal score (test-selected, 97.3), not the registered estimand, which is scored only by
+    `score_p9.py` at FINAL.
+  - The script now strips `best_score` from that line.
+
 ## 98. 🔒 PRE-REGISTERED: P10, the drug-free controls on `split_cold_drug_1` (Bai et al.'s MLP; v9 retrained drug-blind), and the newest published L1000 model with code (PertDiT). Before any P10 code (PI, 2026-10-10)
 ### 98.1 Why
 - **The principal's question (2026-10-10):** is XPert old, and should a newer SOTA be compared, if the GPU cost is small?

@@ -42,7 +42,7 @@ import sys
 import time
 
 T0 = time.time()
-BUDGET_H = 8.3          # wall-clock guard for TRAINING; prediction needs ~10 min after it
+BUDGET_H = 6.0          # wall-clock guard for TRAINING; prediction needs ~10 min after it
 # Review 011 C1: checkpointing slows every step, so fewer epochs fit in BUDGET_H, and a guard stop while test
 # loss is still improving supports no v9-win claim [RESULTS 71.7]. Nobody knows XPert's convergence epoch, so
 # the real T4 step time is measured FIRST, in a run that stops after GUARD F, and the full run is decided
@@ -50,11 +50,11 @@ BUDGET_H = 8.3          # wall-clock guard for TRAINING; prediction needs ~10 mi
 MEASURE_ONLY = False
 # O9 PRODUCTION [RESULTS 97], on O2's machinery [RESULTS 84, review 015]. GUARD G / H (RESULTS 81) were proved in v7
 # [81.7] and are not rerun.
-SESSION = 1
+SESSION = 2
 HORIZON_EPOCHS = 297          # 84.1: FINAL at 297 completed epochs; the only other final end is their early stop
-PREV = None
+PREV = {'sha1': {'full_state.pt': '3dead7572f4006a1799fe67fdbca0a1ef2e954c8', 'resume_from.pt': '3358edde63f674a7506217610461bad821645563', 'best.pth': '3b6f74efa899acad3096bb06ee2c31b52ff5b6eb'}, 'final_epoch': 59, 'torch': '2.11.0+cu128', 'cuda': '12.8'}
 # PREV = session k-1's handoff, pasted as a literal and committed to git before this push (015 C3).
-# Production session 1. The v7 proof and resume tests are in the v7 kernel (git da3c5ac).
+# Production session 2. The v7 proof and resume tests are in the v7 kernel (git da3c5ac).
 FOLD = 'split_cold_drug_1'
 W = '/kaggle/working'
 RECORD = {'fold': FOLD, 'budget_h': BUDGET_H, 'guards': {}, 'decision': 'option (a) as published, disclosed'}

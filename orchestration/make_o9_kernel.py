@@ -2,11 +2,15 @@
 """RESULTS 97.2 / 97.6: the O9 kernel -- XPert trained to its published recipe on split_cold_drug_1 -- built from the O2
 session-1 kernel AS RUN (git f252b12) by asserted exact substitutions of the fold constants only. PI glue.
 
-    python orchestration/make_o9_kernel.py SESSION [PREV_JSON]
+    python orchestration/make_o9_kernel.py SESSION [PREV_JSON [BUDGET_H]]
 
 PREV_JSON (session k > 1) is session k-1's handoff {"sha1": {...}, "final_epoch": e, "torch": v, "cuda": v}, pasted into the
 kernel as a LITERAL and committed before the push (O2's chain of custody, §84.2 C3). Session k > 1 also mounts the private
 state dataset apexblue/xpert-cd1-state.
+
+BUDGET_H (default 8.3, O2's) is the session's wall-clock guard. It is operational only: resume is bitwise exact and a session
+ends only at an epoch boundary, so a shorter budget moves the boundary, never the trajectory (RESULTS 97.8: session 2 is
+sized to the week's remaining quota).
 """
 import ast
 import hashlib
@@ -25,6 +29,8 @@ SLUG, STATE_DS = 'lincs-xpert-cd1', 'apexblue/xpert-cd1-state'
 
 SESSION = int(sys.argv[1])
 PREV = json.load(open(sys.argv[2])) if len(sys.argv) > 2 else None
+BUDGET = float(sys.argv[3]) if len(sys.argv) > 3 else 8.3
+assert 1.0 <= BUDGET <= 8.3, 'BUDGET_H must lie in [1, 8.3] h'
 assert (SESSION == 1) == (PREV is None), 'session 1 has no PREV; every later session must have one'
 if PREV is not None:
     assert set(PREV) == {'sha1', 'final_epoch', 'torch', 'cuda'}, sorted(PREV)
@@ -50,6 +56,7 @@ rep('# O2 PRODUCTION [RESULTS 84, review 015]. GUARD G / H (RESULTS 81) were pro
     '# [81.7] and are not rerun.')
 rep('SESSION = 1\n', 'SESSION = %d\n' % SESSION)
 rep('PREV = None\n', 'PREV = %r\n' % (PREV,))
+rep('BUDGET_H = 8.3          # wall-clock guard', 'BUDGET_H = %r          # wall-clock guard' % BUDGET)
 rep('# Production session 1. The v7 proof', '# Production session %d. The v7 proof' % SESSION)
 rep("FOLD = 'split_cold_cell_1'", "FOLD = 'split_cold_drug_1'")
 rep("if counts != {'train': 47509, 'test': 21321}:\n    fatal('%s levels are %s, expected {train: 47509, test: 21321}.' % (FOLD, counts))",
