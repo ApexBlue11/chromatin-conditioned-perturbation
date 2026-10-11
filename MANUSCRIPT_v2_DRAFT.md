@@ -223,8 +223,17 @@ component rather than in a per-cell offset. It is a net over cells that disagree
 +0.027 and VCAP +0.014, while chromatin helps in HL60 (−0.013) and SKBR3 (−0.004), on every seed. For
 VCAP the cost is its failed H3K27me3 track: ablating that track alone recovers 93 % of the gain. For HEK293T and LNCAP no cause
 is identified [§91.11]. An inference-time ablation puts a model off its training distribution, so this is a diagnostic, not
-a method, and the final model keeps chromatin as registered. ⏳ *[§92: one-seed dev screens retraining without cell-specific
-chromatin (E2) and with a cleaned encoding (E1).]*
+a method, and the final model keeps chromatin as registered.
+
+**Retraining did not give a registered improvement either** [§92.10, §92.12, §92.14]. Three pre-registered dev screens, each at
+three seeds, retrained v9 with its chromatin changed:
+- **E2, without cell-specific chromatin:** +0.0073 per row, every seed positive, but only 3 of 6 dev cells favour it.
+- **E1, with a cleaned encoding** (failed H3K27me3 tracks masked, rank-normalised): +0.0029, short of the 0.003 floor, in 4 of
+  6 cells.
+- **E3, as E1 with the tie-break codes also removed:** −0.0009, in 2 of 6 cells.
+
+None was accepted by the registered rule. That supports *no change*, neither that chromatin is useless nor that it helps, and
+the final model keeps v9's registered encoding.
 
 **Mechanism in the measurements, and in the predictions** [§94]:
 - **The measurements carry it:** the measured landmark responses in unseen cells carry drug mechanism.
