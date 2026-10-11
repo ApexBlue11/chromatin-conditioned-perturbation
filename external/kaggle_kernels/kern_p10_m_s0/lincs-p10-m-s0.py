@@ -143,9 +143,14 @@ with open(log_file, "r", encoding="utf-8", errors="replace") as f_log:
 # 6. Convert outputs and stage to /kaggle/working
 working_dir = "/kaggle/working"
 out_npz = os.path.join(working_dir, f"p10_{ARM}_seed{K}.npz")
-out_npz_part = out_npz + ".part"
-p10_mlp.convert_outputs(h5ad_path, run_dir, SEED, ARM, out_npz_part)
-os.replace(out_npz_part, out_npz)
+# RESULTS 98.8: np.savez appends '.npz' to a path that lacks it, so convert into /kaggle/temp under the final name, then
+# copy -> .part -> os.replace (the v1 kernels wrote '<name>.npz.part.npz' and crashed on the rename after training).
+tmp_npz = os.path.join(temp_dir, f"p10_{ARM}_seed{K}.npz")
+p10_mlp.convert_outputs(h5ad_path, run_dir, SEED, ARM, tmp_npz)
+if not os.path.isfile(tmp_npz):
+    fatal(f"convert_outputs did not write {tmp_npz}")
+shutil.copyfile(tmp_npz, out_npz + ".part")
+os.replace(out_npz + ".part", out_npz)
 
 # Copy checkpoints/best_model.pt and logs/resource_log.json
 src_ckpt = os.path.join(run_dir, "checkpoints", "best_model.pt")

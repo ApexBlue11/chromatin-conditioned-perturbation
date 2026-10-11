@@ -9428,6 +9428,31 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
   - at most 5.5 h each at 500 epochs (39.7 s per CPU epoch, measured).
 - **R1 is read** with `score_p10.py --ref mlp_m` once the three M seeds exist. R2 waits for B1.
 
+### 98.8 RECORD: the v1 M kernels crashed after training on a staging bug; fixed, tested end to end, and re-run (PI, 2026-10-12)
+- **What happened:**
+  - `lincs-p10-{m-s0,m-s1,m-s2,mdt-s1}` v1 (pushed 21:47 IST, 11 Oct) passed every guard: GUARD 2's five sha1s, and GUARD 3
+    (the trainer saw 49,846 / 5,539 / 13,445, no fallback). They then trained to their early stop (M seed 0: epoch 266, best
+    216; M+dt seed 1: epoch 294, best 244).
+  - They then **ERRORed** at the staging step (3.7–3.9 h wall). The kernel passed `<name>.npz.part` to `convert_outputs`,
+    `np.savez` silently appended `.npz` (it wrote `<name>.npz.part.npz`), and `os.replace('<name>.npz.part', …)` failed.
+  - `mdt-s0` v1 was still running and fails the same way. `mdt-s2` had not been pushed: Kaggle's 5-CPU-session cap.
+- **Nothing from those runs is used.** No v1 output was downloaded except the kernel logs, which were read for the error. The
+  crashed runs never wrote their records, so review 075 C2's provenance check could not pass on them anyway.
+- **The fix** (kernel template only): convert into `/kaggle/temp` under the final `.npz` name, then copy → `.part` →
+  `os.replace`. `p10_mlp.py`, the `lincs-p10-src` dataset and every pin are unchanged.
+- **The test that would have caught it** (`test_pi_generated_kernel_runs_end_to_end`):
+  - it **runs each generated kernel script for real** on synthetic inputs: `/kaggle` paths redirected, pins replaced by the
+    synthetic files' sha1s, pip stubbed, 2 epochs;
+  - it asserts the four staged outputs and nothing else, plus the record's fields and the blinding (no trainer test line
+    echoed);
+  - it **fails on the v1 template** (FileNotFoundError, confirmed by temporarily restoring it) and passes on the fix;
+  - 80 P10 tests pass. Static checks of a template cannot see a runtime path bug; an executed kernel can.
+- **Disclosure** (by design, 98.7): the kernels echo the **validation** curve. The PI therefore saw the drug-free MLP's best
+  validation PCC_DEG on the molecule-disjoint carve, 0.640 (M seed 0) and 0.642 (M+dt seed 1).
+  - Those are validation rows, not test rows, and not the registered estimand.
+  - But they are unseen-molecule rows, so they hint at R1's result. No registered rule or decision reads them.
+- **The re-run:** v2 of all six kernels, the same seeds, free CPU.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

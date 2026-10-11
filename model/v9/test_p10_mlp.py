@@ -819,3 +819,67 @@ def test_pi_kernel_guard3_trainer_split_counts(tmp_path):
     # their trainer prints exactly these lines (main(): print(f"  {split_value}: {len(self.x1)} samples"))
     src = open(TRAIN_MLP_SRC, encoding='utf-8').read()
     assert 'print(f"  {split_value}: {len(self.x1)} samples")' in src and 'No valid set found' in src
+
+
+def test_pi_generated_kernel_runs_end_to_end(monkeypatch, synthetic_bundle_data, tmp_path):
+    """RESULTS 98.8: the v1 kernels crashed AFTER training (np.savez appended '.npz' to the '.part' path), which static checks
+    could not see. Run each GENERATED kernel script for real on synthetic inputs: /kaggle paths redirected to tmp dirs, the
+    pins replaced by the synthetic files' sha1s, pip stubbed, 2 epochs. Assert the staged outputs and nothing else."""
+    import subprocess
+    data = synthetic_bundle_data
+    c = data['constants']
+    out_root = str(tmp_path / 'k')
+    make_p10_m_kernels.build_kernels(out_root)
+    inp, work, temp = tmp_path / 'input' / 'ds', tmp_path / 'working', tmp_path / 'temp'
+    for d in (inp, work, temp):
+        d.mkdir(parents=True)
+    np.savez(str(inp / 'xpert_mdmt_splits.npz'), **data['bundle'])
+    (inp / 'p10_carves.json').write_bytes(data['carves_bytes'])
+    shutil.copyfile(TRAIN_MLP_SRC, str(inp / 'train_mlp.py'))
+    (inp / 'scanpy-1.12.4-py3-none-any.whl').write_bytes(b'')
+    mod = open(p10_mlp.__file__, encoding='utf-8').read()                    # p10_mlp with the synthetic bundle's constants
+    for k, v in c.items():
+        line = [l for l in mod.splitlines() if l.startswith(k + ' = ')]
+        assert len(line) == 1, k
+        mod = mod.replace(line[0], '%s = %r' % (k, v))
+    (inp / 'p10_mlp.py').write_text(mod, encoding='utf-8', newline='\n')
+    shim = tmp_path / 'shim'
+    shim.mkdir()
+    (shim / 'sitecustomize.py').write_text(                                  # their main() calls os.uname(), absent on Windows
+        "import os, collections\nif not hasattr(os, 'uname'):\n"
+        "    _U = collections.namedtuple('uname_result', 'sysname nodename release version machine')\n"
+        "    os.uname = lambda: _U('Windows', 'test', '', '', '')\n",
+        encoding='utf-8')
+    sha = {n: p10_mlp.sha1_file(str(inp / n)) for n in ('xpert_mdmt_splits.npz', 'train_mlp.py', 'p10_mlp.py', 'p10_carves.json')}
+    dt_tmp = str(tmp_path / 'dt.py')
+    p10_mlp.make_dt_script(str(inp / 'train_mlp.py'), dt_tmp)
+    for arm in ('m', 'mdt'):
+        code = open(os.path.join(out_root, 'kern_p10_%s_s1' % arm, 'lincs-p10-%s-s1.py' % arm), encoding='utf-8').read()
+        subs = [("BUNDLE_SHA1 = '", "BUNDLE_SHA1 = '%s' # " % sha['xpert_mdmt_splits.npz']),
+                ("TRAIN_MLP_SHA1 = '", "TRAIN_MLP_SHA1 = '%s' # " % sha['train_mlp.py']),
+                ("P10_MLP_SHA1 = '", "P10_MLP_SHA1 = '%s' # " % sha['p10_mlp.py']),
+                ("CARVES_SHA1 = '", "CARVES_SHA1 = '%s' # " % sha['p10_carves.json']),
+                ("DT_SCRIPT_SHA1 = '", "DT_SCRIPT_SHA1 = '%s' # " % p10_mlp.sha1_file(dt_tmp)),
+                ('"/kaggle/input/**/', '"%s/**/' % str(tmp_path / 'input').replace('\\', '/')),
+                ('"/kaggle/working"', repr(str(work))), ('"/kaggle/temp"', repr(str(temp))),
+                ('"--epochs", "500",', '"--epochs", "2",'),
+                ('"  train: 49846 samples"', '"  train: 260 samples"'), ('"  valid: 5539 samples"', '"  valid: 40 samples"'),
+                ('"  test: 13445 samples"', '"  test: 100 samples"'),
+                ('sys.executable, "-m", "pip", "install"', 'sys.executable, "-c", "pass", "install"')]
+        for a, b in subs:
+            assert a in code, a
+            code = code.replace(a, b)
+        script = tmp_path / ('kernel_%s.py' % arm)
+        script.write_text(code, encoding='utf-8')
+        for f in os.listdir(work):
+            os.remove(os.path.join(work, f))
+        env = dict(os.environ, PYTHONPATH=str(shim) + os.pathsep + os.environ.get('PYTHONPATH', ''))
+        r = subprocess.run([sys.executable, str(script)], capture_output=True, text=True, env=env, timeout=900)
+        assert r.returncode == 0, r.stdout[-3000:] + r.stderr[-3000:]
+        assert sorted(os.listdir(work)) == sorted(['p10_%s_seed1.npz' % arm, 'best_model.pt', 'resource_log.json',
+                                                   'p10_%s_seed1_record.json' % arm])
+        with np.load(str(work / ('p10_%s_seed1.npz' % arm))) as z:
+            assert z['delta_pred'].shape == (100, 978) and str(z['arm']) == arm and int(z['seed']) == 131420
+        rec = json.load(open(str(work / ('p10_%s_seed1_record.json' % arm)), encoding='utf-8'))
+        assert rec['n_test'] == 100 and rec['seed'] == 131420 and set(rec['sha1s']) >= {'bundle', 'train_mlp', 'p10_mlp', 'carves'}
+        assert 'GUARD 3: trainer saw' in r.stdout and 'Test set' not in r.stdout   # blinding: no trainer test line echoed
