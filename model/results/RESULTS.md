@@ -9453,6 +9453,40 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
   - But they are unseen-molecule rows, so they hint at R1's result. No registered rule or decision reads them.
 - **The re-run:** v2 of all six kernels, the same seeds, free CPU.
 
+### 98.9 B1's code and kernel (W38 body + PI), before review and before any GPU (PI, 2026-10-12)
+- **`xpert_arm.py --drug_blind`** (now `c55ce257`; W38). With the flag absent, behaviour is unchanged: the default path adds
+  only `drug_blind: False` to the JSON's `candidate_flags` and to the checkpoint dict. With it:
+  - `self.u` is set to its training-row mean;
+  - `self.blind_atom` is the atom-weighted mean over the **unique** training compounds' full stored atom blocks (no 96-atom
+    truncation; float64 mean);
+  - `batch()` gives every row that one token with an all-True mask;
+  - **`assert_drug_constant`** runs on every batch the arm builds (training and evaluation);
+  - **`drug_permutation_check`** runs after each seed on `D.te[:512]`: it predicts twice, the second time with deranged
+    compound identities, requires a max |Δ delta| ≤ 1e-5, prints only that number, and computes no metric against truth.
+- **The tests:** `test_drug_blind.py`, 7 by W38 plus 2 by the PI (the threshold world; `main()`'s wiring). 9 pass, and
+  `test_chromatin_encoding.py` still has 8.
+  - **Mutation check:** 4 of 22 survived W38's suite; **0 of 22** after the PI's tests.
+  - **Unrelated, found in passing:** `test_p7_blinding.py::test_pi_rows_test_refuses_unpinned` fails on HEAD too (a stale
+    message assertion since P7_SHA1 was pinned). It is flagged as a separate task.
+- **The kernel** `orchestration/make_b1_kernel.py` → `kern_v9p10b1` (`lincs-v9p10b1`):
+  - **The source:** P9's kernel template, taken from `make_p9_kernel.py` as committed, changed only by asserted substitutions.
+    The diff from `kern_v9p9` is 30 lines:
+    - `--drug_blind` in argv;
+    - the output names `v9p10b1*` and `P10B1_COMPLETE.json`;
+    - the mounted-source checks gain `drug_blind`, `assert_drug_constant` and `drug_permutation_check`;
+    - the `xpert_arm.py` pin `c55ce257`, with the other five pins identical to P9's;
+    - **GUARD B1a:** exactly one passing `DRUGBLIND PERMUTATION CHECK` line per seed;
+    - **GUARD B1b:** the arm JSON records `drug_blind: true` and its info.
+  - **The source dataset** `apexblue/lincs-v9-src-b1` is E3's upload with only `xpert_arm.py` replaced (`diff -rq`).
+    `lincs-v9-src` stays frozen for P7 / P9.
+- **The local smoke** (the kernel's own smoke mode: 1 seed, 3 epochs, 300 dev-carve rows, laptop GPU, a few minutes) passes end
+  to end:
+  - the trained model's permutation check gives max |Δ| = **0**;
+  - B1a and B1b pass: `drug_blind_info` 1,426 training compounds, 40,804 atoms pooled;
+  - 81 test rows are dropped for missing features, as P9 drops them;
+  - nothing is left in `model/results`.
+- **Cost and timing:** ≈ 6 GPU-h, as P9. Pushed at the Sat 17 Oct reset after O9's session 3, if review allows.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

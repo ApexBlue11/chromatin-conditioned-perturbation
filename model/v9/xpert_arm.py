@@ -133,7 +133,7 @@ def encode_chromatin(E, Em, cidx, failed, encoding, tie=TIE):
 class XPertData:
     """Their rows, presented in the v9 batch format."""
 
-    def __init__(self, npz, roots, split, ablate_epi=False, dev_args=None, chromatin_encoding='v9'):
+    def __init__(self, npz, roots, split, ablate_epi=False, dev_args=None, chromatin_encoding='v9', drug_blind=False):
         z = np.load(npz, allow_pickle=True)
         lab = z[f'split_{split}']
         self.tr = np.flatnonzero(lab == 'train')
@@ -237,6 +237,13 @@ class XPertData:
         self.atom_off = np.load(find('drug_atom_offsets.npy', roots))
         self.drug_row = rows
 
+        if drug_blind:
+            self._apply_drug_blind()
+        else:
+            self.drug_blind = False
+            self.blind_atom = None
+            self.drug_blind_info = None
+
         # --- chromatin / lineage where we have the cell line, neutral where we do not ---
         cidx = json.load(open(find('lincs_cell_index.json', roots)))
         cidx = cidx.get('cell_id_to_row', cidx)
@@ -305,16 +312,43 @@ class XPertData:
             self.cell_mean[c] = self.C[sel].mean(0) if sel.any() else self.C[m].mean(0)
         self.x_cell = np.stack([self.cell_mean[c] for c in self.cell])
 
-    def batch(self, idx, device, max_atoms=96):
-        d = self.drug_row[idx]
-        n = min(max_atoms, max(1, int(max(self.atom_off[k + 1] - self.atom_off[k] for k in d))))
-        atoms = np.zeros((len(idx), n, 512), np.float32)
-        amask = np.zeros((len(idx), n), bool)
-        for b, k in enumerate(d):
+    def _apply_drug_blind(self):
+        """RESULTS 98.2 B1 / 98.6 C4: constant drug representation across rows."""
+        self.drug_blind = True
+        self.u[:] = self.u[self.tr].mean(0, keepdims=True)
+        u_drugs = np.unique(self.drug_row[self.tr])
+        atom_blocks = []
+        for k in u_drugs:
             a0, a1 = int(self.atom_off[k]), int(self.atom_off[k + 1])
-            m = min(n, a1 - a0)
-            atoms[b, :m] = np.asarray(self.atom_reprs[a0:a0 + m], np.float32)
-            amask[b, :m] = True
+            if a1 > a0:
+                atom_blocks.append(np.asarray(self.atom_reprs[a0:a1], dtype=np.float32))
+        if atom_blocks:
+            all_atoms = np.concatenate(atom_blocks, axis=0)
+            self.blind_atom = all_atoms.mean(axis=0, dtype=np.float64).astype(np.float32)
+            n_atoms_pooled = int(all_atoms.shape[0])
+        else:
+            self.blind_atom = np.zeros(512, dtype=np.float32)
+            n_atoms_pooled = 0
+        self.drug_blind_info = {
+            'n_train_compounds': int(len(u_drugs)),
+            'n_atoms_pooled': n_atoms_pooled
+        }
+
+    def batch(self, idx, device, max_atoms=96):
+        if self.drug_blind:
+            B = len(idx)
+            atoms = np.broadcast_to(self.blind_atom[None, None, :], (B, 1, 512))
+            amask = np.ones((B, 1), dtype=bool)
+        else:
+            d = self.drug_row[idx]
+            n = min(max_atoms, max(1, int(max(self.atom_off[k + 1] - self.atom_off[k] for k in d))))
+            atoms = np.zeros((len(idx), n, 512), np.float32)
+            amask = np.zeros((len(idx), n), bool)
+            for b, k in enumerate(d):
+                a0, a1 = int(self.atom_off[k]), int(self.atom_off[k + 1])
+                m = min(n, a1 - a0)
+                atoms[b, :m] = np.asarray(self.atom_reprs[a0:a0 + m], np.float32)
+                amask[b, :m] = True
         t = lambda x: torch.as_tensor(np.ascontiguousarray(x)).to(device)
         return {'x_ctl': t(self.C[idx]), 'x_cell': t(self.x_cell[idx]),
                 'y_abs': t(self.X[idx]), 'y_delta': t(self.X[idx] - self.C[idx]),
@@ -326,6 +360,69 @@ class XPertData:
                 'u_feats': t(self.u[idx]), 'dose': t(self.dose_n[idx]), 'time': t(self.time_n[idx])}
 
 
+def assert_drug_constant(batch):
+    """RESULTS 98.6 C4b: assert that u_feats, atoms and atom_mask are each identical across every row."""
+    for key in ('u_feats', 'atoms', 'atom_mask'):
+        t = batch[key]
+        if t.shape[0] > 1:
+            row0 = t[0]
+            for i in range(1, t.shape[0]):
+                if not torch.equal(t[i], row0):
+                    raise RuntimeError(f"assert_drug_constant: {key} row {i} does not match row 0")
+
+
+def drug_permutation_check(model, D, idx, device):
+    """RESULTS 98.6 C4b: predict rows twice, deranging compound identities on the second pass."""
+    was_training = model.training
+    model.eval()
+    if isinstance(idx, slice):
+        idx_arr = np.arange(len(D.drug_row))[idx]
+    else:
+        idx_arr = np.asarray(idx)
+    n = len(idx_arr)
+    orig_drug_row = np.array(D.drug_row[idx_arr], copy=True)
+    orig_u = np.array(D.u[idx_arr], copy=True)
+
+    def predict_delta():
+        deltas = []
+        with torch.no_grad():
+            for s in range(0, n, 64):
+                batch_idx = idx_arr[s:s + 64]
+                b = D.batch(batch_idx, device)
+                if getattr(D, 'drug_blind', False):
+                    assert_drug_constant(b)
+                out = model(b)
+                d = out['delta'] if isinstance(out, dict) else out
+                deltas.append(d.detach().cpu())
+        if deltas:
+            return torch.cat(deltas, dim=0)
+        return torch.empty((0,))
+
+    try:
+        pred1 = predict_delta()
+        if n > 1:
+            perm = (np.arange(n) + 1) % n
+            D.drug_row[idx_arr] = orig_drug_row[perm]
+            D.u[idx_arr] = orig_u[perm]
+        pred2 = predict_delta()
+    finally:
+        D.drug_row[idx_arr] = orig_drug_row
+        D.u[idx_arr] = orig_u
+        if was_training:
+            model.train()
+        else:
+            model.eval()
+
+    if len(pred1) == 0:
+        max_diff = 0.0
+    else:
+        max_diff = float((pred1 - pred2).abs().max().item())
+
+    if max_diff > 1e-5:
+        raise RuntimeError(f"Drug permutation check failed: max abs diff {max_diff:.2e} > 1e-5")
+    return max_diff
+
+
 def wsd_factor(s, steps):
     warm = max(1, int(0.03 * steps))
     if s < warm:
@@ -333,7 +430,7 @@ def wsd_factor(s, steps):
     return max(0.0, 1 - math.sqrt(max(0, s - 0.8 * steps) / max(1, 0.2 * steps)))
 
 
-def main():
+def build_parser():
     ap = argparse.ArgumentParser()
     ap.add_argument('--split', default='split_lung_1')
     ap.add_argument('--bundle', default=BUNDLE,
@@ -343,6 +440,9 @@ def main():
                          'architecture, parameter count and reliability channel are unchanged and only '
                          'the CELL-SPECIFIC chromatin information is removed. This is the '
                          'ablate-to-the-mean convention of this project, applied at training time.')
+    ap.add_argument('--drug_blind', action='store_true',
+                    help='RESULTS 98.2 B1: no input varies with the compound except dose and time; u = training-row mean; '
+                         'one atom token = the atom-weighted mean over unique training compounds')
     ap.add_argument('--chromatin_encoding', choices=['v9', 'clean', 'tie'], default='v9',
                     help='RESULTS 92 E1: clean = failed-ChIP H3K27me3 tracks missing + rank-normal per (cell, mark); '
                          'v9 (default) = per-(cell, mark) z-score as before')
@@ -389,6 +489,59 @@ def main():
                     help='C7u: Ungated union-graph edges')
     ap.add_argument('--no_test_metrics', action='store_true',
                     help='RESULTS 85.12: compute and print no model-based score on the evaluated rows (P7 blinding)')
+    return ap
+
+
+def get_candidate_flags_and_suffix(a, drug_blind_info=None):
+    # §85.7: output-name tags appended only when non-default
+    cand_suffix = ''
+    if a.chromatin_encoding != 'v9':
+        cand_suffix += '_chrom' + a.chromatin_encoding
+    if a.snapshot_cycles > 1:
+        cand_suffix += f'_snap{a.snapshot_cycles}'
+    if a.no_atoms:
+        cand_suffix += '_noatoms'
+    if getattr(a, 'drug_blind', False):
+        cand_suffix += '_drugblind'
+    if a.l_control != 2:
+        cand_suffix += '_lctl0'
+    if a.listnet_w > 0:
+        cand_suffix += '_listnet'
+    if a.deg_adapt_k > 0:
+        cand_suffix += '_degk50'
+    if a.sign_head_w > 0:
+        cand_suffix += '_signhead'
+    if a.post_pathway:
+        cand_suffix += '_postpath'
+    if a.chromatin_edges:
+        cand_suffix += '_chromedges'
+    if a.union_edges:
+        cand_suffix += '_unionedges'
+
+    candidate_flags = {
+        'snapshot_cycles': a.snapshot_cycles,
+        'no_atoms': a.no_atoms,
+        'drug_blind': bool(getattr(a, 'drug_blind', False)),
+        'l_control': a.l_control,
+        'listnet_w': a.listnet_w,
+        'deg_adapt_k': a.deg_adapt_k,
+        'sign_head_w': a.sign_head_w,
+        'post_pathway': a.post_pathway,
+        'chromatin_edges': a.chromatin_edges,
+        'union_edges': a.union_edges,
+    }
+    if getattr(a, 'drug_blind', False):
+        candidate_flags['drug_blind_info'] = drug_blind_info
+    if a.no_test_metrics:
+        candidate_flags['no_test_metrics'] = True
+    if a.chromatin_encoding != 'v9':                                  # default-path JSON unchanged
+        candidate_flags['chromatin_encoding'] = a.chromatin_encoding
+
+    return candidate_flags, cand_suffix
+
+
+def main():
+    ap = build_parser()
     a = ap.parse_args()
 
     roots = ['/kaggle/input', os.path.join(r'C:\Projects\LINCS'), os.path.join(r'C:\Projects\LINCS',
@@ -416,7 +569,7 @@ def main():
     if dev == 'cuda' and any('P100' in torch.cuda.get_device_name(i)
                              for i in range(torch.cuda.device_count())):
         raise SystemExit('FATAL: P100 assigned; Kaggle torch has no sm_60 kernels.')
-    D = XPertData(npz, roots, a.split, ablate_epi=a.ablate_epi, dev_args=a, chromatin_encoding=a.chromatin_encoding)
+    D = XPertData(npz, roots, a.split, ablate_epi=a.ablate_epi, dev_args=a, chromatin_encoding=a.chromatin_encoding, drug_blind=a.drug_blind)
     if a.limit_train:
         D.tr = D.tr[:a.limit_train]
         D.te = D.te[:min(len(D.te), 400)]
@@ -498,6 +651,8 @@ def main():
                         eval_ri = set(D.row_index[idx].tolist())
                         assert not eval_ri.intersection(D.original_test_row_indices)
                     b = D.batch(idx, dev)
+                    if a.drug_blind:
+                        assert_drug_constant(b)
                     o = model(b)
                     P.append(o['abs'].float().cpu().numpy())
                     T.append(o['delta'].float().cpu().numpy())
@@ -513,6 +668,8 @@ def main():
             for it in range(len(order) // a.batch):
                 idx = order[it * a.batch:(it + 1) * a.batch]
                 b = D.batch(idx, dev)
+                if a.drug_blind:
+                    assert_drug_constant(b)
                 opt.zero_grad(set_to_none=True)
                 with torch.amp.autocast('cuda', enabled=dev == 'cuda'):
                     out, aux = model(b, return_aux=True)
@@ -535,6 +692,9 @@ def main():
                 model.train()
                 
         pa, pd = np.mean(snapshots_pa, axis=0), np.mean(snapshots_pd, axis=0)
+        if a.drug_blind:
+            chk_diff = drug_permutation_check(model, D, D.te[:512], dev)
+            print(f'DRUGBLIND PERMUTATION CHECK seed {seed} max_abs_diff {chk_diff:.2e} OK', flush=True)
         rec = {'seed': seed}
         if not a.no_test_metrics:           # RESULTS 85.12 blinding: no model-based score on the evaluated rows
             rec.update({
@@ -550,7 +710,7 @@ def main():
             if getattr(a, 'dev_cells', 0) > 0:
                 ckpt_name = ckpt_name.replace('.pt', f'_dev{a.dev_cells}s{a.dev_seed}.pt')
             torch.save({'model': core.state_dict(), 'cfg': vars(cfg), 'split': a.split, 'seed': seed,
-                        'ablate_epi': bool(a.ablate_epi), 'epochs': a.epochs},
+                        'ablate_epi': bool(a.ablate_epi), 'drug_blind': bool(a.drug_blind), 'epochs': a.epochs},
                        ckpt_name.replace('.pt', '_seed%d.pt' % seed))
         if a.save_pred:
             pred_name = a.save_pred
@@ -611,46 +771,9 @@ def main():
     if getattr(a, 'dev_cells', 0) > 0:
         dev_suffix = f'_dev{a.dev_cells}s{a.dev_seed}'
     
-    # §85.7: output-name tags appended only when non-default
-    cand_suffix = ''
-    if a.chromatin_encoding != 'v9':
-        cand_suffix += '_chrom' + a.chromatin_encoding
-    if a.snapshot_cycles > 1:
-        cand_suffix += f'_snap{a.snapshot_cycles}'
-    if a.no_atoms:
-        cand_suffix += '_noatoms'
-    if a.l_control != 2:
-        cand_suffix += '_lctl0'
-    if a.listnet_w > 0:
-        cand_suffix += '_listnet'
-    if a.deg_adapt_k > 0:
-        cand_suffix += '_degk50'
-    if a.sign_head_w > 0:
-        cand_suffix += '_signhead'
-    if a.post_pathway:
-        cand_suffix += '_postpath'
-    if a.chromatin_edges:
-        cand_suffix += '_chromedges'
-    if a.union_edges:
-        cand_suffix += '_unionedges'
+    candidate_flags, cand_suffix = get_candidate_flags_and_suffix(a, getattr(D, 'drug_blind_info', None) if a.drug_blind else None)
 
     out = os.path.join(WORK, f'v9_xpert_arm_{tag}{dev_suffix}{cand_suffix}.json')
-    
-    candidate_flags = {
-        'snapshot_cycles': a.snapshot_cycles,
-        'no_atoms': a.no_atoms,
-        'l_control': a.l_control,
-        'listnet_w': a.listnet_w,
-        'deg_adapt_k': a.deg_adapt_k,
-        'sign_head_w': a.sign_head_w,
-        'post_pathway': a.post_pathway,
-        'chromatin_edges': a.chromatin_edges,
-        'union_edges': a.union_edges,
-    }
-    if a.no_test_metrics:
-        candidate_flags['no_test_metrics'] = True
-    if a.chromatin_encoding != 'v9':                                  # default-path JSON unchanged
-        candidate_flags['chromatin_encoding'] = a.chromatin_encoding
 
     json_data = {'split': a.split, 'bundle': os.path.basename(npz), 'runs': runs, 'nulls': nulls,
                'platform': platform,
@@ -659,8 +782,8 @@ def main():
     if not a.no_test_metrics:                                         # key order as before the flag existed
         json_data['metric'] = 'mean of per-row Pearson (XPert metrics.py convention)'
     json_data.update({'known_cell_frac': round(D.known_cell_frac, 4),
-                      'n_train': int(len(D.tr)), 'n_test': int(len(D.te)),
-                      'candidate_flags': candidate_flags})
+                       'n_train': int(len(D.tr)), 'n_test': int(len(D.te)),
+                       'candidate_flags': candidate_flags})
     if getattr(a, 'dev_cells', 0) > 0:
         json_data['mode'] = 'dev'
         json_data['dev'] = D.dev_info
