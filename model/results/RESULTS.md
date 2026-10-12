@@ -9610,6 +9610,33 @@ then no P10 registration, B1 code or scorer change was made except review fixes.
 - **The pattern** is M's, stratum for stratum (98.11): parity overall, M+dt ahead where controls recur, v9 ahead on new
   controls.
 
+### 98.14 D (PertDiT) at its registered gate: **not run (adapter)** (PI, 2026-10-12; from Bai et al.'s code at `1d750cd`)
+- **The gate** (98.2, 98.6 C6): run only if Bai et al.'s harness runs PertDiT on the mdmt bundle **with a data adapter alone**
+  (no model change), the drug-embedding precompute counting inside that, and a one-epoch timing projects ≤ 6 GPU-h.
+- **It fails on two counts, read from their code** (vendored for the record under `external/bai_benchmark_1d750cd/`):
+  1. **The target space.**
+     - Their `train_pertdit.py` (lines 144–159) transforms both `X` and `X_ctl` with `clip(0, 1e3)` → `normalize_total` →
+       `log1p`: count-data preprocessing, applied to L1000 log-expression values.
+     - It trains and samples there, and its saved `test_predictions` (lines 437–444) are Δ **in that space**. Nothing inverts
+       the transform.
+     - **Why that blocks the comparison:** the registered estimand is the per-row Pearson of the raw Δ = X − X_ctl. Mapping
+       PertDiT's output back needs each row's raw total, which `normalize_total` divides out, and that total comes from the test
+       row's own truth.
+     - So scoring PertDiT on our estimand needs an inverse that is not in their code and would need a test-truth input. That
+       is not "a data adapter alone".
+  2. **The embedding precompute.**
+     - Their `prepare_pertdit_embeddings.py` runs SMILES → MolT5-large caption (beam 5) → BioLinkBERT-large. That needs
+       ≈ 4 GB of HuggingFace weights in the kernel.
+     - It embeds a **single** dose prompt (*"The dosage is 10.0 micromoles."*), whereas this bundle is multi-dose.
+     - Per-dose prompts for the mdmt doses are not in their pipeline. The original-dataset route uses upstream-shipped
+       embeddings for the original PertDiT data, not ours.
+- **Recorded, as 98.2 requires,** as *"D: not run (adapter)"*. No GPU was spent; the gate was read from code only.
+- **A note on their benchmark** (a reading of their code, reported, not tested): in Bai et al.'s unified outputs, PertDiT's
+  PCC_DEG is computed on Δ in the transformed space, while the other models' is on raw Δ. Their cross-model PertDiT comparison
+  is therefore on a different target.
+- **The SOTA head-to-head of record stays O9** (XPert as published, §97). XPert is also the strongest of the seven models in Bai
+  et al.'s benchmark (§50, §98.1).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
