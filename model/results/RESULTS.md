@@ -9593,6 +9593,23 @@ then no P10 registration, B1 code or scorer change was made except review fixes.
       it uses compound identity but doesn't generalise it.
     - **The caveat:** composition, i.e. which compounds happen to be duplicates.
 
+### 98.13 REPORTED (never read): M+dt, the drug-free MLP with dose and time (98.6 C5) (2026-10-12)
+- **The runs:** `lincs-p10-mdt-s{0,1,2}` v2 (s0 v2 pushed 06:45 once a CPU slot freed). GUARD 2 / 3 pass in every log.
+  - **Early stops:** epochs 321 / 294 / 283 (best 271 / 244 / 233); best validation PCC_DEG 0.6427 / 0.6421 / 0.6428.
+  - **Download:** C2 manifest, then `--dry_check` passed. Scored once (`p10_accuracy_mlp_mdt.json`, labelled reported).
+
+| block | v9 − M+dt per molecule | molecules favouring v9 | `verdict()` |
+|---|---|---|---|
+| clean | −0.0050 [−0.0096, +0.0001] | 92 / 346 | NO CLAIM |
+| full | +0.0032 [−0.0027, +0.0097] | 115 / 384 | NO CLAIM |
+| distinct-control stratum | **+0.0423** [0.031, 0.054] | 206 / 267 | v9 better |
+| control-noise-free target | −0.0054 [−0.0079, −0.0027] | 86 / 346 | M+dt better |
+| cell-centred | −0.0019 [−0.0067, +0.0032] | 109 / 346 | NO CLAIM |
+
+- **Row-pooled:** v9 0.642, M+dt **0.638**, against M's 0.635. Dose and time add about +0.002 to the drug-free model.
+- **The pattern** is M's, stratum for stratum (98.11): parity overall, M+dt ahead where controls recur, v9 ahead on new
+  controls.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
