@@ -9487,6 +9487,24 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
   - nothing is left in `model/results`.
 - **Cost and timing:** ≈ 6 GPU-h, as P9. Pushed at the Sat 17 Oct reset after O9's session 3, if review allows.
 
+### 98.10 Review 076 (SOUND; B1 cleared for the reset) adopted, and the freeze, recorded before R1 is computed (PI, 2026-10-12)
+- **C1, adopted:** `score_p10`'s `v9_drugblind` loader now refuses unless `P10B1_COMPLETE.json` records `--drug_blind` in its
+  argv and `DRUG-BLIND` and `V2` in its stack. It runs `score_p7.check_snapshot_identities` on B1's seeds (`_last` = `_snap2`,
+  main = the mean of the snapshots).
+  - The B1 test fixtures are now shaped as the kernel writes them. 4 isolated tests were added; 62 + 35 scorer tests pass.
+- **C2, adopted (wording):**
+  - **The guard** is `assert_drug_constant` on every batch, together with the fact that `model_v9.forward` reads the compound
+    only through `u_feats`, `atoms` and `atom_mask`.
+  - **The permutation check confirms it:** it holds by construction, because `batch()` ignores `drug_row` when blind and `u`
+    is constant, and it permutes only `drug_row` and `u`.
+  - This replaces 98.9's framing of the check as a separate guard.
+- **The freeze** (review 076, on 98.8's disclosure):
+  - after the PI saw the drug-free MLP's validation PCC_DEG (0.640 / 0.642), **no P10 registration, B1 code or scorer change is
+    made except review fixes**;
+  - C1 above is such a fix;
+  - this freeze is repeated beside R1.
+- **The order at the reset (agreed):** O9 session 3, then B1, then D's timing.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

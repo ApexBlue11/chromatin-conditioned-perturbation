@@ -399,6 +399,11 @@ def load_ref(ref_name, ref_dir, p9_data, bundle_data=None):
         seed_files = sorted(n for n in manifest.get('files', {}) if re.fullmatch(r'v9p10b1_seed\d\.npz', n))
         if len(seed_files) != 3:
             raise SystemExit(f'FATAL: expected 3 seed files, manifest has {seed_files!r}')
+        # review 076 C1: the manifest must record a DRUG-BLIND run of P9's V2 stack, and the V2 snapshot identities must hold
+        stack = manifest.get('stack', '')
+        if '--drug_blind' not in manifest.get('argv', []) or 'DRUG-BLIND' not in stack or 'V2' not in stack:
+            raise SystemExit(f'FATAL: P10B1_COMPLETE.json does not record a drug-blind V2 run (argv / stack {stack!r}; review 076 C1)')
+        check_snapshot_identities(ref_dir, seed_files)
 
         seeds_data = []
         for s_name in seed_files:

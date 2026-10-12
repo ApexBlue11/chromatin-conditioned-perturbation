@@ -17,6 +17,27 @@ def file_sha1(path):
     return hashlib.sha1(open(path, 'rb').read()).hexdigest()
 
 
+def write_b1_dir(d, fix, ctl_shift=0.0, y_shift=0.0, argv=None, stack='P2 + C6 + V2 (P9) + DRUG-BLIND', break_snap=False):
+    """A B1 output dir as the kernel writes it (review 076 C1): seeds with V2 snapshots and _last, and a manifest with argv/stack."""
+    os.makedirs(str(d), exist_ok=True)
+    files = {}
+    for s in range(3):
+        yp = np.asarray(fix['y_test'], dtype=np.float64)
+        base = dict(row_index=fix['test_row_index'], y_true=fix['y_test'] + y_shift, ctl_true=fix['ctl_test'] + ctl_shift)
+        stem = os.path.join(str(d), f'v9p10b1_seed{s}')
+        np.savez(stem + '.npz', y_pred=yp, deg_pred=yp - fix['ctl_test'], **base)
+        for k in range(3):
+            off = (0.5 if (break_snap and s == 1 and k == 0) else 0.0)
+            np.savez(stem + f'_snap{k}.npz', y_pred=yp + off, deg_pred=yp - fix['ctl_test'] + off, **base)
+        np.savez(stem + '_last.npz', y_pred=yp, deg_pred=yp - fix['ctl_test'], **base)
+        for n in (f'v9p10b1_seed{s}.npz', f'v9p10b1_seed{s}_last.npz') + tuple(f'v9p10b1_seed{s}_snap{k}.npz' for k in range(3)):
+            files[n] = file_sha1(os.path.join(str(d), n))
+    argv = ['--no_test_metrics', '--drug_blind'] if argv is None else argv
+    with open(os.path.join(str(d), 'P10B1_COMPLETE.json'), 'w', encoding='utf-8') as f:
+        json.dump({'complete': True, 'n_seeds': 3, 'files': files, 'argv': argv, 'stack': stack}, f)
+    return d
+
+
 def write_m_provenance(ref_dir, arm, n_test, record_overrides=None):
     """What the PI writes at download (review 075 C2): each kernel's record (as the kernel writes it) and the manifest."""
     pins = dict(score_p10.PIN_SHA1, **({'dt_script': score_p10.PIN_DT_SHA1} if arm == 'mdt' else {}))
@@ -758,51 +779,32 @@ def test_mlp_mdt_scoring_and_guards(tmp_path, monkeypatch):
 
 
 def test_v9_drugblind_scoring_and_guards(tmp_path, monkeypatch):
-    """v9_drugblind: manifest checked, 1e-4 tolerance on y_true/ctl_true, R2 label."""
+    """v9_drugblind: manifest checked, 1e-4 tolerance on y_true/ctl_true, R2 label (fixture shaped as the B1 kernel writes it)."""
     fix = make_p10_fixture(tmp_path)
     patch_constants(monkeypatch, fix, tmp_path)
-
-    ref_dir_b1 = tmp_path / 'ref_dir_b1'
-    ref_dir_b1.mkdir(parents=True, exist_ok=True)
-
-    manifest_files = {}
-    for s in range(3):
-        fname = f'v9p10b1_seed{s}.npz'
-        fpath = ref_dir_b1 / fname
-        np.savez(
-            fpath,
-            row_index=fix['test_row_index'],
-            y_pred=fix['y_test'],
-            y_true=fix['y_test'],
-            ctl_true=fix['ctl_test'],
-        )
-        manifest_files[fname] = file_sha1(fpath)
-
-    mf_path = ref_dir_b1 / 'P10B1_COMPLETE.json'
-    with open(mf_path, 'w', encoding='utf-8') as f:
-        json.dump({'complete': True, 'n_seeds': 3, 'files': manifest_files}, f, indent=2)
-
-    out = score_p10.score_p10(p9_dir=str(fix['p9_dir']), ref='v9_drugblind', ref_dir=str(ref_dir_b1))
+    d = write_b1_dir(tmp_path / 'ref_dir_b1', fix)
+    out = score_p10.score_p10(p9_dir=str(fix['p9_dir']), ref='v9_drugblind', ref_dir=str(d))
     assert out['of_record']['LABEL'] == 'R2: carries the compound-use inference (98.6 C1)'
-
-    # y_true mismatch > 1e-4 in all seeds fails
-    for s in range(3):
-        fname = f'v9p10b1_seed{s}.npz'
-        fpath = ref_dir_b1 / fname
-        np.savez(
-            fpath,
-            row_index=fix['test_row_index'],
-            y_pred=fix['y_test'],
-            y_true=fix['y_test'] + 0.01,
-            ctl_true=fix['ctl_test'],
-        )
-        manifest_files[fname] = file_sha1(fpath)
-    with open(mf_path, 'w', encoding='utf-8') as f:
-        json.dump({'complete': True, 'n_seeds': 3, 'files': manifest_files}, f, indent=2)
-
     p9_data = score_p10.load_p9_and_metadata(fix['p9_dir'])
+    bad = write_b1_dir(tmp_path / 'ref_dir_b1_y', fix, y_shift=0.01)
     with pytest.raises(SystemExit, match='differs from P9'):
-        score_p10.load_ref('v9_drugblind', str(ref_dir_b1), p9_data)
+        score_p10.load_ref('v9_drugblind', str(bad), p9_data)
+
+
+@pytest.mark.parametrize('kw, msg', [
+    ({'argv': ['--no_test_metrics']}, 'drug-blind V2 run'),                               # no --drug_blind in argv
+    ({'stack': 'P2 + C6 + V2 (P9)'}, 'drug-blind V2 run'),                               # stack lacks DRUG-BLIND
+    ({'stack': 'P2 + C6 + DRUG-BLIND'}, 'drug-blind V2 run'),                            # stack lacks V2
+    ({'break_snap': True}, 'not the mean of its snapshots'),                             # a V2 identity broken
+])
+def test_076_c1_b1_manifest_and_snapshot_guards_isolated(tmp_path, monkeypatch, kw, msg):
+    """Review 076 C1: each B1 provenance condition alone."""
+    fix = make_p10_fixture(tmp_path)
+    patch_constants(monkeypatch, fix, tmp_path)
+    p9_data = score_p10.load_p9_and_metadata(fix['p9_dir'])
+    score_p10.load_ref('v9_drugblind', str(write_b1_dir(tmp_path / 'good', fix)), p9_data)    # the clean world loads
+    with pytest.raises(SystemExit, match=msg):
+        score_p10.load_ref('v9_drugblind', str(write_b1_dir(tmp_path / 'bad', fix, **kw)), p9_data)
 
 
 def test_f0_end_to_end_scoring(tmp_path, monkeypatch):
@@ -845,17 +847,7 @@ def test_cli_dry_check_and_read(tmp_path, monkeypatch, capsys):
 # already NaN, and a verdict string cannot be both UNINFORMATIVE and a pass). Each test isolates ONE decision.
 # =========================================================================
 def _b1_dir(tmp_path, fix, ctl_shift=0.0):
-    d = tmp_path / 'b1_iso'
-    d.mkdir(parents=True, exist_ok=True)
-    files = {}
-    for s in range(3):
-        fp = d / f'v9p10b1_seed{s}.npz'
-        np.savez(fp, row_index=fix['test_row_index'], y_pred=fix['y_test'], y_true=fix['y_test'],
-                 ctl_true=fix['ctl_test'] + ctl_shift)
-        files[fp.name] = file_sha1(fp)
-    with open(d / 'P10B1_COMPLETE.json', 'w', encoding='utf-8') as f:
-        json.dump({'complete': True, 'n_seeds': 3, 'files': files}, f)
-    return d
+    return write_b1_dir(tmp_path / ('b1_iso_%s' % ctl_shift), fix, ctl_shift=ctl_shift)
 
 
 def test_pi_b1_ctl_check_isolated(tmp_path, monkeypatch):
