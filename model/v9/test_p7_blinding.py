@@ -175,9 +175,13 @@ if __name__ == '__main__':
     print("All tests passed.")
 
 
-def test_pi_rows_test_refuses_unpinned():
-    """PI (review 035 C2): --rows test refuses while P7_SHA1 is unpinned, on any checkpoint (checked before any data loads)."""
+def test_pi_rows_test_refuses_non_p7_checkpoints():
+    """PI (review 035 C2), updated after P7_SHA1 was pinned (2026-10-03, from P7_COMPLETE.json): --rows test runs ONLY on the
+    three pinned P7 checkpoints. Any other checkpoint is refused before any data loads (the test-row read never starts)."""
+    import align_dev
+    assert len(align_dev.P7_SHA1) == 3 and all(isinstance(h, str) and len(h) == 40 for h in align_dev.P7_SHA1)
     ck = os.path.join(HERE, '..', '..', 'external', 'kaggle_out', 'v9dev_base2', 'v9dev_base_dev6s0_seed0.pt')
     r = subprocess.run([sys.executable, os.path.join(HERE, 'align_dev.py'), '--rows', 'test', '--readout', 'aux',
                         '--no_nulls', '--ckpts', ck, '--label', 'x'], capture_output=True, text=True)
-    assert r.returncode != 0 and 'P7_SHA1' in r.stderr, r.stderr[-300:]
+    assert r.returncode != 0 and 'runs only on the three pinned P7 checkpoints' in r.stderr, r.stderr[-300:]
+    assert 'dropped' not in r.stdout and 'rows' not in r.stdout.lower(), r.stdout[-300:]     # refused before XPertData loads
