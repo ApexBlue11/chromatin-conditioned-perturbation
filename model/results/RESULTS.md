@@ -9505,6 +9505,65 @@ Review 067 found §97 a faithful transposition of O2 (SOUND-WITH-CAVEATS, 5 MINO
   - this freeze is repeated beside R1.
 - **The order at the reset (agreed):** O9 session 3, then B1, then D's timing.
 
+### 98.11 RESULT, R1: **v9 does not beat a drug-free model on unseen compounds** (benchmark statement only; R2 pending) (2026-10-12)
+**The freeze, repeated (98.10):** the PI saw the drug-free MLP's validation PCC_DEG (0.640 / 0.642) before this reading. Since
+then no P10 registration, B1 code or scorer change was made except review fixes. Every decision below is mechanical
+(`score_p10.py` `d9843dcc`, committed in 23d1f75 before this run).
+
+**The runs:**
+- `lincs-p10-m-s{0,1,2}` v2 (seeds 131419–131421), free Kaggle CPU, 2.7–4.0 h.
+- Each log passed GUARD 2 (the five pinned sha1s) and GUARD 3 (the trainer saw 49,846 / 5,539 / 13,445, no fallback).
+- **Early stops:** epochs 291 / 298 / 259 (best 241 / 248 / 209); best validation PCC_DEG 0.6397 / 0.6394 / 0.6399.
+- **Download:** logs first, then only each npz and record into `external/kaggle_out/p10_m`, plus `P10_M_COMPLETE.json` (C2).
+- **`--dry_check` passed:** manifest, records' pins, arm, seed and n_test, plus P9's own guards.
+
+**R1, of record** (clean subset: 11,983 rows, 346 molecules; `model/results/p10_accuracy_mlp_m.json`):
+
+| | value |
+|---|---|
+| per-molecule mean of median(r_v9 − r_M) | **−0.0038** [−0.0086, +0.0016] (CI width 0.010) |
+| molecules favouring v9 / M | **96 / 250** (27.7 % favour v9; sign p ≈ 0, toward M) |
+| verdict (`score_p9.verdict`) | NO COMPOUND-LEVEL CLAIM; the reader's case **mean ≤ 0** |
+| each seed of v9 | −0.0040 / −0.0038 / −0.0034, NO CLAIM in each |
+| row-pooled PCC_DEG (the field's convention) | v9 **0.642**, M **0.635** (paired +0.006) |
+| full split, 384 molecules (as defined) | +0.0045 [−0.0016, +0.0112], NO CLAIM |
+
+- **The reader** (`--read`): *"v9 does not beat a drug-free model on unseen compounds (benchmark statement only)"*. R2 is
+  pending (B1), so `restate_p9_headline` is null.
+- **The verdict is not "M beats v9":**
+  - by molecules M is ahead (250 of 346), but the cluster CI includes 0;
+  - the sign of the row-pooled mean is v9's, because the two summaries weight differently;
+  - neither summary licenses a winner.
+- **Calibration against Bai et al. (reported only):** their published MLP scores 0.637 on their single-dose data; ours scores
+  0.635 on this fold's mdmt data.
+
+**Reported beside it, never read (98.6 C2; review 071):**
+
+| block | v9 − M per molecule | molecules favouring v9 | `verdict()` |
+|---|---|---|---|
+| F0, zero-parameter drug-free floor (`p10_accuracy_f0.json`) | v9 − F0 +0.241 [0.231, 0.250] | 344 / 346 | v9 better than F0 |
+| — F0's row-pooled score | **0.391** (the critic's 0.391, reproduced) | | |
+| **distinct-control stratum** (2,091 clean rows, 267 molecules) | **+0.044** [0.033, 0.056] | **208 / 267 (78 %)** | v9 better than M |
+| control-noise-free target | −0.0049 [−0.0075, −0.0022] | 97 / 346 | M better than v9 |
+| cell-centred | −0.0004 [−0.0055, +0.0049] | 132 / 346 | NO CLAIM |
+
+- **The pattern, worded as a description of reported blocks, not a finding:**
+  - M's parity with v9 sits on the rows whose exact `X_ctl` also occurs in training (82 % of scored rows);
+  - on the rows whose control is new, v9 is ahead by +0.044, in 78 % of molecules.
+- **A post hoc reading of that pattern:** M has learned the training responses attached to each shared control profile
+  (plate-level controls recur across perturbations), a route that needs no compound.
+  - **Untested.** The stratum was registered as reported, its split by control is not randomised, and a confirmatory test needs
+    its own registration on data not yet seen (e.g. another cold-drug fold, with the distinct-control rows as the primary unit).
+- **On the noise-free target M is ahead.** That target removes the input control's noise from Δ but keeps the shared plate
+  component. So it does not separate the two explanations.
+
+**What R1 does and does not change:**
+- **It does:** P9's headline (v9 beats ridge on unseen compounds by +0.119) stands as measured, but **it is not a margin over the
+  strongest simple baseline.** A drug-free MLP given only the control profile matches v9 per molecule. Manuscript §5.5 says so.
+- **It does not** say whether v9 uses the compound: that is R2 (B1, after the Sat 17 Oct reset), per 98.6 C1.
+- **And it does not** touch the cold-cell result (§45 / §85; Bai et al.'s benchmark is drug-blind only), or the O9 XPert
+  head-to-head (running).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
