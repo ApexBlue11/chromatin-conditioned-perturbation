@@ -9836,6 +9836,42 @@ ruling 5).
       (ruling 5).
     - **The wheels** are the private dataset `apexblue/p10d-wheels` (sha1s in its `SHA1SUMS.txt`).
 
+### 98.17 D's embedding precompute: code (W39 + PI) and real inputs, before any caption kernel runs (PI, 2026-10-12)
+**The code** (packet 080 to the critic):
+- **`model/v9/p10_pertdit_emb.py`:**
+  - `compound_map` and `dose_values` read only `meta_pert_idx` / `meta_dose`, never `X`;
+  - `build_inputs` writes the tables, the 5 slices (round-robin by descending SMILES length, 394 each), the NaN placeholder, the
+    dose list, the compound map and the manifest;
+  - `make_emb_script` makes 98.16 C1's two substitutions plus a header, on the pinned source;
+  - `merge_caches` and `check_outputs`.
+- **`orchestration/make_p10_d_emb_kernels.py`:** 5 caption kernels `lincs-p10d-cap-s{0..4}` and the merge kernel
+  `lincs-p10d-emb-merge`. All are free CPU, internet-on, on the pinned image.
+- **`model/v9/test_p10_pertdit_emb.py`:** 25 tests, including executing their generated script with a stub `transformers`, and
+  executing a caption kernel and the merge kernel with `/kaggle` redirected.
+
+**The PI's changes to W39's code** (disclosed):
+- **`build_inputs` refuses in-memory inputs.** W39's dict path skipped guard (g1); W36 had the same bypass.
+- **`make_emb_script` checks its source's sha1.** W39's header asserted it without checking.
+- **The builder had no module-level `fatal()`,** so any builder failure was a `NameError`. It also fell back silently to
+  `model/v9/`. Now every pinned file must sit in the folder that becomes the dataset.
+- **The merge record** keeps each slice cache's sha1.
+
+**Mutation check:**
+- **The first run:** 11 of 31 mutants survived W39's suite. Every kernel guard had been exercised only on its happy path.
+- **The fix:** 4 PI tests, one world per guard, each failing only that guard.
+- **After:** 1 of 31 survives, and it is equivalent: `check_outputs`' extra-dose-key loop can't be reached once the count and
+  missing-key checks pass.
+
+**The real inputs** (`model/results/p10/p10d_inputs/`, `-text`; uploaded as the private dataset `apexblue/p10d-emb-inputs`):
+- 1,970 compounds from the bundle (sha1 `1444b253…`, read for `meta_pert_idx` / `meta_dose` only), all in XPert's table
+  (`682fd4af…`), one-to-one onto SMILES;
+- the compact compound map `918e08f6…`;
+- the dose list `7941bcd3…`: 0.1, 0.37, 0.62, 0.77, 1.11, 2.31, 3.33, 5.0, 10.0, 40.0;
+- the slices: 394 × 5;
+- the generated script `dd41c66a…` (14 lines added, 13 removed, against their `2bea3057…`).
+
+**Not yet run:** the caption kernels wait for review 080. They need no GPU.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

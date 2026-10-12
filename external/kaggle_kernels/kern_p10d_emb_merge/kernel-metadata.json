@@ -1,0 +1,25 @@
+{
+ "id": "apexblue/lincs-p10d-emb-merge",
+ "title": "lincs-p10d-emb-merge",
+ "code_file": "lincs-p10d-emb-merge.py",
+ "language": "python",
+ "kernel_type": "script",
+ "is_private": true,
+ "enable_gpu": false,
+ "enable_tpu": false,
+ "enable_internet": true,
+ "keywords": [],
+ "dataset_sources": [
+  "apexblue/p10d-emb-inputs"
+ ],
+ "kernel_sources": [
+  "apexblue/lincs-p10d-cap-s0",
+  "apexblue/lincs-p10d-cap-s1",
+  "apexblue/lincs-p10d-cap-s2",
+  "apexblue/lincs-p10d-cap-s3",
+  "apexblue/lincs-p10d-cap-s4"
+ ],
+ "competition_sources": [],
+ "model_sources": [],
+ "docker_image": "gcr.io/kaggle-private-byod/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461"
+}

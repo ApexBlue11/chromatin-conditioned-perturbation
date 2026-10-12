@@ -1,0 +1,36 @@
+{
+  "n_compounds": 1970,
+  "slice_sizes": [
+    394,
+    394,
+    394,
+    394,
+    394
+  ],
+  "source_sha1s": {
+    "idx2smi": "682fd4afbe5f0f5f4eb7af3437c056797f28f544",
+    "bundle": "1444b253d48c5adf066bf7a3cc0ba8ea5fb71464"
+  },
+  "file_sha1s": {
+    "idx2smi_all.npy": "86532513d3e52031bd79a2f8f08a06d3456e1be8",
+    "idx2smi_slice0.npy": "5b3f20c1c3a1022356ade613f67a5118e2a926dc",
+    "idx2smi_slice1.npy": "185caaa0e933981a1d3340ba5c744c389061525a",
+    "idx2smi_slice2.npy": "a0fdd1f48be3baba0150844e92980ad1feca3fbf",
+    "idx2smi_slice3.npy": "3492ed9e7555cb655787288bc608bb06588ab6f6",
+    "idx2smi_slice4.npy": "f4a842fb543d18b2969e4e0639d7f089de84cfd5",
+    "pert_smiles_emb_placeholder.pkl": "f412d992ff92e03e18e53f43231497e8c71fdfa6",
+    "dose_list.json": "7941bcd3155ae73fbdcca2f11ce6af647300d2ce",
+    "compound_map.json": "918e08f61352e8f122c3451d71a800e616de4f7c"
+  },
+  "sha1s": {
+    "idx2smi_all.npy": "86532513d3e52031bd79a2f8f08a06d3456e1be8",
+    "idx2smi_slice0.npy": "5b3f20c1c3a1022356ade613f67a5118e2a926dc",
+    "idx2smi_slice1.npy": "185caaa0e933981a1d3340ba5c744c389061525a",
+    "idx2smi_slice2.npy": "a0fdd1f48be3baba0150844e92980ad1feca3fbf",
+    "idx2smi_slice3.npy": "3492ed9e7555cb655787288bc608bb06588ab6f6",
+    "idx2smi_slice4.npy": "f4a842fb543d18b2969e4e0639d7f089de84cfd5",
+    "pert_smiles_emb_placeholder.pkl": "f412d992ff92e03e18e53f43231497e8c71fdfa6",
+    "dose_list.json": "7941bcd3155ae73fbdcca2f11ce6af647300d2ce",
+    "compound_map.json": "918e08f61352e8f122c3451d71a800e616de4f7c"
+  }
+}
