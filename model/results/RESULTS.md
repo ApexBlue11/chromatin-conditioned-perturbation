@@ -9606,11 +9606,19 @@ then no P10 registration, B1 code or scorer change was made except review fixes.
 | control-noise-free target | −0.0054 [−0.0079, −0.0027] | 86 / 346 | M+dt better |
 | cell-centred | −0.0019 [−0.0067, +0.0032] | 109 / 346 | NO CLAIM |
 
-- **Row-pooled:** v9 0.642, M+dt **0.638**, against M's 0.635. Dose and time add about +0.002 to the drug-free model.
+- **Row-pooled:** v9 0.642, M+dt **0.638**, against M's 0.635.
+- **What dose and time add to the drug-free model** (review 078 C4; the critic's per-molecule figure):
+  - +0.002 row-pooled;
+  - **+0.0003** [−0.0001, +0.0007] per molecule, the reading unit (197 / 346 molecules).
+  - Almost nothing per molecule, which matters for R2: B1 keeps dose and time.
 - **The pattern** is M's, stratum for stratum (98.11): parity overall, M+dt ahead where controls recur, v9 ahead on new
   controls.
 
-### 98.14 D (PertDiT) at its registered gate: **not run (adapter)** (PI, 2026-10-12; from Bai et al.'s code at `1d750cd`)
+### 98.14 ~~D (PertDiT) at its registered gate: not run (adapter)~~ **WITHDRAWN by 98.15** (PI, 2026-10-12; from Bai et al.'s code at `1d750cd`)
+- **Withdrawn (review 078 C1–C2):**
+  - count 1's premise is false: an inverse from inputs alone recovers raw Δ at r = 0.9998;
+  - count 2 misreads their pipeline: weights are a data step, and `--dose_col` is native.
+  - The text below is kept as written, for the record.
 - **The gate** (98.2, 98.6 C6): run only if Bai et al.'s harness runs PertDiT on the mdmt bundle **with a data adapter alone**
   (no model change), the drug-embedding precompute counting inside that, and a one-epoch timing projects ≤ 6 GPU-h.
 - **It fails on two counts, read from their code** (vendored for the record under `external/bai_benchmark_1d750cd/`):
@@ -9636,6 +9644,113 @@ then no P10 registration, B1 code or scorer change was made except review fixes.
   is therefore on a different target.
 - **The SOTA head-to-head of record stays O9** (XPert as published, §97). XPert is also the strongest of the seven models in Bai
   et al.'s benchmark (§50, §98.1).
+
+### 98.15 Review 078 adopted: 98.14's grounds withdrawn; D re-ruled at its gate, before any D code or GPU (PI, 2026-10-12)
+**What 98.14 got wrong** (review 078 C1–C2; every number below re-run by the PI, matching the critic's):
+- **Count 1's premise is false: an inverse needs no test truth.**
+  - **Why:** row totals barely move under treatment. On the test rows, S / S_ctl has mean 0.99916 and sd 0.0069 (1st–99th
+    percentile 0.977–1.015).
+  - **The inverse:** X̂ = expm1(`test_predictions` + `test_ctrl`) · S_ctl / T_train, then Δ̂ = X̂ − X_ctl. Here S_ctl is the
+    row's own control total, an input, and T_train is the median training-row total.
+  - **How good it is:** applied to a *perfect* transformed-space prediction, its per-row Pearson with raw Δ has mean
+    **0.99979** (median 0.99992, 1st percentile 0.9984, minimum 0.9857). The transform costs at most ≈ 0.0002.
+- **Count 2 misreads their pipeline.**
+  - Fetching or uploading weights is a pure data step, which is C6's own test.
+  - Per-dose embeddings are native to their trainer: `--dose_col` and the dose-keyed dict in their `bench_dataset.py`
+    ("per-sample dose support").
+- **The PI's error:** both counts were read from code without testing the premise on the bundle.
+- **The disclosure:** these rulings come after R1 and M+dt were read. No D output exists. Each ruling follows 98.2's text where it
+  speaks, and M's precedent where it doesn't.
+
+**The rulings:**
+1. **The output inverse is inside "a data adapter alone".**
+   - **Why:** 98.2's operative test is "(no model change)". The inverse changes nothing PertDiT trains on or computes, and it
+     uses inputs only. M's adapter also had an output step (`convert_outputs`).
+   - **Reported beside D, never read:**
+     - the oracle bound above;
+     - PertDiT's score on its own target (its saved transformed-space truth against its saved prediction), as Bai et al. score
+       it.
+   - **A disclosure about their preprocessing:**
+     - `normalize_total` takes the median row total over the AnnData it is given. In their harness that includes the test rows'
+       X;
+     - here T_all / T_train = 0.99993;
+     - left as published. The inverse itself uses T_train.
+2. **Dose: per-dose, through their `--dose_col` path.**
+   - **Why:** 98.2 names "per-dose" among D's embeddings, whereas for M it says dose and time are "not inputs, as published".
+     The registration's explicit word decides each arm.
+   - **"Computed by their own precompute scripts"** is met by their template and encoder:
+     - the prompt `f"The dosage is {d} micromoles."` (their line 159). Here d is the bundle dose rounded to 4 decimals as a
+       Python float, so 10 µM gives their exact string;
+     - BioLinkBERT-large `last_hidden_state` on CPU, as at their lines 159–163;
+     - ten prompts, one per bundle dose.
+   - **Time** is not a PertDiT input, as published (as for M).
+3. **Compounds and `negative_ctrl`.**
+   - **Compounds:** captions and embeddings are computed for the bundle's 1,970 compounds only. All are in their 8,981-compound
+     table (`all_drugs_idx2smi_8981.npy`, sha1 `682fd4af…`), and the rest are never looked up.
+   - **`negative_ctrl`:**
+     - It is a CFG token, which their precompute copies from upstream's 8.9 GB archive.
+     - Their trainer disables CFG on all three datasets, so the token is never read. But `BenchPertDiTDataset` loads the key.
+     - So a zero placeholder of shape (2, 1024) is supplied, and the kernel asserts `cfg=False` in the pinned trainer source.
+4. **Where the precompute runs.**
+   - **MolT5 captions run on free Kaggle CPU kernels.**
+     - Their script requires CUDA only for speed. It is the same model, in fp32 with beam 5.
+     - Their own `_caption_cache.pkl` resume is used to split or chain sessions.
+     - A beam tie could rarely resolve differently on CPU than on GPU. Disclosed.
+   - **Internet and pins:**
+     - These kernels see SMILES only, no expression data, so they run internet-on.
+     - They fetch weights from HuggingFace at pinned revisions (`molt5-large-smiles2caption` `e307e7a1…`, `BioLinkBERT-large`
+       `1eb6d81c…`) and record each file's sha256.
+     - Package versions follow their environment where the image allows (transformers 4.39.1, tokenizers 0.15.2, sentencepiece
+       0.2.0).
+   - **The training kernel** stays internet-off and mounts the embeddings as a private dataset.
+5. **The timing clause, fixed before any timing.**
+   - **Their stopping rule:**
+     - at least 60 epochs, patience 10 on validation MSE, at most 1,000 epochs;
+     - the 5,000-batch cap exceeds our 779 batches, so every epoch is full;
+     - validation runs every epoch, on every 5th validation row (1,108 rows, 50 DDIM steps).
+   - **Bai et al. publish no epoch counts,** so the stopping epoch is unknown in advance.
+   - **The timing kernel** (T4×2, before the run):
+     - loads the data, trains 3 epochs (the first is warm-up and excluded), and samples the full test set once;
+     - that gives t_epoch and t_test, so P(E) = t_load + E · t_epoch + t_test.
+   - **The decision:**
+     - **P(1000) ≤ 6 h:** run to their stopping rule.
+     - **P(62) > 6 h** (62 epochs is the earliest possible stop): "not run (cost)".
+     - **Otherwise:** run under a hard 6 GPU-h cap.
+       - If their rule stops within the cap, D is read as registered.
+       - If the cap comes first, D's reading is "not run (cost)". The capped run's best-validation predictions are reported
+         only, labelled truncated.
+   - **The second T4** (the standing rule to use both GPUs):
+     - seed 118 runs beside the registered seed 117 (their default), one seed per GPU, in the same session at no extra quota;
+     - **seed 117 is the reading of record.** Seed 118 is reported as seed spread, never read;
+     - the timing kernel runs both seeds concurrently, so the projection includes any contention.
+6. **Scoring:** as for every arm.
+   - P9's estimand, the clean subset of record and the 98.3 rule, read as the D head-to-head.
+   - The adapter writes raw Δ̂ keyed by `row_index`.
+   - `score_p10` gains a `pertdit` loader with provenance checks like M's. This implements a registered arm and changes no
+     estimand: the freeze's exception for review fixes.
+
+**C3: the benchmark note, scoped** (the PI read all eight of Bai et al.'s trainers and their evaluator at `1d750cd`):
+- **Their evaluator** (`evaluate_all.py`) scores each model's saved `test_ground_truth` / `test_predictions` as given.
+- **PertDiT and PRnet** save Δ in the log1p(normalize_total) space (`train_pertdit.py:144–159, 437–439`; `train_prnet.py:122–132,
+  383–384`).
+- **The other six save raw Δ:** MLP, XPert, DeepCE, MultiDCP, TranSiGen and CIGER.
+- **So in their Fig. 2a,** PertDiT and PRnet are scored on a different target from the rest.
+  - On our test rows the two Δs correlate per row at 0.975 (median 0.9755, 5th percentile 0.967).
+  - So the sign of any PCC_DEG gap between the two groups can't be inferred.
+- **"XPert is the strongest of the seven"** (98.1, 98.14) holds like for like against the four other raw-Δ full-feature models.
+  Against PertDiT and PRnet it is a cross-target comparison. The critic concedes the same of its 073 Ask 5.
+
+**Ask 3, decided:**
+- **No fold-2 replication now.**
+  - **Why:** it would replicate the distinct-control pattern but couldn't separate its explanations.
+  - **The quota:** next week's goes to O9 session 3 (8.3 h), B1 (≈ 6 h) and D (timing ≈ 0.5 h, run ≤ 6 h). That leaves ≈ 9 h for
+    an O9 session 4.
+  - **O9 keeps priority:** D's run is pushed only if O9's next session still fits.
+- **The mechanism test is IDEAS B3(i),** the control-substitution M. It is free CPU and is registered after R2 is read. This
+  week's free CPU slots go to D's captions.
+
+**The order at the reset:** O9 session 3 and B1 (the two concurrent GPU sessions), then D's timing, then D's run (gated as in
+ruling 5).
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
