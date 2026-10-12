@@ -329,12 +329,16 @@ head is in the final model by the pre-registered rule, not because it was shown 
   - **Per molecule:** −0.004 [−0.009, +0.002]; 96 of 346 molecules favour v9 (the drug-free model is ahead by count, but the CI
     includes 0).
   - **Row-pooled:** v9 0.642 against 0.635.
-  - **So the +0.119 over ridge is not a margin over the strongest simple baseline.**
+  - **So the +0.119 over ridge is not a margin over a drug-free baseline:** this control-only MLP matches v9 per molecule.
   - **What it doesn't say:** whether v9 uses the compound at all. That is tested by retraining v9 with its compound inputs held
     constant (RESULTS §98.2, B1, pending).
-  - **Reported, not a claim:** on the 2,091 rows whose control profile never occurs in training, v9 leads by +0.044
-    [0.033, 0.056] (78 % of molecules). That is consistent with the drug-free model drawing on control profiles shared with
-    training rows, which a confirmatory test would need its own registration to establish.
+  - **Reported, not a claim:** the parity is a mix.
+    - **On rows whose control profile also occurs in training** (82 %), the drug-free model is ahead (−0.011 [−0.015, −0.007]).
+    - **On the 2,091 rows with a new control,** v9 leads by +0.044 [0.033, 0.056] (78 % of molecules).
+    - **Within cells:** the split holds within each of the six largest cell lines.
+    - **What it suggests:** the drug-free model may recall training responses attached to recurring control profiles.
+    - **What it doesn't rule out:** plate or time composition. Separating them needs a registered test (a control-substitution
+      baseline, or a plate-disjoint split).
 - **Against XPert:** the head-to-head with XPert trained to its published recipe on the same fold is running (§97). XPert's
   published cold-drug 0.645 is a five-fold mean from other runs, and is not compared here.
 

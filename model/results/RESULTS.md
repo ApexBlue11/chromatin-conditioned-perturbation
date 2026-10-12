@@ -9547,22 +9547,51 @@ then no P10 registration, B1 code or scorer change was made except review fixes.
 | control-noise-free target | −0.0049 [−0.0075, −0.0022] | 97 / 346 | M better than v9 |
 | cell-centred | −0.0004 [−0.0055, +0.0049] | 132 / 346 | NO CLAIM |
 
-- **The pattern, worded as a description of reported blocks, not a finding:**
-  - M's parity with v9 sits on the rows whose exact `X_ctl` also occurs in training (82 % of scored rows);
-  - on the rows whose control is new, v9 is ahead by +0.044, in 78 % of molecules.
+- **The pattern, worded as a description of reported blocks, not a finding** (precision per review 077 C2):
+  - **On clean rows whose control also occurs in training** (82 % of scored rows), **M is ahead**: −0.011 [−0.015, −0.007],
+    with 64 of 345 molecules favouring v9.
+  - **On rows with a new control,** v9 is ahead: +0.044 [0.033, 0.056], in 78 % of molecules.
+  - **The aggregate parity mixes the two.**
 - **A post hoc reading of that pattern:** M has learned the training responses attached to each shared control profile
   (plate-level controls recur across perturbations), a route that needs no compound.
-  - **Untested.** The stratum was registered as reported, its split by control is not randomised, and a confirmatory test needs
-    its own registration on data not yet seen (e.g. another cold-drug fold, with the distinct-control rows as the primary unit).
+  - **One alternative is ruled out** (review 077 C3, the critic's check): it isn't cell composition. The split replicates within
+    each of the six largest cells (MCF7, PC3, A549, A375, HA1E, HT29). v9 − M is +0.039 to +0.068 on distinct-control rows and
+    −0.003 to −0.013 on shared-control rows.
+  - **One stays open:** within-cell plate or time composition. New controls may come from particular plates or batches where
+    v9's other inputs help. The bundle carries no plate key, so this can't be checked here.
+  - **Untested.** The stratum was registered as reported, and its split by control is not randomised in any fold. So another
+    cold-drug fold would replicate the pattern but couldn't separate the explanations.
+  - **Two designs that could** (IDEAS B3), each needing its own registration:
+    - **(i) a control-substitution M:** each row's `X_ctl` replaced by another control of the same cell, breaking the
+      exact-control link. CPU only;
+    - **(ii) a plate-disjoint split.**
 - **On the noise-free target M is ahead.** That target removes the input control's noise from Δ but keeps the shared plate
   component. So it does not separate the two explanations.
 
 **What R1 does and does not change:**
-- **It does:** P9's headline (v9 beats ridge on unseen compounds by +0.119) stands as measured, but **it is not a margin over the
-  strongest simple baseline.** A drug-free MLP given only the control profile matches v9 per molecule. Manuscript §5.5 says so.
+- **It does:** P9's headline (v9 beats ridge on unseen compounds by +0.119) stands as measured, but **it is not a margin over a
+  drug-free baseline: Bai et al.'s control-only MLP matches v9 per molecule** (wording per review 077 C1; R1 tests one baseline
+  and ranks none). Manuscript §5.5 says so.
 - **It does not** say whether v9 uses the compound: that is R2 (B1, after the Sat 17 Oct reset), per 98.6 C1.
 - **And it does not** touch the cold-cell result (§45 / §85; Bai et al.'s benchmark is drug-blind only), or the O9 XPert
   head-to-head (running).
+- **The critic's independent rescore** (review 077, its own code and bootstrap seed) reproduces it: −0.0038 [−0.0087, +0.0015],
+  96 / 346; full +0.0045; row-pooled 0.6417 / 0.6354; distinct-control +0.0444, 208 / 267, with the same 2,091 rows `def96fc0`
+  from its own hashing.
+
+### 98.12 Review 077 (SOUND) adopted, and two reported-only additions for R2, fixed now within the freeze (PI, 2026-10-12)
+- **C1–C3 are adopted in 98.11's text and in manuscript §5.5.**
+- **R2's registered reading is unchanged** (98.6 / 98.7 C4 / 98.10). These additions are **reported, never read, and labelled
+  post hoc.** They will be computed by a separate script beside `score_p10 --ref v9_drugblind`, with the scorer unchanged:
+  - **(a) By control stratum:** v9 − B1 on the distinct-control and the shared-control clean rows, beside v9 − M on each, plus
+    **B1 − M** per stratum. If B1 also leads M on distinct-control rows, that lead is not the compound.
+  - **(b) A positive control on the duplicates:**
+    - **Why:** on the 38 molecules seen in training under another identifier (the full split's duplicates), v9 − M is +0.099
+      row-pooled (v9 0.690, M 0.592; review 077). So v9 − B1 there shows whether v9's compound pathway carries information when
+      the compound is known.
+    - **How it reads:** v9 ≈ B1 even there means v9 doesn't use the compound. v9 ≫ B1 there but ≈ B1 on clean molecules means
+      it uses compound identity but doesn't generalise it.
+    - **The caveat:** composition, i.e. which compounds happen to be duplicates.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

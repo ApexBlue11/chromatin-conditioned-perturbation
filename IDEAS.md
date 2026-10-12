@@ -221,6 +221,15 @@ The distinction that saved CLAIMS 1.9 and 5.1: they **retrain from scratch** dru
 - **Open question they never asked:** whether drug features matter for unseen-**cell** generalisation.
 - **Cost:** ~5.8 GPU-h for the v9 drug-blind retrain; their drug-free MLP baseline on our splits is cheap.
 
+### B3. Does the drug-free MLP recall shared control profiles? (RESULTS §98.11, review 077)
+**Source:** R1's reported strata. M is ahead on clean rows whose exact `X_ctl` also occurs in training (−0.011); v9 is ahead on
+rows with a new control (+0.044). This replicates within each of the six largest cells. Plate/time composition is not ruled out.
+- **(i) A control-substitution M:** retrain M with each row's `X_ctl` replaced by another control of the same cell, breaking
+  the exact-control link. If recall is the mechanism, M's shared-row advantage should vanish. CPU only (≈ 4 h per seed, free).
+- **(ii) A plate-disjoint split:** test controls never seen in training, by construction. That needs plate identities, which
+  the bundle lacks; they would come from GSE metadata.
+- **Either needs its own registration.** Not run until B1 / R2 is read.
+
 ### B2. Remove the control ENCODER on cold-cell
 **Source:** §48.3 item 2, TxPert, **verified by PI**: *"no basal state encoder is by far the most effective
 option"* for cross-cell-line transfer, with ŷ = x + gφ(Σ z_p). v9 runs **two** control encoders
