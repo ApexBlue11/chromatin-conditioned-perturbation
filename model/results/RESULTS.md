@@ -9752,6 +9752,82 @@ then no P10 registration, B1 code or scorer change was made except review fixes.
 **The order at the reset:** O9 session 3 and B1 (the two concurrent GPU sessions), then D's timing, then D's run (gated as in
 ruling 5).
 
+### 98.16 Review 079 (SOUND) adopted: the pins for D's code, written before any D code (PI, 2026-10-12)
+**The critic re-read Bai et al. at `1d750cd`:**
+- their `train_pertdit.py` is byte-identical to the vendored copy;
+- `bench_dataset.py` indexes the dose dict by each row's float, reads `negative_ctrl` only under `cfg`, and loads the test set
+  with `shuffle=False`;
+- PRnet transforms; the other five trainers don't;
+- `p10_d_inverse_check.py` reproduces its numbers.
+
+**The pins** (C1–C6 and Ask 6; each is binding on the worker contracts):
+- **C1, the precompute script.**
+  - It is a **generated copy** of the vendored `prepare_pertdit_embeddings.py` (sha1 `2bea3057…`), made by asserted exact
+    substitutions. The output's sha1 is pinned, and the diff is committed and reviewed.
+  - **Code changes:** (i) the CUDA gate (lines 73–81) lets CPU proceed; (ii) the single dose prompt (line 159) becomes a loop
+    over the bundle's doses, saving a dose-keyed dict.
+  - **Everything else is done on the data side, at their paths:**
+    - a restricted `idx2smi` (the bundle's 1,970 compounds) at `IDX2SMI_PATH`, sha1 pinned;
+    - the placeholder at `ORIGINAL_EMB_PATH`, filled with **NaN** (Ask 2's free extra guard: any use turns the loss NaN).
+- **C2, the cap.** It is a loop-control patch on their trainer, of the same kind as O9's `BUDGET_H`.
+  - **The rule:** after each epoch, stop if elapsed + t_epoch + t_test + a margin would pass the cap.
+  - **What it records:** `stop_reason` ∈ {`rule`, `max_epochs`, `cap`} and the stopping epoch. Their own best-checkpoint test
+    prediction then follows.
+  - **The `pertdit` loader refuses a reading when `stop_reason == 'cap'`.**
+- **C3, the timing kernel never samples D's test rows.** Its h5ad holds the fit and validation rows, plus copies of 13,445 fit
+  rows labelled `test`, so the shapes and cost are the same. Only timings are persisted.
+- **C4, M's blinding:** their `test_ground_truth.npy` and `per_drug_pcc.csv` stay in `/kaggle/temp`.
+  - **Persisted:** `test_predictions`, `test_ctrl`, `best_model.pt`, the training curve and `resource_log`.
+  - **PertDiT's own-target score** (ruling 1) is computed at scoring time from the bundle, with their transform (T over the
+    h5ad's 68,830 rows).
+- **C5, the dose keys.**
+  - The h5ad's dose column `dose_r4` is float64(round(float(d), 4)).
+  - The dict keys **and** the prompts are built from its unique values: '0.1', '0.37', '0.62', '0.77', '1.11', '2.31', '3.33',
+    '5.0', '10.0', '40.0'. The 10 µM prompt equals their exact string.
+  - Coverage of every row's dose is asserted before any GPU work.
+- **C6, the citations, corrected:**
+  - the arrays are loaded as given in `evaluate_one_fold.py:18–19`;
+  - `evaluate_all.py`'s PCC_DEG takes the top 100 genes by |truth| in each model's own space, so for PertDiT and PRnet even the DEG
+    selection is transformed;
+  - MultiDCP's raw Δ is under its `--output_space deg` default (the unified runs);
+  - the package versions come from PertDiT's `models/PertDiT/repo/environment.yml`.
+- **Ask 6's pins:**
+  - **T_train:** the median row total of the clipped raw X over the **55,385 split-train rows** (`p10_split` train + valid),
+    **8242.431170**. The converter recomputes it from the h5ad and asserts it to 1e-6 relative. (T_all = 8241.828459.)
+  - **S_ctl:** from the clipped raw `X_ctl`.
+  - **The output:** raw Δ̂ as float32, keyed by `row_index` in test-mask order.
+  - **The embedding dict:** keyed by int `pert_idx`, with coverage asserted for all three splits. The caption cache's and the
+    embeddings' sha1s are recorded.
+  - **The seeds:** 117 on `cuda:0` and 118 on `cuda:1`, through their `--seed` (`seed_everything`).
+  - **The loader checks:** the manifest, the records' input pins, `n_test` 13,445, seed 117 as the reading of record, and
+    `stop_reason`.
+- **Ask 4: the seed stays as registered.** The scorers average per-seed Pearsons, so one seed is unbiased.
+- **Vendored for the kernels** (each file checked against the commit's git blob hash; `.gitattributes` `-text`, so the bytes
+  stay as pinned):
+  - PertDiT's model code (`models/PertDiT/repo/src/**`, including `bench_dataset.py`, plus its `environment.yml` and
+    `LICENSE.NOTICE`: Apache 2.0, as declared upstream);
+  - `models/PertDiT_CHANGES.md`;
+  - their evaluator;
+  - `train_prnet.py`, for C3's record.
+- **The probe** (free CPU kernel `lincs-p10d-probe`, internet on, the pinned image; public SMILES only, no LINCS data):
+  - **The image:**
+    - Python 3.12.13, 4 CPUs, 33.7 GB, torch 2.10.0;
+    - present: diffusers 0.37.1 and einops 0.8.2;
+    - missing: rdkit, scanpy and anndata.
+  - **PertDiT's environment pins** (transformers 4.39.1, tokenizers 0.15.2, sentencepiece 0.2.0, huggingface-hub 0.24.6) install
+    with rc 0.
+  - **The HuggingFace revisions** equal both pins. The weight sha256s:
+    - MolT5 `pytorch_model.bin` `eb5e5759…`, 3.13 GB;
+    - BioLinkBERT `fed75e57…`, 1.33 GB.
+  - **On CPU, with their exact call,** a MolT5 caption takes **35–72 s per SMILES** (122–258 tokens), and BioLinkBERT 0.2–1.1 s.
+    So the captions run as **5 free CPU kernels of about 394 SMILES each, about 6–8 h each**. GPU captions would have cost about 2
+    GPU-h of the week's quota.
+  - **The GPU kernel** therefore installs from a private wheel set:
+    - PertDiT's own pins diffusers 0.30.2, einops 0.8.0 and huggingface-hub 0.24.6;
+    - rdkit, which their trainer imports only to silence its logger;
+    - M's scanpy and anndata.
+    - torch stays the image's 2.10, against their 1.13.1. Disclosed.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

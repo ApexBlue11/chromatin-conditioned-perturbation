@@ -1,2 +1,4 @@
 # Review 075 C3: pinned by its exact bytes (CRLF, as written); never line-ending-normalise
 model/results/p10/p10_carves.json -text
+# Review 079: vendored bytes are pinned by sha1 in kernels; never line-ending-normalise
+external/bai_benchmark_1d750cd/** -text
