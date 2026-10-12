@@ -775,7 +775,7 @@ class HfApi:
             pickle.dump(slice_cache, f)
         c_sha1 = p10_pertdit_emb.sha1_file(c_path)
         r_path = str(merge_input / f"cap_record_s{k}.json")
-        rec = {"slice": k, "cache_sha1": c_sha1}
+        rec = _pi_full_record(inputs_dir, k, c_sha1, fake_b_sha256)  # review 080 C1: the merge checks the record's pins
         with open(r_path, "w", encoding="utf-8") as f:
             json.dump(rec, f)
 
@@ -1003,7 +1003,7 @@ def _pi_cap(w, tmp_path, tag, swap_molt5=True, input_dir=None, pre_cache=None):
                    tmp_path / f"work_{tag}", w["shim"], swaps)
 
 
-def _pi_merge_input(w, tmp_path, tag):
+def _pi_merge_input(w, tmp_path, tag, bert_sha=None):
     mi = tmp_path / f"merge_in_{tag}"
     shutil.copytree(str(w["inputs"]), str(mi))
     for k in range(5):
@@ -1011,8 +1011,9 @@ def _pi_merge_input(w, tmp_path, tag):
         cp = mi / f"_caption_cache_s{k}.pkl"
         with open(cp, "wb") as f:
             pickle.dump({smi: "caption of " + smi for smi in sl.values()}, f)
-        (mi / f"cap_record_s{k}.json").write_text(json.dumps({"slice": k, "cache_sha1": p10_pertdit_emb.sha1_file(str(cp))}),
-                                                  encoding="utf-8")
+        (mi / f"cap_record_s{k}.json").write_text(
+            json.dumps(_pi_full_record(w["inputs"], k, p10_pertdit_emb.sha1_file(str(cp)), bert_sha or _PI_FAKE_BERT_SHA256)),
+            encoding="utf-8")
     return mi
 
 
@@ -1065,7 +1066,7 @@ def test_pi_merge_kernel_guards_each_fail_loud(tmp_path, synthetic_data, monkeyp
     (mi / "cap_record_s2.json").write_text(json.dumps(r2), encoding="utf-8")
     _pi_fatal(_pi_merge(w, tmp_path, "rec", mi), "caption cache s2 sha1 mismatch")
     # BioLinkBERT weights that are not the pinned bytes
-    _pi_fatal(_pi_merge(w, tmp_path, "bert", _pi_merge_input(w, tmp_path, "bert"), swap_bert=False),
+    _pi_fatal(_pi_merge(w, tmp_path, "bert", _pi_merge_input(w, tmp_path, "bert", bert_sha=make_p10_d_emb_kernels.PIN_BERT_WEIGHTS_SHA256), swap_bert=False),
               "BioLinkBERT weights sha256 mismatch")
     # non-finite embeddings reach check_outputs inside the kernel
     _pi_fatal(_pi_merge(w, tmp_path, "nan", _pi_merge_input(w, tmp_path, "nan"), extra_env={"PI_STUB_BERT_NAN": "1"}),
@@ -1078,3 +1079,54 @@ def test_pi_merge_kernel_requires_the_skip_line(tmp_path, synthetic_data, monkey
     w = _pi_world(tmp_path, synthetic_data, monkeypatch,
                   script_edit=("captions already cached; skipping MolT5", "captions already cached; skipping T5"))
     _pi_fatal(_pi_merge(w, tmp_path, "skip", _pi_merge_input(w, tmp_path, "skip")), "merge kernel log missing required line")
+
+
+
+# ==============================================================================
+# Review 080: the merge checks each slice record's pins (C1); records carry torch and the CPU (C2); versions asserted (C3)
+# ==============================================================================
+_PI_PINNED_VERSIONS = "transformers==4.39.1 tokenizers==0.15.2 sentencepiece==0.2.0 huggingface-hub==0.24.6"
+_PI_FAKE_BERT_SHA256 = hashlib.sha256(b"fake models--michiyasunaga--BioLinkBERT-large").hexdigest()
+
+
+def _pi_full_record(inputs_dir, k, cache_sha1, bert_sha256):
+    """A caption record as a real caption kernel writes it, for the merge's review 080 C1 checks."""
+    inputs_dir = str(inputs_dir)
+    names = ["prepare_pertdit_embeddings_p10.py", "p10_pertdit_emb.py", f"idx2smi_slice{k}.npy",
+             "pert_smiles_emb_placeholder.pkl", "dose_list.json", "compound_map.json", "inputs_manifest.json"]
+    return {"slice": k, "cache_sha1": cache_sha1, "versions": _PI_PINNED_VERSIONS,
+            "verified_sha1s": {n: p10_pertdit_emb.sha1_file(os.path.join(inputs_dir, n)) for n in names},
+            "verified_sha256s": {"molt5_weights": make_p10_d_emb_kernels.PIN_MOLT5_WEIGHTS_SHA256, "bert_weights": bert_sha256}}
+
+
+def test_pi_review080_merge_refuses_foreign_slice_records(tmp_path, synthetic_data, monkeypatch):
+    """C1: a record for another slice, one that verified other inputs, one with other weights, one with other versions."""
+    w = _pi_world(tmp_path, synthetic_data, monkeypatch)
+    ok = _pi_merge(w, tmp_path, "ok", _pi_merge_input(w, tmp_path, "ok"))
+    assert ok.returncode == 0, (ok.stdout + ok.stderr)[-3000:]
+    rec = json.loads((tmp_path / "work_ok" / "emb_record.json").read_text(encoding="utf-8"))
+    assert sorted(rec["slice_record_sha1s"]) == [f"s{k}" for k in range(5)]
+    assert {"torch_version", "cpu_model"} <= set(rec) and "compound_map.json" in rec["verified_sha1s"]
+    worlds = {
+        "slice": (lambda r: r.update(slice=3), "is for slice 3, not 2"),
+        "inputs": (lambda r: r["verified_sha1s"].update({"idx2smi_slice2.npy": "0" * 40}), "verified other inputs"),
+        "weights": (lambda r: r["verified_sha256s"].update(molt5_weights="0" * 64), "weight sha256s"),
+        "versions": (lambda r: r.update(versions="transformers==4.40.0"), "versions"),
+    }
+    for tag, (mutate, needle) in worlds.items():
+        mi = _pi_merge_input(w, tmp_path, tag)
+        r2 = json.loads((mi / "cap_record_s2.json").read_text(encoding="utf-8"))
+        mutate(r2)
+        (mi / "cap_record_s2.json").write_text(json.dumps(r2), encoding="utf-8")
+        _pi_fatal(_pi_merge(w, tmp_path, tag, mi), needle)
+
+
+def test_pi_review080_caption_record_and_version_assert(tmp_path, synthetic_data, monkeypatch):
+    """C2: the caption record carries torch and the CPU; C3: a version line that isn't the pin is fatal."""
+    w = _pi_world(tmp_path, synthetic_data, monkeypatch)
+    ok = _pi_cap(w, tmp_path, "ok")
+    assert ok.returncode == 0, (ok.stdout + ok.stderr)[-3000:]
+    rec = json.loads((tmp_path / "work_ok" / "cap_record_s0.json").read_text(encoding="utf-8"))
+    assert rec["versions"] == _PI_PINNED_VERSIONS and rec["torch_version"] == torch.__version__ and rec["cpu_model"]
+    (w["shim"] / "tokenizers" / "__init__.py").write_text('__version__ = "0.15.1"\n', encoding="utf-8")
+    _pi_fatal(_pi_cap(w, tmp_path, "ver"), "installed versions")

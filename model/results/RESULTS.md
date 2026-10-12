@@ -9872,6 +9872,38 @@ ruling 5).
 
 **Not yet run:** the caption kernels wait for review 080. They need no GPU.
 
+### 98.18 Review 080 (SOUND) adopted; the caption kernels are pushed (PI, 2026-10-12)
+**What the critic reproduced independently:**
+- the generated script, by regeneration (`dd41c66a`, byte-identical);
+- every input file, by its own rebuild from `meta_pert_idx` / `meta_dose` and XPert's table;
+- all the pinned sha1s;
+- the 25 tests.
+
+**The three provenance points, adopted:**
+- **C1, the merge checks each slice record's pins** (`kernel_sources` mounts each caption kernel's latest output). It requires:
+  - `slice == i`;
+  - the slice, script, placeholder and `p10_pertdit_emb.py` sha1s;
+  - both weight sha256s;
+  - the pinned version line.
+- **C2, the records:**
+  - both records carry `torch.__version__` and the CPU model (beam ties depend on them);
+  - `emb_record` carries every verified input sha1 and each slice record's sha1.
+- **C3:** the version line is asserted, not just recorded.
+- **Tests:** two PI tests cover the four foreign-record worlds and the version assertion. 27 pass.
+
+**Recorded now, as the critic asked:**
+- **The recovery rule if a slice times out:**
+  - re-split that slice's SMILES into sub-slices (new data files, sha1s pinned);
+  - re-run them;
+  - make the merge accept the sub-slice caches through a listed manifest. That is a code change, reviewed when needed.
+  - **Margin:** at the probe's slowest rate, a slice takes 7.9 h against the 11.5 h timeout.
+- **A disclosure for the caption kernels too:** they run the image's torch 2.10, against 1.13.1 in PertDiT's environment. Like the
+  CPU beam ties, that is float rounding.
+- **For packet 081 (the critic's Ask 2):** the GPU kernel's h5ad `pert_idx` must equal `compound_map[meta_pert_idx]` row by row,
+  asserted to lie in range(1970).
+- **For the record:** 7 XPert indices carry two BRD IDs each, because XPert indexes by SMILES. D's compound unit is therefore
+  XPert's index, the same one v9's compound inputs use.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

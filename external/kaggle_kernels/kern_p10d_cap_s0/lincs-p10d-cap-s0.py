@@ -52,6 +52,19 @@ def sha256_file(path):
     return h.hexdigest()
 
 
+def cpu_model():
+    """Review 080 C2: beam ties depend on the CPU, so the record names it."""
+    try:
+        with open("/proc/cpuinfo", "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("model name"):
+                    return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    import platform
+    return platform.processor() or "unknown"
+
+
 print(f"=== Starting P10 arm D caption kernel slice {K} ===", flush=True)
 
 # 1. Install
@@ -82,6 +95,9 @@ res_v = subprocess.run(
 if res_v.returncode != 0:
     fatal(f"reading versions failed: {res_v.stderr}")
 installed_versions = res_v.stdout.strip()
+PINNED_VERSIONS = "transformers==4.39.1 tokenizers==0.15.2 sentencepiece==0.2.0 huggingface-hub==0.24.6"
+if installed_versions != PINNED_VERSIONS:
+    fatal(f"installed versions {installed_versions!r} != pinned {PINNED_VERSIONS!r} (review 080 C3)")
 print(f"Installed versions: {installed_versions}", flush=True)
 
 # 2. Revision guard in subprocess
@@ -231,6 +247,8 @@ cap_record = {
     "n_smiles": len(expected_smiles),
     "seconds_per_smiles": s_per_smiles,
     "torch_num_threads": n_threads,
+    "torch_version": torch.__version__,
+    "cpu_model": cpu_model(),
     "versions": installed_versions,
     "verified_sha1s": verified_sha1s,
     "verified_sha256s": verified_sha256s,

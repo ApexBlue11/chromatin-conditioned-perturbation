@@ -93,6 +93,19 @@ def sha256_file(path):
     return h.hexdigest()
 
 
+def cpu_model():
+    """Review 080 C2: beam ties depend on the CPU, so the record names it."""
+    try:
+        with open("/proc/cpuinfo", "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("model name"):
+                    return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    import platform
+    return platform.processor() or "unknown"
+
+
 print(f"=== Starting P10 arm D caption kernel slice {K} ===", flush=True)
 
 # 1. Install
@@ -123,6 +136,9 @@ res_v = subprocess.run(
 if res_v.returncode != 0:
     fatal(f"reading versions failed: {res_v.stderr}")
 installed_versions = res_v.stdout.strip()
+PINNED_VERSIONS = "transformers==4.39.1 tokenizers==0.15.2 sentencepiece==0.2.0 huggingface-hub==0.24.6"
+if installed_versions != PINNED_VERSIONS:
+    fatal(f"installed versions {installed_versions!r} != pinned {PINNED_VERSIONS!r} (review 080 C3)")
 print(f"Installed versions: {installed_versions}", flush=True)
 
 # 2. Revision guard in subprocess
@@ -272,6 +288,8 @@ cap_record = {
     "n_smiles": len(expected_smiles),
     "seconds_per_smiles": s_per_smiles,
     "torch_num_threads": n_threads,
+    "torch_version": torch.__version__,
+    "cpu_model": cpu_model(),
     "versions": installed_versions,
     "verified_sha1s": verified_sha1s,
     "verified_sha256s": verified_sha256s,
@@ -308,6 +326,8 @@ IS_CAPTION_KERNEL = False
 PREPARE_SCRIPT_SHA1 = '__PREPARE_SCRIPT_SHA1__'
 P10_EMB_SHA1 = '__P10_EMB_SHA1__'
 IDX2SMI_ALL_SHA1 = '__IDX2SMI_ALL_SHA1__'
+SLICE_SHA1S = __SLICE_SHA1S__
+PIN_MOLT5_WEIGHTS_SHA256 = '__PIN_MOLT5_WEIGHTS_SHA256__'
 PLACEHOLDER_SHA1 = '__PLACEHOLDER_SHA1__'
 DOSE_LIST_SHA1 = '__DOSE_LIST_SHA1__'
 COMPOUND_MAP_SHA1 = '__COMPOUND_MAP_SHA1__'
@@ -336,6 +356,19 @@ def sha256_file(path):
         while chunk := f.read(65536):
             h.update(chunk)
     return h.hexdigest()
+
+
+def cpu_model():
+    """Review 080 C2: beam ties depend on the CPU, so the record names it."""
+    try:
+        with open("/proc/cpuinfo", "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("model name"):
+                    return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    import platform
+    return platform.processor() or "unknown"
 
 
 print("=== Starting P10 arm D merge kernel ===", flush=True)
@@ -368,6 +401,9 @@ res_v = subprocess.run(
 if res_v.returncode != 0:
     fatal(f"reading versions failed: {res_v.stderr}")
 installed_versions = res_v.stdout.strip()
+PINNED_VERSIONS = "transformers==4.39.1 tokenizers==0.15.2 sentencepiece==0.2.0 huggingface-hub==0.24.6"
+if installed_versions != PINNED_VERSIONS:
+    fatal(f"installed versions {installed_versions!r} != pinned {PINNED_VERSIONS!r} (review 080 C3)")
 print(f"Installed versions: {installed_versions}", flush=True)
 
 # 2. Revision guard in subprocess
@@ -446,11 +482,27 @@ for target, src in [
 # 5. Merge caches
 cache_paths = []
 slice_cache_sha1s = {}
+slice_record_sha1s = {}
 for i in range(5):
     c_path = find_one(f"_caption_cache_s{i}.pkl")
     r_path = find_one(f"cap_record_s{i}.json")
     with open(r_path, "r", encoding="utf-8") as f:
         rec = json.load(f)
+    # Review 080 C1: kernel_sources mounts each caption kernel's LATEST output, so its record must carry this build's pins
+    if rec.get("slice") != i:
+        fatal(f"cap_record_s{i}.json is for slice {rec.get('slice')!r}, not {i} (review 080 C1)")
+    want_v = {"prepare_pertdit_embeddings_p10.py": PREPARE_SCRIPT_SHA1, "p10_pertdit_emb.py": P10_EMB_SHA1,
+              f"idx2smi_slice{i}.npy": SLICE_SHA1S[i], "pert_smiles_emb_placeholder.pkl": PLACEHOLDER_SHA1}
+    got_v = rec.get("verified_sha1s", {})
+    bad_v = {k: got_v.get(k) for k, v in want_v.items() if got_v.get(k) != v}
+    if bad_v:
+        fatal(f"cap_record_s{i}.json verified other inputs than this build's pins: {bad_v} (review 080 C1)")
+    want_w = {"molt5_weights": PIN_MOLT5_WEIGHTS_SHA256, "bert_weights": PIN_BERT_WEIGHTS_SHA256}
+    if rec.get("verified_sha256s") != want_w:
+        fatal(f"cap_record_s{i}.json weight sha256s {rec.get('verified_sha256s')} are not the pins (review 080 C1)")
+    if rec.get("versions") != PINNED_VERSIONS:
+        fatal(f"cap_record_s{i}.json versions {rec.get('versions')!r} are not the pins (review 080 C1)")
+    slice_record_sha1s[f"s{i}"] = sha1_file(r_path)
     got_c_sha1 = sha1_file(c_path)
     if got_c_sha1 != rec["cache_sha1"]:
         fatal(f"caption cache s{i} sha1 mismatch: {got_c_sha1} != {rec['cache_sha1']}")
@@ -531,6 +583,10 @@ emb_record = {
     "verified_sha256s": verified_sha256s,
     "caption_cache_sha1": sha1_file(os.path.join(out_dir, "_caption_cache.pkl")),
     "slice_cache_sha1s": slice_cache_sha1s,
+    "slice_record_sha1s": slice_record_sha1s,
+    "verified_sha1s": verified_sha1s,
+    "torch_version": torch.__version__,
+    "cpu_model": cpu_model(),
     "wall_s": wall_s,
 }
 rec_path = os.path.join(KAGGLE_WORKING, "emb_record.json")
@@ -645,6 +701,8 @@ def build_kernels(out_root, inputs_dir=None):
         MERGE_KERNEL_TEMPLATE.replace("__PREPARE_SCRIPT_SHA1__", prepare_script_sha1)
         .replace("__P10_EMB_SHA1__", p10_emb_sha1)
         .replace("__IDX2SMI_ALL_SHA1__", idx2smi_all_sha1)
+        .replace("__SLICE_SHA1S__", repr(slice_sha1s))
+        .replace("__PIN_MOLT5_WEIGHTS_SHA256__", PIN_MOLT5_WEIGHTS_SHA256)
         .replace("__PLACEHOLDER_SHA1__", placeholder_sha1)
         .replace("__DOSE_LIST_SHA1__", dose_list_sha1)
         .replace("__COMPOUND_MAP_SHA1__", compound_map_sha1)
