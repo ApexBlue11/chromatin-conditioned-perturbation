@@ -9827,6 +9827,14 @@ ruling 5).
     - rdkit, which their trainer imports only to silence its logger;
     - M's scanpy and anndata.
     - torch stays the image's 2.10, against their 1.13.1. Disclosed.
+  - **The stack probe** (free CPU kernel `lincs-p10d-stack`; random tensors only):
+    - with diffusers 0.30.2, einops 0.8.0 and huggingface-hub 0.24.6, **their rdkit pin 2023.9.1 imports under the image's numpy
+      2.0.2**, so it is used;
+    - PertDiT's Crossformer (2,163,713 parameters) trains a step and DDIM-samples, with finite outputs.
+    - **Its cost on CPU:** about 18 s per training step at batch 64, and 300 s per 50-step sample of 64 rows. Each of the 978 genes
+      is a token, so its cost is set by the sequence length, not the parameter count. The GPU cost comes from the timing kernel
+      (ruling 5).
+    - **The wheels** are the private dataset `apexblue/p10d-wheels` (sha1s in its `SHA1SUMS.txt`).
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
