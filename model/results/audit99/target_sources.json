@@ -1,0 +1,87 @@
+{
+ "bundle": "external/xpert_split_bundle/xpert_mdmt_splits.npz",
+ "bundle_sha1": "1444b253d48c5adf066bf7a3cc0ba8ea5fb71464",
+ "rows_read": "training rows only; no model, prediction or test row",
+ "plate_proxy": "byte-identical X_ctl (the bundle has no plate key)",
+ "cold_drug_1": {
+  "split": "split_split_cold_drug_1",
+  "n_train_rows": 55385,
+  "A0": {
+   "n_compounds": 1581,
+   "n_cells": 39,
+   "rows_per_drug_cell_median": 7.0,
+   "frac_drug_cell_with_ge2_rows": 1.0,
+   "n_distinct_controls": 12241,
+   "frac_rows_sharing_control": 0.8549607294393788
+  },
+  "A1": {
+   "n_rows_with_P_and_D": 44894,
+   "all_available": {
+    "cell_mean_delta": 0.16973046172885464,
+    "F0": 0.38536955185084265,
+    "P_other_drugs_same_control": 0.6511094494093489,
+    "D_same_drug_cell_other_controls": 0.2601283100669329,
+    "P_plus_D_minus_cell_mean": 0.5711655465070449
+   },
+   "common_rows": {
+    "cell_mean_delta": 0.16172814587279627,
+    "F0": 0.39891738285662676,
+    "P_other_drugs_same_control": 0.6506387875157239,
+    "D_same_drug_cell_other_controls": 0.2381578260459279,
+    "P_plus_D_minus_cell_mean": 0.5711655465070449
+   },
+   "by_delta_norm_tercile": {
+    "weak": {
+     "n": 14965,
+     "P_other_drugs_same_control": 0.6538183374113303,
+     "D_same_drug_cell_other_controls": 0.24335164963677008,
+     "P_plus_D_minus_cell_mean": 0.5469887194039748
+    },
+    "mid": {
+     "n": 14964,
+     "P_other_drugs_same_control": 0.6601356125980047,
+     "D_same_drug_cell_other_controls": 0.2181783618511583,
+     "P_plus_D_minus_cell_mean": 0.5664219626045469
+    },
+    "strong": {
+     "n": 14965,
+     "P_other_drugs_same_control": 0.6379630471402478,
+     "D_same_drug_cell_other_controls": 0.25294213157039025,
+     "P_plus_D_minus_cell_mean": 0.6000856405340694
+    }
+   }
+  },
+  "A2": {
+   "n_rows": 31722,
+   "P": 0.6619262325787084,
+   "P_plus_w_D_minus_cell_mean": {
+    "0.1": 0.6721554653795214,
+    "0.2": 0.6747154874102607,
+    "0.3": 0.6720700035494013,
+    "0.5": 0.6581369373922621,
+    "0.7": 0.6393502266447595,
+    "1.0": 0.6101091585380829
+   },
+   "best_w": 0.2,
+   "drug_increment_over_P": 0.012789254831552244,
+   "plate_contrast_target": {
+    "n_rows": 26892,
+    "same_drug_cell_time_other_plates_r_mean": 0.14748870833780522,
+    "median": 0.11056871228463513,
+    "by_strength_tercile": [
+     0.12106714436422288,
+     0.1321611512954979,
+     0.1892378293536949
+    ],
+    "drug_free_cell_mean_r": 0.012089688909685781
+   }
+  }
+ },
+ "cold_cell_1_A3": {
+  "split": "split_split_cold_cell_1",
+  "n_train_rows": 47509,
+  "minus_ctl_deviation_alone": 0.36152586007614174,
+  "cell_mean_delta_alone": 0.1723534706161155,
+  "both_F0": 0.3969222143646869
+ }
+}

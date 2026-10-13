@@ -10067,6 +10067,52 @@ their pins before the reset.
 3. then, from its downloaded `p10d_timing.json`, the run kernel. The builder refuses `not_run_cost` and any timing not measured
    with the run's pins. It is pushed only if O9's next session still fits.
 
+## 99. 🔒 PRE-REGISTERED: the architecture and target audit, and Phase 1 of its confirmation (principal's request, PI, 2026-10-13; before any Phase 1 code or test-row reading)
+**The full record** is `model/V10_AUDIT_AND_PLAN.md` (this commit). It holds:
+- the reference-model comparison, read from the code of DeepCE, CIGER, MultiDCP, PRnet, TranSiGen, chemCPA and STATE;
+- findings A0–A3;
+- the mistakes register M1–M10;
+- **Phase 1 (its §5, binding as committed here);**
+- Phase 2's draft fixes F1–F9.
+
+### 99.1 Findings, measured on training rows only (`model/v9/audit99_target_sources.py` → `model/results/audit99/target_sources.json`)
+- **Disclosed:** computed before this registration, as desk diagnostics. No model, prediction or test row was read. The test-set
+  counts below are plate membership only.
+- **The plate proxy** is the control group (byte-identical `X_ctl`), since the bundle has no plate key.
+- **A0:**
+  - 85.5 % of `split_cold_drug_1` training rows share their exact control with another row (12,241 controls, 55,385 rows);
+  - 10,524 of 13,445 unseen-compound test rows sit on a plate with ≥ 2 other-compound training wells;
+  - no unseen-cell test row shares a plate with a training row.
+- **A1 / A2: the target y = X − X_ctl is plate-dominated.**
+  - The mean delta of the *other* compounds on the same plate, which needs no drug, predicts y at **r 0.662** (31,722 rows).
+  - Adding the same compound's measured response from other plates, at the best weight, reaches **0.675**.
+  - **So the most the drug can add on this target is ≈ +0.013.**
+- **On the plate-contrast target** (each well minus the mean of its plate's other-compound wells):
+  - drug-free information predicts **r 0.012**;
+  - the compound's own replicate on other plates predicts **0.147** (0.189 for the strongest third).
+- **A3** (`split_cold_cell_1`): the zero-parameter, drug-free term −(X_ctl − cell mean control) predicts y at **r 0.362**. That
+  term is what `x_cell` makes available. For an unseen cell, `x_cell` is still the mean over the cell's own test rows
+  (`xpert_arm.py:311`, review 001 C4, §51.5).
+
+### 99.2 What this changes now
+- **R1 (§98.11) stands as measured.** It is worded as a property of the target until C1 reads: *"on this target the drug can
+  add at most ≈ 0.013, and v9 does not beat a drug-free model on it"*.
+- **The unseen-cell lead over XPert (§85.14)** carries M4's caveat until C2 reads.
+- **B1 (R2, ≈ 6 GPU-h) is held at the Sat 17 Oct reset.** Its registered reading is on the same target, and C1 asks its
+  question at no GPU cost. Its kernel stays committed.
+- **O9 session 3 and D's timing run** go ahead as recorded in §98.21.
+
+### 99.3 Phase 1, registered (`V10_AUDIT_AND_PLAN.md` §5)
+- **The tests:**
+  - **C1:** the within-plate contrast on P9's unseen-compound rows, v9 against M+dt (Bai et al.'s drug-free MLP with dose and
+    time). Per molecule, `score_p9.verdict`. This one is decisive.
+  - **C1b, C1c:** reported.
+  - **C2:** v9's unseen-cell lead with `x_cell` made inductive. C2a is zero-parameter; C2b is inference, with a fixed
+    half-of-lead rule; C2c, the contrast, is reported.
+  - **C3:** a drug-swap counterfactual on P9's checkpoints.
+  - **C4:** dose coupling, reported.
+- **The code** (packet 084) is reviewed before it runs. Nothing is run twice.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
