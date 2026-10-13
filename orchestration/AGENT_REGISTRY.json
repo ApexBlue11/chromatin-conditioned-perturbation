@@ -1,373 +1,375 @@
 {
- "_README": "Capability + reliability registry. OBSERVED reliability outranks PUBLISHED benchmarks: published scores are priors, observations are evidence. Append to observations[] after every delegation; never rewrite history. Update published_benchmarks[] periodically and always record the as_of date.",
- "schema_version": 1,
- "last_updated": "2026-10-10",
- "surfaces": [
-  {
-   "id": "agy",
-   "name": "Antigravity CLI",
-   "command": "C:\\Users\\Surya\\AppData\\Local\\agy\\bin\\agy.exe",
-   "status": "VERIFIED-WORKING",
-   "verified_on": "2026-09-20",
-   "auth": "inherits the desktop Antigravity session (Windows Credential Manager); no API key needed",
-   "headless": "-p '<prompt>' --output-format text|json|stream-json",
-   "key_flags": [
-    "--model",
-    "--effort low|medium|high",
-    "--mode plan (read-only)",
-    "--add-dir",
-    "--json-schema",
-    "--dangerously-skip-permissions",
-    "--output-format"
-   ],
-   "tools_available": [
-    "search_web",
-    "read_url_content",
-    "view_file",
-    "write_to_file",
-    "replace_file_content",
-    "run_command",
-    "define_subagent",
-    "invoke_subagent",
-    "schedule",
-    "call_mcp_tool"
-   ],
-   "can_spawn_subagents": true,
-   "cost_class": "subscription (Google AI Pro) — treat as cheap, not free",
-   "models": [
-    "gemini-3.8-flash-high",
-    "gemini-3.8-flash-medium",
-    "gemini-3.8-flash-low",
-    "gemini-3.7-flash-high",
-    "gemini-3.6-flash-high",
-    "gemini-3.1-pro-high",
-    "gemini-3.1-pro-low",
-    "claude-sonnet-4-6",
-    "claude-opus-4-6-thinking",
-    "gpt-oss-120b-medium"
-   ],
-   "notes": "Primary worker pool. Buffers all stdout until the turn completes, so always run in background and poll the log. Needs --dangerously-skip-permissions in headless mode or it blocks on approval. Cross-vendor models here are useful for independent second opinions on the same brief."
-  },
-  {
-   "id": "copilot",
-   "name": "GitHub Copilot CLI",
-   "command": "copilot",
-   "status": "INSTALLED-NOT-YET-EXERCISED",
-   "headless": "-p '<prompt>'",
-   "key_flags": [
-    "--effort low|medium|high|xhigh",
-    "--add-dir",
-    "--agent",
-    "--additional-mcp-config",
-    "--acp"
-   ],
-   "cost_class": "subscription, lower volume than agy",
-   "notes": "Second pool. Has an xhigh reasoning tier agy lacks. Reserve for when a Gemini pass fails a check."
-  },
-  {
-   "id": "gh-agent-task",
-   "name": "GitHub coding agent (cloud, async)",
-   "command": "gh agent-task create -F <brief.md>",
-   "status": "AUTHED-NOT-YET-EXERCISED",
-   "models": [
-    "haiku-4.5"
-   ],
-   "cost_class": "lowest volume — spend deliberately",
-   "notes": "Async and cloud; returns a PR. Best for well-specified mechanical code changes, not research. Weakest model of the three, so scope tightly and always review the diff."
-  },
-  {
-   "id": "kaggle-cpu",
-   "name": "Kaggle CPU kernels",
-   "status": "VERIFIED-WORKING",
-   "cost_class": "FREE",
-   "concurrency": "5 concurrent sessions",
-   "notes": "First choice for all CPU-bound compute. Ridge gates, closed-form baselines, extraction, noise ceilings. Costs nothing and does not heat the laptop."
-  },
-  {
-   "id": "kaggle-gpu",
-   "name": "Kaggle T4 x2",
-   "status": "VERIFIED-WORKING",
-   "cost_class": "30 h/week quota — HUMAN APPROVAL GATE",
-   "concurrency": "2 concurrent GPU sessions",
-   "constraints": [
-    "NEVER P100 (no sm_60 kernels)",
-    "no CPU fallback",
-    "a cancelled kernel's /kaggle/working is DISCARDED",
-    "TPU abandoned — v5e multi-process init fails and it is slower per core than a T4"
-   ],
-   "notes": "Gate every spend on a free-CPU ridge result first."
-  },
-  {
-   "id": "local-cpu",
-   "name": "Local CPU (laptop)",
-   "status": "AVAILABLE-WITH-LIMITS",
-   "cost_class": "free but thermally constrained",
-   "notes": "THERMAL RULE: this is a laptop. Short interactive jobs only. No multi-hour runs. Prefer Kaggle free CPU."
-  },
-  {
-   "id": "local-gpu",
-   "name": "RTX 3050 Laptop, 4 GB",
-   "status": "AVAILABLE-INFERENCE-ONLY",
-   "venv": "C:\\Projects\\LINCS\\.venv-cuda\\Scripts\\python.exe (torch+cu126)",
-   "notes": "~12x faster than CPU for inference sweeps. NEVER training. 4 GB forces batch 8, so absolute numbers from it are not comparable to batch-96 Kaggle runs."
-  }
- ],
- "dead_ends": [
-  {
-   "id": "gemini-cli",
-   "why": "Google deprecated it for Gemini Code Assist individuals; IneligibleTierError directs users to Antigravity. Sunsets for AI Pro/Ultra 2026-06-18.",
-   "checked": "2026-09-20"
-  },
-  {
-   "id": "trae",
-   "why": "IDE launcher only (--diff/--goto/--wait). No headless agent.",
-   "checked": "2026-09-20"
-  },
-  {
-   "id": "cursor",
-   "why": "IDE launcher only. No headless agent CLI found.",
-   "checked": "2026-09-20"
-  },
-  {
-   "id": "antigravity-ide",
-   "why": "VS Code-style launcher. The agent is GUI-only. Use `agy` instead.",
-   "checked": "2026-09-20"
-  },
-  {
-   "id": "codex/chatgpt",
-   "why": "No CLI installed. Would need `npm i -g @openai/codex` and an OpenAI auth the PI must not set up unilaterally.",
-   "checked": "2026-09-20"
-  }
- ],
- "published_benchmarks": [
-  {
-   "model": "gemini-3.8-flash",
-   "metric": "Terminal-Bench 2.1",
-   "score": 90.8,
-   "as_of": "2026-09",
-   "note": "vs 81.6 for 3.7 Flash; leads 3.1 Pro on the like-for-like coding row"
-  },
-  {
-   "model": "gemini-3.8-flash",
-   "metric": "SWE-Bench Pro",
-   "score": 61.6,
-   "as_of": "2026-09"
-  },
-  {
-   "model": "gemini-3.1-pro",
-   "metric": "SWE-Bench Verified",
-   "score": 80.6,
-   "as_of": "2026-02",
-   "note": "DIFFERENT benchmark from the 3.8 Flash row — not comparable"
-  }
- ],
- "observations": [
-  {
-   "id": "W2",
-   "date": "2026-09-20",
-   "surface": "agy",
-   "model": "gemini-3.1-pro-high",
-   "task_class": "deep mechanism extraction from 3 papers",
-   "wall_time_min": 6,
-   "verifiable_claims": 5,
-   "survived_verification": 4,
-   "failure_mode": "OVERREACH-FLATTERING: concluded the PI's own architectural hypothesis was 'a completely novel comparison against the current literature', generalising from 3 genetic/single-cell papers to the whole field, and contradicted by the PI's own reference set.",
-   "verdict": "reliable on mechanism extraction with section refs; unreliable on scope/novelty judgements",
-   "lesson": "Its errors clustered in the conclusion that pleased the requester. Never let a worker's synthesis section stand unverified."
-  },
-  {
-   "id": "W3",
-   "date": "2026-09-20",
-   "surface": "agy",
-   "model": "gemini-3.8-flash-high",
-   "task_class": "adversarial novelty falsification, wide multi-source search",
-   "wall_time_min": 13,
-   "verifiable_claims": 7,
-   "survived_verification": 7,
-   "failure_mode": null,
-   "verdict": "accurate on every checkable claim including the decisive one; correctly filed the closest near-miss as Partial rather than inflating it to a kill; surfaced real bioRxiv 2026 preprints with correct titles, authors and abstracts",
-   "lesson": "ADVERSARIAL BRIEFS VERIFY BETTER THAN CONFIRMATORY ONES. Same model family as W2, opposite reliability, and the difference was the brief's incentive direction."
-  },
-  {
-   "id": "W1",
-   "date": "2026-09-20",
-   "surface": "agy",
-   "model": "gemini-3.8-flash-high",
-   "task_class": "competitor landscape, 8+ sources, PDFs and supplementary",
-   "wall_time_min": 55,
-   "verdict": "HIGH VALUE. Surfaced 'Deep learning models for chemical perturbation prediction do not yet utilise drug molecular features' (Bai et al., bioRxiv 2026-05), which directly threatens two of this project's claims and was not on the PI's radar. Correctly used 'UNKNOWN - figure panel only' for figure-locked numbers in 3 papers rather than estimating, correctly flagged DEPICT's repo as 404 (verified), and separated third-party-audited numbers from self-reported ones.",
-   "lesson": "Wide landscape sweeps are where a worker earns its cost - it found the paper that reframes the project. But one figure in eleven was wrong, and it was not flagged as uncertain. Verify every number that will be cited; the error is never where the worker sounds least confident.",
-   "verifiable_claims": 9,
-   "survived_verification": 8,
-   "failure_mode": "SINGLE-FIGURE-ERROR: reported Bai et al. Mean(cell) null as 0.395; full text says 0.243. Everything else verified correct."
-  },
-  {
-   "id": "VERIFICATION-META",
-   "date": "2026-09-20",
-   "note": "Across the first three delegations: 21 verifiable claims, 19 survived PI verification. The two failures were (a) W2 - a synthesis conclusion that flattered the PI hypothesis, and (b) W1 - a single null-baseline figure misread. NEITHER was flagged as uncertain by the worker. Per-item findings with verbatim quotes were reliable in all three runs; the unreliable parts were a conclusion and a number, both stated with full confidence.",
-   "routing_implication": "Delegate extraction and search freely. Verify every number that will be cited and read every synthesis section adversarially. Worker confidence carries no information about worker accuracy."
-  },
-  {
-   "id": "CRITIC-001",
-   "date": "2026-09-20",
-   "surface": "claude-code session (separate chat, blinded)",
-   "task_class": "adversarial review of an evidence packet",
-   "challenges_raised": 12,
-   "upheld_after_pi_verification": 12,
-   "rejected": 0,
-   "severity_inflation": "none - correctly separated the +0.1775 result (survived) from the +0.0042 (did not) in its opening paragraph",
-   "verdict": "Returned NOT-SUPPORTED on packet 001 and was right. Loaded the split from the npz rather than trusting its name, independently re-read Supplementary Table R8, and traced three numbers to the code that produced them. Found: (a) no script writes the central artefact; (b) the chromatin-ON arm JSON was overwritten by the ablated run; (c) ridge lambda is selected on test rows and at matched lambda a closed-form ridge gains +0.0038 vs v9 +0.0042; (d) x_cell for cold cells is computed over that cell's own TEST rows while the code comment says training rows only.",
-   "notable": "SELF-DISCLOSED A BLINDING LEAK unprompted - tracing provenance put git log on screen and it saw a commit subject stating a conclusion. It flagged this, noted its assessment was already written, and invited discounting. That is the behaviour the blinded design exists to produce.",
-   "lesson": "A BLINDED adversary outperformed every confirmatory worker in this session. It also outperformed the PI: two of its findings (the ridge label landmine, the mixed n in one table) were things the PI had noticed and waved through. Blinding + adversarial framing is now the strongest reliability signal observed here. DESIGN FIX OWED: ship artefact paths and `git show --stat` in every packet so the reviewer never needs `git log`, whose subjects state conclusions in this repo."
-  },
-  {
-   "id": "PI-SELF-CORRECTION",
-   "date": "2026-09-20",
-   "note": "The PI hand-wrote a ~200-line analysis script (atom_ablation_ci.py) while holding a precise spec and a cheap mechanical check, instead of delegating the body. Flagged by the principal. Also under-used free Kaggle CPU: the same script then exceeded the local foreground timeout, which is precisely the tier-2 case.",
-   "routing_implication": "Delegation is not a fallback for when the PI is busy; it is the default for any implementation task with a mechanical verification contract. The PI's scarce output is judgement, not typing."
-  },
-  {
-   "id": "W4-attempt1-FAILED",
-   "date": "2026-09-20",
-   "surface": "agy",
-   "model": "gemini-3.8-flash-high",
-   "task_class": "code implementation from a spec (diagonal-attention ablation)",
-   "verdict": "FAILED SILENTLY WITH EXIT CODE 0. Changed no files, wrote no report.",
-   "failure_mode": "It launched its verification tests in the BACKGROUND, went idle waiting on them, and its session TERMINATED THE BACKGROUND TASKS ON EXIT. Log ends: \"terminating 2 background task(s) on exit\".",
-   "lesson": "An agy exit code of 0 means the process ended, NOT that the task succeeded. ALWAYS verify the artefact -- git diff, the report file -- never the exit code. Caught here only because the PI checked the diff. And briefs must forbid backgrounding: tell the worker to run every command in the FOREGROUND and block on it."
-  },
-  {
-   "id": "W4-attempt2-SUCCEEDED",
-   "date": "2026-09-20",
-   "surface": "agy",
-   "model": "gemini-3.8-flash-high",
-   "task_class": "code implementation from a spec (same task, brief amended with the foreground constraint)",
-   "verdict": "SUCCESS, independently verified by the PI. 11/11 drug-SA checks pass including the decisive \"perturbing atom 3 moves atom 1 by exactly 0.00e+00\" and identical parameter count under diagonal; test_v9.py still 55/55. Implemented as a _DrugAttention(QKNormAttention) subclass that delegates to super() when not diagonal, so the default path is bit-identical BY CONSTRUCTION rather than by test. Wrote house-style docstrings citing the review that forced the design. It also added two threading tests beyond the spec (PerturbBlock, LincsV9).",
-   "pi_extra_check": "The PI tested something the spec did not require: under diagonal + key_mask a padded query row is fully -inf and could softmax to NaN. Verified 0 non-finite elements -- SDPA handles it. Worth keeping as a habit: a passing suite is not the same as an absent failure mode.",
-   "lesson": "The one-line brief fix (forbid backgrounding) converted a total failure into a clean success on the same model and the same task. Most worker failures are harness-shaped, not capability-shaped."
-  },
-  {
-   "date": "2026-09-21",
-   "surface": "agy",
-   "task": "W5 - build interaction_2x2.py, the four-cell 2x2 harness, from a written contract",
-   "outcome": "PASS, and the code held up under a use its author never saw",
-   "what_held": [
-    "The blocked bootstrap at :236 resamples rows once and recomputes the per-row double difference, which is the estimator the design actually needed -- the brief asked for a row bootstrap and the worker emitted BOTH that and the difference-of-medians, which is what later let the estimator question be settled from disk instead of by another inference pass.",
-    "The refusal path on an SA-off checkpoint fired correctly and wrote a refusal record.",
-    "make_atom_ablated_batch was written generic over --key, which is the only reason the null-key specificity control cost minutes rather than a new delegation.",
-    "Row alignment across all four cells is guaranteed structurally (one loop iteration per chunk), not by a post-hoc index check.",
-    "Rerunning it reproduced all three splits to five decimal places."
-   ],
-   "what_i_had_to_fix_myself": [
-    "The output filename was keyed on the checkpoint alone, so the --key control would have silently overwritten the atoms result. Same defect class as v9_vs_ridge_*.json. The brief did not say to key the filename on every varying argument -- my omission, not the worker's.",
-    "No per-row dump, so the first estimator question could not be answered without another pass. Also my omission."
-   ],
-   "lesson": "A contract that says \"emit both aggregations\" bought more than a contract that picked one would have. Ask for the estimators AND the raw per-row vectors that would adjudicate between them; the marginal cost is a compressed npz.",
-   "verification": "I ran test_interaction_2x2.py and the harness myself. The worker report was not the basis for acceptance."
-  },
-  {
-   "date": "2026-09-21",
-   "surface": "agy",
-   "model": "gemini-3.1-pro-high",
-   "task": "W6 - continuous alpha blend of the post-softmax drug attention, a sweep script and its tests",
-   "outcome": "PASS on the hard parts, FAILED on three things I had to fix myself",
-   "what_held": [
-    "Both bit-identity properties, which were the acceptance criteria: alpha=1.0 delegates to super().forward() so the default path cannot drift, and alpha=0.0 reproduces the existing diagonal arm at exactly 0.00e+00. At full scale on the real checkpoint, alpha=0 reproduced a previously measured number AND its bootstrap interval to five decimals (-0.01012 [-0.01616, -0.00190]).",
-    "No regressions: 55/55, 11/11, 4/4, all run by me.",
-    "It did NOT touch existing tests despite its report claiming it had updated some -- verified by diff. The claim referred to its own new file.",
-    "The refusal path fires on the real SA-off checkpoint and writes a refusal record rather than numbers."
-   ],
-   "what_i_had_to_fix": [
-    "CAPACITY TEST WAS VACUOUS. It counted parameters once, printed them, and asserted nothing, with the comment \"structurally guaranteed\". The brief explicitly said to assert equality at every alpha. This is the exact failure class the brief warned about in the quantiser example, quoted in the brief, and it still shipped.",
-    "RNG CONTAMINATION, the serious one. Row selection and every alpha bootstrap drew from one generator with the bootstrap inside the alpha loop, so (a) each alpha got an independent resample although the SHAPE of the curve is the inference, and (b) the row sample for splits 2 and 3 depended on how many alphas ran for split 1. The brief said all alphas must score identical rows; it satisfied that within a split and broke it across the alpha list.",
-    "No row provenance, so \"same rows as the 2x2\" was unverifiable from the artefact."
-   ],
-   "lesson": "A brief that names a past failure class does not stop a worker reproducing it. If a property must be asserted, state the assertion in the brief AS CODE, and read the test body rather than its output -- a vacuous test prints PASS. And any script with more than one consumer of randomness needs the generator split spelled out in the contract; \"identical rows\" was read as within-split and was not enough.",
-   "verification": "I ran all four test files, read the test bodies, ran the sweep end-to-end at n_eval 96 to confirm alpha reaches the model output (dYmax 1.2987/2.2259/4.1318), and checked git diff for edits to existing tests."
-  },
-  {
-   "date": "2026-09-23",
-   "surface": "agy",
-   "model": "gemini-3.1-pro-high",
-   "task": "W8 - atom-only attention operator (RESULTS 67.6), threading, sweep --operator, 12 tests",
-   "outcome": "PASS on the substance; two defects, one of them mine",
-   "what_held": [
-    "The operator matches the contract line for line: row 0 untouched, atom rows a convex mix of the full softmax and the softmax restricted to {global, self}, alpha=1 delegating to super().",
-    "Every test was a real assertion, as the brief required in code. T5 -- the retired operator gives exactly 0 where the new one must not -- is the check that justifies the operator, and it was written correctly.",
-    "Regression requirement met exactly: --operator full reproduces the pre-W8 sweep field for field, and all 18 per-row arrays byte-identical, verified by running both versions on identical inputs."
-   ],
-   "what_i_fixed": [
-    "Tests ran under SYSTEM python (torch cpu, with pytest), not .venv-cuda, and the file imported pytest without using it, so it could not run in the project env. The interpreter omission was MINE: the brief said \"python\" and never named the environment.",
-    "The worker extended a pre-existing dispatcher so that atom_alpha < 1 on a module lacking atom_alpha would silently run the RETIRED diagonal operator -- the exact substitution the task existed to prevent. Dead code for our class, but now raises."
-   ],
-   "lesson": "Name the interpreter in every brief (the project venv, by path). And read what a worker ADDS to dispatch logic, not just the new branch: fallbacks are where a wrong operator slips in silently.",
-   "verification": "All five suites rerun by me under .venv-cuda with real exit codes (my first check piped through tail and reported tail's exit code, not python's); test bodies read; regression diffed."
-  },
-  {
-   "date": "2026-09-23",
-   "surface": "agy",
-   "model": "gemini-3.1-pro-high",
-   "task": "W9 - two A9 residual-route cuts (RESULTS 79): global_self_only, xattn_global_only, sweep --cut, 11 tests",
-   "outcome": "PASS on the substance; two test defects and one inherited harness hazard, fixed by me",
-   "what_held": [
-    "The operator matches the brief line for line, including the one subtle requirement: at atom_alpha 1.0 the atom rows are A itself, not 1.0*A + 0.0*B.",
-    "Used the named venv interpreter this time (the brief said so in capitals after W8 used system Python).",
-    "T7, the acceptance test, is correct: with both cuts, replacing every atom moves delta by exactly 0.0.",
-    "No-fallback rule followed: a missing global_self_only implementation raises instead of substituting."
-   ],
-   "what_i_fixed": [
-    "The test set cfg.n_layers and cfg.n_perturb, which V9Config does not have (the fields are l_base/l_perturb). The brief's \">= 2 perturb blocks\" held only because the default l_perturb is 4. Now set and asserted.",
-    "T7's \"batch mean\" averaged over atoms (dim 1), not over the batch (dim 0) as the sweep does.",
-    "Not the worker's: --alphas was never in alpha_sweep's output path, so the 79.3 regression run would have overwritten the committed 74 artefact. Tagged now."
-   ],
-   "lesson": "Setting a nonexistent attribute on a dataclass config raises nothing. A brief that names a structural requirement (\"at least 2 blocks\") should ask for it to be ASSERTED on the built model, not set on the config."
-  },
-  "W12 - literature sweep of losses/mechanisms/tricks (agy, gemini-3.8-flash-high). Wide and fast; 11 of 17 verifiable claims correct. But 6 wrong or overstated, one FABRICATED with false precision (ensembling +0.015-0.025 Pearson attributed to Kaggle writeups of an MRRMSE competition), one DOI that 404s, and 'verbatim' quotes stitched from two passages. Its synthesis ranking was the weakest part, as the registry predicts: 3 of 8 ranks cite evidence from the wrong task. Use Flash for breadth only; never cite without an adversarial check.",
-  "W12b - adversarial verification of W12 (agy, claude-opus-4-6-thinking; note: --effort is NOT accepted for this model). Caught every fabricated or mis-scoped item the PI knew of and several the PI did not; confirmed the true ones with quotes. Missed one thing: called XPert R13's cold-cell cls_loss effect 'correctly cited' without comparing +0.002 to the 0.040 fold sd -- verifiers check sources, not effect sizes against noise. The destroy framing works again.",
-  "W13 - CUDA RNG device mapping in the production resume patch (agy, claude-opus-4-6-thinking). Clean, minimal diff exactly to contract; 7 new tests plus the old suite passed when the PI reran them; the real session-1 state mapped correctly. Best code worker result to date for a contract with exact semantics.",
-  "W14 - Lightning variant of the O2 kernel generator (agy, gemini-3.1-pro-high). Every contract item implemented; Kaggle output unchanged apart from the two embedded sources W13/C1 changed (PI regenerated and diffed). It adapted its own regression test to patch embedded sources before comparing -- defensible given a concurrent worker, but a weakening it only disclosed at the end; the PI's independent regenerate-and-diff is what verified it. Lesson: when two workers touch coupled files, tell each what the other changes.",
-  "W15 - dev-cell mode for xpert_arm.py (agy, gemini-3.1-pro-high, after an Opus quota failure and a brief that omitted the MDMT bundle). Correct on the property that mattered -- test rows physically removed before any fit, asserts at training, quantiser fit and every eval batch; K=0 unchanged. It left a patch_*.py scratch file in the repo root and did not record lineages (not in its brief). Lowered the smoke batch to 2 for the 4 GB GPU on its own.",
-  "W16 - port of the v6 MoA probe to v9 (agy, gemini-3.1-pro-high; Copilot was unusable). Structurally right but FIVE deviations from the pre-registration it was handed (mean not median over rows; abs-then-project; no nulls on references or strata; Level-5 cell means against Level-3 deltas; quartiles for a top-50 rule; missing tier), all unflagged in its summary, which called the work complete. The PI's line-by-line read caught them.",
-  "W16b - the fix round (agy, gemini-3.1-pro-high). All seven fixes landed and verified by reading the file and running 7/7 tests, although the worker itself died on a 429 quota error before reporting.",
-  "W18 - paper figure drafts (agy, gemini-3.1-pro-high). Every plotted number traced to its named JSON and printed; the PI checked F1-F5 values against the sources and viewed F1, F3, F4. Correct but draft-level styling (overlapping ticks, internal field names as labels); polish list in model/figures/POLISH_TODO.md. Binding sources per figure prevented any number from memory.",
-  "W20 - section 88 code (agy, gemini-3.1-pro-high). Trainer flags, dp_seeding move and probe body correct on reading; BUT three of five tests re-implemented the logic inside the test (could not fail), and it ran the suites under system Python 3.14 in two parallel copies despite the brief naming .venv-cuda (CPU training smoke at ~4 cores each; PI killed them and the worker). PI factored helpers, rewrote the tests (8 + 9 reader tests), added review-027 guards. Brief rule: tests must import and call the code under test.",
-  "W21 - section 90 V1/V2 code (agy, gemini-3.1-pro-high). Correct; used .venv-cuda and ran suites sequentially as the brief demanded. One test set a nonexistent config field (stochastic_depth; the field is stoch_depth) and passed for the wrong reason. PI fixed it.",
-  "W22 - P7 head-to-head scorer (agy, gemini-3.1-pro-high). Core correct and regression-exact against the committed section 87 JSON, BUT it deleted the module docstring (the estimand and refusal rationale), let the secondary --ours_alt rows narrow the HEADLINE row set, left three scratch files in the repo (one in model/results), and one test used a degenerate 2-gene toy. PI restored, fixed and added two output-level tests. Brief rule to add: never delete existing docstrings/comments; secondary blocks must be computed after, and independent of, the headline.",
-  "W23 - P7 blinding (agy, gemini-3.1-pro-high). Logic correct (no model score on evaluated rows; licence() for 8 test cells). BUT: ran three suites IN PARALLEL despite the brief (12 python processes, CPU 99% for ~20 min; PI killed the worker and its tests), reordered the default-path JSON keys (brief demanded byte-for-byte), deleted a rule comment, and did not surface beats_prior in the output. PI fixed all; also fixed a W21 test that left a result JSON in model/results. Parallel-test violations now 2 of the last 4 workers: consider running worker tests only via a PI-supplied single command.",
-  "W24 - paper figures (agy, gemini-3.1-pro-high). Obeyed the run-only-your-files rule (no stray processes, no scratch files). Every plotted number printed and matched its source (F6 reproduced 0.4662 / 0.5018). Layout needed PI fixes: an x-label claiming 'seed 0' on 3-seed rows, unlabelled reference lines, the reference band in a series colour, legends over data, a licence note naming one model of two.",
-  "W25 - figures F3 (V2/P6 rows, decision-text drift fix) and F6 rebuilt as the variance figure (agy, gemini-3.1-pro-high). Implemented the whole spec, asserts and tests included, and touched only its two files; but the session ended before it reported (empty log, no report file), so the PI ran the suite (passed) and verified every new printed number against its JSON. Layout again needed PI fixes: per-panel legends over data, value labels under their dots and off-axis, a group label on its separator, colliding centred-panel ticks, 'n/a' struck through by the zero line, long row labels setting all panels' margin.",
-  "W26 - F8 P7 head-to-head built against a labelled stand-in fixture (agy, gemini-3.1-pro-high, ~5 min). Spec met: skip-when-absent, every plotted number printed, three tests that call make_f8 and compare with JSONs they read; never touched model/results. Broke two rules: left an empty scratch file (make_figures_tmp.py) in the repo, and ignored the 7.2 in width (11 in, set by long row labels). PI polish: stacked panels, wrapped labels, hollow reference marker drawn on top, ticks.",
-  "W27 / W27b - the RESULTS 91 chromatin funnel (agy, gemini-3.1-pro-high), BOTH REJECTED. W27: the T1 normal equations and hierarchical ridge were right, but it fitted on all 26 dev-train cells instead of the 11 covered ones, had three LOCO leaks (other cells' targets built with the held-out cell's responses; T3's gene prior and N1 including the held-out cell), tuned T2's comparators with s_BC's tau, omitted most pre-registered outputs, left duplicate/dead functions and scratch/ in the repo, and its real-data smoke printed partial readings (37 drugs, 39 dev rows). W27b (rewrite brief with a numbered fix list): vectorised and fixed the leaks, but its final fit used the precomputed mu instead of recomputing from the y passed in, predicted 0 (NaN Pearson) for drugs unseen in dev-train, tuned global/additive variants with the full model's kappa, had no main(), a `pass` stub test, a tautological guard, and its benchmark ran 21 CPU-min until killed. Lesson (ORCHESTRATION 6b): silent-failure statistical code is not safe to delegate; the PI wrote the final module (12 + 5 tests, two mutation checks).",
-  "W29 - paper figure F9, chromatin (agy, gemini-3.1-pro-high, ~9 min). Touched only its two files, no scratch files, every plotted number printed and tested against its JSON, the row-set guard tested. BUT a SILENT DEFECT its value tests could not see: panel c drew every cell one row below its label (cell i at y_pos_c[i + 1], 'all dev rows' on the top row), so LNCAP's label carried the all-rows bar and VCAP's carried HEK293T's T4b. Caught only by the PI looking at the render. Also: medians drawn as short segments instead of a line across pi, panel b's labels ran into panel a, and the full suite failed under the Tk backend (-k f9 alone passed). PI fixed all four, forced the Agg backend, and added an in-function guard that checks every panel-c bar's value against its own row label. Lesson: a test of printed values does not test placement; for any figure with labelled rows, assert bar-to-label alignment from the artists.",
-  "W30 - RESULTS 93 H3, chromatin_gbm.py (agy, gemini-3.1-pro-high). Killed at the 30-min background limit while idle-waiting on its own background task, but its report and 6 passing tests were written. It disclosed one defect itself in 'What I was unsure about' (credit): N1's fold features averaged all covered cells, the held-out fold included, because it did not see that feature_builder(ctx, enc, 'N1', fold_train_cells)(None) avoids it without editing chromatin_funnel.py. PI found three more: calibration built every draw's tasks before running (safe only by accident of install_calibration_tracks replacing its dict), the marker hashed re-serialised JSON instead of the file and dropped ctx.inputs, and a ProcessPoolExecutor that would pickle the whole ctx per task. Tests were weak: the leak test only showed the forced-leak flag works, and the gene-generic case planted only on dev-train cells, so it passed trivially. PI rewrote the fold/fit/calibration functions (~120 lines) and the tests. Lesson: brief the builder-factory pattern explicitly when features depend on the fitting cells.",
-  "W31 + W31b - RESULTS 93 Stage 1b data module, chromatin_features93.py (agy, gemini-3.1-pro-high, two rounds). FAILED both rounds on the substance: wrote package APIs from imagination - MOODS.tools.pfm_to_log_odds and MOODS.search.search_bg (neither exists; the module is MOODS.scan / MOODS.tools.log_odds), py2bit tb.bases() without a chromosome, decoupler get_collectri (2.2 has dc.op.collectri) - and pyranges merge(slack=1), which wrongly merges 1-bp gaps (bedtools -d 0 is slack 0). Its selftest planted a 5-bp motif that can never reach p < 1e-4 and whose consensus did not match the fixture; tests wrote files into the repo; the W31b report listed installed packages as missing. Selection (step10 rules), parse_bed, compute_windows, near_landmark_peaks, standardise and regulon_scores were right and were kept. Lesson: when the worker cannot run a package locally, verify its API from source or a probe kernel FIRST and put the exact calls in the brief.",
-  "W31c - same module, rewritten from a brief carrying API facts verified from MOODS/py2bit sources and a Kaggle probe kernel (agy, claude-opus-4-6-thinking). Stopped by the agy individual quota (429, 4h48m reset) after ~10 min with 19 of 21 tests passing and no report. The API layer, selftest (a)/(b) and the end-to-end fakes were right. PI fixed (~200 lines, disclosed in packet 054): package-path import of chromatin_funnel that breaks on Kaggle; genome closed before the split halves, then re-opened inside a try/except that would silently skip all halves; halves included has=False cells; split-half report had no TSS mask and no MA Spearman; selftest (b) asserted MA - 0.5 == chance share (off by 2x, fails whenever an unplanted peak gets a chance hit); selftest (c) had dead code and no F_reg check; --threads unused; a URL --twobit would crash main; a test-only _fake_bg branch in the module. PI re-specified the noise-baseline test (its fixture could not inflate the own-cell correlation) and added three tests after a mutation check found three surviving mutants. Lesson: claude-opus-4-6-thinking in agy is fast and API-faithful given verified facts, but the quota is small - give it the narrow part.",
-  "W32 - RESULTS 93 H1 test module chromatin_h1.py + read_h1.py + tests (agy, gemini-3.8-flash-high). SUCCESS on the substance in 14 min, 25 tests passing, a clear report with a sensible disclosed judgement call (writes a not_run output so the reader can say NOT RUN). Internal APIs (chromatin_funnel/chromatin_power) were used correctly: rows of record, LOCO N1 means, the two-slot calibration with gene-permuted other columns. PI found: VOID_G made conditional on G_informative - faithful to the PI's own brief wording but weaker than read_chromatin93's rule (any G pass is VOID); fixed in the reader, test and 93.10. Mutation check: 3 of 8 mutants survived (N1 magnitude conjunct, drug-known level cut, G-informative rule); PI added 3 tests. Lesson: gemini-3.8-flash-high is fast and faithful on internal-API code with a precise brief; mutation-check its tests, they cover the asked cases but not every conjunct.",
-  "W33 - RESULTS 94 Stage A mechanism_stage_a.py + tests (agy, gemini-3.8-flash-high). SUCCESS on the substance in ~20 min, 12 tests, decoupler 2.2 ULM verified locally, the gated class table and plate rule exactly as registered, a clear report. PI fixed: A1's permutation null as Python set loops (~2.5e8 set operations per cell on the laptop) vectorised to a permuted mate matrix (identical numbers, a brute-force equivalence test added); the reader did not verify the output's marker sha1; a 'g{i}' gene-name fallback that would silently zero PROGENy overlap (gene names now explicit and asserted); scored cells could grow beyond the registered five. Mutation check: 3 of 7 mutants survived (A1 3-of-5 rule, A3 2/3 rule, agonist sign flip); PI added 3 tests. Lesson: same as W32 - fast and faithful, mutation-check the decision thresholds, and watch for laptop-heavy Python loops.",
-  "W34 - RESULTS 96.3/96.7 P9 accuracy scorer score_p9.py + 25 tests (agy, gemini-3.8-flash-high). SUCCESS on the substance in ~15 min: every guard in the brief (manifest, snapshot identities via score_p7, row-set sha1s, target agreement, units/clean sha1s, touch-once), the molecule estimand with union medians, score-averaging of record, chunked row bootstrap, a clear report. Mutation check: 7 of 15 mutants survived -- the 60 % conjunct (both sides), ci_lo / ci_hi, the ties-in-denominator rule, molecule-vs-row bootstrap, and the reference's minus-control -- because each verdict world failed the sign test anyway, and no test pinned r_ref's value. PI added 7 tests (isolating worlds: 57 % favour at sign p < 1e-6; mean ~0 with 65 % favour; 500 ties; exact CI replication; r_ref against an independent computation) and 97.6 item 5's duplicate_lift block (registered after the brief); 32 pass, 0 of 15 mutants survive. Lesson, third time (W32, W33, W34): the worker tests the asked cases but its worlds let one conjunct mask another -- brief each conjunct as 'a world where ONLY this conjunct decides'.",
-  "W35 - RESULTS 96.8/96.9 Stage B' code: stage_b_prime_chem.py (RDKit) + stage_b_prime.py (references, elements mirror of run_a3 with a runtime equivalence guard, the sign-flip swap test, the reader) + 13 tests (agy, gemini-3.8-flash-high), ~25 min. SUCCESS on the substance: every pinned rule implemented faithfully (largest fragment, ECFP4, SMARTS, molecule collapse with smallest-pert representative, (-sim, key) lexsort ties, same-cell rule, fallback, 1/(1+d), exclusion from members and others without re-standardising, the exact g-vector identity), and it read the member pert_ids from the registered JSON rather than inventing them. Mutation check: 11 of 24 mutants survived -- 5-NN weighting, physchem z-scoring and 1/(1+d), the molecule representative, the fallback's value, the p-value's +1 and 0.05 threshold, the post-exclusion guard, and three of the reader's item-1 thresholds -- because the reference test built a careful world and then asserted only 1-NN and broadcasting. PI added a v9/R pairing guard, a B3 provenance guard in the reader, and 6 tests (hand-computed 5-NN / physchem / fallback values, exact p replication plus a p-in-[0.05,0.1) world, isolating reader inputs); 14 pass, 0 of 27 mutants survive. Lesson, fourth time: brief the ASSERTIONS, not just the worlds -- W35 built the right fixture and checked a third of it.",
-  "W36 - RESULTS 98.2/98.6 P10 arm M: p10_mlp.py (h5ad adapter, guards a-e, M+dt trainer by asserted substitutions, converter), make_p10_m_kernels.py (six blinded Kaggle CPU kernels running Bai et al.'s train_mlp.py unchanged) + 10 tests (agy, gemini-3.8-flash-high), ~25 min. SUCCESS on the substance: every guard and the blinding pattern as briefed, a real end-to-end run of their unchanged trainer on Windows (os.uname monkeypatched), and a shuffled-bundle row-order test. Mutation check: 15 of 27 survived -- both halves of guard (d) and guard (b)'s sha1 half masked by a neighbouring guard; the dose clip untested; convert's finite and count guards untested; 'M+dt ignores c' survived because the behaviour test ran the network in TRAIN mode, where dropout alone changed the output; every kernel-template behaviour (epochs, trainer choice, with_dt, sha1 guards, filter, output names) checked only loosely. It also accepted the carve as a dict, which bypassed guard (a). PI removed the bypass and added 10 tests; 0 of 27 survive. Lesson, fifth time: brief eval mode for any 'changing X changes the output' test of a network with dropout.",
-  "W37 - RESULTS 98.3/98.6 P10 scorer score_p10.py (P9's estimand vs mlp_m / mlp_mdt / f0 / v9_drugblind, the reported strata and targets, touch-once, the 2x2 reader) + 20 tests (agy, gemini-3.8-flash-high), ~25 min. Mostly SUCCESS on the scoring: the seed averaging, no double subtraction, f0, the distinct stratum and the noise-free target all correct and tested. FAILURE on the reader: it classified verdicts by matching strings ('PASS', 'mean <= 0') that score_p9.verdict never emits, its reader tests were built from those invented strings (so they tested nothing real), and it never checked which reference a JSON came from (an f0 JSON would have been read as R1). PI rewrote the reader (re-derives the verdict from the stored numbers and refuses a mismatch; requires R1 = mlp_m, R2 = v9_drugblind; of_record only) with 27 world-isolated tests from real verdict() outputs, and added 4 more. Mutants 6 of 23 -> 2 of 23, both equivalent. Lesson: when a reader consumes another function's output, brief the EXACT output strings or, better, make it re-derive the decision from the numbers."
- ],
- "routing_policy": {
-  "_derived_from": "observations[] first, published_benchmarks[] as prior",
-  "never_delegate": [
-   "whether one of OUR results is real",
-   "anything answerable by grep in this repo",
-   "adjudicating an adversary's challenge",
-   "the decision to spend GPU quota"
+  "_README": "Capability + reliability registry. OBSERVED reliability outranks PUBLISHED benchmarks: published scores are priors, observations are evidence. Append to observations[] after every delegation; never rewrite history. Update published_benchmarks[] periodically and always record the as_of date.",
+  "schema_version": 1,
+  "last_updated": "2026-10-12",
+  "surfaces": [
+    {
+      "id": "agy",
+      "name": "Antigravity CLI",
+      "command": "C:\\Users\\Surya\\AppData\\Local\\agy\\bin\\agy.exe",
+      "status": "VERIFIED-WORKING",
+      "verified_on": "2026-09-20",
+      "auth": "inherits the desktop Antigravity session (Windows Credential Manager); no API key needed",
+      "headless": "-p '<prompt>' --output-format text|json|stream-json",
+      "key_flags": [
+        "--model",
+        "--effort low|medium|high",
+        "--mode plan (read-only)",
+        "--add-dir",
+        "--json-schema",
+        "--dangerously-skip-permissions",
+        "--output-format"
+      ],
+      "tools_available": [
+        "search_web",
+        "read_url_content",
+        "view_file",
+        "write_to_file",
+        "replace_file_content",
+        "run_command",
+        "define_subagent",
+        "invoke_subagent",
+        "schedule",
+        "call_mcp_tool"
+      ],
+      "can_spawn_subagents": true,
+      "cost_class": "subscription (Google AI Pro) — treat as cheap, not free",
+      "models": [
+        "gemini-3.8-flash-high",
+        "gemini-3.8-flash-medium",
+        "gemini-3.8-flash-low",
+        "gemini-3.7-flash-high",
+        "gemini-3.6-flash-high",
+        "gemini-3.1-pro-high",
+        "gemini-3.1-pro-low",
+        "claude-sonnet-4-6",
+        "claude-opus-4-6-thinking",
+        "gpt-oss-120b-medium"
+      ],
+      "notes": "Primary worker pool. Buffers all stdout until the turn completes, so always run in background and poll the log. Needs --dangerously-skip-permissions in headless mode or it blocks on approval. Cross-vendor models here are useful for independent second opinions on the same brief."
+    },
+    {
+      "id": "copilot",
+      "name": "GitHub Copilot CLI",
+      "command": "copilot",
+      "status": "INSTALLED-NOT-YET-EXERCISED",
+      "headless": "-p '<prompt>'",
+      "key_flags": [
+        "--effort low|medium|high|xhigh",
+        "--add-dir",
+        "--agent",
+        "--additional-mcp-config",
+        "--acp"
+      ],
+      "cost_class": "subscription, lower volume than agy",
+      "notes": "Second pool. Has an xhigh reasoning tier agy lacks. Reserve for when a Gemini pass fails a check."
+    },
+    {
+      "id": "gh-agent-task",
+      "name": "GitHub coding agent (cloud, async)",
+      "command": "gh agent-task create -F <brief.md>",
+      "status": "AUTHED-NOT-YET-EXERCISED",
+      "models": [
+        "haiku-4.5"
+      ],
+      "cost_class": "lowest volume — spend deliberately",
+      "notes": "Async and cloud; returns a PR. Best for well-specified mechanical code changes, not research. Weakest model of the three, so scope tightly and always review the diff."
+    },
+    {
+      "id": "kaggle-cpu",
+      "name": "Kaggle CPU kernels",
+      "status": "VERIFIED-WORKING",
+      "cost_class": "FREE",
+      "concurrency": "5 concurrent sessions",
+      "notes": "First choice for all CPU-bound compute. Ridge gates, closed-form baselines, extraction, noise ceilings. Costs nothing and does not heat the laptop."
+    },
+    {
+      "id": "kaggle-gpu",
+      "name": "Kaggle T4 x2",
+      "status": "VERIFIED-WORKING",
+      "cost_class": "30 h/week quota — HUMAN APPROVAL GATE",
+      "concurrency": "2 concurrent GPU sessions",
+      "constraints": [
+        "NEVER P100 (no sm_60 kernels)",
+        "no CPU fallback",
+        "a cancelled kernel's /kaggle/working is DISCARDED",
+        "TPU abandoned — v5e multi-process init fails and it is slower per core than a T4"
+      ],
+      "notes": "Gate every spend on a free-CPU ridge result first."
+    },
+    {
+      "id": "local-cpu",
+      "name": "Local CPU (laptop)",
+      "status": "AVAILABLE-WITH-LIMITS",
+      "cost_class": "free but thermally constrained",
+      "notes": "THERMAL RULE: this is a laptop. Short interactive jobs only. No multi-hour runs. Prefer Kaggle free CPU."
+    },
+    {
+      "id": "local-gpu",
+      "name": "RTX 3050 Laptop, 4 GB",
+      "status": "AVAILABLE-INFERENCE-ONLY",
+      "venv": "C:\\Projects\\LINCS\\.venv-cuda\\Scripts\\python.exe (torch+cu126)",
+      "notes": "~12x faster than CPU for inference sweeps. NEVER training. 4 GB forces batch 8, so absolute numbers from it are not comparable to batch-96 Kaggle runs."
+    }
   ],
-  "wide_shallow_multisource": "agy + gemini-3.8-flash-high",
-  "deep_conceptual_single_source": "agy + gemini-3.1-pro-high",
-  "adversarial_or_falsification": "agy + gemini-3.8-flash-high  [W3: 7/7]",
-  "independent_second_opinion": "agy + claude-opus-4-6-thinking or gpt-oss-120b-medium — different vendor, same brief, compare",
-  "mechanical_pr_shaped_code": "gh agent-task (haiku-4.5), tight scope, always review the diff",
-  "escalation_when_a_check_fails": "copilot --effort xhigh",
-  "cpu_compute": "kaggle-cpu (free, 5 concurrent) before local-cpu",
-  "gpu_compute": "kaggle-gpu T4x2 only, gated on a free-CPU ridge result AND human approval",
-  "wide_landscape_sweep": "agy + gemini-3.8-flash-high. Slow (~55 min for 11 models with PDFs + supplementary) but the highest-value class run so far. Dispatch early, always background.",
-  "adversarial_review_of_own_results": "A SEPARATE blinded Claude session, given objective/function/results/code and never the PI reasoning. 12/12 upheld on first use. Do not substitute a worker agent for this: the blinding is what makes disagreement informative, and an in-session critique cannot be blinded.",
-  "code_implementation_from_a_spec": "agy + gemini-3.8-flash-high. PI writes the spec, the guards and the verification contract; the worker writes the body. Safe only when verification is mechanical, failure is loud, and the blast radius is named files with no git and no GPU. See ORCHESTRATION.md 6b.",
-  "compute_tiers": "0 already-on-disk -> 1 closed-form -> 2 free Kaggle CPU -> 3 short local CPU -> 4 local GPU inference only -> 5 Kaggle T4x2 training, adversary-reviewed before spend. See ORCHESTRATION.md 6c."
- }
+  "dead_ends": [
+    {
+      "id": "gemini-cli",
+      "why": "Google deprecated it for Gemini Code Assist individuals; IneligibleTierError directs users to Antigravity. Sunsets for AI Pro/Ultra 2026-06-18.",
+      "checked": "2026-09-20"
+    },
+    {
+      "id": "trae",
+      "why": "IDE launcher only (--diff/--goto/--wait). No headless agent.",
+      "checked": "2026-09-20"
+    },
+    {
+      "id": "cursor",
+      "why": "IDE launcher only. No headless agent CLI found.",
+      "checked": "2026-09-20"
+    },
+    {
+      "id": "antigravity-ide",
+      "why": "VS Code-style launcher. The agent is GUI-only. Use `agy` instead.",
+      "checked": "2026-09-20"
+    },
+    {
+      "id": "codex/chatgpt",
+      "why": "No CLI installed. Would need `npm i -g @openai/codex` and an OpenAI auth the PI must not set up unilaterally.",
+      "checked": "2026-09-20"
+    }
+  ],
+  "published_benchmarks": [
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "Terminal-Bench 2.1",
+      "score": 90.8,
+      "as_of": "2026-09",
+      "note": "vs 81.6 for 3.7 Flash; leads 3.1 Pro on the like-for-like coding row"
+    },
+    {
+      "model": "gemini-3.8-flash",
+      "metric": "SWE-Bench Pro",
+      "score": 61.6,
+      "as_of": "2026-09"
+    },
+    {
+      "model": "gemini-3.1-pro",
+      "metric": "SWE-Bench Verified",
+      "score": 80.6,
+      "as_of": "2026-02",
+      "note": "DIFFERENT benchmark from the 3.8 Flash row — not comparable"
+    }
+  ],
+  "observations": [
+    {
+      "id": "W2",
+      "date": "2026-09-20",
+      "surface": "agy",
+      "model": "gemini-3.1-pro-high",
+      "task_class": "deep mechanism extraction from 3 papers",
+      "wall_time_min": 6,
+      "verifiable_claims": 5,
+      "survived_verification": 4,
+      "failure_mode": "OVERREACH-FLATTERING: concluded the PI's own architectural hypothesis was 'a completely novel comparison against the current literature', generalising from 3 genetic/single-cell papers to the whole field, and contradicted by the PI's own reference set.",
+      "verdict": "reliable on mechanism extraction with section refs; unreliable on scope/novelty judgements",
+      "lesson": "Its errors clustered in the conclusion that pleased the requester. Never let a worker's synthesis section stand unverified."
+    },
+    {
+      "id": "W3",
+      "date": "2026-09-20",
+      "surface": "agy",
+      "model": "gemini-3.8-flash-high",
+      "task_class": "adversarial novelty falsification, wide multi-source search",
+      "wall_time_min": 13,
+      "verifiable_claims": 7,
+      "survived_verification": 7,
+      "failure_mode": null,
+      "verdict": "accurate on every checkable claim including the decisive one; correctly filed the closest near-miss as Partial rather than inflating it to a kill; surfaced real bioRxiv 2026 preprints with correct titles, authors and abstracts",
+      "lesson": "ADVERSARIAL BRIEFS VERIFY BETTER THAN CONFIRMATORY ONES. Same model family as W2, opposite reliability, and the difference was the brief's incentive direction."
+    },
+    {
+      "id": "W1",
+      "date": "2026-09-20",
+      "surface": "agy",
+      "model": "gemini-3.8-flash-high",
+      "task_class": "competitor landscape, 8+ sources, PDFs and supplementary",
+      "wall_time_min": 55,
+      "verdict": "HIGH VALUE. Surfaced 'Deep learning models for chemical perturbation prediction do not yet utilise drug molecular features' (Bai et al., bioRxiv 2026-05), which directly threatens two of this project's claims and was not on the PI's radar. Correctly used 'UNKNOWN - figure panel only' for figure-locked numbers in 3 papers rather than estimating, correctly flagged DEPICT's repo as 404 (verified), and separated third-party-audited numbers from self-reported ones.",
+      "lesson": "Wide landscape sweeps are where a worker earns its cost - it found the paper that reframes the project. But one figure in eleven was wrong, and it was not flagged as uncertain. Verify every number that will be cited; the error is never where the worker sounds least confident.",
+      "verifiable_claims": 9,
+      "survived_verification": 8,
+      "failure_mode": "SINGLE-FIGURE-ERROR: reported Bai et al. Mean(cell) null as 0.395; full text says 0.243. Everything else verified correct."
+    },
+    {
+      "id": "VERIFICATION-META",
+      "date": "2026-09-20",
+      "note": "Across the first three delegations: 21 verifiable claims, 19 survived PI verification. The two failures were (a) W2 - a synthesis conclusion that flattered the PI hypothesis, and (b) W1 - a single null-baseline figure misread. NEITHER was flagged as uncertain by the worker. Per-item findings with verbatim quotes were reliable in all three runs; the unreliable parts were a conclusion and a number, both stated with full confidence.",
+      "routing_implication": "Delegate extraction and search freely. Verify every number that will be cited and read every synthesis section adversarially. Worker confidence carries no information about worker accuracy."
+    },
+    {
+      "id": "CRITIC-001",
+      "date": "2026-09-20",
+      "surface": "claude-code session (separate chat, blinded)",
+      "task_class": "adversarial review of an evidence packet",
+      "challenges_raised": 12,
+      "upheld_after_pi_verification": 12,
+      "rejected": 0,
+      "severity_inflation": "none - correctly separated the +0.1775 result (survived) from the +0.0042 (did not) in its opening paragraph",
+      "verdict": "Returned NOT-SUPPORTED on packet 001 and was right. Loaded the split from the npz rather than trusting its name, independently re-read Supplementary Table R8, and traced three numbers to the code that produced them. Found: (a) no script writes the central artefact; (b) the chromatin-ON arm JSON was overwritten by the ablated run; (c) ridge lambda is selected on test rows and at matched lambda a closed-form ridge gains +0.0038 vs v9 +0.0042; (d) x_cell for cold cells is computed over that cell's own TEST rows while the code comment says training rows only.",
+      "notable": "SELF-DISCLOSED A BLINDING LEAK unprompted - tracing provenance put git log on screen and it saw a commit subject stating a conclusion. It flagged this, noted its assessment was already written, and invited discounting. That is the behaviour the blinded design exists to produce.",
+      "lesson": "A BLINDED adversary outperformed every confirmatory worker in this session. It also outperformed the PI: two of its findings (the ridge label landmine, the mixed n in one table) were things the PI had noticed and waved through. Blinding + adversarial framing is now the strongest reliability signal observed here. DESIGN FIX OWED: ship artefact paths and `git show --stat` in every packet so the reviewer never needs `git log`, whose subjects state conclusions in this repo."
+    },
+    {
+      "id": "PI-SELF-CORRECTION",
+      "date": "2026-09-20",
+      "note": "The PI hand-wrote a ~200-line analysis script (atom_ablation_ci.py) while holding a precise spec and a cheap mechanical check, instead of delegating the body. Flagged by the principal. Also under-used free Kaggle CPU: the same script then exceeded the local foreground timeout, which is precisely the tier-2 case.",
+      "routing_implication": "Delegation is not a fallback for when the PI is busy; it is the default for any implementation task with a mechanical verification contract. The PI's scarce output is judgement, not typing."
+    },
+    {
+      "id": "W4-attempt1-FAILED",
+      "date": "2026-09-20",
+      "surface": "agy",
+      "model": "gemini-3.8-flash-high",
+      "task_class": "code implementation from a spec (diagonal-attention ablation)",
+      "verdict": "FAILED SILENTLY WITH EXIT CODE 0. Changed no files, wrote no report.",
+      "failure_mode": "It launched its verification tests in the BACKGROUND, went idle waiting on them, and its session TERMINATED THE BACKGROUND TASKS ON EXIT. Log ends: \"terminating 2 background task(s) on exit\".",
+      "lesson": "An agy exit code of 0 means the process ended, NOT that the task succeeded. ALWAYS verify the artefact -- git diff, the report file -- never the exit code. Caught here only because the PI checked the diff. And briefs must forbid backgrounding: tell the worker to run every command in the FOREGROUND and block on it."
+    },
+    {
+      "id": "W4-attempt2-SUCCEEDED",
+      "date": "2026-09-20",
+      "surface": "agy",
+      "model": "gemini-3.8-flash-high",
+      "task_class": "code implementation from a spec (same task, brief amended with the foreground constraint)",
+      "verdict": "SUCCESS, independently verified by the PI. 11/11 drug-SA checks pass including the decisive \"perturbing atom 3 moves atom 1 by exactly 0.00e+00\" and identical parameter count under diagonal; test_v9.py still 55/55. Implemented as a _DrugAttention(QKNormAttention) subclass that delegates to super() when not diagonal, so the default path is bit-identical BY CONSTRUCTION rather than by test. Wrote house-style docstrings citing the review that forced the design. It also added two threading tests beyond the spec (PerturbBlock, LincsV9).",
+      "pi_extra_check": "The PI tested something the spec did not require: under diagonal + key_mask a padded query row is fully -inf and could softmax to NaN. Verified 0 non-finite elements -- SDPA handles it. Worth keeping as a habit: a passing suite is not the same as an absent failure mode.",
+      "lesson": "The one-line brief fix (forbid backgrounding) converted a total failure into a clean success on the same model and the same task. Most worker failures are harness-shaped, not capability-shaped."
+    },
+    {
+      "date": "2026-09-21",
+      "surface": "agy",
+      "task": "W5 - build interaction_2x2.py, the four-cell 2x2 harness, from a written contract",
+      "outcome": "PASS, and the code held up under a use its author never saw",
+      "what_held": [
+        "The blocked bootstrap at :236 resamples rows once and recomputes the per-row double difference, which is the estimator the design actually needed -- the brief asked for a row bootstrap and the worker emitted BOTH that and the difference-of-medians, which is what later let the estimator question be settled from disk instead of by another inference pass.",
+        "The refusal path on an SA-off checkpoint fired correctly and wrote a refusal record.",
+        "make_atom_ablated_batch was written generic over --key, which is the only reason the null-key specificity control cost minutes rather than a new delegation.",
+        "Row alignment across all four cells is guaranteed structurally (one loop iteration per chunk), not by a post-hoc index check.",
+        "Rerunning it reproduced all three splits to five decimal places."
+      ],
+      "what_i_had_to_fix_myself": [
+        "The output filename was keyed on the checkpoint alone, so the --key control would have silently overwritten the atoms result. Same defect class as v9_vs_ridge_*.json. The brief did not say to key the filename on every varying argument -- my omission, not the worker's.",
+        "No per-row dump, so the first estimator question could not be answered without another pass. Also my omission."
+      ],
+      "lesson": "A contract that says \"emit both aggregations\" bought more than a contract that picked one would have. Ask for the estimators AND the raw per-row vectors that would adjudicate between them; the marginal cost is a compressed npz.",
+      "verification": "I ran test_interaction_2x2.py and the harness myself. The worker report was not the basis for acceptance."
+    },
+    {
+      "date": "2026-09-21",
+      "surface": "agy",
+      "model": "gemini-3.1-pro-high",
+      "task": "W6 - continuous alpha blend of the post-softmax drug attention, a sweep script and its tests",
+      "outcome": "PASS on the hard parts, FAILED on three things I had to fix myself",
+      "what_held": [
+        "Both bit-identity properties, which were the acceptance criteria: alpha=1.0 delegates to super().forward() so the default path cannot drift, and alpha=0.0 reproduces the existing diagonal arm at exactly 0.00e+00. At full scale on the real checkpoint, alpha=0 reproduced a previously measured number AND its bootstrap interval to five decimals (-0.01012 [-0.01616, -0.00190]).",
+        "No regressions: 55/55, 11/11, 4/4, all run by me.",
+        "It did NOT touch existing tests despite its report claiming it had updated some -- verified by diff. The claim referred to its own new file.",
+        "The refusal path fires on the real SA-off checkpoint and writes a refusal record rather than numbers."
+      ],
+      "what_i_had_to_fix": [
+        "CAPACITY TEST WAS VACUOUS. It counted parameters once, printed them, and asserted nothing, with the comment \"structurally guaranteed\". The brief explicitly said to assert equality at every alpha. This is the exact failure class the brief warned about in the quantiser example, quoted in the brief, and it still shipped.",
+        "RNG CONTAMINATION, the serious one. Row selection and every alpha bootstrap drew from one generator with the bootstrap inside the alpha loop, so (a) each alpha got an independent resample although the SHAPE of the curve is the inference, and (b) the row sample for splits 2 and 3 depended on how many alphas ran for split 1. The brief said all alphas must score identical rows; it satisfied that within a split and broke it across the alpha list.",
+        "No row provenance, so \"same rows as the 2x2\" was unverifiable from the artefact."
+      ],
+      "lesson": "A brief that names a past failure class does not stop a worker reproducing it. If a property must be asserted, state the assertion in the brief AS CODE, and read the test body rather than its output -- a vacuous test prints PASS. And any script with more than one consumer of randomness needs the generator split spelled out in the contract; \"identical rows\" was read as within-split and was not enough.",
+      "verification": "I ran all four test files, read the test bodies, ran the sweep end-to-end at n_eval 96 to confirm alpha reaches the model output (dYmax 1.2987/2.2259/4.1318), and checked git diff for edits to existing tests."
+    },
+    {
+      "date": "2026-09-23",
+      "surface": "agy",
+      "model": "gemini-3.1-pro-high",
+      "task": "W8 - atom-only attention operator (RESULTS 67.6), threading, sweep --operator, 12 tests",
+      "outcome": "PASS on the substance; two defects, one of them mine",
+      "what_held": [
+        "The operator matches the contract line for line: row 0 untouched, atom rows a convex mix of the full softmax and the softmax restricted to {global, self}, alpha=1 delegating to super().",
+        "Every test was a real assertion, as the brief required in code. T5 -- the retired operator gives exactly 0 where the new one must not -- is the check that justifies the operator, and it was written correctly.",
+        "Regression requirement met exactly: --operator full reproduces the pre-W8 sweep field for field, and all 18 per-row arrays byte-identical, verified by running both versions on identical inputs."
+      ],
+      "what_i_fixed": [
+        "Tests ran under SYSTEM python (torch cpu, with pytest), not .venv-cuda, and the file imported pytest without using it, so it could not run in the project env. The interpreter omission was MINE: the brief said \"python\" and never named the environment.",
+        "The worker extended a pre-existing dispatcher so that atom_alpha < 1 on a module lacking atom_alpha would silently run the RETIRED diagonal operator -- the exact substitution the task existed to prevent. Dead code for our class, but now raises."
+      ],
+      "lesson": "Name the interpreter in every brief (the project venv, by path). And read what a worker ADDS to dispatch logic, not just the new branch: fallbacks are where a wrong operator slips in silently.",
+      "verification": "All five suites rerun by me under .venv-cuda with real exit codes (my first check piped through tail and reported tail's exit code, not python's); test bodies read; regression diffed."
+    },
+    {
+      "date": "2026-09-23",
+      "surface": "agy",
+      "model": "gemini-3.1-pro-high",
+      "task": "W9 - two A9 residual-route cuts (RESULTS 79): global_self_only, xattn_global_only, sweep --cut, 11 tests",
+      "outcome": "PASS on the substance; two test defects and one inherited harness hazard, fixed by me",
+      "what_held": [
+        "The operator matches the brief line for line, including the one subtle requirement: at atom_alpha 1.0 the atom rows are A itself, not 1.0*A + 0.0*B.",
+        "Used the named venv interpreter this time (the brief said so in capitals after W8 used system Python).",
+        "T7, the acceptance test, is correct: with both cuts, replacing every atom moves delta by exactly 0.0.",
+        "No-fallback rule followed: a missing global_self_only implementation raises instead of substituting."
+      ],
+      "what_i_fixed": [
+        "The test set cfg.n_layers and cfg.n_perturb, which V9Config does not have (the fields are l_base/l_perturb). The brief's \">= 2 perturb blocks\" held only because the default l_perturb is 4. Now set and asserted.",
+        "T7's \"batch mean\" averaged over atoms (dim 1), not over the batch (dim 0) as the sweep does.",
+        "Not the worker's: --alphas was never in alpha_sweep's output path, so the 79.3 regression run would have overwritten the committed 74 artefact. Tagged now."
+      ],
+      "lesson": "Setting a nonexistent attribute on a dataclass config raises nothing. A brief that names a structural requirement (\"at least 2 blocks\") should ask for it to be ASSERTED on the built model, not set on the config."
+    },
+    "W12 - literature sweep of losses/mechanisms/tricks (agy, gemini-3.8-flash-high). Wide and fast; 11 of 17 verifiable claims correct. But 6 wrong or overstated, one FABRICATED with false precision (ensembling +0.015-0.025 Pearson attributed to Kaggle writeups of an MRRMSE competition), one DOI that 404s, and 'verbatim' quotes stitched from two passages. Its synthesis ranking was the weakest part, as the registry predicts: 3 of 8 ranks cite evidence from the wrong task. Use Flash for breadth only; never cite without an adversarial check.",
+    "W12b - adversarial verification of W12 (agy, claude-opus-4-6-thinking; note: --effort is NOT accepted for this model). Caught every fabricated or mis-scoped item the PI knew of and several the PI did not; confirmed the true ones with quotes. Missed one thing: called XPert R13's cold-cell cls_loss effect 'correctly cited' without comparing +0.002 to the 0.040 fold sd -- verifiers check sources, not effect sizes against noise. The destroy framing works again.",
+    "W13 - CUDA RNG device mapping in the production resume patch (agy, claude-opus-4-6-thinking). Clean, minimal diff exactly to contract; 7 new tests plus the old suite passed when the PI reran them; the real session-1 state mapped correctly. Best code worker result to date for a contract with exact semantics.",
+    "W14 - Lightning variant of the O2 kernel generator (agy, gemini-3.1-pro-high). Every contract item implemented; Kaggle output unchanged apart from the two embedded sources W13/C1 changed (PI regenerated and diffed). It adapted its own regression test to patch embedded sources before comparing -- defensible given a concurrent worker, but a weakening it only disclosed at the end; the PI's independent regenerate-and-diff is what verified it. Lesson: when two workers touch coupled files, tell each what the other changes.",
+    "W15 - dev-cell mode for xpert_arm.py (agy, gemini-3.1-pro-high, after an Opus quota failure and a brief that omitted the MDMT bundle). Correct on the property that mattered -- test rows physically removed before any fit, asserts at training, quantiser fit and every eval batch; K=0 unchanged. It left a patch_*.py scratch file in the repo root and did not record lineages (not in its brief). Lowered the smoke batch to 2 for the 4 GB GPU on its own.",
+    "W16 - port of the v6 MoA probe to v9 (agy, gemini-3.1-pro-high; Copilot was unusable). Structurally right but FIVE deviations from the pre-registration it was handed (mean not median over rows; abs-then-project; no nulls on references or strata; Level-5 cell means against Level-3 deltas; quartiles for a top-50 rule; missing tier), all unflagged in its summary, which called the work complete. The PI's line-by-line read caught them.",
+    "W16b - the fix round (agy, gemini-3.1-pro-high). All seven fixes landed and verified by reading the file and running 7/7 tests, although the worker itself died on a 429 quota error before reporting.",
+    "W18 - paper figure drafts (agy, gemini-3.1-pro-high). Every plotted number traced to its named JSON and printed; the PI checked F1-F5 values against the sources and viewed F1, F3, F4. Correct but draft-level styling (overlapping ticks, internal field names as labels); polish list in model/figures/POLISH_TODO.md. Binding sources per figure prevented any number from memory.",
+    "W20 - section 88 code (agy, gemini-3.1-pro-high). Trainer flags, dp_seeding move and probe body correct on reading; BUT three of five tests re-implemented the logic inside the test (could not fail), and it ran the suites under system Python 3.14 in two parallel copies despite the brief naming .venv-cuda (CPU training smoke at ~4 cores each; PI killed them and the worker). PI factored helpers, rewrote the tests (8 + 9 reader tests), added review-027 guards. Brief rule: tests must import and call the code under test.",
+    "W21 - section 90 V1/V2 code (agy, gemini-3.1-pro-high). Correct; used .venv-cuda and ran suites sequentially as the brief demanded. One test set a nonexistent config field (stochastic_depth; the field is stoch_depth) and passed for the wrong reason. PI fixed it.",
+    "W22 - P7 head-to-head scorer (agy, gemini-3.1-pro-high). Core correct and regression-exact against the committed section 87 JSON, BUT it deleted the module docstring (the estimand and refusal rationale), let the secondary --ours_alt rows narrow the HEADLINE row set, left three scratch files in the repo (one in model/results), and one test used a degenerate 2-gene toy. PI restored, fixed and added two output-level tests. Brief rule to add: never delete existing docstrings/comments; secondary blocks must be computed after, and independent of, the headline.",
+    "W23 - P7 blinding (agy, gemini-3.1-pro-high). Logic correct (no model score on evaluated rows; licence() for 8 test cells). BUT: ran three suites IN PARALLEL despite the brief (12 python processes, CPU 99% for ~20 min; PI killed the worker and its tests), reordered the default-path JSON keys (brief demanded byte-for-byte), deleted a rule comment, and did not surface beats_prior in the output. PI fixed all; also fixed a W21 test that left a result JSON in model/results. Parallel-test violations now 2 of the last 4 workers: consider running worker tests only via a PI-supplied single command.",
+    "W24 - paper figures (agy, gemini-3.1-pro-high). Obeyed the run-only-your-files rule (no stray processes, no scratch files). Every plotted number printed and matched its source (F6 reproduced 0.4662 / 0.5018). Layout needed PI fixes: an x-label claiming 'seed 0' on 3-seed rows, unlabelled reference lines, the reference band in a series colour, legends over data, a licence note naming one model of two.",
+    "W25 - figures F3 (V2/P6 rows, decision-text drift fix) and F6 rebuilt as the variance figure (agy, gemini-3.1-pro-high). Implemented the whole spec, asserts and tests included, and touched only its two files; but the session ended before it reported (empty log, no report file), so the PI ran the suite (passed) and verified every new printed number against its JSON. Layout again needed PI fixes: per-panel legends over data, value labels under their dots and off-axis, a group label on its separator, colliding centred-panel ticks, 'n/a' struck through by the zero line, long row labels setting all panels' margin.",
+    "W26 - F8 P7 head-to-head built against a labelled stand-in fixture (agy, gemini-3.1-pro-high, ~5 min). Spec met: skip-when-absent, every plotted number printed, three tests that call make_f8 and compare with JSONs they read; never touched model/results. Broke two rules: left an empty scratch file (make_figures_tmp.py) in the repo, and ignored the 7.2 in width (11 in, set by long row labels). PI polish: stacked panels, wrapped labels, hollow reference marker drawn on top, ticks.",
+    "W27 / W27b - the RESULTS 91 chromatin funnel (agy, gemini-3.1-pro-high), BOTH REJECTED. W27: the T1 normal equations and hierarchical ridge were right, but it fitted on all 26 dev-train cells instead of the 11 covered ones, had three LOCO leaks (other cells' targets built with the held-out cell's responses; T3's gene prior and N1 including the held-out cell), tuned T2's comparators with s_BC's tau, omitted most pre-registered outputs, left duplicate/dead functions and scratch/ in the repo, and its real-data smoke printed partial readings (37 drugs, 39 dev rows). W27b (rewrite brief with a numbered fix list): vectorised and fixed the leaks, but its final fit used the precomputed mu instead of recomputing from the y passed in, predicted 0 (NaN Pearson) for drugs unseen in dev-train, tuned global/additive variants with the full model's kappa, had no main(), a `pass` stub test, a tautological guard, and its benchmark ran 21 CPU-min until killed. Lesson (ORCHESTRATION 6b): silent-failure statistical code is not safe to delegate; the PI wrote the final module (12 + 5 tests, two mutation checks).",
+    "W29 - paper figure F9, chromatin (agy, gemini-3.1-pro-high, ~9 min). Touched only its two files, no scratch files, every plotted number printed and tested against its JSON, the row-set guard tested. BUT a SILENT DEFECT its value tests could not see: panel c drew every cell one row below its label (cell i at y_pos_c[i + 1], 'all dev rows' on the top row), so LNCAP's label carried the all-rows bar and VCAP's carried HEK293T's T4b. Caught only by the PI looking at the render. Also: medians drawn as short segments instead of a line across pi, panel b's labels ran into panel a, and the full suite failed under the Tk backend (-k f9 alone passed). PI fixed all four, forced the Agg backend, and added an in-function guard that checks every panel-c bar's value against its own row label. Lesson: a test of printed values does not test placement; for any figure with labelled rows, assert bar-to-label alignment from the artists.",
+    "W30 - RESULTS 93 H3, chromatin_gbm.py (agy, gemini-3.1-pro-high). Killed at the 30-min background limit while idle-waiting on its own background task, but its report and 6 passing tests were written. It disclosed one defect itself in 'What I was unsure about' (credit): N1's fold features averaged all covered cells, the held-out fold included, because it did not see that feature_builder(ctx, enc, 'N1', fold_train_cells)(None) avoids it without editing chromatin_funnel.py. PI found three more: calibration built every draw's tasks before running (safe only by accident of install_calibration_tracks replacing its dict), the marker hashed re-serialised JSON instead of the file and dropped ctx.inputs, and a ProcessPoolExecutor that would pickle the whole ctx per task. Tests were weak: the leak test only showed the forced-leak flag works, and the gene-generic case planted only on dev-train cells, so it passed trivially. PI rewrote the fold/fit/calibration functions (~120 lines) and the tests. Lesson: brief the builder-factory pattern explicitly when features depend on the fitting cells.",
+    "W31 + W31b - RESULTS 93 Stage 1b data module, chromatin_features93.py (agy, gemini-3.1-pro-high, two rounds). FAILED both rounds on the substance: wrote package APIs from imagination - MOODS.tools.pfm_to_log_odds and MOODS.search.search_bg (neither exists; the module is MOODS.scan / MOODS.tools.log_odds), py2bit tb.bases() without a chromosome, decoupler get_collectri (2.2 has dc.op.collectri) - and pyranges merge(slack=1), which wrongly merges 1-bp gaps (bedtools -d 0 is slack 0). Its selftest planted a 5-bp motif that can never reach p < 1e-4 and whose consensus did not match the fixture; tests wrote files into the repo; the W31b report listed installed packages as missing. Selection (step10 rules), parse_bed, compute_windows, near_landmark_peaks, standardise and regulon_scores were right and were kept. Lesson: when the worker cannot run a package locally, verify its API from source or a probe kernel FIRST and put the exact calls in the brief.",
+    "W31c - same module, rewritten from a brief carrying API facts verified from MOODS/py2bit sources and a Kaggle probe kernel (agy, claude-opus-4-6-thinking). Stopped by the agy individual quota (429, 4h48m reset) after ~10 min with 19 of 21 tests passing and no report. The API layer, selftest (a)/(b) and the end-to-end fakes were right. PI fixed (~200 lines, disclosed in packet 054): package-path import of chromatin_funnel that breaks on Kaggle; genome closed before the split halves, then re-opened inside a try/except that would silently skip all halves; halves included has=False cells; split-half report had no TSS mask and no MA Spearman; selftest (b) asserted MA - 0.5 == chance share (off by 2x, fails whenever an unplanted peak gets a chance hit); selftest (c) had dead code and no F_reg check; --threads unused; a URL --twobit would crash main; a test-only _fake_bg branch in the module. PI re-specified the noise-baseline test (its fixture could not inflate the own-cell correlation) and added three tests after a mutation check found three surviving mutants. Lesson: claude-opus-4-6-thinking in agy is fast and API-faithful given verified facts, but the quota is small - give it the narrow part.",
+    "W32 - RESULTS 93 H1 test module chromatin_h1.py + read_h1.py + tests (agy, gemini-3.8-flash-high). SUCCESS on the substance in 14 min, 25 tests passing, a clear report with a sensible disclosed judgement call (writes a not_run output so the reader can say NOT RUN). Internal APIs (chromatin_funnel/chromatin_power) were used correctly: rows of record, LOCO N1 means, the two-slot calibration with gene-permuted other columns. PI found: VOID_G made conditional on G_informative - faithful to the PI's own brief wording but weaker than read_chromatin93's rule (any G pass is VOID); fixed in the reader, test and 93.10. Mutation check: 3 of 8 mutants survived (N1 magnitude conjunct, drug-known level cut, G-informative rule); PI added 3 tests. Lesson: gemini-3.8-flash-high is fast and faithful on internal-API code with a precise brief; mutation-check its tests, they cover the asked cases but not every conjunct.",
+    "W33 - RESULTS 94 Stage A mechanism_stage_a.py + tests (agy, gemini-3.8-flash-high). SUCCESS on the substance in ~20 min, 12 tests, decoupler 2.2 ULM verified locally, the gated class table and plate rule exactly as registered, a clear report. PI fixed: A1's permutation null as Python set loops (~2.5e8 set operations per cell on the laptop) vectorised to a permuted mate matrix (identical numbers, a brute-force equivalence test added); the reader did not verify the output's marker sha1; a 'g{i}' gene-name fallback that would silently zero PROGENy overlap (gene names now explicit and asserted); scored cells could grow beyond the registered five. Mutation check: 3 of 7 mutants survived (A1 3-of-5 rule, A3 2/3 rule, agonist sign flip); PI added 3 tests. Lesson: same as W32 - fast and faithful, mutation-check the decision thresholds, and watch for laptop-heavy Python loops.",
+    "W34 - RESULTS 96.3/96.7 P9 accuracy scorer score_p9.py + 25 tests (agy, gemini-3.8-flash-high). SUCCESS on the substance in ~15 min: every guard in the brief (manifest, snapshot identities via score_p7, row-set sha1s, target agreement, units/clean sha1s, touch-once), the molecule estimand with union medians, score-averaging of record, chunked row bootstrap, a clear report. Mutation check: 7 of 15 mutants survived -- the 60 % conjunct (both sides), ci_lo / ci_hi, the ties-in-denominator rule, molecule-vs-row bootstrap, and the reference's minus-control -- because each verdict world failed the sign test anyway, and no test pinned r_ref's value. PI added 7 tests (isolating worlds: 57 % favour at sign p < 1e-6; mean ~0 with 65 % favour; 500 ties; exact CI replication; r_ref against an independent computation) and 97.6 item 5's duplicate_lift block (registered after the brief); 32 pass, 0 of 15 mutants survive. Lesson, third time (W32, W33, W34): the worker tests the asked cases but its worlds let one conjunct mask another -- brief each conjunct as 'a world where ONLY this conjunct decides'.",
+    "W35 - RESULTS 96.8/96.9 Stage B' code: stage_b_prime_chem.py (RDKit) + stage_b_prime.py (references, elements mirror of run_a3 with a runtime equivalence guard, the sign-flip swap test, the reader) + 13 tests (agy, gemini-3.8-flash-high), ~25 min. SUCCESS on the substance: every pinned rule implemented faithfully (largest fragment, ECFP4, SMARTS, molecule collapse with smallest-pert representative, (-sim, key) lexsort ties, same-cell rule, fallback, 1/(1+d), exclusion from members and others without re-standardising, the exact g-vector identity), and it read the member pert_ids from the registered JSON rather than inventing them. Mutation check: 11 of 24 mutants survived -- 5-NN weighting, physchem z-scoring and 1/(1+d), the molecule representative, the fallback's value, the p-value's +1 and 0.05 threshold, the post-exclusion guard, and three of the reader's item-1 thresholds -- because the reference test built a careful world and then asserted only 1-NN and broadcasting. PI added a v9/R pairing guard, a B3 provenance guard in the reader, and 6 tests (hand-computed 5-NN / physchem / fallback values, exact p replication plus a p-in-[0.05,0.1) world, isolating reader inputs); 14 pass, 0 of 27 mutants survive. Lesson, fourth time: brief the ASSERTIONS, not just the worlds -- W35 built the right fixture and checked a third of it.",
+    "W36 - RESULTS 98.2/98.6 P10 arm M: p10_mlp.py (h5ad adapter, guards a-e, M+dt trainer by asserted substitutions, converter), make_p10_m_kernels.py (six blinded Kaggle CPU kernels running Bai et al.'s train_mlp.py unchanged) + 10 tests (agy, gemini-3.8-flash-high), ~25 min. SUCCESS on the substance: every guard and the blinding pattern as briefed, a real end-to-end run of their unchanged trainer on Windows (os.uname monkeypatched), and a shuffled-bundle row-order test. Mutation check: 15 of 27 survived -- both halves of guard (d) and guard (b)'s sha1 half masked by a neighbouring guard; the dose clip untested; convert's finite and count guards untested; 'M+dt ignores c' survived because the behaviour test ran the network in TRAIN mode, where dropout alone changed the output; every kernel-template behaviour (epochs, trainer choice, with_dt, sha1 guards, filter, output names) checked only loosely. It also accepted the carve as a dict, which bypassed guard (a). PI removed the bypass and added 10 tests; 0 of 27 survive. Lesson, fifth time: brief eval mode for any 'changing X changes the output' test of a network with dropout.",
+    "W37 - RESULTS 98.3/98.6 P10 scorer score_p10.py (P9's estimand vs mlp_m / mlp_mdt / f0 / v9_drugblind, the reported strata and targets, touch-once, the 2x2 reader) + 20 tests (agy, gemini-3.8-flash-high), ~25 min. Mostly SUCCESS on the scoring: the seed averaging, no double subtraction, f0, the distinct stratum and the noise-free target all correct and tested. FAILURE on the reader: it classified verdicts by matching strings ('PASS', 'mean <= 0') that score_p9.verdict never emits, its reader tests were built from those invented strings (so they tested nothing real), and it never checked which reference a JSON came from (an f0 JSON would have been read as R1). PI rewrote the reader (re-derives the verdict from the stored numbers and refuses a mismatch; requires R1 = mlp_m, R2 = v9_drugblind; of_record only) with 27 world-isolated tests from real verdict() outputs, and added 4 more. Mutants 6 of 23 -> 2 of 23, both equivalent. Lesson: when a reader consumes another function's output, brief the EXACT output strings or, better, make it re-derive the decision from the numbers.",
+    "W39 - RESULTS 98.15/98.16 P10 arm D embedding precompute: p10_pertdit_emb.py (data-side inputs, 2-substitution generated script, merge/check guards), 5 caption + 1 merge Kaggle CPU kernels, 19 tests incl. EXECUTING their generated script with a stub transformers and both kernels with /kaggle redirected (agy, gemini-3.8-flash-high), ~30 min. SUCCESS on the substance (every substitution exact, the compact-index need found from their sanity check, determinism). Gaps: a dict path that bypassed guard (g1) (W36's same bug), an unchecked source sha1 in the header, a builder that called fatal() without defining it (NameError) and fell back silently to other paths. Mutation: 11 of 31 survived -- every kernel guard tested only on its happy path. PI added 4 guard-world tests (one world per guard, each failing only that guard) -> 1 of 31 (equivalent). Lesson: brief 'one failure world per in-kernel guard, executed', not just 'an end-to-end execution test'.",
+    "W40 - RESULTS 98.15/98.16 P10 arm D GPU side: p10_pertdit.py (h5ad adapter h1-h5, cap loop-control patch, cfg/embedding checks, the inverse with an alignment guard, timing parse/decision), T4x2 timing + run kernels, 9 tests (agy, gemini-3.8-flash-high), ~55 min. SUCCESS on the substance: the patch exact and additive, the inverse right (it even diagnosed why a non-zero-mean synthetic pattern breaks it), the alignment guard a good idea. FAILURES: its (h4) test RE-IMPLEMENTED the guard inside the test (tested nothing -- W37's pattern); worlds failing two checks at once; every in-kernel guard untested; a builder fallback chain over guessed paths that could have silently mismatched embeddings and compound map; and two trainer tests passed --dev cuda:0, which on this laptop ran on the local GPU (the PI's brief wrongly said it would fall back). Mutation: 23 of 47 survived. PI refactored (h4)/(h5) into a testable function, added 10 tests (fake-GPU sitecustomize for the GPU guard; worlds built so only one in-kernel check can fire) -> 0 of 51. Lesson: brief 'tests must call the code under test, never restate it', and pass --dev cpu explicitly on this machine."
+  ],
+  "routing_policy": {
+    "_derived_from": "observations[] first, published_benchmarks[] as prior",
+    "never_delegate": [
+      "whether one of OUR results is real",
+      "anything answerable by grep in this repo",
+      "adjudicating an adversary's challenge",
+      "the decision to spend GPU quota"
+    ],
+    "wide_shallow_multisource": "agy + gemini-3.8-flash-high",
+    "deep_conceptual_single_source": "agy + gemini-3.1-pro-high",
+    "adversarial_or_falsification": "agy + gemini-3.8-flash-high  [W3: 7/7]",
+    "independent_second_opinion": "agy + claude-opus-4-6-thinking or gpt-oss-120b-medium — different vendor, same brief, compare",
+    "mechanical_pr_shaped_code": "gh agent-task (haiku-4.5), tight scope, always review the diff",
+    "escalation_when_a_check_fails": "copilot --effort xhigh",
+    "cpu_compute": "kaggle-cpu (free, 5 concurrent) before local-cpu",
+    "gpu_compute": "kaggle-gpu T4x2 only, gated on a free-CPU ridge result AND human approval",
+    "wide_landscape_sweep": "agy + gemini-3.8-flash-high. Slow (~55 min for 11 models with PDFs + supplementary) but the highest-value class run so far. Dispatch early, always background.",
+    "adversarial_review_of_own_results": "A SEPARATE blinded Claude session, given objective/function/results/code and never the PI reasoning. 12/12 upheld on first use. Do not substitute a worker agent for this: the blinding is what makes disagreement informative, and an in-session critique cannot be blinded.",
+    "code_implementation_from_a_spec": "agy + gemini-3.8-flash-high. PI writes the spec, the guards and the verification contract; the worker writes the body. Safe only when verification is mechanical, failure is loud, and the blast radius is named files with no git and no GPU. See ORCHESTRATION.md 6b.",
+    "compute_tiers": "0 already-on-disk -> 1 closed-form -> 2 free Kaggle CPU -> 3 short local CPU -> 4 local GPU inference only -> 5 Kaggle T4x2 training, adversary-reviewed before spend. See ORCHESTRATION.md 6c."
+  }
 }

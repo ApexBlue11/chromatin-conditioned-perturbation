@@ -9904,6 +9904,47 @@ ruling 5).
 - **For the record:** 7 XPert indices carry two BRD IDs each, because XPert indexes by SMILES. D's compound unit is therefore
   XPert's index, the same one v9's compound inputs use.
 
+### 98.19 D's GPU side: code (W40 + PI), before any GPU (PI, 2026-10-12; packet 081)
+**The code:**
+- **`model/v9/p10_pertdit.py`:**
+  - `build_h5ad_d` reuses M's `build_h5ad` (guards a–e), then applies the compact `pert_idx` (= `compound_map[meta_pert_idx]`,
+    within range(1970) by h1/h2: review 080, Ask 2) and the float64 `dose_r4`, with guards (h1)–(h3);
+  - the timing variant, with `check_timing_h5ad` (h4)–(h5): no real test row, and 13,445 fit-row copies labelled `test`;
+  - `make_cap_trainer`: 98.16 C2's loop control on the pinned trainer, purely additive (19 lines, none removed); output
+    `e910a855…`;
+  - `check_trainer_cfg` and `check_embeddings` ((e1)–(e4));
+  - `convert_outputs_d`: ruling 1's inverse, with (v1) the T_train pin, (v2) shapes, (v3) an alignment guard that recomputes
+    `ctrl_t` from the h5ad, (v4) finiteness and (v5) seed / n_test;
+  - `parse_timing` and `timing_decision` (ruling 5).
+- **`orchestration/make_p10_d_kernels.py`:**
+  - the T4×2 timing and run kernels, internet-off, with seeds 117 / 118 concurrently on cuda:0 / cuda:1;
+  - M's blinding pattern: an echo allow-list, and no test metric persisted.
+- **`model/v9/test_p10_pertdit.py`:** 19 tests.
+
+**The PI's changes to W40's code** (disclosed):
+- **`make_cap_trainer` checks its source's sha1.**
+- **The builder pins the compound map and dose list the embeddings were built from,** and refuses a mismatch. W40's fallback
+  chain could have given rows another compound's embedding silently.
+- **(h4)/(h5) moved into a function,** with behaviour unchanged. W40's (h4) test had re-implemented the guard inside the test.
+- **W40's two direct trainer tests passed `--dev cuda:0`.**
+  - The PI's brief said their code falls back to CPU, but this laptop has a CUDA GPU, so those tiny runs used it for a few
+    minutes.
+  - Now `--dev cpu`, and the PI runs the suites with CUDA hidden.
+
+**Mutation check** (each mutant against the tests that should kill it; CPU only):
+- **The first run:** 23 of 47 survived W40's suite. The causes:
+  - the tautological (h4) test;
+  - worlds that failed two checks at once;
+  - every in-kernel guard tested only on its happy path.
+- **The fix:** 10 PI tests, one failure world per check:
+  - a fake-GPU `sitecustomize` for the GPU guard;
+  - kernels built so that only the in-kernel cfg or embedding check can fire;
+  - blinding asserted on a real tiny CPU timing run.
+- **After:** **0 of 51** (the 23 survivors plus 4 new mutants).
+
+**Not yet built:** the real GPU kernel folders need the merge kernel's `emb_record.json`. They are built from it and listed with
+their pins before the reset.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
