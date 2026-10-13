@@ -947,9 +947,9 @@ def test_kernel_builder_and_execution_end_to_end(monkeypatch, tiny_world_data, w
     # Build kernels into tmp_path / "kernels"
     out_root = str(tmp_path / "kernels")
     src_root = str(tmp_path / "kaggle_p10d_src")
-    make_p10_d_kernels.build_kernels(
+    _pi_build_bound(
+        tmp_path,  # review 081 C2 / 082 C1: built once for its pins, then bound to a timing JSON with them
         emb_record_path=emb_rec_p,
-        timing_json_path=_pi_timing_json(tmp_path),  # review 081 C2
         out_root=out_root,
         src_root=src_root,
         compound_map_path=cmap_p,
@@ -1283,12 +1283,13 @@ def _pi_kernel_world(monkeypatch, data, windows_shim, tmp_path, trainer_path=Non
     for k, v in (extra_pertdit or {}).items():
         monkeypatch.setattr(p10_pertdit, k, v)
     out_root, src_root = str(tmp_path / "kernels"), str(tmp_path / "src")
-    kw = dict(emb_record_path=rec_p, timing_json_path=_pi_timing_json(tmp_path), out_root=out_root, src_root=src_root, compound_map_path=cmap_p,
+    kw = dict(emb_record_path=rec_p, timing_json_path=None, out_root=out_root, src_root=src_root, compound_map_path=cmap_p,
               dose_list_path=dose_p, bundle_path=bundle_p, carves_path=carves_p, p10_mlp_path=str(inp / "p10_mlp.py"),
               p10_pertdit_path=str(inp / "p10_pertdit.py"))
     if trainer_path:
         kw["train_pertdit_path"] = trainer_path
-    make_p10_d_kernels.build_kernels(**kw)
+    pins = _pi_build_bound(tmp_path, **kw)
+    kw["timing_json_path"] = _pi_timing_json(tmp_path, pins=pins)
     for f in os.listdir(src_root):
         shutil.copyfile(os.path.join(src_root, f), str(inp / f))
     site = tmp_path / "fakegpu"
@@ -1299,7 +1300,7 @@ def _pi_kernel_world(monkeypatch, data, windows_shim, tmp_path, trainer_path=Non
                P10D_BYPASS_GPU_GUARD="1", P10D_BYPASS_PIP="1", CUDA_VISIBLE_DEVICES="-1",
                P10D_EXTRA_TRAIN_ARGS="--batch_size 16 --train_steps 5 --num_steps 5 --dev cpu",
                PYTHONPATH=str(site) + os.pathsep + os.environ.get("PYTHONPATH", ""))
-    return {"inp": inp, "work": work, "env": env, "timing": os.path.join(out_root, "kern_p10d_timing", "lincs-p10d-timing.py"),
+    return {"inp": inp, "work": work, "env": env, "pins": pins, "timing": os.path.join(out_root, "kern_p10d_timing", "lincs-p10d-timing.py"),
             "run": os.path.join(out_root, "kern_p10d_run", "lincs-p10d-run.py"), "rec": rec_p, "kw": kw}
 
 
@@ -1384,17 +1385,30 @@ def test_pi_builder_refuses_embeddings_from_another_compound_map(monkeypatch, ti
 # =========================================================================
 # Review 081: C1 timing stamps are event times; C2 the run kernel is bound to the timing JSON; C3 (v3b); C4 records
 # =========================================================================
-def _pi_timing_json(tmp_path, t_epoch=10.0, t_test=30.0, decision=None, cap_s=None):
-    """A timing JSON as the timing kernel writes it (decision derived from the timings unless overridden)."""
+def _pi_timing_json(tmp_path, t_epoch=10.0, t_test=30.0, decision=None, cap_s=None, pins=None, versions=None, gpus=None,
+                    tag=""):
+    """A timing JSON as the timing kernel writes it (decision derived from the timings unless overridden; review 082: it
+    carries the inputs it was timed with, the version line and the GPU names)."""
     tm = {"t_pre": 50.0, "t_epoch": t_epoch, "t_test": t_test}
     timings = {"117": tm, "118": dict(tm)}
     dec = p10_pertdit.timing_decision(timings, cap_s=cap_s or p10_pertdit.CAP_S)
     if decision is not None:
         dec = dict(dec, decision=decision)
-    p = os.path.join(str(tmp_path), f"timing_{t_epoch}_{t_test}_{decision}.json")
+    p = os.path.join(str(tmp_path), f"timing_{t_epoch}_{t_test}_{decision}{tag}.json")
     with open(p, "w", encoding="utf-8") as f:
-        json.dump({"timings": timings, "decision": dec}, f)
+        json.dump({"timings": timings, "decision": dec, "verified_sha1s": pins or {},
+                   "versions": make_p10_d_kernels.PINNED_GPU_VERSIONS if versions is None else versions,
+                   "gpu_names": ["Tesla T4", "Tesla T4"] if gpus is None else gpus}, f)
     return p
+
+
+def _pi_build_bound(tmp_path, **kw):
+    """Build once without a timing JSON (the builder returns its pins), then bind the run kernel to a timing JSON with them."""
+    kw = dict(kw, timing_json_path=None)
+    pins = make_p10_d_kernels.build_kernels(**kw)["pins"]
+    kw["timing_json_path"] = _pi_timing_json(tmp_path, pins=pins)
+    make_p10_d_kernels.build_kernels(**kw)
+    return pins
 
 
 def test_pi_review081_parse_timing_refuses_flushed_stamps():
@@ -1415,13 +1429,13 @@ def test_pi_review081_run_kernel_bound_to_timing(monkeypatch, tiny_world_data, w
     assert f"TIMING_SHA1 = '{p10_pertdit.sha1_file(w['kw']['timing_json_path'])}'" in code
     assert f"TIMING_DECISION = '{tj['decision']['decision']}'" in code
     # a not_run_cost timing builds nothing
-    kw = dict(w["kw"], timing_json_path=_pi_timing_json(tmp_path, t_epoch=400.0))
+    kw = dict(w["kw"], timing_json_path=_pi_timing_json(tmp_path, t_epoch=400.0, pins=w["pins"]))
     _pi_raises(lambda: make_p10_d_kernels.build_kernels(**kw), "not_run_cost")
     # a decision that its timings don't give
-    kw = dict(w["kw"], timing_json_path=_pi_timing_json(tmp_path, t_epoch=400.0, decision="run"))
+    kw = dict(w["kw"], timing_json_path=_pi_timing_json(tmp_path, t_epoch=400.0, decision="run", pins=w["pins"]))
     _pi_raises(lambda: make_p10_d_kernels.build_kernels(**kw), "is not what its timings give")
     # a non-positive timing
-    kw = dict(w["kw"], timing_json_path=_pi_timing_json(tmp_path, t_test=0.0))
+    kw = dict(w["kw"], timing_json_path=_pi_timing_json(tmp_path, t_test=0.0, pins=w["pins"]))
     _pi_raises(lambda: make_p10_d_kernels.build_kernels(**kw), "non-positive timing")
     # the kernel template asserts the pinned GPU version line (C4; the real line is checked on Kaggle before the reset)
     assert "if installed_versions != PINNED_GPU_VERSIONS:" in code and "PYTHONUNBUFFERED" in code
@@ -1435,3 +1449,17 @@ def test_pi_review081_v3b_sees_order_inside_shared_controls(monkeypatch, tiny_wo
     _pi_raises(lambda: p10_pertdit.convert_outputs_d(h5, run, 117, str(tmp_path / "o.npz")), "guard (v3b)")
     os.remove(gp)
     _pi_raises(lambda: p10_pertdit.convert_outputs_d(h5, run, 117, str(tmp_path / "o.npz")), "guard (v3b): missing")
+
+
+
+def test_pi_review082_timing_bound_to_what_was_timed(monkeypatch, tiny_world_data, windows_shim, tmp_path):
+    """C1: a timing measured with other inputs; C2: other versions, or not two non-P100 GPUs -- each refused alone."""
+    w = _pi_kernel_world(monkeypatch, tiny_world_data, windows_shim, tmp_path)
+    other = dict(w["pins"], bench_drug_emb="0" * 40)
+    for jp, needle in ((_pi_timing_json(tmp_path, pins=other, tag="a"), "timed with other inputs"),
+                       (_pi_timing_json(tmp_path, pins=w["pins"], versions="scanpy=1.10.3", tag="b"), "versions"),
+                       (_pi_timing_json(tmp_path, pins=w["pins"], gpus=["Tesla T4", "Tesla P100-PCIE-16GB"], tag="c"), "two non-P100"),
+                       (_pi_timing_json(tmp_path, pins=w["pins"], gpus=["Tesla T4"], tag="d"), "two non-P100")):
+        _pi_raises(lambda: make_p10_d_kernels.build_kernels(**dict(w["kw"], timing_json_path=jp)), needle)
+    # the template's version pin is the builder's
+    assert f'PINNED_GPU_VERSIONS = "{make_p10_d_kernels.PINNED_GPU_VERSIONS}"' in open(w["timing"], encoding="utf-8").read()

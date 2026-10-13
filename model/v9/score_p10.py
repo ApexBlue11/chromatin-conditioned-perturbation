@@ -89,6 +89,9 @@ PIN_D = {'bundle': '1444b253d48c5adf066bf7a3cc0ba8ea5fb71464', 'carves': 'd6fc78
          'bench_drug_emb': 'eba75fdc2ef761fbd844dc7a2a967d4e8a3b0a0c', 'bench_dose_emb': 'c42bce8eeca3cf47c4ff25e16608c6e00474f1a0',
          'cap_trainer': 'e910a855bb4405a7bb1fb56c84572470be9c6316'}
 D_CAP_S = 21600.0
+PINNED_GPU_VERSIONS = "scanpy=1.12.4 anndata=0.13.3.post0 diffusers=0.30.2 einops=0.8.0 huggingface_hub=0.24.6 rdkit=2023.09.1"   # the GPU kernel's asserted version line (review 081 C4 / 082 C2)
+BAI_EVALUATE_ALL = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'external',
+                                'bai_benchmark_1d750cd', 'experiments', '_shared', 'evaluation', 'evaluate_all.py')
 COLLISION_JSON = 'model/results/p10/p10d_caption_collision.json'
 COLLISION_SHA1 = 'bb3d6fb3b42bf0765cb3e2b3d38f216e453faab5'
 ORACLE_INVERSE_R = 0.99979   # 98.15: the input-only inverse applied to a perfect transformed-space prediction
@@ -289,6 +292,12 @@ def check_d_provenance(ref_dir, ref):
         with open(os.path.join(ref_dir, f'p10_pertdit_seed{s_}_record.json'), encoding='utf-8') as f:
             recs[s_] = json.load(f)
     rec = recs[seed]
+    # review 082 C2: both runs were made with the pinned versions on two non-P100 GPUs
+    for s_, r_ in recs.items():
+        g = r_.get('gpu_names') or []
+        if r_.get('versions') != PINNED_GPU_VERSIONS or len(g) != 2 or any('P100' in n for n in g):
+            raise SystemExit(f'FATAL: (d2) seed {s_} record versions {r_.get("versions")!r} / GPUs {g!r} are not the pinned '
+                             f'versions on two non-P100 GPUs')
     if rec.get('sha1s') != PIN_D:
         raise SystemExit(f'FATAL: (d2) seed {seed} record verified {rec.get("sha1s")}, not PIN_D')
     z = np.load(os.path.join(ref_dir, f'p10_pertdit_seed{seed}.npz'), allow_pickle=False)
@@ -301,6 +310,11 @@ def check_d_provenance(ref_dir, ref):
     tpath = os.path.join(ref_dir, 'p10d_timing.json')
     with open(tpath, encoding='utf-8') as f:
         timing = json.load(f)
+    # review 082 C1 / C2: the timing was measured with the run's own inputs, versions and GPUs
+    tg = timing.get('gpu_names') or []
+    if (timing.get('verified_sha1s') != PIN_D or timing.get('versions') != PINNED_GPU_VERSIONS or len(tg) != 2
+            or any('P100' in n for n in tg)):
+        raise SystemExit('FATAL: (d5) p10d_timing.json was not timed with the run\'s pins / versions / two non-P100 GPUs')
     import p10_pertdit  # the run kernel's own decision function (98.15 ruling 5)
     redo = p10_pertdit.timing_decision(timing['timings'], cap_s=D_CAP_S)['decision']
     if (rec.get('timing_sha1') != sha1(tpath) or rec.get('timing_decision') not in ('run', 'run_capped')
@@ -896,6 +910,12 @@ def score_p10(p9_dir, ref, ref_dir=None, dry_check=False, n_boot=N_BOOT, carves_
         r_own = per_row_pearson(ref_data['delta_pred_t'], truth_t)
         own_ok = clean_mask & np.isfinite(r_own)
         own_mol, own_nmol = _per_molecule_mean_of_medians(r_own[own_ok], molecule[own_ok])
+        # review 082 C3: their own metric too (evaluate_all.pcc_top_k_deg, top 100 genes by |truth| per row), vendored
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('bai_evaluate_all', BAI_EVALUATE_ALL)
+        bai_eval = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(bai_eval)
+        pcc_deg = bai_eval.pcc_top_k_deg(truth_t[clean_mask], ref_data['delta_pred_t'][clean_mask], k=100)
         # (b) the caption-collision stratum (98.20, review 081 C5)
         c_path = resolve_path(COLLISION_JSON)
         if not os.path.exists(c_path) or sha1(c_path) != COLLISION_SHA1:
@@ -917,8 +937,12 @@ def score_p10(p9_dir, ref, ref_dir=None, dry_check=False, n_boot=N_BOOT, carves_
             parts[name] = rd
         out_data['d_reported'] = {
             'LABEL': REPORTED_LABEL,
-            'own_target': {'LABEL': REPORTED_LABEL, 'row_pooled_mean_r': float(np.mean(r_own[own_ok])),
-                           'per_molecule_mean_of_medians': own_mol, 'n_rows': int(own_ok.sum()), 'n_molecules': own_nmol},
+            'own_target': {'LABEL': REPORTED_LABEL,
+                           'what': "per-row Pearson (P9's, 978 genes) on PertDiT's own (transformed) target; and Bai et al.'s "
+                                   "PCC_DEG (evaluate_all.pcc_top_k_deg, top 100 genes by |truth|) on the same arrays",
+                           'row_pooled_mean_r': float(np.mean(r_own[own_ok])),
+                           'per_molecule_mean_of_medians': own_mol, 'n_rows': int(own_ok.sum()), 'n_molecules': own_nmol,
+                           'pcc_deg_top100_row_pooled': float(np.mean(pcc_deg)), 'n_rows_pcc_deg': int(clean_mask.sum())},
             'caption_collision': dict(parts, LABEL=REPORTED_LABEL, collision_json_sha1=COLLISION_SHA1),
             'oracle_inverse_r': ORACLE_INVERSE_R,
             'stop_reason': provenance['stop_reason'],

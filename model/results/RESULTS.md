@@ -9957,8 +9957,9 @@ their pins before the reset.
   - `check_outputs` passed.
   - `emb_record`: drug embeddings `eba75fdc…`, dose embeddings `c42bce8e…`, merged captions `12c66fdf…`, with the compound map
     `918e08f6…` and the ten doses.
-- **A property of PertDiT's representation, reported:** the 1,970 compounds get only **1,778 distinct captions**, so 192 share a
-  caption, and therefore a drug embedding, with another compound.
+- **A property of PertDiT's representation, reported:** the 1,970 compounds get only **1,778 distinct captions**. **326 compounds
+  fall in 134 shared-caption groups** (the largest holds 8), so they share their drug embedding. The PI first wrote "192 share",
+  which is the surplus, not the count (review 082 C4).
 
 **Review 081 (NOT-SUPPORTED on one BLOCKING point; the rest SOUND), adopted:**
 - **C1 (BLOCKING):** the timing kernel stamped *flush* times, not event times.
@@ -10028,6 +10029,43 @@ their pins before the reset.
   sha1s, the cap-trainer rebuild, the cfg check, the timing h5ad from the real bundle (no test row), and `check_embeddings` on the
   real embeddings.
 - **The run kernel** is built from the timing kernel's JSON (C2).
+
+### 98.21 Review 082 (SOUND; nothing blocks the timing push) adopted (PI, 2026-10-13)
+**What the critic verified independently:**
+- **The timing kernel:** re-rendered with its own call from the downloaded `emb_record`, it is byte-identical. All 11 pins match
+  the staged source and the merge's outputs.
+- **The merged embeddings:**
+  - keys 0..1969 plus an all-NaN `negative_ctrl`;
+  - float32 and finite;
+  - all ten doses present;
+  - identical tensors within each caption group.
+- **The collision stratum** reproduces from its own clean mask: 46 / 346 molecules, 1,577 rows, the identical row set.
+- **The tests:** 112 pass.
+
+**Its four MINOR points, adopted:**
+- **C1, what was timed:** the timing JSON must have been measured with **this** build's inputs.
+  - Its `verified_sha1s` must equal the run's 11 pins, in the builder (which now returns its pins) and in the scorer's (d5).
+- **C2, versions and GPUs:**
+  - **The records:** both seeds' records must carry the pinned version line and two non-P100 GPU names (d2).
+  - **The timing JSON:** so must the timing JSON (d5 and the builder).
+  - **One source for the line:** the template's version pin is now filled from the builder's constant.
+- **C3, the own-target wording:**
+  - **What the block is:** "per-row Pearson on PertDiT's own (transformed) target". The target is theirs, and the metric is P9's.
+  - **Their metric, added:** Bai et al.'s own PCC_DEG (their vendored `evaluate_all.pcc_top_k_deg`, the top 100 genes by
+    |truth|) is added on the same arrays as a second reported number. Both are reported only.
+- **C4, the wording:** 98.20's caption sentence is corrected to **326 compounds in 134 shared-caption groups**. The earlier "192"
+  was the surplus.
+
+**Checks after adopting:**
+- **Tests:** 119 pass (96 scorer, 23 D kernel), on CPU with CUDA hidden.
+- **Mutation** on the new checks: 0 of 8 survive.
+- **The re-rendered timing kernel** is byte-identical (`9c054958…`), and the uploaded `lincs-p10d-src` is unchanged.
+
+**The order at Saturday's reset** (Sat 17 Oct, 05:30 IST):
+1. O9 session 3 and B1, the two concurrent GPU sessions;
+2. then D's timing kernel (`--accelerator NvidiaTeslaT4`);
+3. then, from its downloaded `p10d_timing.json`, the run kernel. The builder refuses `not_run_cost` and any timing not measured
+   with the run's pins. It is pushed only if O9's next session still fits.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

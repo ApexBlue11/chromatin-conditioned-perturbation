@@ -31,6 +31,9 @@ def sha1_file(path):
     return h.hexdigest()
 
 
+PINNED_GPU_VERSIONS = "scanpy=1.12.4 anndata=0.13.3.post0 diffusers=0.30.2 einops=0.8.0 huggingface_hub=0.24.6 rdkit=2023.09.1"
+
+
 def make_deterministic_zip(src_dir, zip_path):
     """Create a byte-deterministic zip archive with fixed timestamps and permissions."""
     os.makedirs(os.path.dirname(os.path.abspath(zip_path)), exist_ok=True)
@@ -65,7 +68,7 @@ import numpy as np
 import torch
 
 MODE = '__MODE__'
-PINNED_GPU_VERSIONS = "scanpy=1.12.4 anndata=0.13.3.post0 diffusers=0.30.2 einops=0.8.0 huggingface_hub=0.24.6 rdkit=2023.09.1"
+PINNED_GPU_VERSIONS = "__PINNED_GPU_VERSIONS__"
 TIMING_SHA1 = '__TIMING_SHA1__'
 TIMING_DECISION = '__TIMING_DECISION__'
 T_TEST_S = __T_TEST_S__
@@ -519,6 +522,10 @@ def build_kernels(
     # Review 081 C2: the run kernel is bound to the timing result -- its t_test_s, sha1 and decision come from the downloaded
     # p10d_timing.json, the decision is re-derived from its timings, and "not_run_cost" builds nothing.
     timing_sha1, timing_decision_label, t_test_s = "none", "none", None
+    pins = {"bundle": bundle_sha1, "carves": carves_sha1, "p10_mlp": p10_mlp_sha1, "p10_pertdit": p10_pertdit_sha1,
+            "train_pertdit": trainer_sha1, "pertdit_src_zip": pertdit_src_sha1, "compound_map": compound_map_sha1,
+            "dose_list": dose_list_sha1, "bench_drug_emb": drug_emb_sha1, "bench_dose_emb": dose_emb_sha1,
+            "cap_trainer": cap_trainer_sha1}
     if timing_json_path is not None:
         with open(timing_json_path, "r", encoding="utf-8") as f:
             tj = json.load(f)
@@ -530,6 +537,15 @@ def build_kernels(
             fatal(f"timing JSON's decision {tj['decision']} is not what its timings give: {redo}")
         if redo["decision"] == "not_run_cost":
             fatal("timing decision is 'not_run_cost': D is recorded as not run (cost); no run kernel is built (98.15 ruling 5)")
+        # Review 082 C1 / C2: the timing must have been measured with THIS build's inputs, versions and two non-P100 GPUs
+        if tj.get("verified_sha1s") != pins:
+            bad = {k: (tj.get("verified_sha1s", {}).get(k), v) for k, v in pins.items() if tj.get("verified_sha1s", {}).get(k) != v}
+            fatal(f"timing JSON was timed with other inputs than this build's pins: {bad}")
+        if tj.get("versions") != PINNED_GPU_VERSIONS:
+            fatal(f"timing JSON versions {tj.get('versions')!r} != pinned {PINNED_GPU_VERSIONS!r}")
+        g = tj.get("gpu_names") or []
+        if len(g) != 2 or any("P100" in n for n in g):
+            fatal(f"timing JSON GPUs {g!r} are not two non-P100 GPUs")
         timing_sha1, timing_decision_label, t_test_s = sha1_file(timing_json_path), redo["decision"], redo["t_test_s"]
 
     # Helper to generate kernel script
@@ -556,6 +572,7 @@ def build_kernels(
             .replace("__DRUG_EMB_SHA1__", drug_emb_sha1)
             .replace("__DOSE_EMB_SHA1__", dose_emb_sha1)
             .replace("__CAP_TRAINER_SHA1__", cap_trainer_sha1)
+            .replace("__PINNED_GPU_VERSIONS__", PINNED_GPU_VERSIONS)
             .replace("__TIMING_SHA1__", timing_sha1 if mode == "run" else "none")
             .replace("__TIMING_DECISION__", timing_decision_label if mode == "run" else "none")
         )
@@ -582,6 +599,7 @@ def build_kernels(
         with open(os.path.join(run_dir, "kernel-metadata.json"), "w", encoding="utf-8", newline="\n") as f:
             json.dump(make_metadata("lincs-p10d-run"), f, indent=1)
             f.write("\n")
+    return {"pins": pins}
 
 
 def main():

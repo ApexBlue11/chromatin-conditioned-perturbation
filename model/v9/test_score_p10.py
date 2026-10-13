@@ -954,14 +954,17 @@ import p10_pertdit  # noqa: E402
 D_LABEL_REF = 'PertDiT (our run of their harness)'
 
 
-def write_d_dir(ref_dir, fix, stop=None, rec_over=None, npz_over=None, timings=None, extra_manifest=False, rng_seed=7):
+def write_d_dir(ref_dir, fix, stop=None, rec_over=None, npz_over=None, timings=None, extra_manifest=False, rng_seed=7,
+                timing_over=None):
     """Both seeds' npz (rows shuffled), records carrying PIN_D, a timing JSON giving 'run', and P10D_COMPLETE.json."""
     rng = np.random.default_rng(rng_seed)
     ref_dir.mkdir(parents=True, exist_ok=True)
     stop = {117: 'rule', 118: 'rule', **(stop or {})}
     timings = timings or {'117': {'t_pre': 50.0, 't_epoch': 10.0, 't_test': 30.0},
                           '118': {'t_pre': 55.0, 't_epoch': 11.0, 't_test': 31.0}}
-    tj = {'timings': timings, 'decision': p10_pertdit.timing_decision(timings, cap_s=21600.0)}
+    tj = {'timings': timings, 'decision': p10_pertdit.timing_decision(timings, cap_s=21600.0),
+          'verified_sha1s': dict(score_p10.PIN_D), 'versions': score_p10.PINNED_GPU_VERSIONS, 'gpu_names': ['Tesla T4', 'Tesla T4']}
+    tj.update(timing_over or {})
     tpath = ref_dir / 'p10d_timing.json'
     tpath.write_text(json.dumps(tj), encoding='utf-8')
     n = len(fix['test_row_index'])
@@ -976,7 +979,8 @@ def write_d_dir(ref_dir, fix, stop=None, rec_over=None, npz_over=None, timings=N
         arrs.update((npz_over or {}).get(s_, {}))
         np.savez(ref_dir / f'p10_pertdit_seed{s_}.npz', **arrs)
         rec = {'seed': s_, 'sha1s': dict(score_p10.PIN_D), 'stop_reason': stop[s_], 'best_epoch': 40, 'n_epochs_run': 51,
-               'wall_s': 9000, 'n_test': n, 't_train': 8242.43, 'of_record': s_ == 117, 'versions': 'x', 'torch_version': 'x',
+               'wall_s': 9000, 'n_test': n, 't_train': 8242.43, 'of_record': s_ == 117,
+               'versions': score_p10.PINNED_GPU_VERSIONS, 'torch_version': '2.10.0+cu128',
                'gpu_names': ['Tesla T4', 'Tesla T4'], 'timing_sha1': file_sha1(tpath), 'timing_decision': tj['decision']['decision']}
         rec.update((rec_over or {}).get(s_, {}))
         (ref_dir / f'p10_pertdit_seed{s_}_record.json').write_text(json.dumps(rec), encoding='utf-8')
@@ -1035,6 +1039,12 @@ def test_d_happy_path_aligns_and_labels(tmp_path, monkeypatch):
                                           '118': {'t_pre': 50.0, 't_epoch': 400.0, 't_test': 30.0}}), '(d5)'),
     ('npz stop_reason', dict(npz_over={117: {'stop_reason': np.str_('max_epochs')}}), '(d6)'),
     ('npz arm', dict(npz_over={117: {'arm': np.str_('m')}}), '(d6)'),
+    ('record versions', dict(rec_over={117: {'versions': 'scanpy=1.10.3'}}), '(d2)'),
+    ('118 record P100', dict(rec_over={118: {'gpu_names': ['Tesla P100-PCIE-16GB', 'Tesla T4']}}), '(d2)'),
+    ('record one GPU', dict(rec_over={117: {'gpu_names': ['Tesla T4']}}), '(d2)'),
+    ('timing other inputs', dict(timing_over={'verified_sha1s': dict(score_p10.PIN_D, bench_drug_emb='0' * 40)}), '(d5)'),
+    ('timing versions', dict(timing_over={'versions': 'x'}), '(d5)'),
+    ('timing P100', dict(timing_over={'gpu_names': ['Tesla P100-PCIE-16GB', 'Tesla T4']}), '(d5)'),
 ])
 def test_d_provenance_each_guard_isolated(tmp_path, monkeypatch, world, kw, needle):
     fix, ref_dir, _ = _d_world(tmp_path, monkeypatch, **kw)
@@ -1119,12 +1129,14 @@ def test_d_own_target_matches_their_transform(tmp_path, monkeypatch):
     out = _score_d(fix, ref_dir)
     assert abs(out['d_reported']['own_target']['row_pooled_mean_r'] - 1.0) < 1e-6
     assert abs(out['d_reported']['own_target']['per_molecule_mean_of_medians'] - 1.0) < 1e-6
+    assert abs(out['d_reported']['own_target']['pcc_deg_top100_row_pooled'] - 1.0) < 1e-6   # review 082 C3: their metric
     noisy = (exact + rng.normal(0, 0.5, exact.shape)).astype(np.float32)
     ref_dir2 = tmp_path / 'ref_d2'
     write_d_dir(ref_dir2, fix, rng_seed=3, npz_over={117: {'delta_pred_t': noisy}})
     monkeypatch.setattr(score_p10, 'REPO', str(tmp_path / 'second'))   # touch-once: a fresh output path
     out2 = _score_d(fix, ref_dir2)
     assert out2['d_reported']['own_target']['row_pooled_mean_r'] < 0.999
+    assert out2['d_reported']['own_target']['pcc_deg_top100_row_pooled'] < 0.999
 
 
 def test_d_caption_collision_parts_and_guards(tmp_path, monkeypatch):
