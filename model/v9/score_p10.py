@@ -6,6 +6,8 @@ Evaluates v9 on XPert's cold-drug split against reference models:
 - mlp_mdt: Bai et al.'s drug-free MLP with dose and time (M+dt, reported only)
 - f0: zero-parameter drug-free floor (f0, reported only)
 - v9_drugblind: v9 retrained drug-blind (B1)
+- pertdit / pertdit_s118: PertDiT through Bai et al.'s harness, seed 117 (the D reading of record) / 118 (reported only)
+  (RESULTS 98.3, 98.15 ruling 6, 98.16, 98.20)
 
 P10 uses P9's estimand (per-molecule median difference of per-row Pearson correlation,
 cluster bootstrap over molecules) and verdict unchanged.
@@ -13,6 +15,8 @@ cluster bootstrap over molecules) and verdict unchanged.
 CLI:
     python score_p10.py --p9_dir external/kaggle_out/v9p9 --ref {mlp_m,mlp_mdt,f0,v9_drugblind} [--ref_dir D] [--dry_check]
     python score_p10.py --read R1_JSON [R2_JSON]
+    python score_p10.py --p9_dir external/kaggle_out/v9p9 --ref pertdit [--ref_dir D] [--d_truncated_reported]
+    python score_p10.py --read_d p10_accuracy_pertdit.json
 """
 import argparse
 import hashlib
@@ -54,7 +58,8 @@ CARVES_SHA1 = 'd6fc78447228b87641cbd5af8ff0143a714edeb8'
 EXPECT_N_DISTINCT = 2091
 EXPECT_SHA1_DISTINCT = 'def96fc0ab190fcb6e8c1c0cfb28493229167680'
 
-REFS_P10 = ('mlp_m', 'mlp_mdt', 'f0', 'v9_drugblind')
+D_REFS = ('pertdit', 'pertdit_s118')
+REFS_P10 = ('mlp_m', 'mlp_mdt', 'f0', 'v9_drugblind') + D_REFS
 MLP_SEEDS = {131419, 131420, 131421}   # Bai et al.'s experiments/mlp_baseline/train_default.py:38 default (1d750cd), +1, +2
 
 # Review 075 C2: the bytes every M / M+dt kernel verified in-run (their records' 'sha1s'), pinned here.
@@ -68,7 +73,27 @@ REF_LABELS = {
     'mlp_mdt': 'mlp_mdt',
     'v9_drugblind': 'v9_drugblind',
     'f0': 'f0',
+    'pertdit': 'PertDiT (our run of their harness)',
+    'pertdit_s118': 'PertDiT (our run of their harness)',
 }
+
+# ---- P10 arm D (RESULTS 98.3, 98.15 ruling 6, 98.16 C2 / Ask 6, 98.20 C5) ----
+D_SEEDS = {'pertdit': 117, 'pertdit_s118': 118}
+D_FILES = {'p10_pertdit_seed117.npz', 'p10_pertdit_seed118.npz', 'p10_pertdit_seed117_record.json',
+           'p10_pertdit_seed118_record.json', 'p10d_timing.json'}
+# the in-run sha1s every D record must carry (the run kernel's GUARD 2 pins, built from the merge's emb_record)
+PIN_D = {'bundle': '1444b253d48c5adf066bf7a3cc0ba8ea5fb71464', 'carves': 'd6fc78447228b87641cbd5af8ff0143a714edeb8',
+         'p10_mlp': '97f84874df4609c463289fbc9bf387de3ff8775a', 'p10_pertdit': '929ce1fe6d9e9c87c89eccb153f5c7d8c8926b12',
+         'train_pertdit': 'a431f53ba18d43348161ee19b97b01148229f1ac', 'pertdit_src_zip': '06bf66bdb2b21f53ddf72d6f1459636e96bca7ad',
+         'compound_map': '918e08f61352e8f122c3451d71a800e616de4f7c', 'dose_list': '7941bcd3155ae73fbdcca2f11ce6af647300d2ce',
+         'bench_drug_emb': 'eba75fdc2ef761fbd844dc7a2a967d4e8a3b0a0c', 'bench_dose_emb': 'c42bce8eeca3cf47c4ff25e16608c6e00474f1a0',
+         'cap_trainer': 'e910a855bb4405a7bb1fb56c84572470be9c6316'}
+D_CAP_S = 21600.0
+COLLISION_JSON = 'model/results/p10/p10d_caption_collision.json'
+COLLISION_SHA1 = 'bb3d6fb3b42bf0765cb3e2b3d38f216e453faab5'
+ORACLE_INVERSE_R = 0.99979   # 98.15: the input-only inverse applied to a perfect transformed-space prediction
+D_LABEL = 'D: head-to-head with the newest published L1000 model with code; our run of their harness (98.3)'
+D_TRUNCATED_LABEL = 'reported only: truncated at the 6 GPU-h cap, never read (98.15 ruling 5)'
 
 REPORTED_LABEL = 'reported, never read (RESULTS 98.6)'
 R1_LABEL = 'R1: benchmark statement only (98.6 C1)'
@@ -242,6 +267,79 @@ def check_m_provenance(ref_dir, arm):
             raise SystemExit(f'FATAL: seed {k}: npz seed {int(z["seed"])}, record seed {rec.get("seed")}, expected {131419 + k}')
         npz_sha1[f'p10_{arm}_seed{k}.npz'] = man['files'][f'p10_{arm}_seed{k}.npz']
     return {'manifest': mf, 'manifest_sha1': sha1(mf), 'npz_sha1': npz_sha1}
+
+
+def check_d_provenance(ref_dir, ref):
+    """RESULTS 98.16 Ask 6 / review 081 C2: the download manifest, the records' in-run pins, the seed and n_test, of_record,
+    the binding to the timing JSON (its decision re-derived from its timings), and the npz's arm / stop_reason."""
+    mf = os.path.join(ref_dir, 'P10D_COMPLETE.json')
+    if not os.path.exists(mf):
+        raise SystemExit(f'FATAL: (d1) no download manifest {mf}')
+    with open(mf, encoding='utf-8') as f:
+        man = json.load(f)
+    if not man.get('complete') or set(man.get('files', {})) != D_FILES:
+        raise SystemExit(f'FATAL: (d1) manifest {mf} incomplete or not the D file set: {sorted(man.get("files", {}))}')
+    for name, h in man['files'].items():
+        fp = os.path.join(ref_dir, name)
+        if not os.path.exists(fp) or sha1(fp) != h:
+            raise SystemExit(f'FATAL: (d1) {name} missing or sha1 differs from the download manifest')
+    seed = D_SEEDS[ref]
+    recs = {}
+    for s_ in (117, 118):
+        with open(os.path.join(ref_dir, f'p10_pertdit_seed{s_}_record.json'), encoding='utf-8') as f:
+            recs[s_] = json.load(f)
+    rec = recs[seed]
+    if rec.get('sha1s') != PIN_D:
+        raise SystemExit(f'FATAL: (d2) seed {seed} record verified {rec.get("sha1s")}, not PIN_D')
+    z = np.load(os.path.join(ref_dir, f'p10_pertdit_seed{seed}.npz'), allow_pickle=False)
+    if int(rec.get('n_test', -1)) != EXPECT_N_TEST_M or int(rec.get('seed', -1)) != seed or int(z['seed']) != seed:
+        raise SystemExit(f'FATAL: (d3) record n_test {rec.get("n_test")} / seed {rec.get("seed")} / npz seed {int(z["seed"])} '
+                         f'!= {EXPECT_N_TEST_M} / {seed}')
+    if recs[117].get('of_record') is not True or recs[118].get('of_record') is not False:
+        raise SystemExit(f'FATAL: (d4) of_record must be True for 117 and False for 118: '
+                         f'{recs[117].get("of_record")!r} / {recs[118].get("of_record")!r}')
+    tpath = os.path.join(ref_dir, 'p10d_timing.json')
+    with open(tpath, encoding='utf-8') as f:
+        timing = json.load(f)
+    import p10_pertdit  # the run kernel's own decision function (98.15 ruling 5)
+    redo = p10_pertdit.timing_decision(timing['timings'], cap_s=D_CAP_S)['decision']
+    if (rec.get('timing_sha1') != sha1(tpath) or rec.get('timing_decision') not in ('run', 'run_capped')
+            or rec.get('timing_decision') != redo):
+        raise SystemExit(f'FATAL: (d5) record timing {rec.get("timing_sha1")} / {rec.get("timing_decision")!r} is not bound to '
+                         f'p10d_timing.json ({sha1(tpath)}, which gives {redo!r})')
+    if str(z['arm']) != 'pertdit' or str(z['stop_reason']) != rec.get('stop_reason'):
+        raise SystemExit(f'FATAL: (d6) npz arm {str(z["arm"])!r} / stop_reason {str(z["stop_reason"])!r} disagree with the '
+                         f'record ({rec.get("stop_reason")!r})')
+    return {'manifest': mf, 'manifest_sha1': sha1(mf), 'npz_sha1': man['files'][f'p10_pertdit_seed{seed}.npz'],
+            'stop_reason': rec['stop_reason'], 'timing_decision': redo, 'timing_sha1': sha1(tpath)}
+
+
+def d_own_target_truth(bundle_data, bundle_idx):
+    """98.15 ruling 1 (reported): PertDiT's own target, their transform (train_pertdit.py:144-159) recomputed from the bundle:
+    clip(0, 1e3), normalize_total to the median positive row total over ALL bundle rows (zero rows left at zero, as scanpy
+    does), log1p, separately for X and X_ctl; returned for the given rows."""
+    def tr(a):
+        a = np.clip(np.asarray(a, dtype=np.float64), 0, 1e3)
+        tot = a.sum(axis=1)
+        t = np.median(tot[tot > 0])
+        return np.log1p(a * (t / (tot + (tot == 0)))[:, None])
+    return (tr(bundle_data['X']) - tr(bundle_data['X_ctl']))[bundle_idx]
+
+
+def _per_molecule_mean_of_medians(r, molecule):
+    mols = np.unique(molecule)
+    return float(np.mean([np.median(r[molecule == m]) for m in mols])), int(len(mols))
+
+
+def _relabel(obj, label):
+    if isinstance(obj, dict):
+        if 'LABEL' in obj:
+            obj['LABEL'] = label
+        for v in obj.values():
+            _relabel(v, label)
+    elif isinstance(obj, list):
+        for v in obj:
+            _relabel(v, label)
 
 
 def load_carves(carves_path=None, clean_rows=None):
@@ -454,6 +552,37 @@ def load_ref(ref_name, ref_dir, p9_data, bundle_data=None):
             'manifest': manifest,
         }
 
+    elif ref_name in D_REFS:
+        if not ref_dir:
+            ref_dir = os.path.join(REPO, 'external', 'kaggle_out', 'p10_d')
+        ref_dir = resolve_path(ref_dir)
+        if not os.path.exists(ref_dir):
+            raise SystemExit(f'FATAL: reference directory {ref_dir} not found')
+        fn = f'p10_pertdit_seed{D_SEEDS[ref_name]}.npz'
+        p = os.path.join(ref_dir, fn)
+        if not os.path.exists(p):
+            raise SystemExit(f'FATAL: reference file {p} not found')
+        z = np.load(p, allow_pickle=False)
+        for k in ('row_index', 'delta_pred', 'delta_pred_t', 'ctrl_t', 'seed', 'arm', 'stop_reason'):
+            if k not in z:
+                raise SystemExit(f'FATAL: {fn} missing required key {k!r}')
+        pos_map = {int(idx): i for i, idx in enumerate(z['row_index'])}
+        missing_p9 = [r for r in p9_ri if int(r) not in pos_map]
+        if missing_p9:
+            raise SystemExit(f'FATAL: {fn} is missing {len(missing_p9)} P9 rows')
+        align_idx = np.array([pos_map[int(idx)] for idx in p9_ri], dtype=np.int64)
+        delta = np.asarray(z['delta_pred'][align_idx], dtype=np.float64)
+        return {
+            'r_ref': per_row_pearson(delta, y_target),
+            'r_ref_seeds': None,
+            'pred_deltas': [delta],
+            'ypred_seeds': [delta + p9_data['ctl_true']],
+            'has_seeds': False,
+            'ref_dir': ref_dir,
+            'files': [fn],
+            'delta_pred_t': np.asarray(z['delta_pred_t'][align_idx], dtype=np.float64),
+        }
+
     elif ref_name == 'f0':
         pred_delta, valid_mask, mean_ctl_by_cell, mean_delta_by_cell, n_no_train = compute_f0(
             bundle_data or p9_data['bundle_data'], p9_data['cell'], p9_data['ctl_true'], SPLIT_KEY
@@ -582,7 +711,8 @@ def compute_cell_centred_reading(p9_data, ref_data, n_boot=N_BOOT):
     return reading, r_v9_c, r_ref_c
 
 
-def score_p10(p9_dir, ref, ref_dir=None, dry_check=False, n_boot=N_BOOT, carves_path=None, bundle_path=None, units_path=None, clean_path=None):
+def score_p10(p9_dir, ref, ref_dir=None, dry_check=False, n_boot=N_BOOT, carves_path=None, bundle_path=None, units_path=None,
+              clean_path=None, d_truncated_reported=False):
     """Run full P10 scoring against reference model."""
     if ref not in REFS_P10:
         raise SystemExit(f'FATAL: unknown reference {ref!r}; choices are {REFS_P10}')
@@ -601,6 +731,14 @@ def score_p10(p9_dir, ref, ref_dir=None, dry_check=False, n_boot=N_BOOT, carves_
     ref_data = load_ref(ref, ref_dir, p9_data, bundle_data=p9_data['bundle_data'])
     provenance = (check_m_provenance(ref_data['ref_dir'], 'm' if ref == 'mlp_m' else 'mdt')
                   if ref in ('mlp_m', 'mlp_mdt') else None)
+    d_truncated = False
+    if ref in D_REFS:
+        provenance = check_d_provenance(ref_data['ref_dir'], ref)
+        if provenance['stop_reason'] == 'cap':
+            if ref == 'pertdit' and not d_truncated_reported:
+                raise SystemExit('FATAL: D stopped at the 6 GPU-h cap: its reading is "not run (cost)" (98.15 ruling 5); '
+                                 'pass --d_truncated_reported to score it as reported only')
+            d_truncated = True
 
     if dry_check:
         print('P10 inputs verified')
@@ -639,6 +777,8 @@ def score_p10(p9_dir, ref, ref_dir=None, dry_check=False, n_boot=N_BOOT, carves_
         of_rec['LABEL'] = R1_LABEL
     elif ref == 'v9_drugblind':
         of_rec['LABEL'] = R2_LABEL
+    elif ref == 'pertdit':
+        of_rec['LABEL'] = D_LABEL
     else:
         of_rec['LABEL'] = REPORTED_LABEL
 
@@ -750,6 +890,47 @@ def score_p10(p9_dir, ref, ref_dir=None, dry_check=False, n_boot=N_BOOT, carves_
     if ref in ('mlp_mdt', 'f0'):
         out_data['LABEL'] = REPORTED_LABEL
 
+    if ref in D_REFS:
+        # (a) PertDiT on its own target, as Bai et al. score it (98.15 ruling 1)
+        truth_t = d_own_target_truth(p9_data['bundle_data'], p9_data['bundle_idx'])
+        r_own = per_row_pearson(ref_data['delta_pred_t'], truth_t)
+        own_ok = clean_mask & np.isfinite(r_own)
+        own_mol, own_nmol = _per_molecule_mean_of_medians(r_own[own_ok], molecule[own_ok])
+        # (b) the caption-collision stratum (98.20, review 081 C5)
+        c_path = resolve_path(COLLISION_JSON)
+        if not os.path.exists(c_path) or sha1(c_path) != COLLISION_SHA1:
+            raise SystemExit(f'FATAL: caption-collision JSON missing or sha1 differs from COLLISION_SHA1 ({COLLISION_SHA1})')
+        with open(c_path, encoding='utf-8') as f:
+            coll = json.load(f)
+        coll_rows = np.asarray(coll['row_index'], dtype=np.int64)
+        if row_set_sha1(coll_rows) != coll.get('rows_sha1'):
+            raise SystemExit('FATAL: caption-collision rows do not match their rows_sha1')
+        if not set(coll_rows.tolist()) <= set(p9_data['clean_rows'].tolist()):
+            raise SystemExit('FATAL: caption-collision rows are not all clean rows')
+        in_coll = np.isin(row_index, coll_rows)
+        parts = {}
+        for name, m in (('collision', clean_finite & in_coll), ('rest', clean_finite & ~in_coll)):
+            rd = molecule_reading(r_v9[m], r_ref[m], molecule[m], n_boot=n_boot, seed=0)
+            rd['verdict'] = verdict(rd, ref_label)
+            rd.update(LABEL=REPORTED_LABEL, n_rows=int(m.sum()), n_molecules=int(len(np.unique(molecule[m]))),
+                      row_pooled_r_ref=float(np.mean(r_ref[m])), row_pooled_r_v9=float(np.mean(r_v9[m])))
+            parts[name] = rd
+        out_data['d_reported'] = {
+            'LABEL': REPORTED_LABEL,
+            'own_target': {'LABEL': REPORTED_LABEL, 'row_pooled_mean_r': float(np.mean(r_own[own_ok])),
+                           'per_molecule_mean_of_medians': own_mol, 'n_rows': int(own_ok.sum()), 'n_molecules': own_nmol},
+            'caption_collision': dict(parts, LABEL=REPORTED_LABEL, collision_json_sha1=COLLISION_SHA1),
+            'oracle_inverse_r': ORACLE_INVERSE_R,
+            'stop_reason': provenance['stop_reason'],
+            'timing_decision': provenance['timing_decision'],
+        }
+        if d_truncated:
+            _relabel(out_data, D_TRUNCATED_LABEL)
+            out_data['LABEL'] = D_TRUNCATED_LABEL
+        elif ref == 'pertdit_s118':
+            _relabel(out_data, REPORTED_LABEL)
+            out_data['LABEL'] = REPORTED_LABEL
+
     os.makedirs(os.path.dirname(os.path.abspath(out_json)), exist_ok=True)
     with open(out_json, 'w', encoding='utf-8') as f:
         json.dump(out_data, f, indent=2)
@@ -836,6 +1017,32 @@ def read_p10(r1_json, r2_json=None):
     return out
 
 
+D_STATEMENT_NO_CLAIM = 'NO COMPOUND-LEVEL CLAIM: v9 and PertDiT (our run of their harness) are not separable at this power'
+
+
+def read_p10_d(d_json):
+    """The D reading (98.3), mechanical: of-record block only, verdict re-derived from its numbers (as _decide), and a
+    truncated or s118 JSON refused. Every d_reported block is ignored."""
+    data = _load_marked(d_json, 'pertdit')
+    rec = data.get('of_record')
+    if not isinstance(rec, dict) or rec.get('LABEL') != D_LABEL:
+        raise SystemExit(f'FATAL: {d_json} is not a D reading of record (LABEL {None if not isinstance(rec, dict) else rec.get("LABEL")!r})')
+    case = _decide(data)
+    label = REF_LABELS['pertdit']
+    v = verdict(rec, label)
+    if case == 'uninformative':
+        statement = 'UNINFORMATIVE: cluster CI wider than 0.10; no compound-level claim'
+    elif v == f'v9 predicts unseen compounds better than {label}':
+        statement = v
+    elif v == f'{label} predicts unseen compounds better than v9':
+        statement = v
+    elif v == 'NO COMPOUND-LEVEL CLAIM':
+        statement = D_STATEMENT_NO_CLAIM
+    else:
+        raise SystemExit(f'FATAL: unrecognised verdict {v!r}')
+    return {'d_case': case, 'd': statement}
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description='RESULTS §98.3 / §98.6: P10 accuracy reading against reference models.')
     ap.add_argument('--p9_dir', help='Directory holding P9 kernel outputs and P9_COMPLETE.json')
@@ -843,6 +1050,9 @@ def main(argv=None):
     ap.add_argument('--ref_dir', default=None, help='Directory holding reference predictions (mlp_m, mlp_mdt, v9_drugblind)')
     ap.add_argument('--dry_check', action='store_true', help='Verify all input guards and stop')
     ap.add_argument('--read', nargs='+', default=None, metavar=('R1_JSON', 'R2_JSON'), help='Read and interpret P10 results: R1_JSON [R2_JSON]')
+    ap.add_argument('--read_d', default=None, metavar='D_JSON', help='Read the D head-to-head (p10_accuracy_pertdit.json)')
+    ap.add_argument('--d_truncated_reported', action='store_true',
+                    help='Score a cap-truncated D run as reported only (its reading is "not run (cost)")')
     args = ap.parse_args(argv)
 
     if args.read is not None:
@@ -854,10 +1064,15 @@ def main(argv=None):
         print(json.dumps(res, indent=2))
         return
 
+    if args.read_d is not None:
+        print(json.dumps(read_p10_d(args.read_d), indent=2))
+        return
+
     if not args.p9_dir or not args.ref:
         ap.error('Both --p9_dir and --ref are required when not using --read')
 
-    score_p10(p9_dir=args.p9_dir, ref=args.ref, ref_dir=args.ref_dir, dry_check=args.dry_check)
+    score_p10(p9_dir=args.p9_dir, ref=args.ref, ref_dir=args.ref_dir, dry_check=args.dry_check,
+              d_truncated_reported=args.d_truncated_reported)
 
 
 if __name__ == '__main__':

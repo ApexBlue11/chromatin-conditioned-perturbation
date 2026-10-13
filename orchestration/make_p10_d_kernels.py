@@ -65,6 +65,9 @@ import numpy as np
 import torch
 
 MODE = '__MODE__'
+PINNED_GPU_VERSIONS = "scanpy=1.12.4 anndata=0.13.3.post0 diffusers=0.30.2 einops=0.8.0 huggingface_hub=0.24.6 rdkit=2023.09.1"
+TIMING_SHA1 = '__TIMING_SHA1__'
+TIMING_DECISION = '__TIMING_DECISION__'
 T_TEST_S = __T_TEST_S__
 CAP_S = __CAP_S__
 
@@ -151,7 +154,12 @@ if os.environ.get("P10D_BYPASS_PIP", "0") != "1":
     res_chk = subprocess.run(chk_cmd, capture_output=True, text=True)
     if res_chk.returncode != 0:
         fatal(f"version check failed: {res_chk.stderr}")
-    print(f"GUARD 1: installed package versions: {res_chk.stdout.strip()}", flush=True)
+    installed_versions = res_chk.stdout.strip()
+    print(f"GUARD 1: installed package versions: {installed_versions}", flush=True)
+    if installed_versions != PINNED_GPU_VERSIONS:
+        fatal(f"GUARD 1: installed versions {installed_versions!r} != pinned {PINNED_GPU_VERSIONS!r} (review 081 C4)")
+else:
+    installed_versions = "pip bypassed (tests only)"
 
 # 3. Mounted-file guards
 bundle_path = find_one(os.path.join(KAGGLE_INPUT, "**/xpert_mdmt_splits.npz"))
@@ -256,7 +264,9 @@ for s, dev in zip(seeds, devs):
 
     log_path_s = os.path.join(KAGGLE_TEMP, f"train_s{s}.log")
     print(f"Starting trainer for seed {s} on {dev}", flush=True)
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+    # Review 081 C1: unbuffered, or the stamps are flush times (a 3-epoch run's stdout arrives all at once at exit)
+    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1,
+                            env=dict(os.environ, PYTHONUNBUFFERED="1"))
     procs.append((proc, s, log_path_s))
 
 
@@ -300,6 +310,9 @@ if MODE == "timing":
         "decision": decision,
         "verified_sha1s": verified_sha1s,
         "kernel_t0": KERNEL_T0,
+        "versions": installed_versions,
+        "torch_version": torch.__version__,
+        "gpu_names": [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else [],
     }
     tmp_out = os.path.join(KAGGLE_TEMP, "p10d_timing.json")
     final_out = os.path.join(KAGGLE_WORKING, "p10d_timing.json")
@@ -350,6 +363,11 @@ if MODE == "run":
             "n_test": int(rdata["n_test"]),
             "t_train": t_train_val,
             "of_record": (s == 117),
+            "versions": installed_versions,
+            "torch_version": torch.__version__,
+            "gpu_names": [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())] if torch.cuda.is_available() else [],
+            "timing_sha1": TIMING_SHA1,
+            "timing_decision": TIMING_DECISION,
         }
         tmp_rec = os.path.join(KAGGLE_TEMP, f"p10_pertdit_seed{s}_record.json")
         dst_rec = os.path.join(KAGGLE_WORKING, f"p10_pertdit_seed{s}_record.json")
@@ -364,7 +382,7 @@ if MODE == "run":
 
 def build_kernels(
     emb_record_path,
-    t_test_s=None,
+    timing_json_path=None,
     out_root=None,
     src_root=None,
     compound_map_path=None,
@@ -498,6 +516,22 @@ def build_kernels(
             "machine_shape": "NvidiaTeslaT4",
         }
 
+    # Review 081 C2: the run kernel is bound to the timing result -- its t_test_s, sha1 and decision come from the downloaded
+    # p10d_timing.json, the decision is re-derived from its timings, and "not_run_cost" builds nothing.
+    timing_sha1, timing_decision_label, t_test_s = "none", "none", None
+    if timing_json_path is not None:
+        with open(timing_json_path, "r", encoding="utf-8") as f:
+            tj = json.load(f)
+        for seed_k, tm in tj["timings"].items():
+            if not all(float(tm[k]) > 0 for k in ("t_pre", "t_epoch", "t_test")):
+                fatal(f"timing JSON seed {seed_k} has a non-positive timing: {tm}")
+        redo = p10_pertdit.timing_decision(tj["timings"], cap_s=p10_pertdit.CAP_S)
+        if redo["decision"] != tj["decision"]["decision"] or abs(redo["t_test_s"] - float(tj["decision"]["t_test_s"])) > 1e-9:
+            fatal(f"timing JSON's decision {tj['decision']} is not what its timings give: {redo}")
+        if redo["decision"] == "not_run_cost":
+            fatal("timing decision is 'not_run_cost': D is recorded as not run (cost); no run kernel is built (98.15 ruling 5)")
+        timing_sha1, timing_decision_label, t_test_s = sha1_file(timing_json_path), redo["decision"], redo["t_test_s"]
+
     # Helper to generate kernel script
     def render_kernel(mode, t_test):
         if mode == "timing":
@@ -522,6 +556,8 @@ def build_kernels(
             .replace("__DRUG_EMB_SHA1__", drug_emb_sha1)
             .replace("__DOSE_EMB_SHA1__", dose_emb_sha1)
             .replace("__CAP_TRAINER_SHA1__", cap_trainer_sha1)
+            .replace("__TIMING_SHA1__", timing_sha1 if mode == "run" else "none")
+            .replace("__TIMING_DECISION__", timing_decision_label if mode == "run" else "none")
         )
         ast.parse(code)
         return code
@@ -536,7 +572,7 @@ def build_kernels(
         json.dump(make_metadata("lincs-p10d-timing"), f, indent=1)
         f.write("\n")
 
-    # 7. Build run kernel (only when t_test_s is given): external/kaggle_kernels/kern_p10d_run
+    # 7. Build run kernel (only from a timing JSON): external/kaggle_kernels/kern_p10d_run
     if t_test_s is not None:
         run_dir = os.path.join(out_root, "kern_p10d_run")
         os.makedirs(run_dir, exist_ok=True)
@@ -551,7 +587,7 @@ def build_kernels(
 def main():
     p = argparse.ArgumentParser(description="Make Kaggle kernels for P10 arm D (PertDiT)")
     p.add_argument("--emb_record", required=True, help="Path to emb_record.json")
-    p.add_argument("--t_test_s", type=float, default=None, help="Measured t_test_s (enables run kernel build)")
+    p.add_argument("--timing_json", type=str, default=None, help="Downloaded p10d_timing.json (enables the run kernel build)")
     p.add_argument("--out_root", type=str, default=None, help="Root directory for kernels")
     p.add_argument("--src_root", type=str, default=None, help="Root directory for lincs-p10d-src")
     p.add_argument("--compound_map", type=str, default=None, help="Path to compound_map.json")
@@ -562,7 +598,7 @@ def main():
     args = p.parse_args()
     build_kernels(
         emb_record_path=args.emb_record,
-        t_test_s=args.t_test_s,
+        timing_json_path=args.timing_json,
         out_root=args.out_root,
         src_root=args.src_root,
         compound_map_path=args.compound_map,

@@ -39,6 +39,7 @@ N_COMPOUNDS = 1970
 DOSES = [0.1, 0.37, 0.62, 0.77, 1.11, 2.31, 3.33, 5.0, 10.0, 40.0]
 TIMING_RNG = 9818
 CAP_S = 21600.0
+MIN_TIMING_S = 1.0  # review 081 C1: an epoch or a test pass faster than this is a flush artefact, not a measurement
 
 
 def sha1_file(path):
@@ -401,6 +402,22 @@ def convert_outputs_d(h5ad, run_dir, seed, out_npz):
             f"FATAL: guard (v3): alignment guard failed: max |ctrl_t_ref - ctrl_t| = {max_align_diff:.6e} > 1e-4"
         )
 
+    # Guard (v3b), review 081 C3: (v3) can't see order inside shared-control groups (79.5 % of test rows share a control), so
+    # compare their saved transformed truth with the one recomputed from the h5ad, row by row. Truth against truth: no
+    # prediction enters, and the file never leaves /kaggle/temp.
+    gt_path = os.path.join(run_dir, "predictions", "test_ground_truth.npy")
+    if not os.path.isfile(gt_path):
+        raise SystemExit(f"FATAL: guard (v3b): missing {gt_path}")
+    gt_t = np.load(gt_path)
+    S_all = X_raw.sum(axis=1)
+    T_all = np.median(S_all[S_all > 0])
+    truth_t_ref = np.log1p(X_raw[test_mask] * (T_all / S_all[test_mask])[:, None]) - ctrl_t_ref
+    if gt_t.shape != truth_t_ref.shape or float(np.max(np.abs(truth_t_ref - gt_t))) > 1e-4:
+        raise SystemExit(
+            f"FATAL: guard (v3b): row-level truth check failed (shape {gt_t.shape}; max diff "
+            f"{(float(np.max(np.abs(truth_t_ref - gt_t))) if gt_t.shape == truth_t_ref.shape else float('nan')):.3e})"
+        )
+
     # The inverse: X_hat = expm1(pred_t + ctrl_t) * (S_ctl / T_train)[:, None]
     X_hat = np.expm1(pred_t.astype(np.float64) + ctrl_t.astype(np.float64)) * (S_ctl / T_train)[:, None]
     delta_pred = (X_hat - Xc_test).astype(np.float32)
@@ -504,9 +521,16 @@ def parse_timing(stamped_log, kernel_t0):
     if ts_step7 is None:
         raise SystemExit("FATAL: parse_timing missing marker: '[7/7] Saving unified output'")
 
+    # Review 081 C1: the stamps are only event times if the child's stdout is unbuffered. A buffered child flushes everything
+    # at exit, so the markers arrive together: refuse anything but strictly increasing markers and non-trivial durations.
+    if not (ts_step5 < ts_ep0 < ts_ep2 < ts_step6 < ts_step7):
+        raise SystemExit(f"FATAL: parse_timing: markers not strictly increasing ([5/7] {ts_step5}, epoch 0 {ts_ep0}, "
+                         f"epoch 2 {ts_ep2}, [6/7] {ts_step6}, [7/7] {ts_step7}): buffered output? (review 081 C1)")
     t_pre = ts_step5 - kernel_t0
     t_epoch = (ts_ep2 - ts_ep0) / 2.0
     t_test = ts_step7 - ts_step6
+    if t_epoch < MIN_TIMING_S or t_test < MIN_TIMING_S:
+        raise SystemExit(f"FATAL: parse_timing: t_epoch {t_epoch:.3f}s / t_test {t_test:.3f}s below {MIN_TIMING_S}s (review 081 C1)")
 
     return {"t_pre": float(t_pre), "t_epoch": float(t_epoch), "t_test": float(t_test)}
 

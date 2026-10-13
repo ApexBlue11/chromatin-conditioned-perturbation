@@ -9945,6 +9945,90 @@ ruling 5).
 **Not yet built:** the real GPU kernel folders need the merge kernel's `emb_record.json`. They are built from it and listed with
 their pins before the reset.
 
+### 98.20 Review 081 adopted (one BLOCKING fix); the embeddings exist; a reported-only caption-collision stratum fixed before any D output (PI, 2026-10-13)
+**The embeddings** (no GPU used):
+- **The five caption kernels** each took 394 SMILES, at 37–52 s per SMILES and 4.2–5.8 h of wall time, on the same CPU (Intel Xeon
+  2.20 GHz, torch 2.10.0, 2 threads).
+  - Versions, weight sha256s and every input sha1 were verified in-run.
+  - Caches: `590914e1` / `9679bf8a` / `2eac5072` / `fcd11add` / `b70dc879`.
+- **The merge kernel** took 22 min:
+  - `merge_caches` passed on all 1,970 SMILES;
+  - their script skipped MolT5;
+  - `check_outputs` passed.
+  - `emb_record`: drug embeddings `eba75fdc…`, dose embeddings `c42bce8e…`, merged captions `12c66fdf…`, with the compound map
+    `918e08f6…` and the ten doses.
+- **A property of PertDiT's representation, reported:** the 1,970 compounds get only **1,778 distinct captions**, so 192 share a
+  caption, and therefore a drug embedding, with another compound.
+
+**Review 081 (NOT-SUPPORTED on one BLOCKING point; the rest SOUND), adopted:**
+- **C1 (BLOCKING):** the timing kernel stamped *flush* times, not event times.
+  - **The cause:** the trainers' stdout was a pipe, block-buffered by the child.
+  - **What the critic reproduced** on our own suite's real tiny timing run: t_epoch 0.0, so P62 = P1000 = 63.7 s and the decision
+    "run", whatever the real cost.
+  - **The fix has three parts:**
+    - the trainers run with `PYTHONUNBUFFERED=1`;
+    - `parse_timing` refuses markers that aren't strictly increasing, and t_epoch or t_test under 1 s;
+    - the real tiny timing run now asserts t_epoch > 1 s per seed.
+  - **The mutant without the variable is killed.**
+- **C2:** the run kernel is bound to the timing result. The builder:
+  - takes the downloaded `p10d_timing.json`;
+  - re-derives its decision from its timings and refuses a mismatch;
+  - refuses non-positive timings;
+  - builds nothing on `not_run_cost`;
+  - takes `t_test_s` from it;
+  - pins its sha1 and decision in the run kernel and its records.
+- **C3, (v3b):** their saved transformed truth (`test_ground_truth.npy`, which stays in `/kaggle/temp`) must equal the one
+  recomputed from the h5ad, row by row, to 1e-4.
+  - **Why:** (v3) can't see order inside shared-control groups (79.5 % of test rows share a control).
+  - **Blinding:** this compares truth with truth, so no prediction enters.
+- **C4:** the GPU kernel asserts its version line against the pins, and records it with torch's version and the GPU names. The
+  free CPU probe `lincs-p10d-verline` (the same image and wheels, internet off): pip rc 0 / 0, version line 'scanpy=1.12.4 anndata=0.13.3.post0 diffusers=0.30.2 einops=0.8.0 huggingface_hub=0.24.6 rdkit=2023.09.1' = the pin, and the trainer's imports (diffusers schedulers, rdkit logger, scanpy transform) work
+- **C5, the caption-collision stratum.** It is fixed here, before any D output exists, and is **reported only, never read**, like
+  98.12 (b).
+  - **Why it matters:** a clean test molecule whose MolT5 caption equals a training compound's caption gets that compound's
+    embedding exactly. To PertDiT it is known, although the molecule is unseen. The clean subset's InChIKey / ECFP4 rule can't
+    see this.
+  - **Its size:** **46 of the 346 clean molecules (1,577 of the 11,983 clean rows)**. The training compounds have 1,448 distinct
+    captions among 1,578.
+  - **No molecule has mixed rows.**
+  - **The file:** `model/results/p10/p10d_caption_collision.json`, rows sha1 `6bed581e…`, written by `model/v9/p10_d_caption_strata.py`
+    from P9's row_index only.
+  - **What will be reported:** D − v9, and D's own score, on these molecules against the other 300.
+- **Tests:** 22 pass (W40 + PI), with mutation on the review 081 guards: 0 of 9 survive (buffered child, order check, floor, v3b, v3b-missing, not_run_cost builds, redo mismatch, non-positive, version assert).
+- **The critic's answers:**
+  - the cap patch is 98.16 C2 exactly (19 / 0 lines, `e910a855…`);
+  - (v3) is sound at file and split level;
+  - T_train matches;
+  - there is no leak in the timing h5ad;
+  - P(E) is the registered one once C1 is fixed;
+  - blinding matches M's.
+
+**D's scorer** (W41; **written by the PI**, because agy refused every tool call through a broken third-party plugin hook in its config; disclosed):
+- **The refs:** `score_p10.py` gains `pertdit` (seed 117, the D reading of record) and `pertdit_s118` (reported only).
+- **`check_d_provenance`, (d1)–(d6):**
+  - (d1) the exact 5-file download manifest;
+  - (d2) `PIN_D`, the run kernel's 11 pins;
+  - (d3) n_test and the seed;
+  - (d4) of_record;
+  - (d5) the record's binding to the downloaded `p10d_timing.json`, with its decision re-derived by the kernel's own
+    `timing_decision`;
+  - (d6) the npz's arm and stop_reason against the record.
+- **The cap rule** (98.16 C2): `pertdit` with `stop_reason == 'cap'` is refused a reading. With `--d_truncated_reported` it is
+  scored and every block is labelled truncated.
+- **Reported-only blocks:** (a) the own-target score, their transform recomputed over all 68,830 bundle rows; (b) the
+  caption-collision parts; (c) the oracle bound.
+- **`read_p10_d`:** of-record only, with the verdict re-derived from its numbers, truncated and s118 JSONs refused, and four
+  statements mapped from `verdict()`'s real strings.
+- **Tests:** 90 pass (62 existing, unchanged; 28 D). The own-target truth is computed independently with scanpy.
+- **Mutation:** 26 of 27 killed after one added world (d1's file-set check had been masked by its per-file sha1 loop). The
+  survivor is equivalent: s118's relabel, since its blocks are already reported.
+
+**The real timing kernel** is built from the merge's `emb_record` (pins as in `PIN_D`), and `apexblue/lincs-p10d-src` is uploaded.
+- **A local dry run** of everything up to the trainer launch, on CPU against the staged datasets, passes every guard: the 11
+  sha1s, the cap-trainer rebuild, the cfg check, the timing h5ad from the real bundle (no test row), and `check_embeddings` on the
+  real embeddings.
+- **The run kernel** is built from the timing kernel's JSON (C2).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

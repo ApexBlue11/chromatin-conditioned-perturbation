@@ -742,6 +742,7 @@ def test_convert_outputs_d_and_inverse(monkeypatch, tiny_world_data, tmp_path):
 
     np.save(os.path.join(run_dir, "predictions", "test_predictions.npy"), truth_pred_t)
     np.save(os.path.join(run_dir, "predictions", "test_ctrl.npy"), ctrl_t)
+    np.save(os.path.join(run_dir, "predictions", "test_ground_truth.npy"), truth_pred_t)  # review 081 C3 (v3b)
 
     rlog = {
         "seed": 117,
@@ -948,7 +949,7 @@ def test_kernel_builder_and_execution_end_to_end(monkeypatch, tiny_world_data, w
     src_root = str(tmp_path / "kaggle_p10d_src")
     make_p10_d_kernels.build_kernels(
         emb_record_path=emb_rec_p,
-        t_test_s=25.0,
+        timing_json_path=_pi_timing_json(tmp_path),  # review 081 C2
         out_root=out_root,
         src_root=src_root,
         compound_map_path=cmap_p,
@@ -1196,6 +1197,7 @@ def _pi_conv_world(monkeypatch, data, tmp_path):
     pred_t = (ax.X[tm] - actl.X[tm]).astype(np.float32)
     np.save(run / "predictions" / "test_predictions.npy", pred_t)
     np.save(run / "predictions" / "test_ctrl.npy", ctrl_t)
+    np.save(run / "predictions" / "test_ground_truth.npy", pred_t)  # review 081 C3 (v3b): pred_t here IS their truth
     rlog = {"seed": 117, "n_test": int(tm.sum()), "stop_reason": "rule", "best_epoch": 3, "n_epochs_run": 14}
     (run / "logs" / "resource_log.json").write_text(json.dumps(rlog), encoding="utf-8")
     return h5, str(run), pred_t, rlog, adata, tm
@@ -1281,7 +1283,7 @@ def _pi_kernel_world(monkeypatch, data, windows_shim, tmp_path, trainer_path=Non
     for k, v in (extra_pertdit or {}).items():
         monkeypatch.setattr(p10_pertdit, k, v)
     out_root, src_root = str(tmp_path / "kernels"), str(tmp_path / "src")
-    kw = dict(emb_record_path=rec_p, t_test_s=25.0, out_root=out_root, src_root=src_root, compound_map_path=cmap_p,
+    kw = dict(emb_record_path=rec_p, timing_json_path=_pi_timing_json(tmp_path), out_root=out_root, src_root=src_root, compound_map_path=cmap_p,
               dose_list_path=dose_p, bundle_path=bundle_p, carves_path=carves_p, p10_mlp_path=str(inp / "p10_mlp.py"),
               p10_pertdit_path=str(inp / "p10_pertdit.py"))
     if trainer_path:
@@ -1357,6 +1359,11 @@ def test_pi_kernel_blinding_on_a_real_timing_run(monkeypatch, tiny_world_data, w
     for leak in ("Shapes:", "[6/7] Predicting", "[7/7] Saving", "Data after preprocessing", "Drug embeddings:"):
         assert leak not in r.stdout, leak
     assert "[Epoch" in r.stdout  # the allowed curve lines do come through
+    # review 081 C1: the stamps are event times -- strictly ordered markers and real epoch / test durations, per seed
+    tj = json.load(open(os.path.join(str(w["work"]), "p10d_timing.json"), encoding="utf-8"))
+    for seed_k, tm in tj["timings"].items():
+        assert tm["t_epoch"] > 1.0 and tm["t_test"] > 1.0 and tm["t_pre"] > 0, (seed_k, tm)
+    assert {"versions", "torch_version", "gpu_names"} <= set(tj)
 
 
 def test_pi_builder_refuses_embeddings_from_another_compound_map(monkeypatch, tiny_world_data, windows_shim, tmp_path):
@@ -1371,3 +1378,60 @@ def test_pi_builder_refuses_embeddings_from_another_compound_map(monkeypatch, ti
     with open(w["rec"], "w", encoding="utf-8") as f:
         json.dump(rec, f)
     _pi_raises(lambda: make_p10_d_kernels.build_kernels(**w["kw"]), "the embeddings were built for doses")
+
+
+
+# =========================================================================
+# Review 081: C1 timing stamps are event times; C2 the run kernel is bound to the timing JSON; C3 (v3b); C4 records
+# =========================================================================
+def _pi_timing_json(tmp_path, t_epoch=10.0, t_test=30.0, decision=None, cap_s=None):
+    """A timing JSON as the timing kernel writes it (decision derived from the timings unless overridden)."""
+    tm = {"t_pre": 50.0, "t_epoch": t_epoch, "t_test": t_test}
+    timings = {"117": tm, "118": dict(tm)}
+    dec = p10_pertdit.timing_decision(timings, cap_s=cap_s or p10_pertdit.CAP_S)
+    if decision is not None:
+        dec = dict(dec, decision=decision)
+    p = os.path.join(str(tmp_path), f"timing_{t_epoch}_{t_test}_{decision}.json")
+    with open(p, "w", encoding="utf-8") as f:
+        json.dump({"timings": timings, "decision": dec}, f)
+    return p
+
+
+def test_pi_review081_parse_timing_refuses_flushed_stamps():
+    good = ("1000.000\t[5/7] Training\n1010.000\t  [Epoch   0] x\n1030.000\t  [Epoch   2] x\n"
+            "1040.000\t[6/7] Predicting on test set\n1070.000\t[7/7] Saving unified output\n")
+    p10_pertdit.parse_timing(good, kernel_t0=990.0)
+    flushed = "\n".join("1500.000\t" + l.split("\t", 1)[1] for l in good.strip().splitlines()) + "\n"
+    _pi_raises(lambda: p10_pertdit.parse_timing(flushed, kernel_t0=990.0), "not strictly increasing")
+    fast = good.replace("1030.000", "1010.500")  # t_epoch 0.25 s, ordering intact
+    _pi_raises(lambda: p10_pertdit.parse_timing(fast, kernel_t0=990.0), "below")
+
+
+def test_pi_review081_run_kernel_bound_to_timing(monkeypatch, tiny_world_data, windows_shim, tmp_path):
+    w = _pi_kernel_world(monkeypatch, tiny_world_data, windows_shim, tmp_path)
+    code = open(w["run"], encoding="utf-8").read()
+    tj = json.load(open(w["kw"]["timing_json_path"], encoding="utf-8"))
+    assert f"T_TEST_S = {float(tj['decision']['t_test_s'])}" in code
+    assert f"TIMING_SHA1 = '{p10_pertdit.sha1_file(w['kw']['timing_json_path'])}'" in code
+    assert f"TIMING_DECISION = '{tj['decision']['decision']}'" in code
+    # a not_run_cost timing builds nothing
+    kw = dict(w["kw"], timing_json_path=_pi_timing_json(tmp_path, t_epoch=400.0))
+    _pi_raises(lambda: make_p10_d_kernels.build_kernels(**kw), "not_run_cost")
+    # a decision that its timings don't give
+    kw = dict(w["kw"], timing_json_path=_pi_timing_json(tmp_path, t_epoch=400.0, decision="run"))
+    _pi_raises(lambda: make_p10_d_kernels.build_kernels(**kw), "is not what its timings give")
+    # a non-positive timing
+    kw = dict(w["kw"], timing_json_path=_pi_timing_json(tmp_path, t_test=0.0))
+    _pi_raises(lambda: make_p10_d_kernels.build_kernels(**kw), "non-positive timing")
+    # the kernel template asserts the pinned GPU version line (C4; the real line is checked on Kaggle before the reset)
+    assert "if installed_versions != PINNED_GPU_VERSIONS:" in code and "PYTHONUNBUFFERED" in code
+
+
+def test_pi_review081_v3b_sees_order_inside_shared_controls(monkeypatch, tiny_world_data, tmp_path):
+    h5, run, pred_t, rlog, adata, tm = _pi_conv_world(monkeypatch, tiny_world_data, tmp_path)
+    gp = os.path.join(run, "predictions", "test_ground_truth.npy")
+    gt = np.load(gp)
+    np.save(gp, gt[[1, 0] + list(range(2, len(gt)))])  # swap two rows; test_ctrl untouched, so (v3) passes
+    _pi_raises(lambda: p10_pertdit.convert_outputs_d(h5, run, 117, str(tmp_path / "o.npz")), "guard (v3b)")
+    os.remove(gp)
+    _pi_raises(lambda: p10_pertdit.convert_outputs_d(h5, run, 117, str(tmp_path / "o.npz")), "guard (v3b): missing")

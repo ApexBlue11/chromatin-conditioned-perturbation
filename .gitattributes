@@ -4,3 +4,5 @@ model/results/p10/p10_carves.json -text
 external/bai_benchmark_1d750cd/** -text
 # RESULTS 98.17: the D embedding inputs are pinned by sha1 in kernels; never line-ending-normalise
 model/results/p10/p10d_inputs/** -text
+# RESULTS 98.20: pinned by sha1 in score_p10 (COLLISION_SHA1); never line-ending-normalise
+model/results/p10/p10d_caption_collision.json -text

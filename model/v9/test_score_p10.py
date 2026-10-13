@@ -942,3 +942,259 @@ def test_c2_manifest_guards_isolated(tmp_path, monkeypatch):
     os.remove(fix['ref_dir_m'] / 'P10_M_COMPLETE.json')
     with pytest.raises(SystemExit, match='no download manifest'):
         _score_m(fix)
+
+
+
+# =========================================================================
+# P10 arm D (PertDiT): the loader, (d1)-(d6), the cap rule, the reported blocks and the D reader (RESULTS 98.3 / 98.15 /
+# 98.16 / 98.20; W41, written by the PI). Each guard world fails only that guard; the tests call the real code.
+# =========================================================================
+import p10_pertdit  # noqa: E402
+
+D_LABEL_REF = 'PertDiT (our run of their harness)'
+
+
+def write_d_dir(ref_dir, fix, stop=None, rec_over=None, npz_over=None, timings=None, extra_manifest=False, rng_seed=7):
+    """Both seeds' npz (rows shuffled), records carrying PIN_D, a timing JSON giving 'run', and P10D_COMPLETE.json."""
+    rng = np.random.default_rng(rng_seed)
+    ref_dir.mkdir(parents=True, exist_ok=True)
+    stop = {117: 'rule', 118: 'rule', **(stop or {})}
+    timings = timings or {'117': {'t_pre': 50.0, 't_epoch': 10.0, 't_test': 30.0},
+                          '118': {'t_pre': 55.0, 't_epoch': 11.0, 't_test': 31.0}}
+    tj = {'timings': timings, 'decision': p10_pertdit.timing_decision(timings, cap_s=21600.0)}
+    tpath = ref_dir / 'p10d_timing.json'
+    tpath.write_text(json.dumps(tj), encoding='utf-8')
+    n = len(fix['test_row_index'])
+    perm = rng.permutation(n)
+    for s_ in (117, 118):
+        arrs = dict(row_index=fix['test_row_index'][perm],
+                    delta_pred=(fix['y_test_delta'] + rng.normal(0, 1.0, fix['y_test_delta'].shape))[perm].astype(np.float32),
+                    delta_pred_t=rng.normal(0, 1, fix['y_test_delta'].shape)[perm].astype(np.float32),
+                    ctrl_t=rng.normal(0, 1, fix['y_test_delta'].shape)[perm].astype(np.float32),
+                    seed=np.int64(s_), arm=np.str_('pertdit'), stop_reason=np.str_(stop[s_]), best_epoch=np.int64(40),
+                    n_epochs_run=np.int64(51), t_train=np.float64(8242.43))
+        arrs.update((npz_over or {}).get(s_, {}))
+        np.savez(ref_dir / f'p10_pertdit_seed{s_}.npz', **arrs)
+        rec = {'seed': s_, 'sha1s': dict(score_p10.PIN_D), 'stop_reason': stop[s_], 'best_epoch': 40, 'n_epochs_run': 51,
+               'wall_s': 9000, 'n_test': n, 't_train': 8242.43, 'of_record': s_ == 117, 'versions': 'x', 'torch_version': 'x',
+               'gpu_names': ['Tesla T4', 'Tesla T4'], 'timing_sha1': file_sha1(tpath), 'timing_decision': tj['decision']['decision']}
+        rec.update((rec_over or {}).get(s_, {}))
+        (ref_dir / f'p10_pertdit_seed{s_}_record.json').write_text(json.dumps(rec), encoding='utf-8')
+    files = {f: file_sha1(ref_dir / f) for f in score_p10.D_FILES}
+    if extra_manifest:
+        files['stray.txt'] = 'x'
+    (ref_dir / 'P10D_COMPLETE.json').write_text(json.dumps({'complete': True, 'files': files}), encoding='utf-8')
+    return perm
+
+
+def write_collision(tmp_path, monkeypatch, rows):
+    rows = np.asarray(rows, dtype=np.int64)
+    cp = tmp_path / 'collision.json'
+    cp.write_text(json.dumps({'row_index': rows.tolist(), 'rows_sha1': score_p10.row_set_sha1(rows)}), encoding='utf-8')
+    monkeypatch.setattr(score_p10, 'COLLISION_JSON', str(cp))
+    monkeypatch.setattr(score_p10, 'COLLISION_SHA1', file_sha1(cp))
+    return cp
+
+
+def _d_world(tmp_path, monkeypatch, **kw):
+    fix = make_p10_fixture(tmp_path)
+    patch_constants(monkeypatch, fix, tmp_path)
+    write_collision(tmp_path, monkeypatch, fix['clean_rows'][:10])
+    ref_dir = tmp_path / 'ref_d'
+    perm = write_d_dir(ref_dir, fix, **kw)
+    return fix, ref_dir, perm
+
+
+def _score_d(fix, ref_dir, ref='pertdit', **kw):
+    return score_p10.score_p10(str(fix['p9_dir']), ref, ref_dir=str(ref_dir), **kw)
+
+
+def test_d_happy_path_aligns_and_labels(tmp_path, monkeypatch):
+    fix, ref_dir, perm = _d_world(tmp_path, monkeypatch)
+    p9_data = score_p10.load_p9_and_metadata(str(fix['p9_dir']))
+    ref = score_p10.load_ref('pertdit', str(ref_dir), p9_data)
+    z = np.load(ref_dir / 'p10_pertdit_seed117.npz')
+    back = np.empty_like(perm); back[perm] = np.arange(len(perm))          # undo the shuffle by row_index
+    want = per_row_pearson(np.asarray(z['delta_pred'], dtype=np.float64)[back], p9_data['y'])
+    assert np.allclose(ref['r_ref'], want)
+    out = _score_d(fix, ref_dir)
+    assert out['of_record']['LABEL'] == score_p10.D_LABEL and out['ref_label'] == D_LABEL_REF
+    assert out['full']['LABEL'] == score_p10.REPORTED_LABEL and out['d_reported']['LABEL'] == score_p10.REPORTED_LABEL
+    assert out['d_reported']['timing_decision'] == 'run' and out['d_reported']['oracle_inverse_r'] == 0.99979
+
+
+@pytest.mark.parametrize('world, kw, needle', [
+    ('manifest extra file', dict(extra_manifest=True), '(d1)'),
+    ('a pin changed', dict(rec_over={117: {'sha1s': dict(score_p10.PIN_D, cap_trainer='0' * 40)}}), '(d2)'),
+    ('record n_test', dict(rec_over={117: {'n_test': 1}}), '(d3)'),
+    ('npz seed', dict(npz_over={117: {'seed': np.int64(118)}}), '(d3)'),
+    ('118 of_record true', dict(rec_over={118: {'of_record': True}}), '(d4)'),
+    ('timing sha1', dict(rec_over={117: {'timing_sha1': '0' * 40}}), '(d5)'),
+    ('decision not from its timings', dict(rec_over={117: {'timing_decision': 'run_capped'}}), '(d5)'),
+    ('not_run_cost timings', dict(timings={'117': {'t_pre': 50.0, 't_epoch': 400.0, 't_test': 30.0},
+                                          '118': {'t_pre': 50.0, 't_epoch': 400.0, 't_test': 30.0}}), '(d5)'),
+    ('npz stop_reason', dict(npz_over={117: {'stop_reason': np.str_('max_epochs')}}), '(d6)'),
+    ('npz arm', dict(npz_over={117: {'arm': np.str_('m')}}), '(d6)'),
+])
+def test_d_provenance_each_guard_isolated(tmp_path, monkeypatch, world, kw, needle):
+    fix, ref_dir, _ = _d_world(tmp_path, monkeypatch, **kw)
+    with pytest.raises(SystemExit) as exc:
+        _score_d(fix, ref_dir, dry_check=True)
+    assert needle in str(exc.value), (world, str(exc.value))
+
+
+def test_d_manifest_sha1_isolated(tmp_path, monkeypatch):
+    fix, ref_dir, _ = _d_world(tmp_path, monkeypatch)
+    with open(ref_dir / 'p10_pertdit_seed118_record.json', 'a', encoding='utf-8') as f:
+        f.write(' ')
+    with pytest.raises(SystemExit, match=r'\(d1\).*sha1 differs'):
+        _score_d(fix, ref_dir, dry_check=True)
+
+
+def test_d_manifest_missing_a_file_isolated(tmp_path, monkeypatch):
+    """(d1)'s file-set check alone: every listed file is present and matches, but one D file is not listed."""
+    fix, ref_dir, _ = _d_world(tmp_path, monkeypatch)
+    man = json.loads((ref_dir / 'P10D_COMPLETE.json').read_text(encoding='utf-8'))
+    del man['files']['p10d_timing.json']
+    (ref_dir / 'P10D_COMPLETE.json').write_text(json.dumps(man), encoding='utf-8')
+    with pytest.raises(SystemExit, match=r'\(d1\).*not the D file set'):
+        _score_d(fix, ref_dir, dry_check=True)
+
+
+def test_d_cap_rule(tmp_path, monkeypatch):
+    fix, ref_dir, _ = _d_world(tmp_path, monkeypatch, stop={117: 'cap', 118: 'cap'})
+    with pytest.raises(SystemExit, match='not run \\(cost\\)'):
+        _score_d(fix, ref_dir)
+    out = _score_d(fix, ref_dir, d_truncated_reported=True)
+    labels = []
+
+    def walk(o):
+        if isinstance(o, dict):
+            if 'LABEL' in o:
+                labels.append(o['LABEL'])
+            for v in o.values():
+                walk(v)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v)
+    walk(out)
+    assert labels and set(labels) == {score_p10.D_TRUNCATED_LABEL} and out['LABEL'] == score_p10.D_TRUNCATED_LABEL
+    out118 = _score_d(fix, ref_dir, ref='pertdit_s118')                    # seed 118 scores as reported, even capped
+    assert out118['of_record']['LABEL'] == score_p10.D_TRUNCATED_LABEL
+
+
+def test_d_s118_is_reported_only(tmp_path, monkeypatch):
+    fix, ref_dir, _ = _d_world(tmp_path, monkeypatch)
+    out = _score_d(fix, ref_dir, ref='pertdit_s118')
+    assert out['of_record']['LABEL'] == score_p10.REPORTED_LABEL and out['LABEL'] == score_p10.REPORTED_LABEL
+
+
+def _scanpy_truth_t(fix):
+    """PertDiT's transformed truth, computed independently with scanpy as their trainer does."""
+    import anndata as ad
+    import scanpy as sc
+    b = np.load(fix['bundle_path'])
+
+    def tr(a):
+        x = ad.AnnData(X=np.clip(np.asarray(a, dtype=np.float64), 0, 1e3))
+        sc.pp.normalize_total(x)
+        sc.pp.log1p(x)
+        return np.asarray(x.X)
+    t = tr(b['X']) - tr(b['X_ctl'])
+    pos = {int(r): i for i, r in enumerate(b['row_index'])}
+    return t, pos
+
+
+def test_d_own_target_matches_their_transform(tmp_path, monkeypatch):
+    fix = make_p10_fixture(tmp_path)
+    t, pos = _scanpy_truth_t(fix)
+    rows = fix['test_row_index']
+    rng = np.random.default_rng(3)
+    perm = rng.permutation(len(rows))
+    exact = t[[pos[int(r)] for r in rows[perm]]].astype(np.float32)
+    patch_constants(monkeypatch, fix, tmp_path)
+    write_collision(tmp_path, monkeypatch, fix['clean_rows'][:10])
+    ref_dir = tmp_path / 'ref_d'
+    write_d_dir(ref_dir, fix, rng_seed=3, npz_over={117: {'delta_pred_t': exact}})
+    out = _score_d(fix, ref_dir)
+    assert abs(out['d_reported']['own_target']['row_pooled_mean_r'] - 1.0) < 1e-6
+    assert abs(out['d_reported']['own_target']['per_molecule_mean_of_medians'] - 1.0) < 1e-6
+    noisy = (exact + rng.normal(0, 0.5, exact.shape)).astype(np.float32)
+    ref_dir2 = tmp_path / 'ref_d2'
+    write_d_dir(ref_dir2, fix, rng_seed=3, npz_over={117: {'delta_pred_t': noisy}})
+    monkeypatch.setattr(score_p10, 'REPO', str(tmp_path / 'second'))   # touch-once: a fresh output path
+    out2 = _score_d(fix, ref_dir2)
+    assert out2['d_reported']['own_target']['row_pooled_mean_r'] < 0.999
+
+
+def test_d_caption_collision_parts_and_guards(tmp_path, monkeypatch):
+    fix, ref_dir, _ = _d_world(tmp_path, monkeypatch)
+    out = _score_d(fix, ref_dir)
+    cc = out['d_reported']['caption_collision']
+    assert cc['collision']['n_rows'] == 10
+    assert cc['collision']['n_rows'] + cc['rest']['n_rows'] == out['row_pooled']['n_rows']
+    assert cc['collision']['LABEL'] == score_p10.REPORTED_LABEL
+    # a collision row that is not a clean row
+    write_collision(tmp_path, monkeypatch, list(fix['clean_rows'][:3]) + [int(fix['test_row_index'][-1])])
+    monkeypatch.setattr(score_p10, 'REPO', str(tmp_path / 'b'))
+    with pytest.raises(SystemExit, match='not all clean rows'):
+        _score_d(fix, ref_dir)
+    # rows that don't match their rows_sha1
+    cp = write_collision(tmp_path, monkeypatch, fix['clean_rows'][:5])
+    d = json.loads(cp.read_text(encoding='utf-8')); d['rows_sha1'] = '0' * 40
+    cp.write_text(json.dumps(d), encoding='utf-8')
+    monkeypatch.setattr(score_p10, 'COLLISION_SHA1', file_sha1(cp))
+    monkeypatch.setattr(score_p10, 'REPO', str(tmp_path / 'c'))
+    with pytest.raises(SystemExit, match='rows_sha1'):
+        _score_d(fix, ref_dir)
+    # a collision file whose bytes are not the pinned ones
+    monkeypatch.setattr(score_p10, 'COLLISION_SHA1', '0' * 40)
+    monkeypatch.setattr(score_p10, 'REPO', str(tmp_path / 'd'))
+    with pytest.raises(SystemExit, match='COLLISION_SHA1'):
+        _score_d(fix, ref_dir)
+
+
+def _write_d_scored(path, rec, label=None, stored_verdict=None, extra=None):
+    rec = dict(rec)
+    rec['verdict'] = stored_verdict if stored_verdict is not None else _p9_verdict(rec, D_LABEL_REF)
+    rec['LABEL'] = score_p10.D_LABEL if label is None else label
+    data = {'ref': 'pertdit', 'ref_label': D_LABEL_REF, 'of_record': rec}
+    data.update(extra or {})
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f)
+    with open(str(path) + '.marker', 'w', encoding='utf-8') as f:
+        json.dump({'complete': True, 'sha1': file_sha1(path)}, f)
+    return path
+
+
+D_EXPECT = {
+    'pass': 'v9 predicts unseen compounds better than PertDiT (our run of their harness)',
+    'ref_better': 'PertDiT (our run of their harness) predicts unseen compounds better than v9',
+    'mean_neg_no_claim': score_p10.D_STATEMENT_NO_CLAIM, 'otherwise': score_p10.D_STATEMENT_NO_CLAIM,
+    'pass_but_frac_59': score_p10.D_STATEMENT_NO_CLAIM, 'pass_but_sign_p': score_p10.D_STATEMENT_NO_CLAIM,
+    'pass_but_ci_lo': score_p10.D_STATEMENT_NO_CLAIM, 'mean_zero': score_p10.D_STATEMENT_NO_CLAIM,
+    'uninformative_pos': 'UNINFORMATIVE: cluster CI wider than 0.10; no compound-level claim',
+    'uninformative_neg': 'UNINFORMATIVE: cluster CI wider than 0.10; no compound-level claim',
+}
+
+
+@pytest.mark.parametrize('world', sorted(WORLDS))
+def test_d_reader_each_world(tmp_path, world):
+    res = score_p10.read_p10_d(_write_d_scored(tmp_path / 'd.json', WORLDS[world]))
+    assert res['d'] == D_EXPECT[world], (world, res)
+
+
+def test_d_reader_refusals_and_garbage(tmp_path):
+    with pytest.raises(SystemExit, match='disagrees'):
+        score_p10.read_p10_d(_write_d_scored(tmp_path / 'a.json', WORLDS['otherwise'],
+                                             stored_verdict='v9 predicts unseen compounds better than PertDiT (our run of their harness)'))
+    for lab in (score_p10.D_TRUNCATED_LABEL, score_p10.REPORTED_LABEL):
+        with pytest.raises(SystemExit, match='not a D reading of record'):
+            score_p10.read_p10_d(_write_d_scored(tmp_path / 'b.json', WORLDS['pass'], label=lab))
+    bad = _write_scored(tmp_path / 'c.json', 'pertdit_s118', WORLDS['pass'])
+    with pytest.raises(SystemExit, match='not'):
+        score_p10.read_p10_d(bad)
+    a = score_p10.read_p10_d(_write_d_scored(tmp_path / 'g1.json', WORLDS['pass']))
+    b = score_p10.read_p10_d(_write_d_scored(tmp_path / 'g2.json', WORLDS['pass'],
+                                             extra={'d_reported': {'own_target': 'GARBAGE', 'caption_collision': None}}))
+    assert a == b
