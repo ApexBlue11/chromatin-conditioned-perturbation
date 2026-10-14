@@ -16,6 +16,11 @@ The bundle has no plate key, so the PLATE PROXY is the control group: rows whose
         the PLATE-CONTRAST target yc = X - mean X of the other-drug wells on the plate (CMap's Level-4 logic):
         how well the same (drug, cell, time) on other plates predicts it, by strength tercile, and its
         drug-free predictor (the cell mean of yc).
+  A2b (review 083 C1 / C2, added 2026-10-14): the same drug term over a MODEL-AVAILABLE drug-free baseline, F0, on rows
+      with >= 2 plate-mates and on rows with none; and the zero-parameter DOSE-ONLY floor on the plate-contrast target
+      (mean y of rows at the same (cell, time, dose) on another control, contrasted over the plate-mates). Labels per
+      review 083 C3: the bundle has one row per (drug, cell, time, dose), so D is the same drug at OTHER DOSES, and
+      0.147 is not a replicate ceiling.
   A3  split_cold_cell_1 training rows: -(X_ctl - cell mean control) alone, the cell-mean delta alone, both.
 
 Run:  python model/v9/audit99_target_sources.py [--bundle B] [--out model/results/audit99/target_sources.json]
@@ -157,6 +162,36 @@ def a0_a2(b, split_key):
                                 [(0, qc[0]), (qc[0], qc[1]), (qc[1], np.inf)]],
         'drug_free_cell_mean_r': nanmean(rowr(Sco[cgo] / nco[cgo][:, None], yc[okc]))}
     res['A2'] = a2
+
+    # A2b -- review 083 C1: the drug term over F0 (no plate information), with and without plate-mates
+    a2b = {'label': 'D = the same (drug, cell, time) at OTHER doses on other plates (no replicates exist in the bundle)'}
+    for name, m in (('ge2_plate_mates', (nP1 >= 2) & (nD2 > 0)), ('no_plate_mate', (nP1 == 0) & (nD2 > 0))):
+        base = nanmean(rowr(F0[m], y[m]))
+        grid = {str(w): nanmean(rowr(F0[m] + w * (D2[m] - Mcell[m]), y[m])) for w in W_GRID + (1.5, 2.0)}
+        bw = max(grid, key=grid.get)
+        a2b['over_F0_' + name] = {'n_rows': int(m.sum()), 'F0': base, 'best_w': float(bw), 'F0_plus_wD': grid[bw],
+                                  'increment': grid[bw] - base}
+    # review 083 C2: the dose-only floor on the plate-contrast target
+    dose = b['meta_dose'][tr]
+    ctd = group_ids(cell, time, dose)
+    Dd, nDd = loo_other(y, ctd, group_ids(cell, time, dose, ctl))
+    okd = has_yc & (nDd > 0)
+    w_ = okd.astype(np.float64)
+    Dd0 = np.where(okd[:, None], Dd, 0.0)
+    gp, gpp = group_ids(ctl), group_ids(ctl, pert)
+    Sp_, _ = group_sum(gp, Dd0 * w_[:, None])
+    Spp_, _ = group_sum(gpp, Dd0 * w_[:, None])
+    cntd = np.bincount(gp, weights=w_)[gp] - np.bincount(gpp, weights=w_)[gpp]
+    with np.errstate(invalid='ignore', divide='ignore'):
+        cDd = Dd0 - (Sp_[gp] - Spp_[gpp]) / cntd[:, None]
+    md = okd & (cntd >= 2)
+    a2b['dose_only_floor_on_contrast'] = {'n_rows': int(md.sum()), 'r_mean': nanmean(rowr(cDd[md], yc[md]))}
+    gpd = group_ids(ctl, dose)
+    same_dose = np.bincount(gpd)[gpd] - np.bincount(group_ids(ctl, dose, pert))[group_ids(ctl, dose, pert)]
+    mates = np.bincount(gp)[gp] - np.bincount(gpp)[gpp]
+    mm = mates > 0
+    a2b['mean_frac_plate_mates_at_another_dose'] = float(np.mean(1 - same_dose[mm] / mates[mm]))
+    res['A2b'] = a2b
     return res
 
 
@@ -197,6 +232,8 @@ def main(argv=None):
     pc = cd['A2']['plate_contrast_target']
     print('A2 plate-contrast: same drug other plates %.3f (terciles %s), drug-free %.3f' % (
           pc['same_drug_cell_time_other_plates_r_mean'], [round(x, 3) for x in pc['by_strength_tercile']], pc['drug_free_cell_mean_r']))
+    print('A2b', json.dumps({k: (v if not isinstance(v, dict) else {kk: (round(vv, 3) if isinstance(vv, float) else vv)
+                                                                      for kk, vv in v.items()}) for k, v in cd['A2b'].items()}))
     print('A3', json.dumps({k: (round(v, 3) if isinstance(v, float) else v) for k, v in out['cold_cell_1_A3'].items()}))
     print('wrote', a.out)
 

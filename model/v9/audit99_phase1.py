@@ -2,8 +2,10 @@
 """RESULTS 99 / model/V10_AUDIT_AND_PLAN.md §5: Phase 1's rescoring tests, run ONCE each after review (packet 084).
 
   C1   the within-plate contrast on P9's unseen-compound rows: v9 (3 seeds) against M+dt, per molecule, clean subset,
-       score_p9.verdict -- the reading of record. Reported: per seed, v9 against 0, M (0 by construction), the
-       contrast-magnitude ratio.
+       score_p9.verdict -- the reading of record, a BENCHMARK statement (review 083 C2: dose alone earns part of the
+       contrast, so "uses the compound" is C3's). Reported: per seed, v9 against 0, M (0 by construction), the
+       contrast-magnitude ratio, the zero-parameter DOSE-ONLY floor (review 083 C2), and strata by the mean ECFP4
+       Tanimoto of each row's plate-mates (review 083 ask 2).
   C1b  the oracle-plate version: (truth - P_meas) against (prediction - P_meas), P_meas = measured mean delta of the
        row's other-compound plate-mates in ANY split. Reported.
   C1c  the zero-parameter training-plate predictor (mean delta of the other-compound TRAINING wells on the plate), on
@@ -20,7 +22,8 @@ the plate proxy is the control group (byte-identical X_ctl, the bundle has no pl
 c(prediction) against c(truth); a prediction contrast with zero variance scores 0 and is counted.
 
 Every test reads saved predictions only; nothing is trained or inferred here. C2b and C3 (inference) are
-audit99_infer.py; their readers are read_c2b / read_c3 below.
+audit99_infer.py; their readers are read_c2b / read_c3 below. Every no-claim statement carries its CI bound
+(review 083 C4).
 
 Run:  python model/v9/audit99_phase1.py --test C1 [--out_dir model/results/audit99]
       (each test refuses to run if its output already exists: run once.)
@@ -47,14 +50,18 @@ MIN_MATES = 2
 N_BOOT = 20000
 C1_STATEMENTS = {
     'v9 predicts unseen compounds better than M+dt':
-        'v9 uses the compound: on the within-plate contrast it beats a drug-free model with dose and time',
+        'v9 beats a drug-free model with dose and time on the within-plate contrast (a benchmark statement; '
+        'whether v9 uses the compound is C3)',
     'NO COMPOUND-LEVEL CLAIM':
-        "v9's compound use is not detected even where only the compound can help",
+        'v9 is not shown to beat a drug-free model with dose and time on the within-plate contrast: its margin is at '
+        'most {ci_hi:+.3f} per molecule (95 % cluster CI)',
     'M+dt predicts unseen compounds better than v9':
-        'M+dt (drug-free, with dose and time) beats v9 on the within-plate contrast',
+        'a drug-free model with dose and time beats v9 on the within-plate contrast',
     'UNINFORMATIVE: cluster CI wider than 0.10; no compound-level claim':
         'uninformative: the cluster CI is wider than 0.10',
 }
+DRUG_INDEX = os.path.join(REPO, 'drug', 'outputs', 'drug_feature_index.json')
+DRUG_FP = os.path.join(REPO, 'drug', 'outputs', 'drug_fingerprints.npy')
 TESTS = ('C1', 'C1b', 'C1c', 'C2a', 'C2b', 'C2c', 'C3', 'C4')
 
 
@@ -116,6 +123,43 @@ def other_mean(V_all, plate_all, pert_all, sel_all, rows, min_mates=MIN_MATES):
     return M, cnt
 
 
+def loo_mean(V_all, outer, inner, sel_all, rows, min_n=1):
+    """For each row in `rows`: the mean of V_all over rows j with sel_all[j], in the row's `outer` group but NOT in its
+    `inner` group (inner nests inside outer). NaN where fewer than min_n such rows."""
+    w = sel_all.astype(np.float64)
+    So, _ = group_sum(outer, V_all * w[:, None])
+    Si, _ = group_sum(inner, V_all * w[:, None])
+    cnt = np.bincount(outer, weights=w)[outer[rows]] - np.bincount(inner, weights=w)[inner[rows]]
+    with np.errstate(invalid='ignore', divide='ignore'):
+        M = (So[outer[rows]] - Si[inner[rows]]) / cnt[:, None]
+    M[cnt < min_n] = np.nan
+    return M, cnt
+
+
+def mates_tanimoto(plate, pert, fp_of):
+    """Per row: the mean ECFP4 Tanimoto between its compound and each of its other-compound plate-mates (rows given)."""
+    out = np.full(len(plate), np.nan)
+    for g in np.unique(plate):
+        ix = np.flatnonzero(plate == g)
+        if len(ix) < 2:
+            continue
+        F = np.stack([fp_of(p) for p in pert[ix]]).astype(np.float64)
+        inter = F @ F.T
+        n = F.sum(1)
+        with np.errstate(invalid='ignore', divide='ignore'):
+            T = np.where(n[:, None] + n[None, :] - inter > 0, inter / (n[:, None] + n[None, :] - inter), 0.0)
+        other = pert[ix][:, None] != pert[ix][None, :]
+        with np.errstate(invalid='ignore'):
+            out[ix] = np.where(other.sum(1) > 0, (T * other).sum(1) / np.maximum(other.sum(1), 1), np.nan)
+    return out
+
+
+def _fp_lookup():
+    idx = json.load(open(DRUG_INDEX, encoding='utf-8'))
+    fp = np.load(DRUG_FP)
+    return lambda p: fp[idx[str(p)]] > 0.5
+
+
 def _plates_for(bundle, bundle_idx, ctl_true):
     """The plate proxy for scored rows, with the identity guard that the bundle's X_ctl IS the scored file's control."""
     C_b = bundle['X_ctl'][bundle_idx].astype(np.float64)
@@ -171,7 +215,28 @@ def test_c1(p9_dir=P9_DIR, n_boot=N_BOOT):
         raise SystemExit('FATAL: non-finite contrast scores on the scored rows')
     mol = p9['molecule'][rows]
     primary = _mol_block(r_v9[rows], r_mdt[rows], mol, 'M+dt', n_boot)
-    statement = C1_STATEMENTS[primary['verdict']]
+    statement = C1_STATEMENTS[primary['verdict']].format(ci_hi=primary['ci_hi'])
+
+    # review 083 C2: the zero-parameter dose-only floor -- the mean y of TRAINING rows at the same (cell, time, dose)
+    # on a different control (compound-blind), contrasted over the scored plate-mates exactly as the predictions are
+    b = p9['bundle_data']
+    y_all = b['X'].astype(np.float64) - b['X_ctl'].astype(np.float64)
+    plate_all = control_ids(b['X_ctl'])
+    ctd = group_ids(b['meta_cell'], b['meta_time'], b['meta_dose'])
+    ctdp = group_ids(b['meta_cell'], b['meta_time'], b['meta_dose'], plate_all)
+    D_dose, n_dose = loo_mean(y_all, ctd, ctdp, b[score_p10.SPLIT_KEY] == 'train', p9['bundle_idx'])
+    has_dose = n_dose >= 1
+    cd_dose, _ = plate_contrast(np.where(has_dose[:, None], D_dose, 0.0), plate, pert)
+    r_dose, _ = rowr_pred(np.where(have[:, None], cd_dose, 0.0), np.where(have[:, None], cy, 0.0))
+    r_dose[~(have & has_dose)] = np.nan
+    rows_d = rows & has_dose
+
+    # review 083 ask 2 (reported, never read): strata by the plate-mates' mean ECFP4 Tanimoto
+    tan = mates_tanimoto(plate, pert, _fp_lookup())
+    med = float(np.nanmedian(tan[rows]))
+    strata = {}
+    for name, m in (('mates_tanimoto_below_median', rows & (tan < med)), ('mates_tanimoto_at_or_above_median', rows & (tan >= med))):
+        strata[name] = _mol_block(r_v9[m], r_mdt[m], p9['molecule'][m], 'M+dt', n_boot)
 
     def ratio(deltas):
         cd, _ = plate_contrast(np.mean(deltas, 0), plate, pert)
@@ -189,6 +254,14 @@ def test_c1(p9_dir=P9_DIR, n_boot=N_BOOT):
             'zero_variance_prediction_rows': {'v9_all_seeds': z_v9, 'mdt_all_seeds': z_mdt, 'm_all_seeds': z_m,
                                               'note': 'M sees only the control, so its contrast is 0 by construction'},
             'contrast_magnitude_ratio_median': {'v9': ratio(v9_deltas), 'mdt': ratio(mdt['pred_deltas'])},
+            'dose_only_floor': {'definition': 'mean y of training rows at the same (cell, time, dose) on another control, '
+                                              'contrasted over the scored plate-mates',
+                                'rows': int(rows_d.sum()), 'row_mean_r': _summ(r_dose[rows_d]),
+                                'v9_vs_floor': _mol_block(r_v9[rows_d], r_dose[rows_d], p9['molecule'][rows_d],
+                                                          'the dose-only floor', n_boot),
+                                'mdt_vs_floor': _mol_block(r_mdt[rows_d], r_dose[rows_d], p9['molecule'][rows_d],
+                                                           'the dose-only floor', n_boot)},
+            'by_mates_tanimoto': {'median': med, **strata},
         }}
 
 
@@ -341,6 +414,7 @@ def test_c4(p9_dir=P9_DIR):
 
 
 C2B_RULE = 0.5        # §5: replaced cluster mean (v9 - XPert) below half the intact one -> "substantially carried"
+C2B_OF_RECORD = 'ctl'  # review 083 C5: x_cell := the row's own X_ctl; 'global' (all cell information removed) is reported
 AUDIT_OUT = os.path.join(REPO, 'external', 'kaggle_out', 'audit99')
 
 
@@ -380,9 +454,10 @@ def read_c2b(out_dir=AUDIT_OUT, o2_path=O2, bundle_path=BUNDLE, n_boot=N_BOOT):
     if float(np.abs(y - runs[0]['y'][io_]).max()) > 1e-4 or float(np.abs(ctl - runs[0]['ctl'][io_]).max()) > 1e-4:
         raise SystemExit('FATAL: the inference outputs and O2 disagree on the target')
     r_int = np.mean([rowr_pred(r['deg_intact'][io_].astype(np.float64), y)[0] for r in runs], 0)
-    r_mod = np.mean([rowr_pred(r['deg_mod'][io_].astype(np.float64), y)[0] for r in runs], 0)
+    r_var = {v: np.mean([rowr_pred(r['deg_' + v][io_].astype(np.float64), y)[0] for r in runs], 0) for v in ('ctl', 'global')}
+    r_mod = r_var[C2B_OF_RECORD]
     r_xp = rowr_pred(np.asarray(T['y_pred'][it], np.float64) - ctl, y)[0]
-    ok = np.isfinite(r_int) & np.isfinite(r_mod) & np.isfinite(r_xp)
+    ok = np.isfinite(r_int) & np.isfinite(r_var['ctl']) & np.isfinite(r_var['global']) & np.isfinite(r_xp)
     b = np.load(bundle_path, allow_pickle=True)
     pos = {int(r): i for i, r in enumerate(b['row_index'])}
     cells = b['meta_cell'][np.array([pos[int(r)] for r in common[ok]])].astype(str)
@@ -390,18 +465,29 @@ def read_c2b(out_dir=AUDIT_OUT, o2_path=O2, bundle_path=BUNDLE, n_boot=N_BOOT):
     top = u[np.argmax(n_by)]
     blocks = {}
     for name, (a_, b_) in {'intact_vs_xpert': (r_int, r_xp), 'replaced_vs_xpert': (r_mod, r_xp),
-                           'intact_vs_replaced': (r_int, r_mod)}.items():
+                           'intact_vs_replaced': (r_int, r_mod), 'global_vs_xpert': (r_var['global'], r_xp),
+                           'intact_vs_global': (r_int, r_var['global'])}.items():
         rng = np.random.default_rng(0)
         cl, pc, po = coldcell_h2h.compute_cluster_and_pooled(a_[ok] - b_[ok], a_[ok], b_[ok], cells, u, n_by, top, n_boot, rng)
         blocks[name] = {'cluster': cl, 'per_cell': pc, 'pooled': po}
     lead_int = blocks['intact_vs_xpert']['cluster']['mean_of_d_c']
     lead_mod = blocks['replaced_vs_xpert']['cluster']['mean_of_d_c']
-    carried = bool(lead_int > 0 and lead_mod < C2B_RULE * lead_int)
-    return {'test': 'C2b', 'reading_of_record': True, 'rows': int(ok.sum()), 'blocks': blocks,
-            'lead_intact': lead_int, 'lead_replaced': lead_mod, 'rule': 'replaced < %.1f x intact' % C2B_RULE,
-            'statement': ("v9's unseen-cell lead over XPert is substantially carried by the transductive cell-average input"
-                          if carried else "v9's unseen-cell lead over XPert is not substantially carried by the transductive "
-                                          "cell-average input")}
+    ci_int = blocks['intact_vs_xpert']['cluster']['cluster_ci95']
+    assessable = bool(lead_int > 0 and ci_int[0] > 0)          # review 083 C5: the precondition
+    carried = bool(assessable and lead_mod < C2B_RULE * lead_int)
+    if not assessable:
+        statement = ('not assessable: the intact final-snapshot lead over XPert is %+.4f with cluster CI [%+.4f, %+.4f], '
+                     'which does not exclude 0' % (lead_int, ci_int[0], ci_int[1]))
+    elif carried:
+        statement = "v9's unseen-cell lead over XPert is substantially carried by the transductive cell-average input"
+    else:
+        statement = "v9's unseen-cell lead over XPert is not substantially carried by the transductive cell-average input"
+    return {'test': 'C2b', 'reading_of_record': True, 'basis': 'final snapshot against final snapshot (P7 of record is '
+            'the three-snapshot mean)', 'variant_of_record': "x_cell := the row's own X_ctl",
+            'rows': int(ok.sum()), 'blocks': blocks, 'lead_intact': lead_int, 'lead_replaced': lead_mod,
+            'lead_global_reported': blocks['global_vs_xpert']['cluster']['mean_of_d_c'],
+            'rule': 'replaced < %.1f x intact, if the intact lead is > 0 with its cluster CI excluding 0' % C2B_RULE,
+            'assessable': assessable, 'statement': statement}
 
 
 def read_c3(out_dir=AUDIT_OUT, p9_dir=P9_DIR, n_boot=N_BOOT):
@@ -415,7 +501,7 @@ def read_c3(out_dir=AUDIT_OUT, p9_dir=P9_DIR, n_boot=N_BOOT):
     y = p9['y']
     if float(np.abs(runs[0]['y'][ix] - y).max()) > 1e-4:
         raise SystemExit('FATAL: the swap outputs and P9 disagree on the target')
-    swapped = np.all([r['donor_row_index'][ix] >= 0 for r in runs], 0)
+    C3_OF_RECORD = 'tani'                                       # review 083 C6; 'free' is reported
     plate = _plates_for(p9['bundle_data'], p9['bundle_idx'], p9['ctl_true'])
     pert = p9['pert']
     cy, cnt = plate_contrast(y, plate, pert)
@@ -428,25 +514,35 @@ def read_c3(out_dir=AUDIT_OUT, p9_dir=P9_DIR, n_boot=N_BOOT):
         return r
 
     deg_i = [r['deg_intact'][ix].astype(np.float64) for r in runs]
-    deg_m = [r['deg_mod'][ix].astype(np.float64) for r in runs]
     r_orig_i = np.mean([rowr_pred(d, y)[0] for d in deg_i], 0)
-    r_orig_m = np.mean([rowr_pred(d, y)[0] for d in deg_m], 0)
     r_c_i = np.mean([contrast_r(d) for d in deg_i], 0)
-    r_c_m = np.mean([contrast_r(d) for d in deg_m], 0)
-    rows_o = swapped & p9['clean_mask']
-    rows_c = rows_o & have
-    reading = _mol_block(r_c_i[rows_c], r_c_m[rows_c], p9['molecule'][rows_c], 'the swapped compound', n_boot)
-    depends = bool(reading['mean_d'] > 0 and reading['ci_lo'] > 0)
-    sens = np.median(np.mean([np.linalg.norm(a - b, axis=1) for a, b in zip(deg_i, deg_m)], 0)[rows_c]
-                     / np.linalg.norm(cy[rows_c], axis=1))
-    return {'test': 'C3', 'reading_of_record': True,
+    out = {'test': 'C3', 'reading_of_record': True, 'variant_of_record': 'compound-level swap within cell, ECFP4 '
+           'Tanimoto < 0.4', 'variants': {}}
+    for v in ('tani', 'free'):
+        swapped = np.all([r['donor_row_index_' + v][ix] >= 0 for r in runs], 0)
+        deg_m = [r['deg_' + v][ix].astype(np.float64) for r in runs]
+        r_orig_m = np.mean([rowr_pred(d, y)[0] for d in deg_m], 0)
+        r_c_m = np.mean([contrast_r(d) for d in deg_m], 0)
+        rows_o = swapped & p9['clean_mask']
+        rows_c = rows_o & have
+        reading = _mol_block(r_c_i[rows_c], r_c_m[rows_c], p9['molecule'][rows_c], 'the swapped compound', n_boot)
+        sens = np.median(np.mean([np.linalg.norm(a - b, axis=1) for a, b in zip(deg_i, deg_m)], 0)[rows_c]
+                         / np.linalg.norm(cy[rows_c], axis=1))
+        out['variants'][v] = {
             'rows': {'p9': int(len(y)), 'swapped_clean': int(rows_o.sum()), 'contrast_scored': int(rows_c.sum())},
             'contrast_intact_vs_swapped': reading,
             'original_target_intact_vs_swapped': _mol_block(r_orig_i[rows_o], r_orig_m[rows_o], p9['molecule'][rows_o],
                                                             'the swapped compound', n_boot),
-            'sensitivity_median': float(sens),
-            'statement': ("v9's predictions depend on the right compound" if depends else
-                          "v9's dependence on the right compound is not shown")}
+            'sensitivity_median': float(sens)}
+        if v == C3_OF_RECORD:
+            depends = bool(reading['mean_d'] > 0 and reading['ci_lo'] > 0)
+            out['statement'] = ("v9's predictions depend on the right compound: swapping in a dissimilar compound "
+                                "lowers the contrast score by %+.3f per molecule (95 %% cluster CI [%+.3f, %+.3f])"
+                                % (reading['mean_d'], reading['ci_lo'], reading['ci_hi']) if depends else
+                                "v9's dependence on the right compound is not shown: the contrast gain of the right "
+                                "compound over a dissimilar one is at most %+.3f per molecule (95 %% cluster CI)"
+                                % reading['ci_hi'])
+    return out
 
 
 RUNNERS = {'C1': test_c1, 'C1b': test_c1b, 'C1c': test_c1c, 'C2a': test_c2a, 'C2c': test_c2c, 'C4': test_c4,

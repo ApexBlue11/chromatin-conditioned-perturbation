@@ -75,6 +75,28 @@
     ],
     "drug_free_cell_mean_r": 0.012089688909685781
    }
+  },
+  "A2b": {
+   "label": "D = the same (drug, cell, time) at OTHER doses on other plates (no replicates exist in the bundle)",
+   "over_F0_ge2_plate_mates": {
+    "n_rows": 31722,
+    "F0": 0.4042442953676191,
+    "best_w": 1.0,
+    "F0_plus_wD": 0.4740979687347771,
+    "increment": 0.06985367336715803
+   },
+   "over_F0_no_plate_mate": {
+    "n_rows": 9125,
+    "F0": 0.3234781935242033,
+    "best_w": 2.0,
+    "F0_plus_wD": 0.47898758693126847,
+    "increment": 0.15550939340706516
+   },
+   "dose_only_floor_on_contrast": {
+    "n_rows": 42054,
+    "r_mean": 0.026502008337655862
+   },
+   "mean_frac_plate_mates_at_another_dose": 0.6010560449656197
   }
  },
  "cold_cell_1_A3": {

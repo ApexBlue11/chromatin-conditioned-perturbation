@@ -10113,6 +10113,43 @@ their pins before the reset.
   - **C4:** dose coupling, reported.
 - **The code** (packet 084) is reviewed before it runs. Nothing is run twice.
 
+### 99.4 Review 083 (SOUND-WITH-CAVEATS) adopted: the +0.013 is against an oracle; C1 becomes benchmark-level; B1 runs (PI, 2026-10-14; before any Phase 1 code ran)
+**What the reviewer did:**
+- reproduced A0–A2 with its own code (P 0.662 → 0.675; the contrast 0.147);
+- **M1 and M2 stand.**
+
+**PI-verified before adoption** (training rows; now A2b in `target_sources.json`):
+- over F0, the drug-free baseline a model can actually have, the same drug term adds **+0.070** on rows with ≥ 2
+  plate-mates and **+0.156** on rows with none;
+- a compound-blind dose-only floor scores **0.027** on the contrast;
+- 60 % of a row's plate-mates are at another dose.
+
+**Adopted** (full table: `V10_AUDIT_AND_PLAN.md` §8, which governs where §1–§7 differ):
+- **C1 (MAJOR):** "the drug can add at most ≈ 0.013" holds only over the **oracle** plate predictor.
+  - M3 becomes *partly confirmed*.
+  - 99.1's bullet and 99.2's interim R1 wording are withdrawn. R1 stands as measured, with M2's shared-control caveat.
+- **C2 (MAJOR):** C1 is a **benchmark** statement (*"v9 beats a drug-free model with dose and time on the within-plate
+  contrast"*). "Uses the compound" is C3's, which holds dose fixed. The dose-only floor is reported beside C1.
+- **C3:** there are no replicates in the bundle, so 0.147 is *the same compound at other doses*, and F1's "noise ceiling" is
+  dropped.
+- **C4:** every no-claim sentence carries its CI upper bound.
+- **C5:** C2b's variant of record is `x_cell :=` the row's own `X_ctl` (the global mean is reported). The rule applies only if
+  the intact final-snapshot lead is > 0 with its cluster CI excluding 0.
+- **C6:** C3 is a compound-level substitution within cell, Tanimoto < 0.4 of record, with the unconstrained one reported.
+- **Ask 2:** C1 is reported by the plate-mates' mean Tanimoto.
+- **Ask 5: B1 is no longer held. It runs at the Sat 17 Oct reset as §98.21 recorded,** after O9 session 3, and before D's
+  timing run if the quota allows both.
+
+**The code** (packet 084): `audit99_phase1.py`, `audit99_infer.py`, `make_audit99_kernels.py`.
+- 24 tests pass on CPU.
+- The mutation check is **0 of 20 surviving**: every guard, including the bound, the floor's training-only and own-plate
+  exclusions, C2b's precondition and variant, C3's variant, the manifest and smoke checks, the Tanimoto constraint and the
+  compound-level swap.
+- **Dry runs, identity only, nothing scored:**
+  - C1 has 7,980 clean rows over 337 molecules;
+  - all 389 test compounds have fingerprints;
+  - the inference identity check reproduces P9's and P7's saved predictions (min r 0.99999996).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

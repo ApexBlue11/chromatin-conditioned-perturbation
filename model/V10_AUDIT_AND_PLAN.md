@@ -3,7 +3,7 @@
 **Opened:** 2026-10-13, at the principal's request ("there must be some mistake or multiple mistakes ... identify and
 confirm all of them and then make a plan to fix all of them").
 **Logged as:** RESULTS §99, which registers Phase 1 (§5 here) before any Phase 1 code runs or any test row is read.
-**Critic:** packet 083.
+**Critic:** packet 083 (review 083 SOUND-WITH-CAVEATS, adopted in §8; where §1–§7 differ from §8, **§8 governs**).
 
 **Status of each part:**
 
@@ -25,17 +25,21 @@ worry is right, but the largest cause is not inside the network.
 - **The target we train and score on is mostly the plate, not the drug.** That target is XPert's Level-3 delta,
   y = X − X_ctl: a treated profile minus the control profile from its own plate. On 31,722 training rows:
   - a predictor that never sees the drug scores **r = 0.662** (the mean response of the *other* drugs on the same plate);
-  - the drug's own measured response from other plates, added at the best weight, raises it to **0.675**.
-  - So **on this target the drug is worth at most about +0.013**.
+  - the same compound at other doses on other plates, added at the best weight, raises it to **0.675**.
+  - So **over that (oracle) plate predictor the drug adds about +0.013**. *Amended (§8, review 083 C1): over a
+    drug-free baseline a model can actually have, F0, the same term adds +0.070 on rows with plate-mates and +0.156 on
+    rows without, so the room for the drug depends on how much of the plate a model can recover.*
 - **That explains the drug-free tie (R1, §98.11)** without any bug in the network: v9 scores 0.642 and Bai et al.'s
   control-only MLP 0.635.
-  - It also undercuts the drug-blind retrain (B1/R2), PertDiT's head-to-head (D) and the XPert comparison (O9) as tests of
-    drug use. All of them are read on the same target.
+  - ~~It also undercuts the drug-blind retrain (B1/R2), PertDiT's head-to-head (D) and the XPert comparison (O9) as tests of
+    drug use.~~ *Withdrawn (§8, review 083 C1): that rested on the oracle baseline. They remain informative, most of all
+    where the plate is unknown.*
   - It probably also explains part of Bai et al.'s field-wide finding that seven L1000 models do not use their drug
     features (§50): they score on the same target.
 - **With the plate removed** from the target (each well minus the mean of the other drugs' wells on its plate, CMap's
-  Level-4 logic), drug-free information predicts almost nothing (r 0.012). The drug's own replicate on other plates
-  predicts it at r 0.147, and 0.189 for the strongest third.
+  Level-4 logic), drug-free information predicts almost nothing (r 0.012). The same compound at other doses on other
+  plates predicts it at r 0.147, and 0.189 for the strongest third. *(Not a replicate ceiling: the bundle has no
+  replicates, §8 C3.)*
   - So the drug signal is weak but real, and **only the drug can supply it**. That is the target a drug-response model
     must be trained and judged on.
 - **On top of the target, the network has its own faults** (§4):
@@ -135,7 +139,7 @@ test-set row counts in A0 are identity-level (plate membership only).
 |---|---|---|---|---|---|
 | **M1** | **The training and evaluation target is plate-dominated.** On y = X − X_ctl a drug-free predictor reaches 0.662, against 0.675 with the drug's own measured response added at the best weight | A1, A2 | **CONFIRMED** | R1's tie with the drug-free MLP; why no drug change ever moved accuracy much | F1 |
 | **M2** | **Plate shortcut through the exact control.** The control vector identifies the plate, and the plate's mean response is learnable from training wells | A0: 85.5 % share, and 78 % of unseen-compound test rows have ≥ 2 training plate-mates. R1's strata (§98.11): the drug-free MLP is ahead on shared-control rows (−0.011), v9 on new controls (+0.044) | **CONFIRMED** (structure); its use by v9 is C1 / C3 | the shared- vs new-control pattern in R1 | F2 |
-| **M3** | **Our tests of drug use cannot detect it.** R1, R2 (B1), O9 and D are all read on M1's target, where the most the drug can add is ≈ +0.013 | A2, plus R1's CI half-width ≈ 0.005 | **CONFIRMED** (arithmetic) | why B1 would almost certainly read "no difference" | C1 now, F1 later |
+| **M3** | **Our tests of drug use are read on a target where much of the score is plate recovery.** *Amended (§8): over the oracle plate predictor the compound adds +0.013; over a model-available drug-free baseline (F0) it adds +0.070 with plate-mates and +0.156 without* | A2, A2b | **PARTLY CONFIRMED** (amended from "CONFIRMED (arithmetic)") | why R1 cannot separate "v9 ignores the drug" from "both models recover the plate" | C1 / C3 now, F1 later |
 | **M4** | **Transductive cell-average input for unseen cells** (`xpert_arm.py:311`): with no training rows, `x_cell` is the mean control over the cell's *test* rows. XPert has no such input | code; review 001 C4 (§51.5) asked for a rerun that was never done; A3: the term it enables scores 0.362 | **CODE FACT**; its effect on the unseen-cell lead is **C2** | possibly part of v9's unseen-cell lead over XPert (+0.050, 6/8 cells) | F3 |
 | **M5** | **The pathway layer reads before the drug enters** (`model_v9.py` forward: `self.pathway(h)` runs before the perturb blocks) | code | **CODE FACT** | §88's null (no drug-dependent mechanism); §85.14's licence is about *cell* state, not the drug | F4 |
 | **M6** | **Chromatin cannot interact with the drug.** It enters as part of each gene's identity per cell (`GeneRepresentation`), and as an additive per-gene offset with no drug input (`SignedChromatinHead`: contrib = f(E)·r). With 39 training cells it can act as a cell ID | code; T4: blanking it at inference *improves* unseen dev cells by +0.006 (§91.11); the gain is gene-generic (§91.12, §93.17); nothing beyond basal expression (§44); final +0.0004 (§55) | **CODE FACT + MEASURED** | every chromatin null and the small harm | F8 |
@@ -228,7 +232,7 @@ kernels.
 
 | fix | for | what changes | how it is judged |
 |---|---|---|---|
-| **F1** | M1, M3 | **Train and evaluate on a plate-normalised target.** Primary: the within-plate contrast of §5, applied to the training rows (A2's y_c); rows with < 2 plate-mates carry no contrast loss. Alternative to decide at registration: CMap Level-5 MODZ signatures, needing GSE92742/GSE70138 Level 5 | **primary reading:** the contrast r per molecule or cell. **Reported beside it:** the field's metric, for comparability, and the noise ceiling (A2's 0.147, by tercile) |
+| **F1** | M1, M3 | **Train and evaluate on a plate-normalised target.** Primary: the within-plate contrast of §5, applied to the training rows (A2's y_c); rows with < 2 plate-mates carry no contrast loss. Alternative to decide at registration: CMap Level-5 MODZ signatures, needing GSE92742/GSE70138 Level 5 | **primary reading:** the contrast r per molecule or cell. **Reported beside it:** the field's metric, for comparability, ~~and the noise ceiling (A2's 0.147, by tercile)~~ *(dropped, §8 C3: no replicates in the bundle)* |
 | **F2** | M2 | **Remove the plate identity from the input:** feed the cell's baseline rather than the exact plate control (or substitute controls within cell during training, IDEAS B3 i). Add a plate-disjoint evaluation where the data allow it (IDEAS B3 ii) | C1-style contrast; the shared- vs new-control strata of R1, which should close |
 | **F3** | M4 | Compute the cell average from **training rows only**. An unseen cell gets an external baseline (CCLE, or a registered rule over its non-test controls), **given equally to every compared model** | the unseen-cell head-to-head is re-read under the fair input |
 | **F4** | M5 | **Drug-conditioned pathway layer:** the named pathway readout moves after the drug blocks. Option: the drug's effect passes *through* the named nodes (drug → pathway activations → gene changes), so the mechanism readout is the model's own bottleneck | §88's mechanism test, re-run |
@@ -256,13 +260,56 @@ kernels.
 
 - **Saturday 17 Oct reset:**
   - **O9 session 3** and **D's timing run** go ahead (the head-to-head is part-spent; PertDiT is the field's comparison).
-  - **B1 (the drug-blind v9 retrain, ≈ 6 GPU-h) is held**: its registered reading is on M1's target, where the drug is
-    worth ≈ +0.013 at most, and C1 asks the same question for free. Its kernel stays committed.
+  - ~~**B1 (the drug-blind v9 retrain, ≈ 6 GPU-h) is held**~~ *Amended (§8, review 083 ask 5): the hold's reasons do
+    not hold. B1 answers a matched question C1 does not (does training with the compound help, all else equal), and it
+    is C1's exact comparator on the contrast. **B1 runs at the Sat 17 Oct reset** as registered (§98.21).*
 - **Claims:**
-  - **"v9 does not beat a drug-free model on unseen compounds"** (R1) stands as measured. It is now worded as a property of
-    the target, not of the model, until C1 reads.
+  - **"v9 does not beat a drug-free model on unseen compounds"** (R1) stands as measured, with M2's shared-control caveat.
+    *(The interim wording "the drug can add at most ≈ 0.013" is withdrawn, §8.)*
   - **The unseen-cell lead over XPert** (§85.14) carries M4's caveat until C2 reads.
   - **Chromatin** stays closed for accuracy under v9 (§92.14). F8 is a new mechanism on a new target, not a re-test.
 - **The paper:** M1 / M3 is a finding in its own right, if C1 confirms it: *the standard L1000 benchmark target is
   dominated by plate structure, so "do models use the drug" cannot be answered on it.* Bai et al.'s conclusion needs to
   be re-examined on their own single-dose data before we say anything about it.
+
+## 8. AMENDED by review 083 (SOUND-WITH-CAVEATS; all six challenges adopted, 2026-10-14; before any Phase 1 code ran)
+
+The reviewer reproduced A0–A2 with its own code. The PI reproduced its two MAJOR numbers in turn (training rows only),
+and they are now in `target_sources.json` as A2b.
+
+| # | sev | challenge | adopted as |
+|---|---|---|---|
+| C1 | MAJOR | "the most the drug can add is ≈ +0.013" holds only against the oracle plate predictor P (built from plate-mates' measured truths) | **A2b:** over F0 the same drug term adds **+0.070** (31,722 rows with ≥ 2 plate-mates; 0.404 → 0.474) and **+0.156** (9,125 rows with none; 0.323 → 0.479). M3 becomes PARTLY CONFIRMED; the §1 bullet, R1's interim wording and the B1 hold are withdrawn (struck through above) |
+| C2 | MAJOR | C1's "v9 uses the compound" can be earned by dose: 60 % of a row's plate-mates are at another dose, and a compound-blind dose-only floor scores **0.027** on the contrast | **option (a):** C1's statements are benchmark-level (*"v9 beats a drug-free model with dose and time on the within-plate contrast"*); "uses the compound" is C3's. The dose-only floor is reported beside C1 (definition below) |
+| C3 | MINOR | no replicates exist (68,830 rows = 68,830 distinct (compound, cell, time, dose)); D is the same compound at other doses | relabelled everywhere; **F1's "noise ceiling" is dropped** — a replicate ceiling needs replicate data (GSE Level 3/4) |
+| C4 | MINOR | the no-claim sentences need their bound | C1 and C3 no-claim statements carry the cluster CI's upper bound |
+| C5 | MINOR | C2b's global-mean replacement removes all cell information; "half of the lead" is undefined if the intact lead is ≈ 0 | **of record:** `x_cell :=` the row's own `X_ctl`; the global mean is reported. **Precondition:** the rule applies only if the intact final-snapshot cluster lead is > 0 with its cluster CI excluding 0, else "not assessable". Labelled "final-snapshot basis" |
+| C6 | MINOR | a random derangement can pair close analogues | **of record:** a compound-level substitution within cell (one substitute per (compound, cell)) drawn from compounds with ECFP4 Tanimoto < 0.4; the unconstrained compound-level substitution is reported |
+| ask 2 | — | report C1 by plate-mates' similarity | reported, never read: C1 split at the median of each row's mean ECFP4 Tanimoto to its plate-mates |
+| ask 5 | — | the B1 hold's reason does not hold | B1 runs at the reset as registered (§7 amended) |
+
+**C1, as amended (binding):**
+- **Primary:** v9 against M+dt on the within-plate contrast, per molecule, clean rows with ≥ 2 scored plate-mates
+  (7,980 rows, 337 molecules on the dry run), `score_p9.verdict`. The statements:
+  - v9 better → *"v9 beats a drug-free model with dose and time on the within-plate contrast (a benchmark statement;
+    whether v9 uses the compound is C3)"*;
+  - no claim → *"v9 is not shown to beat a drug-free model with dose and time on the within-plate contrast: its margin is
+    at most {ci_hi} per molecule (95 % cluster CI)"*;
+  - M+dt better → stated as such.
+- **The dose-only floor (reported):** for each test row, the mean delta of **training** rows at the same (cell, time,
+  dose) on a **different** control, contrasted over the scored plate-mates exactly as the predictions are; v9 and M+dt
+  each against it, per molecule.
+
+**C3, as amended (binding):**
+- **Of record:** the Tanimoto < 0.4 compound-level substitution. *"v9's predictions depend on the right compound"* iff the
+  contrast Δ (intact − swapped) per molecule has mean > 0 and cluster CI excluding 0; else *"not shown: the contrast gain
+  of the right compound over a dissimilar one is at most {ci_hi} per molecule"*.
+- **Reported:** the unconstrained substitution.
+
+**C2b, as amended (binding):** the variant of record and the precondition as in C5; statements otherwise as §5.
+
+**Missing from M1–M10, added (review 083 ask 6):**
+- **M11:** the metric, per-row Pearson over 978 genes, rewards the direction shared by everything on a plate (part of
+  why P scores so high), distinct from the target;
+- **M12 (data):** no replicates in this bundle, so no noise ceiling here;
+- dose structure inside the plate, which every plate-normalised comparator must account for (C2).

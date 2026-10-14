@@ -9,6 +9,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import audit99_phase1 as A
 import score_p9
+import score_p10
 
 
 def _world(n_plates=40, per_plate=6, G=50, seed=0, plate_sd=2.0, drug_sd=0.5, noise_sd=0.3):
@@ -98,15 +99,43 @@ def test_every_verdict_string_has_a_statement():
     assert seen == set(A.C1_STATEMENTS)
 
 
-def _patch_p9(monkeypatch, w, v9_list, mdt_list, m_list, clean=None):
+def _bundle_for(w, rng, with_dose_effect=False):
+    """A synthetic bundle: the scored rows first (split 'test', the world's plates), then a training copy of each on a
+    new plate (other compounds), same cell / time / dose. X_ctl is byte-identical within a plate and distinct across."""
+    n, G = w['y'].shape
+    dose = rng.choice([1.0, 3.0, 10.0], n).astype(np.float32)
+    dose_eff = {d: rng.normal(0, 1.0, G) for d in (1.0, 3.0, 10.0)}
+    ctl_by_plate = {}
+    def ctl(p):
+        if p not in ctl_by_plate:
+            ctl_by_plate[p] = rng.normal(size=G).astype(np.float32)
+        return ctl_by_plate[p]
+    y_test = w['y'] + (np.stack([dose_eff[float(d)] for d in dose]) if with_dose_effect else 0)
+    y_train = (np.stack([dose_eff[float(d)] for d in dose]) if with_dose_effect else 0) + rng.normal(0, 0.3, (n, G))
+    C = np.concatenate([np.stack([ctl(int(p)) for p in w['plate']]), np.stack([ctl(1000 + int(p)) for p in w['plate']])])
+    Y = np.concatenate([y_test, y_train])
+    b = {'X': (C + Y).astype(np.float32), 'X_ctl': C, 'meta_cell': np.array(['C'] * (2 * n)),
+         'meta_time': np.full(2 * n, 24.0, np.float32), 'meta_dose': np.concatenate([dose, dose]),
+         'meta_pert_id': np.concatenate([w['pert'], np.array(['T%04d' % i for i in range(n)])]),
+         score_p10.SPLIT_KEY: np.array(['test'] * n + ['train'] * n)}
+    return b, y_test
+
+
+def _patch_p9(monkeypatch, w, v9_list, mdt_list, m_list, clean=None, with_dose_effect=False):
     n = len(w['y'])
-    p9 = {'y': w['y'], 'pert': w['pert'], 'molecule': w['mol'], 'clean_mask': np.ones(n, bool) if clean is None else clean,
-          'seeds_data': [{'y_pred': v} for v in v9_list], 'ctl_true': np.zeros_like(w['y'])}
+    rng = np.random.default_rng(7)
+    b, y_test = _bundle_for(w, rng, with_dose_effect)
+    p9 = {'y': y_test, 'pert': w['pert'], 'molecule': w['mol'], 'clean_mask': np.ones(n, bool) if clean is None else clean,
+          'seeds_data': [{'y_pred': v} for v in v9_list], 'ctl_true': np.zeros_like(w['y']),
+          'bundle_data': b, 'bundle_idx': np.arange(n)}
+    fps = {p: rng.random(64) < 0.3 for p in np.unique(w['pert'])}
+    monkeypatch.setattr(A, '_fp_lookup', lambda: (lambda p: fps[p]))
     monkeypatch.setattr(A, '_load_p9_side', lambda *a, **k: (p9, {'pred_deltas': mdt_list}, {'pred_deltas': m_list},
                                                              w['plate'], [v - p9['ctl_true'] for v in v9_list]))
+    return p9
 
 
-def test_c1_detects_a_model_that_uses_the_compound(monkeypatch):
+def test_c1_detects_a_model_that_beats_the_drug_free_one(monkeypatch):
     w = _world()
     rng = w['rng']
     good = [w['plate_mean'] + np.stack([w['drug_eff'][int(p[1:])] for p in w['pert']]) + rng.normal(0, 0.3, w['y'].shape)
@@ -115,8 +144,10 @@ def test_c1_detects_a_model_that_uses_the_compound(monkeypatch):
     _patch_p9(monkeypatch, w, good, plate_only, [g.copy() for g in good])   # M = v9 here, so comparing against M would read no claim
     res = A.test_c1(n_boot=2000)
     assert res['primary_v9_vs_mdt']['verdict'] == 'v9 predicts unseen compounds better than M+dt'
-    assert res['statement'].startswith('v9 uses the compound')
+    assert res['statement'].startswith('v9 beats a drug-free model') and 'C3' in res['statement']
     assert res['reported']['zero_variance_prediction_rows']['mdt_all_seeds'] == 3 * res['rows']['with_ge2_mates']
+    assert set(res['reported']['by_mates_tanimoto']) == {'median', 'mates_tanimoto_below_median',
+                                                        'mates_tanimoto_at_or_above_median'}
 
 
 def test_c1_does_not_credit_a_plate_only_v9(monkeypatch):
@@ -127,6 +158,16 @@ def test_c1_does_not_credit_a_plate_only_v9(monkeypatch):
     _patch_p9(monkeypatch, w, noisy, plate_only, plate_only)
     res = A.test_c1(n_boot=2000)
     assert res['primary_v9_vs_mdt']['verdict'] != 'v9 predicts unseen compounds better than M+dt'
+
+
+def test_c1_no_claim_statement_carries_its_bound(monkeypatch):
+    w = _world()
+    rng = w['rng']
+    same = [w['plate_mean'] + rng.normal(0, 0.5, w['y'].shape) for _ in range(3)]
+    _patch_p9(monkeypatch, w, same, [s.copy() for s in same], same)
+    res = A.test_c1(n_boot=1000)
+    assert res['primary_v9_vs_mdt']['verdict'] == 'NO COMPOUND-LEVEL CLAIM'
+    assert ('at most %+.3f per molecule' % res['primary_v9_vs_mdt']['ci_hi']) in res['statement']
 
 
 def test_c1_uses_only_clean_rows(monkeypatch):
@@ -142,9 +183,142 @@ def test_c1_uses_only_clean_rows(monkeypatch):
     assert res['rows']['scored_clean'] == int((have & clean).sum())
 
 
+def test_dose_only_floor_sees_dose_structure_and_only_from_training_rows(monkeypatch):
+    w = _world(drug_sd=0.05)
+    rng = w['rng']
+    flat = [w['plate_mean'] for _ in range(3)]
+    p9 = _patch_p9(monkeypatch, w, flat, flat, flat, with_dose_effect=True)
+    res = A.test_c1(n_boot=500)
+    fl = res['reported']['dose_only_floor']
+    assert fl['row_mean_r']['mean'] > 0.3 and fl['rows'] > 0
+    # with no training row at any (cell, time, dose), the floor has no rows
+    p9['bundle_data'][score_p10.SPLIT_KEY][:] = 'test'
+    res2 = A.test_c1(n_boot=200)
+    assert res2['reported']['dose_only_floor']['rows'] == 0
+
+
+def test_loo_mean_hand_example():
+    V = np.arange(6, dtype=float)[:, None]
+    outer = np.array([0, 0, 0, 0, 1, 1])
+    inner = np.array([0, 0, 1, 2, 3, 4])
+    sel = np.array([True, True, True, False, True, True])
+    M, cnt = A.loo_mean(V, outer, inner, sel, np.array([0, 2, 3, 4]))
+    assert cnt.tolist() == [1, 2, 3, 1]
+    assert M[0, 0] == pytest.approx(2.0) and M[1, 0] == pytest.approx(0.5) and M[2, 0] == pytest.approx(1.0)
+    assert M[3, 0] == pytest.approx(5.0)
+
+
+def test_mates_tanimoto_hand_example():
+    fps = {'a': np.array([1, 1, 0, 0], bool), 'b': np.array([1, 0, 0, 0], bool), 'c': np.array([0, 0, 1, 1], bool)}
+    t = A.mates_tanimoto(np.array([0, 0, 0, 1]), np.array(['a', 'b', 'c', 'a']), lambda p: fps[p])
+    assert t[0] == pytest.approx((0.5 + 0.0) / 2) and t[1] == pytest.approx((0.5 + 0.0) / 2) and t[2] == pytest.approx(0.0)
+    assert np.isnan(t[3])
+
+
+def _write_infer(tmp, mode, k, arrays, record_over=None):
+    d = tmp / ('s%d' % k)
+    d.mkdir(parents=True, exist_ok=True)
+    f = d / ('%s_seed%d.npz' % (mode, k))
+    np.savez_compressed(f, **arrays)
+    rec = {'mode': mode, 'seed': k, 'limit': 0}
+    rec.update(record_over or {})
+    json.dump(rec, open(str(f).replace('.npz', '.json'), 'w'))
+    json.dump({'complete': True, 'seed': k, 'files': {f.name: A.sha1(str(f))}}, open(d / ('AUDIT99_COMPLETE_s%d.json' % k), 'w'))
+    return f
+
+
+def _c2b_world(tmp, lead_v9=0.4, replaced_level=0.0, n_per_cell=60, cells=8, seed=0):
+    rng = np.random.default_rng(seed)
+    G = 40
+    n = n_per_cell * cells
+    ri = np.arange(n) + 100
+    ctl = rng.normal(size=(n, G)).astype(np.float32)
+    y = rng.normal(size=(n, G)).astype(np.float32)
+    xp = (0.3 * y + rng.normal(size=(n, G))).astype(np.float32)
+    def pred(s):
+        return (s * y + rng.normal(size=(n, G))).astype(np.float32)
+    for k in (0, 1, 2):
+        _write_infer(tmp, 'xcell', k, {'row_index': ri, 'ctl': ctl, 'y': y, 'deg_intact': pred(0.3 + lead_v9),
+                                        'deg_ctl': pred(0.3 + replaced_level), 'deg_global': pred(0.3)})
+    o2 = tmp / 'o2.npz'
+    np.savez(o2, row_index=ri, y_pred=xp + ctl, y_true=y + ctl, ctl_true=ctl)
+    bun = tmp / 'bundle.npz'
+    np.savez(bun, row_index=ri, meta_cell=np.repeat(np.array(['c%d' % i for i in range(cells)]), n_per_cell))
+    return str(o2), str(bun)
+
+
+def test_read_c2b_carried_not_carried_and_not_assessable(tmp_path):
+    o2, bun = _c2b_world(tmp_path / 'a', lead_v9=0.5, replaced_level=0.0)
+    r = A.read_c2b(str(tmp_path / 'a'), o2, bun, n_boot=500)
+    assert r['assessable'] and 'substantially carried' in r['statement'] and 'not substantially' not in r['statement']
+    o2, bun = _c2b_world(tmp_path / 'b', lead_v9=0.5, replaced_level=0.5)
+    r = A.read_c2b(str(tmp_path / 'b'), o2, bun, n_boot=500)
+    assert r['assessable'] and 'not substantially carried' in r['statement']
+    o2, bun = _c2b_world(tmp_path / 'c', lead_v9=0.0, replaced_level=0.0)
+    r = A.read_c2b(str(tmp_path / 'c'), o2, bun, n_boot=500)
+    assert not r['assessable'] and r['statement'].startswith('not assessable')
+
+
+def test_read_c2b_refuses_a_tampered_or_smoke_output(tmp_path):
+    o2, bun = _c2b_world(tmp_path / 'a')
+    f = tmp_path / 'a' / 's1' / 'xcell_seed1.npz'
+    z = dict(np.load(f))
+    z['deg_ctl'] = z['deg_ctl'] + 1
+    np.savez_compressed(f, **z)
+    with pytest.raises(SystemExit, match='manifest'):
+        A.read_c2b(str(tmp_path / 'a'), o2, bun, n_boot=100)
+    o2, bun = _c2b_world(tmp_path / 'b')
+    _write_infer(tmp_path / 'b', 'xcell', 2, dict(np.load(tmp_path / 'b' / 's2' / 'xcell_seed2.npz')), {'limit': 8})
+    with pytest.raises(SystemExit, match='not a full'):
+        A.read_c2b(str(tmp_path / 'b'), o2, bun, n_boot=100)
+
+
+def _c3_world(tmp, monkeypatch, right_matters=True):
+    w = _world()
+    rng = w['rng']
+    n, G = w['y'].shape
+    eff = np.stack([w['drug_eff'][int(p[1:])] for p in w['pert']])
+    donor = rng.permutation(n)
+    plate_mean = w['plate_mean']
+    intact = plate_mean + eff
+    swapped = plate_mean + (eff[donor] if right_matters else eff)
+    C = np.stack([np.full(G, float(p)) for p in w['plate']]).astype(np.float32)
+    for k in (0, 1, 2):
+        _write_infer(tmp, 'swap', k, {'row_index': np.arange(n), 'ctl': C, 'y': w['y'].astype(np.float32),
+                                       'deg_intact': (intact + rng.normal(0, 0.2, (n, G))).astype(np.float32),
+                                       'deg_tani': (swapped + rng.normal(0, 0.2, (n, G))).astype(np.float32),
+                                       'deg_free': (intact + rng.normal(0, 0.2, (n, G))).astype(np.float32),   # differs from tani on purpose
+                                       'donor_row_index_tani': donor, 'donor_row_index_free': donor})
+    p9 = {'row_index': np.arange(n), 'y': w['y'], 'bundle_data': {'X_ctl': C}, 'bundle_idx': np.arange(n),
+          'ctl_true': C.astype(np.float64), 'pert': w['pert'], 'clean_mask': np.ones(n, bool), 'molecule': w['mol']}
+    monkeypatch.setattr(A.score_p10, 'load_p9_and_metadata', lambda *a, **k: p9)
+
+
+def test_read_c3_of_record_variant_and_bound(tmp_path, monkeypatch):
+    _c3_world(tmp_path / 'a', monkeypatch, right_matters=True)
+    r = A.read_c3(str(tmp_path / 'a'), 'unused', n_boot=1000)
+    assert r['statement'].startswith("v9's predictions depend on the right compound") and set(r['variants']) == {'tani', 'free'}
+    _c3_world(tmp_path / 'b', monkeypatch, right_matters=False)
+    r = A.read_c3(str(tmp_path / 'b'), 'unused', n_boot=1000)
+    hi = r['variants']['tani']['contrast_intact_vs_swapped']['ci_hi']
+    assert r['statement'].startswith("v9's dependence on the right compound is not shown") and ('at most %+.3f' % hi) in r['statement']
+
+
 def test_main_runs_once(tmp_path, monkeypatch):
     monkeypatch.setitem(A.RUNNERS, 'C4', lambda: {'test': 'C4'})
     A.main(['--test', 'C4', '--out_dir', str(tmp_path)])
     assert json.load(open(tmp_path / 'phase1_C4.json'))['test'] == 'C4'
     with pytest.raises(SystemExit, match='run once'):
         A.main(['--test', 'C4', '--out_dir', str(tmp_path)])
+
+
+def test_dose_only_floor_excludes_the_rows_own_plate(monkeypatch):
+    w = _world(n_plates=1, per_plate=8)
+    flat = [w['plate_mean'] for _ in range(3)]
+    p9 = _patch_p9(monkeypatch, w, flat, flat, flat, with_dose_effect=True)
+    b = p9['bundle_data']
+    n = len(w['y'])
+    b['X_ctl'][n:] = b['X_ctl'][:n]                       # every training row now shares the (single) plate's control
+    b['X'][n:] = b['X_ctl'][n:] + (b['X'][n:] - b['X'][n:].mean())
+    res = A.test_c1(n_boot=200)
+    assert res['reported']['dose_only_floor']['rows'] == 0
