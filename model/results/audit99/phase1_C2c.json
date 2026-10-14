@@ -1,0 +1,151 @@
+{
+ "test": "C2c",
+ "reported": true,
+ "rows_with_ge2_mates": 16167,
+ "row_mean_r": {
+  "v9": {
+   "mean": 0.16023819413552226,
+   "median": 0.13474284626686328,
+   "n": 16167
+  },
+  "xpert": {
+   "mean": 0.14602053221542563,
+   "median": 0.11778398881747575,
+   "n": 16167
+  }
+ },
+ "cluster": {
+  "n_cells": 8,
+  "mean_of_d_c": 0.00891,
+  "cluster_ci95": [
+   -0.00018,
+   0.01844
+  ],
+  "cluster_ci_width": 0.01862,
+  "cells_favouring_ours": 6,
+  "cells_favouring_theirs": 2,
+  "sign_test_p": 0.2890625
+ },
+ "per_cell": [
+  {
+   "cell": "MCF7",
+   "n_scored": 7569,
+   "d_c_median": 0.00128,
+   "d_c_median_ci95": [
+    -0.00066,
+    0.00307
+   ],
+   "mean": 0.0095,
+   "ours_mean": 0.14356,
+   "theirs_mean": 0.13406,
+   "favours": "ours"
+  },
+  {
+   "cell": "HT29",
+   "n_scored": 4598,
+   "d_c_median": 0.01673,
+   "d_c_median_ci95": [
+    0.01395,
+    0.01917
+   ],
+   "mean": 0.03183,
+   "ours_mean": 0.14464,
+   "theirs_mean": 0.11281,
+   "favours": "ours"
+  },
+  {
+   "cell": "MDAMB231",
+   "n_scored": 1857,
+   "d_c_median": -0.00052,
+   "d_c_median_ci95": [
+    -0.00364,
+    0.00204
+   ],
+   "mean": 0.00022,
+   "ours_mean": 0.21473,
+   "theirs_mean": 0.21451,
+   "favours": "theirs"
+  },
+  {
+   "cell": "HS578T",
+   "n_scored": 1035,
+   "d_c_median": 0.00742,
+   "d_c_median_ci95": [
+    0.00383,
+    0.01246
+   ],
+   "mean": 0.01483,
+   "ours_mean": 0.26545,
+   "theirs_mean": 0.25062,
+   "favours": "ours"
+  },
+  {
+   "cell": "THP1",
+   "n_scored": 694,
+   "d_c_median": -0.01389,
+   "d_c_median_ci95": [
+    -0.01964,
+    -0.00803
+   ],
+   "mean": -0.01647,
+   "ours_mean": 0.15126,
+   "theirs_mean": 0.16773,
+   "favours": "theirs"
+  },
+  {
+   "cell": "CD34",
+   "n_scored": 293,
+   "d_c_median": 0.00934,
+   "d_c_median_ci95": [
+    -0.00571,
+    0.01936
+   ],
+   "mean": 0.01252,
+   "ours_mean": 0.09596,
+   "theirs_mean": 0.08344,
+   "favours": "ours"
+  },
+  {
+   "cell": "BJAB",
+   "n_scored": 67,
+   "d_c_median": 0.01544,
+   "d_c_median_ci95": [
+    -0.00025,
+    0.04042
+   ],
+   "mean": 0.00969,
+   "ours_mean": 0.22854,
+   "theirs_mean": 0.21884,
+   "favours": "ours"
+  },
+  {
+   "cell": "H1975",
+   "n_scored": 54,
+   "d_c_median": 0.03545,
+   "d_c_median_ci95": [
+    0.02344,
+    0.05467
+   ],
+   "mean": 0.055,
+   "ours_mean": 0.31457,
+   "theirs_mean": 0.25956,
+   "favours": "ours"
+  }
+ ],
+ "pooled": {
+  "n_rows": 16167,
+  "ours_mean": 0.16024,
+  "theirs_mean": 0.14602,
+  "paired_mean": 0.01422,
+  "paired_mean_ci95_row_bootstrap": [
+   0.01212,
+   0.01635
+  ],
+  "paired_median": 0.00542,
+  "frac_rows_ours_better": 0.5344,
+  "largest_cell": "MCF7",
+  "largest_cell_share": 0.4682,
+  "LABEL": "row-pooled; dominated by MCF7 at 46.8% of rows; NOT a cell-level generalisation claim"
+ },
+ "code_sha1": "fab9ff251f989c2563f0ed502e2cb5a256919281"
+}

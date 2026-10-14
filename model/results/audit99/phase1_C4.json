@@ -1,0 +1,20 @@
+{
+ "test": "C4",
+ "reported": true,
+ "n_groups": 1891,
+ "truth": {
+  "mean_rho": 0.47010903779809116,
+  "frac_rho_pos": 0.8291909042834479
+ },
+ "v9": {
+  "mean_rho": 0.35802170683186024,
+  "frac_rho_pos": 0.7466948704389212
+ },
+ "mdt": {
+  "mean_rho": -0.016494170381002718,
+  "frac_rho_pos": 0.5277630883130618
+ },
+ "corr_rho_truth_v9": 0.25244424020858025,
+ "corr_rho_truth_mdt": 0.19888008725926598,
+ "code_sha1": "fab9ff251f989c2563f0ed502e2cb5a256919281"
+}

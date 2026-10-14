@@ -1,0 +1,218 @@
+{
+ "test": "C1",
+ "registered": "RESULTS 99.3 / V10_AUDIT_AND_PLAN.md \u00a75",
+ "reading_of_record": true,
+ "rows": {
+  "p9_rows": 13364,
+  "with_ge2_mates": 8806,
+  "scored_clean": 7980,
+  "molecules": 337
+ },
+ "primary_v9_vs_mdt": {
+  "mean_d": 0.07559447412224865,
+  "ci95": [
+   0.06159927470654298,
+   0.09014389237244261
+  ],
+  "ci_lo": 0.06159927470654298,
+  "ci_hi": 0.09014389237244261,
+  "ci_width": 0.02854461766589963,
+  "n_molecules": 337,
+  "n_favour_ours": 263,
+  "n_favour_ref": 74,
+  "n_tie": 0,
+  "frac_favour_ours": 0.7804154302670623,
+  "frac_favour_ref": 0.2195845697329377,
+  "sign_p": 5.689062742959208e-26,
+  "verdict": "v9 predicts unseen compounds better than M+dt"
+ },
+ "statement": "v9 beats a drug-free model with dose and time on the within-plate contrast (a benchmark statement; whether v9 uses the compound is C3)",
+ "reported": {
+  "per_seed_vs_mdt": [
+   {
+    "mean_d": 0.07469782739309809,
+    "ci95": [
+     0.060007476595823554,
+     0.08983148880972644
+    ],
+    "ci_lo": 0.060007476595823554,
+    "ci_hi": 0.08983148880972644,
+    "ci_width": 0.029824012213902885,
+    "n_molecules": 337,
+    "n_favour_ours": 254,
+    "n_favour_ref": 83,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7537091988130564,
+    "frac_favour_ref": 0.24629080118694363,
+    "sign_p": 2.664997103201043e-21,
+    "verdict": "v9 predicts unseen compounds better than M+dt"
+   },
+   {
+    "mean_d": 0.07496533693370372,
+    "ci95": [
+     0.06102521886899717,
+     0.0897710812667366
+    ],
+    "ci_lo": 0.06102521886899717,
+    "ci_hi": 0.0897710812667366,
+    "ci_width": 0.028745862397739422,
+    "n_molecules": 337,
+    "n_favour_ours": 255,
+    "n_favour_ref": 82,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7566765578635015,
+    "frac_favour_ref": 0.2433234421364985,
+    "sign_p": 8.609397325655572e-22,
+    "verdict": "v9 predicts unseen compounds better than M+dt"
+   },
+   {
+    "mean_d": 0.07680987118183726,
+    "ci95": [
+     0.06275687436222756,
+     0.09152560129967076
+    ],
+    "ci_lo": 0.06275687436222756,
+    "ci_hi": 0.09152560129967076,
+    "ci_width": 0.0287687269374432,
+    "n_molecules": 337,
+    "n_favour_ours": 266,
+    "n_favour_ref": 71,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7893175074183977,
+    "frac_favour_ref": 0.21068249258160238,
+    "sign_p": 1.1660583658029931e-27,
+    "verdict": "v9 predicts unseen compounds better than M+dt"
+   }
+  ],
+  "v9_vs_zero": {
+   "mean_d": 0.09907889550296721,
+   "ci95": [
+    0.08338088320094918,
+    0.11509731929369749
+   ],
+   "ci_lo": 0.08338088320094918,
+   "ci_hi": 0.11509731929369749,
+   "ci_width": 0.03171643609274831,
+   "n_molecules": 337,
+   "n_favour_ours": 271,
+   "n_favour_ref": 66,
+   "n_tie": 0,
+   "frac_favour_ours": 0.8041543026706232,
+   "frac_favour_ref": 0.19584569732937684,
+   "sign_p": 1.2542822445825059e-30,
+   "verdict": "v9 predicts unseen compounds better than zero"
+  },
+  "row_mean_r": {
+   "v9": {
+    "mean": 0.10939653508697876,
+    "median": 0.084202788525048,
+    "n": 7980
+   },
+   "mdt": {
+    "mean": 0.03244365789431418,
+    "median": 0.013027452936894019,
+    "n": 7980
+   },
+   "m": {
+    "mean": 0.0,
+    "median": 0.0,
+    "n": 7980
+   }
+  },
+  "zero_variance_prediction_rows": {
+   "v9_all_seeds": 0,
+   "mdt_all_seeds": 1731,
+   "m_all_seeds": 26418,
+   "note": "M sees only the control, so its contrast is 0 by construction"
+  },
+  "contrast_magnitude_ratio_median": {
+   "v9": 0.13098396265894396,
+   "mdt": 0.03102513145341638
+  },
+  "dose_only_floor": {
+   "definition": "mean y of training rows at the same (cell, time, dose) on another control, contrasted over the scored plate-mates",
+   "rows": 7819,
+   "row_mean_r": {
+    "mean": 0.023250687453734868,
+    "median": 0.009292209377690616,
+    "n": 7819
+   },
+   "v9_vs_floor": {
+    "mean_d": 0.07923138427390124,
+    "ci95": [
+     0.06442809663649555,
+     0.09476501112837445
+    ],
+    "ci_lo": 0.06442809663649555,
+    "ci_hi": 0.09476501112837445,
+    "ci_width": 0.03033691449187889,
+    "n_molecules": 337,
+    "n_favour_ours": 262,
+    "n_favour_ref": 75,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7774480712166172,
+    "frac_favour_ref": 0.22255192878338279,
+    "sign_p": 2.0083524184195044e-25,
+    "verdict": "v9 predicts unseen compounds better than the dose-only floor"
+   },
+   "mdt_vs_floor": {
+    "mean_d": 0.0031813428496431455,
+    "ci95": [
+     -0.002597521729119797,
+     0.008888035196184826
+    ],
+    "ci_lo": -0.002597521729119797,
+    "ci_hi": 0.008888035196184826,
+    "ci_width": 0.011485556925304622,
+    "n_molecules": 337,
+    "n_favour_ours": 137,
+    "n_favour_ref": 121,
+    "n_tie": 79,
+    "frac_favour_ours": 0.4065281899109792,
+    "frac_favour_ref": 0.3590504451038576,
+    "sign_p": 0.3503972462396573,
+    "verdict": "NO COMPOUND-LEVEL CLAIM"
+   }
+  },
+  "by_mates_tanimoto": {
+   "median": 0.11264623095270826,
+   "mates_tanimoto_below_median": {
+    "mean_d": 0.08068507885278206,
+    "ci95": [
+     0.06352582209516591,
+     0.09850264308188249
+    ],
+    "ci_lo": 0.06352582209516591,
+    "ci_hi": 0.09850264308188249,
+    "ci_width": 0.034976820986716575,
+    "n_molecules": 276,
+    "n_favour_ours": 205,
+    "n_favour_ref": 71,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7427536231884058,
+    "frac_favour_ref": 0.2572463768115942,
+    "sign_p": 3.0159674749919665e-16,
+    "verdict": "v9 predicts unseen compounds better than M+dt"
+   },
+   "mates_tanimoto_at_or_above_median": {
+    "mean_d": 0.06855124638326787,
+    "ci95": [
+     0.04613024838882761,
+     0.09024104023096027
+    ],
+    "ci_lo": 0.04613024838882761,
+    "ci_hi": 0.09024104023096027,
+    "ci_width": 0.044110791842132666,
+    "n_molecules": 248,
+    "n_favour_ours": 183,
+    "n_favour_ref": 65,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7379032258064516,
+    "frac_favour_ref": 0.2620967741935484,
+    "sign_p": 3.5337222207216896e-14,
+    "verdict": "v9 predicts unseen compounds better than M+dt"
+   }
+  }
+ },
+ "code_sha1": "fab9ff251f989c2563f0ed502e2cb5a256919281"
+}

@@ -10177,6 +10177,78 @@ All five MINOR points were adopted before anything ran:
 **Tests:** 30 pass. **Mutation: 0 of 25 survive** (the 20 before, plus the floorless-mate fix, the donor equality, the
 budget guard, the probe's single-copy check and the kernel's single-copy check).
 
+### 99.6 RESULT, Phase 1's local tests, each read once: **C1 — v9 beats a drug-free model with dose and time on the within-plate contrast**; on the field's own target a zero-parameter plate lookup beats every model (PI, 2026-10-15)
+**The runs:**
+- `audit99_phase1.py --test C1 / C1b / C1c / C2a / C2c / C4`, once each, after 99.5's fixes (code at 8cadb6a), GPU hidden;
+- outputs in `model/results/audit99/phase1_*.json`.
+
+**C1 (the reading of record, a benchmark statement per §8)** — 7,980 clean rows with ≥ 2 scored plate-mates, 337 molecules:
+
+| | value |
+|---|---|
+| v9 − M+dt, per molecule | **+0.0756** [+0.0616, +0.0901] (width 0.029) |
+| molecules favouring v9 | **263 of 337 (78 %)**, sign p 6e-26 |
+| `verdict` | *v9 predicts unseen compounds better than M+dt* |
+| statement | **"v9 beats a drug-free model with dose and time on the within-plate contrast (a benchmark statement; whether v9 uses the compound is C3)"** |
+
+**Reported beside C1:**
+- **The row means on the contrast:**
+  - v9 **0.109**;
+  - M+dt 0.032;
+  - M 0 by construction (26,418 zero-variance rows over the 3 seeds; v9 has none, M+dt has 1,731);
+  - the dose-only floor 0.023 (7,819 rows).
+- **Per seed:** +0.0747 / +0.0750 / +0.0768.
+- **v9 against 0:** +0.099 [+0.083, +0.115], 271 of 337 molecules.
+- **Against the dose-only floor:**
+  - v9 − floor is +0.079 (*v9 better*);
+  - **M+dt − floor is +0.003 (no claim)**, so M+dt's contrast is no more than dose structure.
+- **The magnitude ratio** ‖c(ŷ)‖ / ‖c(y)‖: v9 0.13, M+dt 0.03. v9's compound-to-compound variation is real but strongly
+  shrunk.
+- **By the plate-mates' mean Tanimoto** (median 0.113): +0.081 below the median, +0.069 at or above it.
+
+**C1b** (the oracle plate, 9,578 rows):
+- v9 0.163, M+dt 0.104, M 0.088;
+- v9 − M+dt +0.047 [+0.038, +0.057], 279 of 345 molecules.
+
+**C1c** (the original target, on 9,466 clean rows that have ≥ 2 other-compound training wells on their plate):
+- **the zero-parameter training-plate lookup scores 0.662**, against v9 0.654 and M 0.661;
+- per molecule, v9 − lookup is **−0.018** [−0.022, −0.015] and M − lookup is −0.004 [−0.006, −0.003];
+- **on the field's own target, averaging the other compounds' training wells on the same plate beats every model,** v9
+  included.
+
+**C2a** (unseen cells, 21,151 rows), the row mean (cluster of cell means):
+
+| predictor | row mean | cluster of cell means |
+|---|---|---|
+| **F_tr** (zero-parameter, transductive) | **0.336** | 0.277 |
+| F_ind (inductive) | 0.224 | 0.237 |
+| v9 | 0.481 | 0.447 |
+| XPert | 0.387 | 0.396 |
+
+- Per cell, F_tr is above XPert on HS578T (0.428 against 0.404).
+- F_tr is 0.000 on H1975, because its test rows share one control, so the deviation is 0.
+- C2b (inference) says how much of this v9 uses.
+
+**C2c** (the contrast on unseen cells, 16,167 rows):
+- v9 0.160, XPert 0.146;
+- cluster +0.009 [−0.0002, +0.018], 6 of 8 cells;
+- both models separate compounds on a plate in unseen cells, and the difference between them is not established.
+
+**C4** (dose coupling, 1,891 (compound, cell, time) groups):
+- the mean Spearman of dose against the response size is 0.47 for the truth (83 % positive), **0.36 for v9 (75 %)** and −0.02
+  for M+dt (53 %);
+- corr(ρ_truth, ρ_v9) is 0.25;
+- **v9 ties its response size to dose despite M7's design.**
+
+**What this changes:**
+- **M3 is answered for the benchmark.** R1's tie (§98.11) hid a real advantage: with the plate removed, v9 beats the
+  drug-free models by +0.076 per molecule, while those models do no better than a dose floor.
+- **M1 / M2 are confirmed on test rows** (C1c): the field's cold-compound benchmark is won by a plate lookup.
+- **Not yet licensed: "v9 uses the compound".** That is C3's, which holds dose fixed and swaps only the compound. It runs now
+  (`kern_audit99_p9_s*`), with C2b (`kern_audit99_p7_s*`).
+- **M7 is weaker than stated:** dose is coupled in practice (C4). F5 (the chemCPA-style dose) stays in Phase 2, but as a
+  design cleanup, not a fix for a measured failure.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

@@ -1,0 +1,62 @@
+{
+ "test": "C1c",
+ "reported": true,
+ "rows": {
+  "with_ge2_training_mates": 10445,
+  "scored_clean": 9466
+ },
+ "row_mean_r_original_target": {
+  "training_plate_predictor": {
+   "mean": 0.6623058342275548,
+   "median": 0.6734746343583662,
+   "n": 9466
+  },
+  "v9": {
+   "mean": 0.6543221148597409,
+   "median": 0.6636227978270675,
+   "n": 9466
+  },
+  "m": {
+   "mean": 0.6611789982612438,
+   "median": 0.6725480347874793,
+   "n": 9466
+  }
+ },
+ "v9_vs_training_plate_predictor": {
+  "mean_d": -0.01841598227398864,
+  "ci95": [
+   -0.022152964250547403,
+   -0.014620368045685924
+  ],
+  "ci_lo": -0.022152964250547403,
+  "ci_hi": -0.014620368045685924,
+  "ci_width": 0.007532596204861479,
+  "n_molecules": 345,
+  "n_favour_ours": 51,
+  "n_favour_ref": 294,
+  "n_tie": 0,
+  "frac_favour_ours": 0.14782608695652175,
+  "frac_favour_ref": 0.8521739130434782,
+  "sign_p": 1.1918216008942856e-42,
+  "verdict": "the training-plate predictor predicts unseen compounds better than v9"
+ },
+ "m_vs_training_plate_predictor": {
+  "mean_d": -0.0040781300691280975,
+  "ci95": [
+   -0.005850054457604447,
+   -0.0025868298544162974
+  ],
+  "ci_lo": -0.005850054457604447,
+  "ci_hi": -0.0025868298544162974,
+  "ci_width": 0.0032632246031881495,
+  "n_molecules": 345,
+  "n_favour_ours": 92,
+  "n_favour_ref": 253,
+  "n_tie": 0,
+  "frac_favour_ours": 0.26666666666666666,
+  "frac_favour_ref": 0.7333333333333333,
+  "sign_p": 1.6388856098512811e-18,
+  "verdict": "the training-plate predictor predicts unseen compounds better than v9"
+ },
+ "code_sha1": "fab9ff251f989c2563f0ed502e2cb5a256919281"
+}

@@ -1,0 +1,62 @@
+{
+ "test": "C1b",
+ "reported": true,
+ "rows": {
+  "with_ge2_mates_any_split": 10571,
+  "scored_clean": 9578
+ },
+ "v9_vs_mdt": {
+  "mean_d": 0.04714430939245151,
+  "ci95": [
+   0.037975763143660475,
+   0.05661044744668902
+  ],
+  "ci_lo": 0.037975763143660475,
+  "ci_hi": 0.05661044744668902,
+  "ci_width": 0.018634684303028545,
+  "n_molecules": 345,
+  "n_favour_ours": 279,
+  "n_favour_ref": 66,
+  "n_tie": 0,
+  "frac_favour_ours": 0.808695652173913,
+  "frac_favour_ref": 0.19130434782608696,
+  "sign_p": 2.706800931831822e-32,
+  "verdict": "v9 predicts unseen compounds better than M+dt"
+ },
+ "v9_vs_m": {
+  "mean_d": 0.056223779464117614,
+  "ci95": [
+   0.04635796079329713,
+   0.06636058547730918
+  ],
+  "ci_lo": 0.04635796079329713,
+  "ci_hi": 0.06636058547730918,
+  "ci_width": 0.020002624684012045,
+  "n_molecules": 345,
+  "n_favour_ours": 283,
+  "n_favour_ref": 62,
+  "n_tie": 0,
+  "frac_favour_ours": 0.8202898550724638,
+  "frac_favour_ref": 0.17971014492753623,
+  "sign_p": 7.29222334791754e-35,
+  "verdict": "v9 predicts unseen compounds better than M"
+ },
+ "row_mean_r": {
+  "v9": {
+   "mean": 0.16287776904096138,
+   "median": 0.13317992571873208,
+   "n": 9578
+  },
+  "mdt": {
+   "mean": 0.10420827910867264,
+   "median": 0.0832984470084934,
+   "n": 9578
+  },
+  "m": {
+   "mean": 0.08814928332573083,
+   "median": 0.07123362485110829,
+   "n": 9578
+  }
+ },
+ "code_sha1": "fab9ff251f989c2563f0ed502e2cb5a256919281"
+}
