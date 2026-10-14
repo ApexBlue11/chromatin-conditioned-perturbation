@@ -1,7 +1,7 @@
 {
- "id": "apexblue/lincs-audit99-s1",
- "title": "lincs audit99 s1",
- "code_file": "lincs-audit99-s1.py",
+ "id": "apexblue/lincs-audit99-p7-s1",
+ "title": "lincs audit99 p7 s1",
+ "code_file": "lincs-audit99-p7-s1.py",
  "language": "python",
  "kernel_type": "script",
  "is_private": true,

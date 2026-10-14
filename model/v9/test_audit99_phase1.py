@@ -216,15 +216,29 @@ def test_mates_tanimoto_hand_example():
 
 
 def _write_infer(tmp, mode, k, arrays, record_over=None):
-    d = tmp / ('s%d' % k)
+    tag = A.TAG[mode]
+    d = tmp / ('%s_s%d' % (tag, k))
     d.mkdir(parents=True, exist_ok=True)
     f = d / ('%s_seed%d.npz' % (mode, k))
     np.savez_compressed(f, **arrays)
     rec = {'mode': mode, 'seed': k, 'limit': 0}
     rec.update(record_over or {})
     json.dump(rec, open(str(f).replace('.npz', '.json'), 'w'))
-    json.dump({'complete': True, 'seed': k, 'files': {f.name: A.sha1(str(f))}}, open(d / ('AUDIT99_COMPLETE_s%d.json' % k), 'w'))
+    json.dump({'complete': True, 'seed': k, 'files': {f.name: A.sha1(str(f))}},
+              open(d / ('AUDIT99_COMPLETE_%s_s%d.json' % (tag, k)), 'w'))
     return f
+
+
+def _seen_bound(tmp, rng, n=50, G=20, drop=0.2):
+    """P9-side outputs for C2b's seen-cell bound: intact better than the x_cell replacements by about `drop`."""
+    y = rng.normal(size=(n, G)).astype(np.float32)
+    for k in (0, 1, 2):
+        d = {'row_index': np.arange(n), 'ctl': np.zeros((n, G), np.float32), 'y': y,
+             'deg_intact': (y + rng.normal(size=(n, G))).astype(np.float32),
+             'deg_ctl': (y * (1 - drop) + rng.normal(size=(n, G))).astype(np.float32),
+             'deg_global': (y * (1 - 2 * drop) + rng.normal(size=(n, G))).astype(np.float32),
+             'deg_tani': y, 'deg_free': y, 'donor_row_index_tani': np.arange(n), 'donor_row_index_free': np.arange(n)}
+        _write_infer(tmp, 'swap', k, d)
 
 
 def _c2b_world(tmp, lead_v9=0.4, replaced_level=0.0, n_per_cell=60, cells=8, seed=0):
@@ -240,6 +254,7 @@ def _c2b_world(tmp, lead_v9=0.4, replaced_level=0.0, n_per_cell=60, cells=8, see
     for k in (0, 1, 2):
         _write_infer(tmp, 'xcell', k, {'row_index': ri, 'ctl': ctl, 'y': y, 'deg_intact': pred(0.3 + lead_v9),
                                         'deg_ctl': pred(0.3 + replaced_level), 'deg_global': pred(0.3)})
+    _seen_bound(tmp, rng)
     o2 = tmp / 'o2.npz'
     np.savez(o2, row_index=ri, y_pred=xp + ctl, y_true=y + ctl, ctl_true=ctl)
     bun = tmp / 'bundle.npz'
@@ -251,6 +266,9 @@ def test_read_c2b_carried_not_carried_and_not_assessable(tmp_path):
     o2, bun = _c2b_world(tmp_path / 'a', lead_v9=0.5, replaced_level=0.0)
     r = A.read_c2b(str(tmp_path / 'a'), o2, bun, n_boot=500)
     assert r['assessable'] and 'substantially carried' in r['statement'] and 'not substantially' not in r['statement']
+    assert 'available only transductively' in r['statement']
+    sb = r['seen_cell_bound_p9']
+    assert sb['ctl']['drop_row_mean'] > 0 and sb['global']['drop_row_mean'] > sb['ctl']['drop_row_mean']
     o2, bun = _c2b_world(tmp_path / 'b', lead_v9=0.5, replaced_level=0.5)
     r = A.read_c2b(str(tmp_path / 'b'), o2, bun, n_boot=500)
     assert r['assessable'] and 'not substantially carried' in r['statement']
@@ -261,14 +279,14 @@ def test_read_c2b_carried_not_carried_and_not_assessable(tmp_path):
 
 def test_read_c2b_refuses_a_tampered_or_smoke_output(tmp_path):
     o2, bun = _c2b_world(tmp_path / 'a')
-    f = tmp_path / 'a' / 's1' / 'xcell_seed1.npz'
+    f = tmp_path / 'a' / 'p7_s1' / 'xcell_seed1.npz'
     z = dict(np.load(f))
     z['deg_ctl'] = z['deg_ctl'] + 1
     np.savez_compressed(f, **z)
     with pytest.raises(SystemExit, match='manifest'):
         A.read_c2b(str(tmp_path / 'a'), o2, bun, n_boot=100)
     o2, bun = _c2b_world(tmp_path / 'b')
-    _write_infer(tmp_path / 'b', 'xcell', 2, dict(np.load(tmp_path / 'b' / 's2' / 'xcell_seed2.npz')), {'limit': 8})
+    _write_infer(tmp_path / 'b', 'xcell', 2, dict(np.load(tmp_path / 'b' / 'p7_s2' / 'xcell_seed2.npz')), {'limit': 8})
     with pytest.raises(SystemExit, match='not a full'):
         A.read_c2b(str(tmp_path / 'b'), o2, bun, n_boot=100)
 
@@ -288,6 +306,8 @@ def _c3_world(tmp, monkeypatch, right_matters=True):
                                        'deg_intact': (intact + rng.normal(0, 0.2, (n, G))).astype(np.float32),
                                        'deg_tani': (swapped + rng.normal(0, 0.2, (n, G))).astype(np.float32),
                                        'deg_free': (intact + rng.normal(0, 0.2, (n, G))).astype(np.float32),   # differs from tani on purpose
+                                       'deg_ctl': (intact + rng.normal(0, 0.2, (n, G))).astype(np.float32),
+                                       'deg_global': (intact + rng.normal(0, 0.2, (n, G))).astype(np.float32),
                                        'donor_row_index_tani': donor, 'donor_row_index_free': donor})
     p9 = {'row_index': np.arange(n), 'y': w['y'], 'bundle_data': {'X_ctl': C}, 'bundle_idx': np.arange(n),
           'ctl_true': C.astype(np.float64), 'pert': w['pert'], 'clean_mask': np.ones(n, bool), 'molecule': w['mol']}
@@ -298,6 +318,7 @@ def test_read_c3_of_record_variant_and_bound(tmp_path, monkeypatch):
     _c3_world(tmp_path / 'a', monkeypatch, right_matters=True)
     r = A.read_c3(str(tmp_path / 'a'), 'unused', n_boot=1000)
     assert r['statement'].startswith("v9's predictions depend on the right compound") and set(r['variants']) == {'tani', 'free'}
+    assert 'on_tani_rows' in r['variants']['free']
     _c3_world(tmp_path / 'b', monkeypatch, right_matters=False)
     r = A.read_c3(str(tmp_path / 'b'), 'unused', n_boot=1000)
     hi = r['variants']['tani']['contrast_intact_vs_swapped']['ci_hi']
@@ -322,3 +343,25 @@ def test_dose_only_floor_excludes_the_rows_own_plate(monkeypatch):
     b['X'][n:] = b['X_ctl'][n:] + (b['X'][n:] - b['X'][n:].mean())
     res = A.test_c1(n_boot=200)
     assert res['reported']['dose_only_floor']['rows'] == 0
+
+
+def test_floor_contrast_ignores_plate_mates_without_a_floor():
+    plate = np.array([0, 0, 0, 0, 1, 1, 1])
+    pert = np.array(['a', 'b', 'c', 'd', 'a', 'b', 'c'])
+    D = np.array([[100.], [2.], [4.], [9.], [1.], [3.], [5.]])
+    has = np.array([False, True, True, True, True, True, False])
+    C, ok = A.floor_contrast(D, has, plate, pert)
+    assert ok.tolist() == [False, True, True, True, False, False, False]
+    assert C[1, 0] == pytest.approx(2 - (4 + 9) / 2)      # row 0 has no floor: it is not a zero, it is absent
+    assert C[2, 0] == pytest.approx(4 - (2 + 9) / 2) and C[3, 0] == pytest.approx(9 - 3.0)
+    assert np.isnan(C[0, 0]) and np.isnan(C[4, 0])        # no floor / only one floor-bearing mate
+
+
+def test_c3_refuses_donors_that_differ_across_seeds(tmp_path, monkeypatch):
+    _c3_world(tmp_path / 'a', monkeypatch, right_matters=True)
+    f = tmp_path / 'a' / 'p9_s2' / 'swap_seed2.npz'
+    z = dict(np.load(f))
+    z['donor_row_index_tani'] = z['donor_row_index_tani'][::-1].copy()
+    _write_infer(tmp_path / 'a', 'swap', 2, z)
+    with pytest.raises(SystemExit, match='disagree'):
+        A.read_c3(str(tmp_path / 'a'), 'unused', n_boot=100)

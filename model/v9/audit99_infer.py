@@ -5,7 +5,10 @@
                   ctl    : x_cell := the row's own X_ctl (inductive; keeps cell identity, removes the transductive
                            cell average) -- OF RECORD (review 083 C5);
                   global : x_cell := the mean control over ALL TRAINING ROWS (removes all cell-level baseline) -- reported.
-  --mode swap   (C3, split_cold_drug_1, P9's final-snapshot checkpoints). Two modified passes, each a COMPOUND-LEVEL
+  --mode swap   (C3, split_cold_drug_1, P9's final-snapshot checkpoints). Four modified passes on one intact pass:
+                the two swaps below, and -- review 084 C2, the seen-cell bound on C2b's input shift -- the same two x_cell
+                passes as xcell mode ('ctl', 'global') on these SEEN cells, where x_cell is training-derived.
+                Each swap is a COMPOUND-LEVEL
                 substitution within cell (one substitute compound per (compound, cell), the same for all its rows):
                   tani   : the substitute is drawn (seed 0) from the other test compounds in that cell with ECFP4
                            Tanimoto < 0.4 to it -- OF RECORD (review 083 C6);
@@ -15,7 +18,9 @@
 
 Each run predicts the test rows intact and then under each modification, with one checkpoint, deterministically
 (model.eval()). Before any of it, the intact predictions on the rows of --identity (row_index + the saved final-snapshot
-deg_pred) must match: min per-row Pearson >= 0.9999 and every row finite.
+deg_pred) must match: min per-row Pearson >= 0.9999 and every row finite. The identity pass is also timed: if the
+projected wall time of the rest exceeds --budget_s (default 11 h; Kaggle's CPU session limit is 12 h and a timeout
+writes no manifest, review 084 ask 6), the run refuses before predicting anything else.
 
 Out: <out>/<mode>_seed<k>.npz with row_index, ctl, y, deg_intact, deg_<variant> per variant (and donor_row_index_<variant>
 for swap, -1 where unswapped), plus a .json record.
@@ -30,7 +35,8 @@ for p in (HERE, os.path.join(os.path.dirname(HERE), 'v6'), os.path.join(os.path.
     sys.path.insert(0, p)
 
 SPLIT = {'xcell': 'split_cold_cell_1', 'swap': 'split_cold_drug_1'}
-VARIANTS = {'xcell': ('ctl', 'global'), 'swap': ('tani', 'free')}
+VARIANTS = {'xcell': ('ctl', 'global'), 'swap': ('tani', 'free', 'ctl', 'global')}
+BUDGET_S = 11 * 3600
 SWAP_SEED = 0
 TANI_MAX = 0.4
 FP_SLICE = slice(512 + 20, 512 + 20 + 2048)      # u = [Uni-Mol CLS 512 | descriptors 20 | ECFP4 2048 bits] (xpert_arm.py)
@@ -122,8 +128,10 @@ def identity(model, D, ident_path, dev):
     if missing:
         raise SystemExit('FATAL: %d identity rows are not in the data' % len(missing))
     idx = np.array([pos[int(r)] for r in z['row_index']], np.int64)
+    t0 = time.time()
     r = row_r(predict(model, D, idx, dev), np.asarray(z['deg_pred'], np.float64))
-    res = {'n': int(len(r)), 'min_r': float(np.nanmin(r)), 'n_nonfinite': int((~np.isfinite(r)).sum())}
+    res = {'n': int(len(r)), 'min_r': float(np.nanmin(r)), 'n_nonfinite': int((~np.isfinite(r)).sum()),
+           's_per_row': (time.time() - t0) / max(1, len(r))}
     if res['n_nonfinite'] or res['min_r'] < ID_MIN_R:
         raise SystemExit('FATAL: identity check failed %s' % json.dumps(res))
     return res
@@ -136,6 +144,7 @@ def main(argv=None):
     ap.add_argument('--identity', required=True, help='slim npz: row_index + deg_pred of the saved final snapshot')
     ap.add_argument('--out', required=True)
     ap.add_argument('--limit', type=int, default=0, help='smoke only: score the first N test rows')
+    ap.add_argument('--budget_s', type=float, default=BUDGET_S)
     ap.add_argument('--roots', nargs='*', default=['/kaggle/input', r'C:\Projects\LINCS', r'C:\Projects\LINCS\external'])
     a = ap.parse_args(argv)
     t0 = time.time()
@@ -150,13 +159,18 @@ def main(argv=None):
     print('IDENTITY OK', json.dumps(ident), flush=True)
 
     te = D.te[:a.limit] if a.limit else D.te
+    projected = ident['s_per_row'] * len(te) * (1 + len(VARIANTS[a.mode]))
+    print('PROJECTED %.0f s for %d rows x %d passes (%.3f s/row)' % (projected, len(te), 1 + len(VARIANTS[a.mode]),
+                                                                   ident['s_per_row']), flush=True)
+    if projected > a.budget_s:
+        raise SystemExit('FATAL: projected %.0f s exceeds the %.0f s budget; nothing predicted' % (projected, a.budget_s))
     arrays = {'row_index': D.row_index[te], 'ctl': D.C[te].astype(np.float32), 'y': (D.X[te] - D.C[te]).astype(np.float32),
               'deg_intact': predict(model, D, te, dev).astype(np.float32)}
     rec = {'mode': a.mode, 'split': SPLIT[a.mode], 'seed': seed, 'ckpt_sha1': sha1(a.ckpt), 'identity': ident,
            'n_rows': int(len(te)), 'limit': a.limit, 'code_sha1': sha1(os.path.abspath(__file__)), 'variants': {}}
-    if a.mode == 'xcell':
+    def xcell_passes():
         x_cell0 = D.x_cell
-        for v in VARIANTS['xcell']:
+        for v in ('ctl', 'global'):
             if v == 'ctl':
                 D.x_cell = D.C.copy()
                 rec['variants'][v] = "x_cell := each row's own X_ctl"
@@ -166,11 +180,14 @@ def main(argv=None):
                 rec['variants'][v] = 'x_cell := mean control over all %d training rows' % len(D.tr)
             arrays['deg_' + v] = predict(model, D, te, dev).astype(np.float32)
             D.x_cell = x_cell0
+
+    if a.mode == 'xcell':
+        xcell_passes()
     else:
         cell, pert = np.asarray(D.cell).astype(str)[te], np.asarray(D.pert).astype(str)[te]
         fp = D.u[te][:, FP_SLICE]
         dr0, u0 = D.drug_row.copy(), D.u.copy()
-        for v in VARIANTS['swap']:
+        for v in ('tani', 'free'):
             donor_local = substitutes(cell, pert, fp, np.random.default_rng(SWAP_SEED),
                                       tani_max=TANI_MAX if v == 'tani' else None)
             sw = donor_local >= 0
@@ -184,6 +201,7 @@ def main(argv=None):
                                            else 'compound-level within cell, unconstrained') + ', seed %d' % SWAP_SEED,
                                   'n_unswapped': int((~sw).sum())}
         D.drug_row, D.u = dr0, u0
+        xcell_passes()                                   # review 084 C2: the seen-cell bound, drug inputs restored first
     os.makedirs(a.out, exist_ok=True)
     np.savez_compressed(out_npz, **arrays)
     rec['wall_s'] = time.time() - t0

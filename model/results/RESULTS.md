@@ -10150,6 +10150,33 @@ their pins before the reset.
   - all 389 test compounds have fingerprints;
   - the inference identity check reproduces P9's and P7's saved predictions (min r 0.99999996).
 
+### 99.5 Review 084 (SOUND) adopted: the floor over floor-bearing mates, a seen-cell bound for C2b, data pins; then Phase 1 runs (PI, 2026-10-15)
+All five MINOR points were adopted before anything ran:
+- **C1:** the dose-only floor is contrasted over **floor-bearing** plate-mates only (`floor_contrast`, ≥ 2 such mates).
+  Before the fix, a floorless mate counted as a zero vector (303 of 8,806 eligible rows had one).
+- **C2:**
+  - C2b's sentence now reads *"… carried by the cell-average input, which for unseen cells is available only
+    transductively"*;
+  - the P9 kernels add the same `ctl` / `global` x_cell passes on **seen** cells, reported beside C2b as an upper bound on
+    pure input shift.
+- **C3:** every kernel now also pins the 14 data files the loader reads through `find()`, each required to be the only
+  mounted copy across the three datasets.
+  - The pins come from an outcome-free probe kernel (`lincs-audit99-probe`: hashes only). All 14 are mounted once, and the
+    bundle is `1444b253`, as in every earlier run.
+  - The local `drug_fingerprints.npy` and `drug_feature_index.json` used by C1's strata are byte-identical to Kaggle's.
+- **C4:** the readers assert that the swap donors are identical across seeds instead of intersecting them.
+- **C5:** `free` is also reported on the `tani` rows. The packet's "excluded from both variants" was wrong: exclusion is
+  per variant.
+
+**Runtime (ask 6):**
+- the local smoke runs 0.22 s per forward pass on CPU;
+- a P9 kernel does about 66,820 passes and a P7 kernel about 63,450, so 6 kernels (one per run and seed) run instead of 3;
+- each kernel refuses before predicting if its timed identity pass projects past 11 h, because a 12 h timeout writes no
+  manifest.
+
+**Tests:** 30 pass. **Mutation: 0 of 25 survive** (the 20 before, plus the floorless-mate fix, the donor equality, the
+budget guard, the probe's single-copy check and the kernel's single-copy check).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

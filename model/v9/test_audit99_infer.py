@@ -109,13 +109,14 @@ json.dump({'mode': a.mode}, open(os.path.join(a.out, '%s_seed0.json' % a.mode), 
 '''
 
 
-def _kernel_world(tmp, tamper=None, duplicate=None):
+def _kernel_world(tmp, tamper=None, duplicate=None, tag='p9'):
     import hashlib, subprocess
     sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), 'orchestration'))
     import make_audit99_kernels as K
     ds = tmp / 'input' / 'lincs-audit99'
     ds.mkdir(parents=True)
-    names = list(K.SRC_FILES) + ['v9p9_seed0.pt', 'v9p9_seed0_ident.npz', 'v9p7_seed0.pt', 'v9p7_seed0_ident.npz']
+    mode, run = K.KERNELS[tag]
+    names = list(K.SRC_FILES) + ['%s_seed0.pt' % run, '%s_seed0_ident.npz' % run] + K.DATA_NAMES
     for n in names:
         (ds / n).write_text(FAKE_INFER if n == 'audit99_infer.py' else 'x = %r\n' % n)
     pins = {n: hashlib.sha1((ds / n).read_bytes()).hexdigest() for n in names}
@@ -125,7 +126,8 @@ def _kernel_world(tmp, tamper=None, duplicate=None):
         other = tmp / 'input' / 'another'
         other.mkdir()
         (other / duplicate).write_text('dup\n')
-    code = (K.TEMPLATE.replace('__SEED__', '0').replace('__PINS__', repr(pins)).replace('__RUNS__', repr(K.RUNS))
+    code = (K.TEMPLATE.replace('__SEED__', '0').replace('__TAG__', tag).replace('__MODE__', mode).replace('__RUN__', run)
+            .replace('__WHAT__', K.WHAT[tag]).replace('__PINS__', repr(pins))
             .replace('/kaggle/input', (tmp / 'input').as_posix()).replace('/kaggle/working', (tmp / 'working').as_posix()))
     kp = tmp / 'kernel.py'
     kp.write_text(code)
@@ -133,11 +135,13 @@ def _kernel_world(tmp, tamper=None, duplicate=None):
 
 
 def test_kernel_runs_end_to_end_and_writes_its_manifest(tmp_path):
-    r, out = _kernel_world(tmp_path)
-    assert r.returncode == 0, r.stdout + r.stderr
-    m = json.load(open(out / 'AUDIT99_COMPLETE_s0.json'))
-    assert m['complete'] and set(m['files']) == {'swap_seed0.npz', 'swap_seed0.json', 'xcell_seed0.npz', 'xcell_seed0.json'}
-    assert not (tmp_path / 'working' / 'src').exists()
+    for tag, mode in (('p9', 'swap'), ('p7', 'xcell')):
+        r, out = _kernel_world(tmp_path / tag, tag=tag)
+        assert r.returncode == 0, r.stdout + r.stderr
+        m = json.load(open(out / ('AUDIT99_COMPLETE_%s_s0.json' % tag)))
+        assert m['complete'] and m['tag'] == tag and set(m['files']) == {'%s_seed0.npz' % mode, '%s_seed0.json' % mode}
+        assert 'drug_atom_reprs.npy' in m['pins'] and 'xpert_mdmt_splits.npz' in m['pins']      # review 084 C3
+        assert not (tmp_path / tag / 'working' / 'src').exists()
 
 
 def test_kernel_refuses_a_tampered_or_duplicated_input(tmp_path):
@@ -145,3 +149,33 @@ def test_kernel_refuses_a_tampered_or_duplicated_input(tmp_path):
     assert r.returncode != 0 and 'sha1' in (r.stdout + r.stderr)
     r, _ = _kernel_world(tmp_path / 'b', duplicate='v9p9_seed0.pt')
     assert r.returncode != 0 and 'expected one mounted copy' in (r.stdout + r.stderr)
+    r, _ = _kernel_world(tmp_path / 'c', duplicate='drug_unimol.npy')                       # a data file, review 084 C3
+    assert r.returncode != 0 and 'expected one mounted copy' in (r.stdout + r.stderr)
+    r, _ = _kernel_world(tmp_path / 'd', tamper='E_final.npy')
+    assert r.returncode != 0 and 'sha1' in (r.stdout + r.stderr)
+
+
+def test_data_pins_refuse_a_name_not_mounted_exactly_once(tmp_path):
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), 'orchestration'))
+    import make_audit99_kernels as K
+    probe = {n: {'copies': 1, 'sha1': ['a' * 40]} for n in K.DATA_NAMES}
+    f = tmp_path / 'probe.json'
+    json.dump(probe, open(f, 'w'))
+    assert set(K.data_pins(str(f))) == set(K.DATA_NAMES)
+    probe['E_final.npy']['copies'] = 2
+    json.dump(probe, open(f, 'w'))
+    with pytest.raises(SystemExit, match='E_final.npy'):
+        K.data_pins(str(f))
+
+
+def test_main_refuses_a_run_projected_past_the_budget(tmp_path, monkeypatch):
+    class D:
+        te = np.arange(1000)
+        row_index = np.arange(1000)
+    monkeypatch.setattr(I, 'build', lambda *a: ({'seed': 0}, D(), None))
+    monkeypatch.setattr(I, 'identity', lambda *a: {'n': 10, 'min_r': 1.0, 'n_nonfinite': 0, 's_per_row': 10.0})
+    called = []
+    monkeypatch.setattr(I, 'predict', lambda *a: called.append(1))
+    with pytest.raises(SystemExit, match='exceeds'):
+        I.main(['--mode', 'swap', '--ckpt', 'x', '--identity', 'y', '--out', str(tmp_path), '--budget_s', '3600'])
+    assert not called

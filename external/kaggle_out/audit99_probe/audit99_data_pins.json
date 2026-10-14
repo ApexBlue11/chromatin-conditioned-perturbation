@@ -1,0 +1,128 @@
+{
+ "xpert_mdmt_splits.npz": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/xpert-mdmt-benchmark/xpert_mdmt_splits.npz"
+  ],
+  "sha1": [
+   "1444b253d48c5adf066bf7a3cc0ba8ea5fb71464"
+  ]
+ },
+ "drug_feature_index.json": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/drug_feature_index.json"
+  ],
+  "sha1": [
+   "0b812337aa4dfce1e00d5d86e2dba3cb3f9c0a32"
+  ]
+ },
+ "drug_descriptors.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/drug_descriptors.npy"
+  ],
+  "sha1": [
+   "a2f9c17d23d23568f25b27d92e6f74b975e36ebd"
+  ]
+ },
+ "drug_fingerprints.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/drug_fingerprints.npy"
+  ],
+  "sha1": [
+   "8ba2da5982d67d8424b90e854086bad6b786d221"
+  ]
+ },
+ "drug_unimol.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/drug_unimol.npy"
+  ],
+  "sha1": [
+   "750385b1f2aa6c65167fe3edd10aa1af919f9e7b"
+  ]
+ },
+ "drug_atom_reprs.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/drug_atom_reprs.npy"
+  ],
+  "sha1": [
+   "2f4985edf82abe1b8432bc551363423d8dee872a"
+  ]
+ },
+ "drug_atom_offsets.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/drug_atom_offsets.npy"
+  ],
+  "sha1": [
+   "b93654fc21a633a4ab2e757e9e9fe25d3762c374"
+  ]
+ },
+ "lincs_cell_index.json": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/lincs_cell_index.json"
+  ],
+  "sha1": [
+   "5f7bc6b42fe45c56f62a27d06c1925a077056e6d"
+  ]
+ },
+ "E_final.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/E_final.npy"
+  ],
+  "sha1": [
+   "20e9a3e4ce56f0d8a938c185dc5ca9e016590aac"
+  ]
+ },
+ "E_final_mask.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/E_final_mask.npy"
+  ],
+  "sha1": [
+   "6186bbdd9edae48d0382b5f269c600ff455fdb2f"
+  ]
+ },
+ "cell_lineage.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/cell_lineage.npy"
+  ],
+  "sha1": [
+   "1efd3dea686816db00b10ca426ed2e54d533c75d"
+  ]
+ },
+ "M_pathway_v9.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/M_pathway_v9.npy"
+  ],
+  "sha1": [
+   "c752c9c25a066af63cbe9595a6565e026441765c"
+  ]
+ },
+ "STRING_adj_978_v9.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/STRING_adj_978_v9.npy"
+  ],
+  "sha1": [
+   "609e289227b4e96da09dcc347667deb5f3645a8a"
+  ]
+ },
+ "gene_vectors_978.npy": {
+  "copies": 1,
+  "paths": [
+   "/kaggle/input/datasets/apexblue/lincs-v9-bundle/gene_vectors_978.npy"
+  ],
+  "sha1": [
+   "f13cc890deb0f8684602d7776828a9509d87f218"
+  ]
+ }
+}

@@ -136,6 +136,16 @@ def loo_mean(V_all, outer, inner, sel_all, rows, min_n=1):
     return M, cnt
 
 
+def floor_contrast(D, has, plate, pert, min_mates=MIN_MATES):
+    """Review 084 C1: the dose-only floor contrasted over FLOOR-BEARING plate-mates only. Row i (with a floor) gets
+    D_i - mean(D_j) over rows j on its plate with a different compound AND a floor, >= min_mates of them; else not ok.
+    A mate without a floor contributes nothing (never a zero vector)."""
+    D0 = np.where(has[:, None], D, 0.0)
+    mates, cnt = other_mean(D0, plate, pert, has, np.arange(len(D0)), min_mates=min_mates)
+    ok = has & (cnt >= min_mates)
+    return np.where(ok[:, None], D0 - np.nan_to_num(mates), np.nan), ok
+
+
 def mates_tanimoto(plate, pert, fp_of):
     """Per row: the mean ECFP4 Tanimoto between its compound and each of its other-compound plate-mates (rows given)."""
     out = np.full(len(plate), np.nan)
@@ -226,10 +236,11 @@ def test_c1(p9_dir=P9_DIR, n_boot=N_BOOT):
     ctdp = group_ids(b['meta_cell'], b['meta_time'], b['meta_dose'], plate_all)
     D_dose, n_dose = loo_mean(y_all, ctd, ctdp, b[score_p10.SPLIT_KEY] == 'train', p9['bundle_idx'])
     has_dose = n_dose >= 1
-    cd_dose, _ = plate_contrast(np.where(has_dose[:, None], D_dose, 0.0), plate, pert)
-    r_dose, _ = rowr_pred(np.where(have[:, None], cd_dose, 0.0), np.where(have[:, None], cy, 0.0))
-    r_dose[~(have & has_dose)] = np.nan
-    rows_d = rows & has_dose
+    cd_dose, ok_f = floor_contrast(D_dose, has_dose, plate, pert)
+    ok_d = have & ok_f
+    r_dose, _ = rowr_pred(np.where(ok_d[:, None], cd_dose, 0.0), np.where(ok_d[:, None], cy, 0.0))
+    r_dose[~ok_d] = np.nan
+    rows_d = rows & ok_d
 
     # review 083 ask 2 (reported, never read): strata by the plate-mates' mean ECFP4 Tanimoto
     tan = mates_tanimoto(plate, pert, _fp_lookup())
@@ -416,20 +427,22 @@ def test_c4(p9_dir=P9_DIR):
 C2B_RULE = 0.5        # §5: replaced cluster mean (v9 - XPert) below half the intact one -> "substantially carried"
 C2B_OF_RECORD = 'ctl'  # review 083 C5: x_cell := the row's own X_ctl; 'global' (all cell information removed) is reported
 AUDIT_OUT = os.path.join(REPO, 'external', 'kaggle_out', 'audit99')
+TAG = {'swap': 'p9', 'xcell': 'p7'}     # kernel kern_audit99_<tag>_s<k> writes <tag>_s<k>/AUDIT99_COMPLETE_<tag>_s<k>.json
 
 
 def _load_infer(out_dir, mode):
     """The three seeds' inference outputs, each verified against its kernel's AUDIT99_COMPLETE manifest."""
     runs = []
+    tag = TAG[mode]
     for k in (0, 1, 2):
-        man = os.path.join(out_dir, 's%d' % k, 'AUDIT99_COMPLETE_s%d.json' % k)
+        man = os.path.join(out_dir, '%s_s%d' % (tag, k), 'AUDIT99_COMPLETE_%s_s%d.json' % (tag, k))
         if not os.path.exists(man):
             raise SystemExit('FATAL: no manifest %s' % man)
         m = json.load(open(man, encoding='utf-8'))
         if not m.get('complete') or int(m.get('seed', -1)) != k:
             raise SystemExit('FATAL: manifest %s incomplete or wrong seed' % man)
         f = '%s_seed%d.npz' % (mode, k)
-        p = os.path.join(out_dir, 's%d' % k, f)
+        p = os.path.join(out_dir, '%s_s%d' % (tag, k), f)
         if f not in m['files'] or not os.path.exists(p) or sha1(p) != m['files'][f]:
             raise SystemExit('FATAL: %s missing or not the manifest file' % p)
         rec = json.load(open(p.replace('.npz', '.json'), encoding='utf-8'))
@@ -437,8 +450,9 @@ def _load_infer(out_dir, mode):
             raise SystemExit('FATAL: %s record is not a full %s run of seed %d' % (p, mode, k))
         z = np.load(p, allow_pickle=False)
         runs.append({key: z[key] for key in z.files})
+    same = ('row_index', 'y', 'ctl') + (('donor_row_index_tani', 'donor_row_index_free') if mode == 'swap' else ())
     for r in runs[1:]:
-        for key in ('row_index', 'y', 'ctl'):
+        for key in same:
             if not np.array_equal(r[key], runs[0][key]):
                 raise SystemExit('FATAL: the seeds disagree on %r' % key)
     return runs
@@ -479,15 +493,30 @@ def read_c2b(out_dir=AUDIT_OUT, o2_path=O2, bundle_path=BUNDLE, n_boot=N_BOOT):
         statement = ('not assessable: the intact final-snapshot lead over XPert is %+.4f with cluster CI [%+.4f, %+.4f], '
                      'which does not exclude 0' % (lead_int, ci_int[0], ci_int[1]))
     elif carried:
-        statement = "v9's unseen-cell lead over XPert is substantially carried by the transductive cell-average input"
+        statement = ("v9's unseen-cell lead over XPert is substantially carried by the cell-average input, which for "
+                     "unseen cells is available only transductively")
     else:
-        statement = "v9's unseen-cell lead over XPert is not substantially carried by the transductive cell-average input"
+        statement = ("v9's unseen-cell lead over XPert is not substantially carried by the cell-average input, which for "
+                     "unseen cells is available only transductively")
+    # review 084 C2: the same replacements on SEEN cells (P9, x_cell training-derived) bound the input-shift part
+    seen = _load_infer(out_dir, 'swap')
+    ys = seen[0]['y'].astype(np.float64)
+    bound = {}
+    r_si = np.mean([rowr_pred(r['deg_intact'].astype(np.float64), ys)[0] for r in seen], 0)
+    for v in ('ctl', 'global'):
+        r_sv = np.mean([rowr_pred(r['deg_' + v].astype(np.float64), ys)[0] for r in seen], 0)
+        okk = np.isfinite(r_si) & np.isfinite(r_sv)
+        bound[v] = {'rows': int(okk.sum()), 'intact_mean_r': float(r_si[okk].mean()), 'replaced_mean_r': float(r_sv[okk].mean()),
+                    'drop_row_mean': float((r_si - r_sv)[okk].mean())}
     return {'test': 'C2b', 'reading_of_record': True, 'basis': 'final snapshot against final snapshot (P7 of record is '
             'the three-snapshot mean)', 'variant_of_record': "x_cell := the row's own X_ctl",
             'rows': int(ok.sum()), 'blocks': blocks, 'lead_intact': lead_int, 'lead_replaced': lead_mod,
             'lead_global_reported': blocks['global_vs_xpert']['cluster']['mean_of_d_c'],
             'rule': 'replaced < %.1f x intact, if the intact lead is > 0 with its cluster CI excluding 0' % C2B_RULE,
-            'assessable': assessable, 'statement': statement}
+            'assessable': assessable, 'statement': statement,
+            'seen_cell_bound_p9': {'note': 'the same x_cell replacements on P9 test rows (seen cells, x_cell training-'
+                                           'derived): input shift plus the deviation signal, an upper bound on pure shift',
+                                   **bound}}
 
 
 def read_c3(out_dir=AUDIT_OUT, p9_dir=P9_DIR, n_boot=N_BOOT):
@@ -518,8 +547,9 @@ def read_c3(out_dir=AUDIT_OUT, p9_dir=P9_DIR, n_boot=N_BOOT):
     r_c_i = np.mean([contrast_r(d) for d in deg_i], 0)
     out = {'test': 'C3', 'reading_of_record': True, 'variant_of_record': 'compound-level swap within cell, ECFP4 '
            'Tanimoto < 0.4', 'variants': {}}
+    rows_tani = (runs[0]['donor_row_index_tani'][ix] >= 0) & p9['clean_mask'] & have
     for v in ('tani', 'free'):
-        swapped = np.all([r['donor_row_index_' + v][ix] >= 0 for r in runs], 0)
+        swapped = runs[0]['donor_row_index_' + v][ix] >= 0          # identical across seeds, asserted in _load_infer
         deg_m = [r['deg_' + v][ix].astype(np.float64) for r in runs]
         r_orig_m = np.mean([rowr_pred(d, y)[0] for d in deg_m], 0)
         r_c_m = np.mean([contrast_r(d) for d in deg_m], 0)
@@ -534,6 +564,9 @@ def read_c3(out_dir=AUDIT_OUT, p9_dir=P9_DIR, n_boot=N_BOOT):
             'original_target_intact_vs_swapped': _mol_block(r_orig_i[rows_o], r_orig_m[rows_o], p9['molecule'][rows_o],
                                                             'the swapped compound', n_boot),
             'sensitivity_median': float(sens)}
+        if v == 'free':                                            # review 084 C5: one row set for both variants
+            out['variants'][v]['on_tani_rows'] = _mol_block(r_c_i[rows_tani], r_c_m[rows_tani], p9['molecule'][rows_tani],
+                                                           'the swapped compound', n_boot)
         if v == C3_OF_RECORD:
             depends = bool(reading['mean_d'] > 0 and reading['ci_lo'] > 0)
             out['statement'] = ("v9's predictions depend on the right compound: swapping in a dissimilar compound "
