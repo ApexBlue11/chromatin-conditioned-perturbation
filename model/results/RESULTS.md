@@ -10249,6 +10249,30 @@ budget guard, the probe's single-copy check and the kernel's single-copy check).
 - **M7 is weaker than stated:** dose is coupled in practice (C4). F5 (the chemCPA-style dose) stays in Phase 2, but as a
   design cleanup, not a fix for a measured failure.
 
+### 99.7 RESULT, C3 read once: **v9's predictions depend on the right compound** (PI, 2026-10-15)
+**The runs:**
+- `kern_audit99_p9_s{0,1,2}`, free Kaggle CPU, 5.1 to 6.5 h each;
+- every input pin verified;
+- identity min r 0.99999993 on 2,000 rows per seed;
+- `AUDIT99_COMPLETE_p9_s{k}` verified on download;
+- read once by `audit99_phase1.py --test C3` → `model/results/audit99/phase1_C3.json`.
+
+**Of record** (compound-level substitution within cell, ECFP4 Tanimoto < 0.4; 7,980 clean contrast rows, 337 molecules):
+- intact − swapped on the within-plate contrast is **+0.0700 per molecule [+0.0540, +0.0865]**, with 247 of 337 molecules;
+- statement: **"v9's predictions depend on the right compound: swapping in a dissimilar compound lowers the contrast score by
+  +0.070 per molecule (95 % cluster CI [+0.054, +0.087])"**.
+
+**Reported:**
+- **unconstrained substitution:** +0.0694 [+0.0538, +0.0854], 252 of 337 molecules; the same on the tani rows;
+- **on the original target the same swap costs only +0.0171 [+0.0123, +0.0223]**, a quarter of the contrast effect;
+- sensitivity (median ‖ŷ − ŷ_swap‖ / ‖c(y)‖): 0.18.
+
+**Reading together with C1 (99.6):**
+- v9 uses the compound, and the use is worth about as much on the plate-removed target (+0.070) as v9's margin over the
+  drug-free models (+0.076).
+- The field's target registers about a quarter of it. **That is why R1, and Bai et al.'s benchmark, read "no drug use".**
+- M3 is confirmed in the sense that matters: our drug-use tests on the standard target could not see a real effect.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

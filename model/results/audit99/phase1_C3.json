@@ -1,0 +1,115 @@
+{
+ "test": "C3",
+ "reading_of_record": true,
+ "variant_of_record": "compound-level swap within cell, ECFP4 Tanimoto < 0.4",
+ "variants": {
+  "tani": {
+   "rows": {
+    "p9": 13364,
+    "swapped_clean": 11980,
+    "contrast_scored": 7980
+   },
+   "contrast_intact_vs_swapped": {
+    "mean_d": 0.07004463304465831,
+    "ci95": [
+     0.054037598988842694,
+     0.0865291863839536
+    ],
+    "ci_lo": 0.054037598988842694,
+    "ci_hi": 0.0865291863839536,
+    "ci_width": 0.032491587395110905,
+    "n_molecules": 337,
+    "n_favour_ours": 247,
+    "n_favour_ref": 90,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7329376854599406,
+    "frac_favour_ref": 0.26706231454005935,
+    "sign_p": 4.6965184784955645e-18,
+    "verdict": "v9 predicts unseen compounds better than the swapped compound"
+   },
+   "original_target_intact_vs_swapped": {
+    "mean_d": 0.01707058824311727,
+    "ci95": [
+     0.012271965502987557,
+     0.02231808178296867
+    ],
+    "ci_lo": 0.012271965502987557,
+    "ci_hi": 0.02231808178296867,
+    "ci_width": 0.010046116279981112,
+    "n_molecules": 346,
+    "n_favour_ours": 256,
+    "n_favour_ref": 90,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7398843930635838,
+    "frac_favour_ref": 0.26011560693641617,
+    "sign_p": 1.405658723055194e-19,
+    "verdict": "v9 predicts unseen compounds better than the swapped compound"
+   },
+   "sensitivity_median": 0.18321358699599932
+  },
+  "free": {
+   "rows": {
+    "p9": 13364,
+    "swapped_clean": 11980,
+    "contrast_scored": 7980
+   },
+   "contrast_intact_vs_swapped": {
+    "mean_d": 0.06938718708932488,
+    "ci95": [
+     0.053791191285514475,
+     0.08543258510862924
+    ],
+    "ci_lo": 0.053791191285514475,
+    "ci_hi": 0.08543258510862924,
+    "ci_width": 0.03164139382311476,
+    "n_molecules": 337,
+    "n_favour_ours": 252,
+    "n_favour_ref": 85,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7477744807121661,
+    "frac_favour_ref": 0.2522255192878338,
+    "sign_p": 2.4357144635946545e-20,
+    "verdict": "v9 predicts unseen compounds better than the swapped compound"
+   },
+   "original_target_intact_vs_swapped": {
+    "mean_d": 0.016819872590566737,
+    "ci95": [
+     0.012105413932216908,
+     0.02197145508701273
+    ],
+    "ci_lo": 0.012105413932216908,
+    "ci_hi": 0.02197145508701273,
+    "ci_width": 0.009866041154795823,
+    "n_molecules": 346,
+    "n_favour_ours": 254,
+    "n_favour_ref": 92,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7341040462427746,
+    "frac_favour_ref": 0.2658959537572254,
+    "sign_p": 1.1138349184080138e-18,
+    "verdict": "v9 predicts unseen compounds better than the swapped compound"
+   },
+   "sensitivity_median": 0.18272636984262725,
+   "on_tani_rows": {
+    "mean_d": 0.06938718708932488,
+    "ci95": [
+     0.053791191285514475,
+     0.08543258510862924
+    ],
+    "ci_lo": 0.053791191285514475,
+    "ci_hi": 0.08543258510862924,
+    "ci_width": 0.03164139382311476,
+    "n_molecules": 337,
+    "n_favour_ours": 252,
+    "n_favour_ref": 85,
+    "n_tie": 0,
+    "frac_favour_ours": 0.7477744807121661,
+    "frac_favour_ref": 0.2522255192878338,
+    "sign_p": 2.4357144635946545e-20,
+    "verdict": "v9 predicts unseen compounds better than the swapped compound"
+   }
+  }
+ },
+ "statement": "v9's predictions depend on the right compound: swapping in a dissimilar compound lowers the contrast score by +0.070 per molecule (95 % cluster CI [+0.054, +0.087])",
+ "code_sha1": "fab9ff251f989c2563f0ed502e2cb5a256919281"
+}
