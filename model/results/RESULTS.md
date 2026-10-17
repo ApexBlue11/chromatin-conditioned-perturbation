@@ -10273,6 +10273,31 @@ budget guard, the probe's single-copy check and the kernel's single-copy check).
 - The field's target registers about a quarter of it. **That is why R1, and Bai et al.'s benchmark, read "no drug use".**
 - M3 is confirmed in the sense that matters: our drug-use tests on the standard target could not see a real effect.
 
+### 99.8 RESULT, C2b read once: the registered statement fires, but the seen-cell bound shows the test cannot separate transduction from input shift (PI, 2026-10-17)
+**The runs:**
+- `kern_audit99_p7_s{0,1,2}`, free Kaggle CPU, 5.6 to 6.1 h each;
+- identity min r 0.99999993;
+- read once → `phase1_C2b.json`.
+
+**Of record** (final-snapshot basis; `x_cell :=` the row's own `X_ctl`):
+- **The intact lead over XPert:** cluster **+0.0418** [+0.0026, +0.0799], 5 of 8 cells. The precondition is met.
+- **The replaced lead:** **−0.1153** [−0.1458, −0.0842], 0 of 8 cells.
+- **Rows pooled:** v9 0.471 → **0.248**, against XPert 0.387.
+- **The statement (registered rule):** *"v9's unseen-cell lead over XPert is substantially carried by the cell-average input,
+  which for unseen cells is available only transductively"*.
+
+**Reported beside it** (review 084 C2):
+- **The seen-cell bound:** on P9's seen cells, where x_cell is training-derived, the same replacement drops v9 from **0.649 to
+  0.397 (−0.252)**; the global mean drops it to 0.423.
+- **That is larger than the unseen-cell drop** (−0.223 rows pooled).
+- **So the collapse is fully explained by input shift.** The model never saw x_cell = x_ctl in training, and breaks on it
+  even where the input is legitimate.
+- **What the transductive mean itself contributes is NOT identified by this inference test.** The registered sentence stands
+  as the rule's output, with this bound attached wherever it is quoted.
+- **The identifying test is a retrain** with an inductive cell input (F3). The cell-level comparison with XPert keeps M4's
+  caveat until then.
+- **Global-mean variant:** −0.0985, 0 of 8 cells.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

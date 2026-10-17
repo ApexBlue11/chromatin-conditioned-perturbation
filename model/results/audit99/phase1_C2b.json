@@ -1,0 +1,706 @@
+{
+ "test": "C2b",
+ "reading_of_record": true,
+ "basis": "final snapshot against final snapshot (P7 of record is the three-snapshot mean)",
+ "variant_of_record": "x_cell := the row's own X_ctl",
+ "rows": 21151,
+ "blocks": {
+  "intact_vs_xpert": {
+   "cluster": {
+    "n_cells": 8,
+    "mean_of_d_c": 0.04176,
+    "cluster_ci95": [
+     0.00255,
+     0.07989
+    ],
+    "cluster_ci_width": 0.07734,
+    "cells_favouring_ours": 5,
+    "cells_favouring_theirs": 3,
+    "sign_test_p": 0.7265625
+   },
+   "per_cell": [
+    {
+     "cell": "MCF7",
+     "n_scored": 10815,
+     "d_c_median": 0.07339,
+     "d_c_median_ci95": [
+      0.07104,
+      0.0757
+     ],
+     "mean": 0.0744,
+     "ours_mean": 0.44297,
+     "theirs_mean": 0.36857,
+     "favours": "ours"
+    },
+    {
+     "cell": "HT29",
+     "n_scored": 5837,
+     "d_c_median": 0.12253,
+     "d_c_median_ci95": [
+      0.11938,
+      0.126
+     ],
+     "mean": 0.12113,
+     "ours_mean": 0.53903,
+     "theirs_mean": 0.4179,
+     "favours": "ours"
+    },
+    {
+     "cell": "MDAMB231",
+     "n_scored": 2188,
+     "d_c_median": 0.0581,
+     "d_c_median_ci95": [
+      0.05493,
+      0.06189
+     ],
+     "mean": 0.05689,
+     "ours_mean": 0.46683,
+     "theirs_mean": 0.40994,
+     "favours": "ours"
+    },
+    {
+     "cell": "HS578T",
+     "n_scored": 1074,
+     "d_c_median": 0.09011,
+     "d_c_median_ci95": [
+      0.08354,
+      0.0963
+     ],
+     "mean": 0.09519,
+     "ours_mean": 0.49896,
+     "theirs_mean": 0.40377,
+     "favours": "ours"
+    },
+    {
+     "cell": "THP1",
+     "n_scored": 815,
+     "d_c_median": 0.0686,
+     "d_c_median_ci95": [
+      0.05976,
+      0.08043
+     ],
+     "mean": 0.07021,
+     "ours_mean": 0.40474,
+     "theirs_mean": 0.33453,
+     "favours": "ours"
+    },
+    {
+     "cell": "CD34",
+     "n_scored": 295,
+     "d_c_median": -0.03962,
+     "d_c_median_ci95": [
+      -0.05114,
+      -0.02986
+     ],
+     "mean": -0.04039,
+     "ours_mean": 0.28853,
+     "theirs_mean": 0.32892,
+     "favours": "theirs"
+    },
+    {
+     "cell": "BJAB",
+     "n_scored": 73,
+     "d_c_median": -0.00231,
+     "d_c_median_ci95": [
+      -0.01065,
+      0.01231
+     ],
+     "mean": -0.0032,
+     "ours_mean": 0.32139,
+     "theirs_mean": 0.32459,
+     "favours": "theirs"
+    },
+    {
+     "cell": "H1975",
+     "n_scored": 54,
+     "d_c_median": -0.03675,
+     "d_c_median_ci95": [
+      -0.04999,
+      -0.02773
+     ],
+     "mean": -0.04295,
+     "ours_mean": 0.53969,
+     "theirs_mean": 0.58264,
+     "favours": "theirs"
+    }
+   ],
+   "pooled": {
+    "n_rows": 21151,
+    "ours_mean": 0.47099,
+    "theirs_mean": 0.38678,
+    "paired_mean": 0.08421,
+    "paired_mean_ci95_row_bootstrap": [
+     0.08286,
+     0.0856
+    ],
+    "paired_median": 0.08154,
+    "frac_rows_ours_better": 0.8215,
+    "largest_cell": "MCF7",
+    "largest_cell_share": 0.5113,
+    "LABEL": "row-pooled; dominated by MCF7 at 51.1% of rows; NOT a cell-level generalisation claim"
+   }
+  },
+  "replaced_vs_xpert": {
+   "cluster": {
+    "n_cells": 8,
+    "mean_of_d_c": -0.11531,
+    "cluster_ci95": [
+     -0.14578,
+     -0.08419
+    ],
+    "cluster_ci_width": 0.06159,
+    "cells_favouring_ours": 0,
+    "cells_favouring_theirs": 8,
+    "sign_test_p": 0.0078125
+   },
+   "per_cell": [
+    {
+     "cell": "MCF7",
+     "n_scored": 10815,
+     "d_c_median": -0.15551,
+     "d_c_median_ci95": [
+      -0.1586,
+      -0.15287
+     ],
+     "mean": -0.15486,
+     "ours_mean": 0.21371,
+     "theirs_mean": 0.36857,
+     "favours": "theirs"
+    },
+    {
+     "cell": "HT29",
+     "n_scored": 5837,
+     "d_c_median": -0.12622,
+     "d_c_median_ci95": [
+      -0.12903,
+      -0.12337
+     ],
+     "mean": -0.1169,
+     "ours_mean": 0.30099,
+     "theirs_mean": 0.4179,
+     "favours": "theirs"
+    },
+    {
+     "cell": "MDAMB231",
+     "n_scored": 2188,
+     "d_c_median": -0.15096,
+     "d_c_median_ci95": [
+      -0.15765,
+      -0.14499
+     ],
+     "mean": -0.15305,
+     "ours_mean": 0.25689,
+     "theirs_mean": 0.40994,
+     "favours": "theirs"
+    },
+    {
+     "cell": "HS578T",
+     "n_scored": 1074,
+     "d_c_median": -0.10244,
+     "d_c_median_ci95": [
+      -0.10963,
+      -0.09411
+     ],
+     "mean": -0.09559,
+     "ours_mean": 0.30818,
+     "theirs_mean": 0.40377,
+     "favours": "theirs"
+    },
+    {
+     "cell": "THP1",
+     "n_scored": 815,
+     "d_c_median": -0.09633,
+     "d_c_median_ci95": [
+      -0.104,
+      -0.08758
+     ],
+     "mean": -0.09337,
+     "ours_mean": 0.24116,
+     "theirs_mean": 0.33453,
+     "favours": "theirs"
+    },
+    {
+     "cell": "CD34",
+     "n_scored": 295,
+     "d_c_median": -0.18031,
+     "d_c_median_ci95": [
+      -0.19145,
+      -0.16484
+     ],
+     "mean": -0.18055,
+     "ours_mean": 0.14837,
+     "theirs_mean": 0.32892,
+     "favours": "theirs"
+    },
+    {
+     "cell": "BJAB",
+     "n_scored": 73,
+     "d_c_median": -0.07392,
+     "d_c_median_ci95": [
+      -0.09754,
+      -0.04719
+     ],
+     "mean": -0.0628,
+     "ours_mean": 0.26179,
+     "theirs_mean": 0.32459,
+     "favours": "theirs"
+    },
+    {
+     "cell": "H1975",
+     "n_scored": 54,
+     "d_c_median": -0.03675,
+     "d_c_median_ci95": [
+      -0.04999,
+      -0.02773
+     ],
+     "mean": -0.04295,
+     "ours_mean": 0.53969,
+     "theirs_mean": 0.58264,
+     "favours": "theirs"
+    }
+   ],
+   "pooled": {
+    "n_rows": 21151,
+    "ours_mean": 0.24821,
+    "theirs_mean": 0.38678,
+    "paired_mean": -0.13858,
+    "paired_mean_ci95_row_bootstrap": [
+     -0.14017,
+     -0.13697
+    ],
+    "paired_median": -0.13898,
+    "frac_rows_ours_better": 0.1092,
+    "largest_cell": "MCF7",
+    "largest_cell_share": 0.5113,
+    "LABEL": "row-pooled; dominated by MCF7 at 51.1% of rows; NOT a cell-level generalisation claim"
+   }
+  },
+  "intact_vs_replaced": {
+   "cluster": {
+    "n_cells": 8,
+    "mean_of_d_c": 0.15587,
+    "cluster_ci95": [
+     0.09549,
+     0.20958
+    ],
+    "cluster_ci_width": 0.11409,
+    "cells_favouring_ours": 7,
+    "cells_favouring_theirs": 0,
+    "sign_test_p": 0.015625
+   },
+   "per_cell": [
+    {
+     "cell": "MCF7",
+     "n_scored": 10815,
+     "d_c_median": 0.23766,
+     "d_c_median_ci95": [
+      0.23466,
+      0.2405
+     ],
+     "mean": 0.22926,
+     "ours_mean": 0.44297,
+     "theirs_mean": 0.21371,
+     "favours": "ours"
+    },
+    {
+     "cell": "HT29",
+     "n_scored": 5837,
+     "d_c_median": 0.2479,
+     "d_c_median_ci95": [
+      0.24465,
+      0.25119
+     ],
+     "mean": 0.23803,
+     "ours_mean": 0.53903,
+     "theirs_mean": 0.30099,
+     "favours": "ours"
+    },
+    {
+     "cell": "MDAMB231",
+     "n_scored": 2188,
+     "d_c_median": 0.22059,
+     "d_c_median_ci95": [
+      0.21242,
+      0.22664
+     ],
+     "mean": 0.20994,
+     "ours_mean": 0.46683,
+     "theirs_mean": 0.25689,
+     "favours": "ours"
+    },
+    {
+     "cell": "HS578T",
+     "n_scored": 1074,
+     "d_c_median": 0.1934,
+     "d_c_median_ci95": [
+      0.18702,
+      0.19987
+     ],
+     "mean": 0.19078,
+     "ours_mean": 0.49896,
+     "theirs_mean": 0.30818,
+     "favours": "ours"
+    },
+    {
+     "cell": "THP1",
+     "n_scored": 815,
+     "d_c_median": 0.15948,
+     "d_c_median_ci95": [
+      0.14951,
+      0.16909
+     ],
+     "mean": 0.16358,
+     "ours_mean": 0.40474,
+     "theirs_mean": 0.24116,
+     "favours": "ours"
+    },
+    {
+     "cell": "CD34",
+     "n_scored": 295,
+     "d_c_median": 0.12448,
+     "d_c_median_ci95": [
+      0.11408,
+      0.13545
+     ],
+     "mean": 0.14016,
+     "ours_mean": 0.28853,
+     "theirs_mean": 0.14837,
+     "favours": "ours"
+    },
+    {
+     "cell": "BJAB",
+     "n_scored": 73,
+     "d_c_median": 0.06348,
+     "d_c_median_ci95": [
+      0.03597,
+      0.08422
+     ],
+     "mean": 0.0596,
+     "ours_mean": 0.32139,
+     "theirs_mean": 0.26179,
+     "favours": "ours"
+    },
+    {
+     "cell": "H1975",
+     "n_scored": 54,
+     "d_c_median": 0.0,
+     "d_c_median_ci95": [
+      0.0,
+      0.0
+     ],
+     "mean": 0.0,
+     "ours_mean": 0.53969,
+     "theirs_mean": 0.53969,
+     "favours": "tie"
+    }
+   ],
+   "pooled": {
+    "n_rows": 21151,
+    "ours_mean": 0.47099,
+    "theirs_mean": 0.24821,
+    "paired_mean": 0.22279,
+    "paired_mean_ci95_row_bootstrap": [
+     0.22115,
+     0.22443
+    ],
+    "paired_median": 0.23004,
+    "frac_rows_ours_better": 0.9677,
+    "largest_cell": "MCF7",
+    "largest_cell_share": 0.5113,
+    "LABEL": "row-pooled; dominated by MCF7 at 51.1% of rows; NOT a cell-level generalisation claim"
+   }
+  },
+  "global_vs_xpert": {
+   "cluster": {
+    "n_cells": 8,
+    "mean_of_d_c": -0.09846,
+    "cluster_ci95": [
+     -0.11329,
+     -0.08325
+    ],
+    "cluster_ci_width": 0.03004,
+    "cells_favouring_ours": 0,
+    "cells_favouring_theirs": 8,
+    "sign_test_p": 0.0078125
+   },
+   "per_cell": [
+    {
+     "cell": "MCF7",
+     "n_scored": 10815,
+     "d_c_median": -0.10445,
+     "d_c_median_ci95": [
+      -0.10584,
+      -0.10293
+     ],
+     "mean": -0.10281,
+     "ours_mean": 0.26577,
+     "theirs_mean": 0.36857,
+     "favours": "theirs"
+    },
+    {
+     "cell": "HT29",
+     "n_scored": 5837,
+     "d_c_median": -0.09497,
+     "d_c_median_ci95": [
+      -0.09674,
+      -0.09332
+     ],
+     "mean": -0.09348,
+     "ours_mean": 0.32442,
+     "theirs_mean": 0.4179,
+     "favours": "theirs"
+    },
+    {
+     "cell": "MDAMB231",
+     "n_scored": 2188,
+     "d_c_median": -0.08532,
+     "d_c_median_ci95": [
+      -0.08794,
+      -0.08304
+     ],
+     "mean": -0.0878,
+     "ours_mean": 0.32214,
+     "theirs_mean": 0.40994,
+     "favours": "theirs"
+    },
+    {
+     "cell": "HS578T",
+     "n_scored": 1074,
+     "d_c_median": -0.0691,
+     "d_c_median_ci95": [
+      -0.07169,
+      -0.06593
+     ],
+     "mean": -0.06443,
+     "ours_mean": 0.33934,
+     "theirs_mean": 0.40377,
+     "favours": "theirs"
+    },
+    {
+     "cell": "THP1",
+     "n_scored": 815,
+     "d_c_median": -0.11763,
+     "d_c_median_ci95": [
+      -0.12382,
+      -0.1138
+     ],
+     "mean": -0.11895,
+     "ours_mean": 0.21559,
+     "theirs_mean": 0.33453,
+     "favours": "theirs"
+    },
+    {
+     "cell": "CD34",
+     "n_scored": 295,
+     "d_c_median": -0.12401,
+     "d_c_median_ci95": [
+      -0.137,
+      -0.11539
+     ],
+     "mean": -0.11491,
+     "ours_mean": 0.21401,
+     "theirs_mean": 0.32892,
+     "favours": "theirs"
+    },
+    {
+     "cell": "BJAB",
+     "n_scored": 73,
+     "d_c_median": -0.12546,
+     "d_c_median_ci95": [
+      -0.13434,
+      -0.10328
+     ],
+     "mean": -0.12343,
+     "ours_mean": 0.20116,
+     "theirs_mean": 0.32459,
+     "favours": "theirs"
+    },
+    {
+     "cell": "H1975",
+     "n_scored": 54,
+     "d_c_median": -0.06676,
+     "d_c_median_ci95": [
+      -0.07308,
+      -0.05705
+     ],
+     "mean": -0.06106,
+     "ours_mean": 0.52158,
+     "theirs_mean": 0.58264,
+     "favours": "theirs"
+    }
+   ],
+   "pooled": {
+    "n_rows": 21151,
+    "ours_mean": 0.2893,
+    "theirs_mean": 0.38678,
+    "paired_mean": -0.09749,
+    "paired_mean_ci95_row_bootstrap": [
+     -0.09839,
+     -0.09658
+    ],
+    "paired_median": -0.09782,
+    "frac_rows_ours_better": 0.0623,
+    "largest_cell": "MCF7",
+    "largest_cell_share": 0.5113,
+    "LABEL": "row-pooled; dominated by MCF7 at 51.1% of rows; NOT a cell-level generalisation claim"
+   }
+  },
+  "intact_vs_global": {
+   "cluster": {
+    "n_cells": 8,
+    "mean_of_d_c": 0.14008,
+    "cluster_ci95": [
+     0.09844,
+     0.17733
+    ],
+    "cluster_ci_width": 0.07889,
+    "cells_favouring_ours": 8,
+    "cells_favouring_theirs": 0,
+    "sign_test_p": 0.0078125
+   },
+   "per_cell": [
+    {
+     "cell": "MCF7",
+     "n_scored": 10815,
+     "d_c_median": 0.17665,
+     "d_c_median_ci95": [
+      0.17439,
+      0.17865
+     ],
+     "mean": 0.1772,
+     "ours_mean": 0.44297,
+     "theirs_mean": 0.26577,
+     "favours": "ours"
+    },
+    {
+     "cell": "HT29",
+     "n_scored": 5837,
+     "d_c_median": 0.21631,
+     "d_c_median_ci95": [
+      0.21226,
+      0.22025
+     ],
+     "mean": 0.21461,
+     "ours_mean": 0.53903,
+     "theirs_mean": 0.32442,
+     "favours": "ours"
+    },
+    {
+     "cell": "MDAMB231",
+     "n_scored": 2188,
+     "d_c_median": 0.14223,
+     "d_c_median_ci95": [
+      0.13837,
+      0.1452
+     ],
+     "mean": 0.14469,
+     "ours_mean": 0.46683,
+     "theirs_mean": 0.32214,
+     "favours": "ours"
+    },
+    {
+     "cell": "HS578T",
+     "n_scored": 1074,
+     "d_c_median": 0.15691,
+     "d_c_median_ci95": [
+      0.15205,
+      0.16139
+     ],
+     "mean": 0.15962,
+     "ours_mean": 0.49896,
+     "theirs_mean": 0.33934,
+     "favours": "ours"
+    },
+    {
+     "cell": "THP1",
+     "n_scored": 815,
+     "d_c_median": 0.19384,
+     "d_c_median_ci95": [
+      0.18665,
+      0.20232
+     ],
+     "mean": 0.18916,
+     "ours_mean": 0.40474,
+     "theirs_mean": 0.21559,
+     "favours": "ours"
+    },
+    {
+     "cell": "CD34",
+     "n_scored": 295,
+     "d_c_median": 0.09224,
+     "d_c_median_ci95": [
+      0.07941,
+      0.11337
+     ],
+     "mean": 0.07453,
+     "ours_mean": 0.28853,
+     "theirs_mean": 0.21401,
+     "favours": "ours"
+    },
+    {
+     "cell": "BJAB",
+     "n_scored": 73,
+     "d_c_median": 0.11728,
+     "d_c_median_ci95": [
+      0.10484,
+      0.1269
+     ],
+     "mean": 0.12023,
+     "ours_mean": 0.32139,
+     "theirs_mean": 0.20116,
+     "favours": "ours"
+    },
+    {
+     "cell": "H1975",
+     "n_scored": 54,
+     "d_c_median": 0.02518,
+     "d_c_median_ci95": [
+      0.02045,
+      0.0305
+     ],
+     "mean": 0.01811,
+     "ours_mean": 0.53969,
+     "theirs_mean": 0.52158,
+     "favours": "ours"
+    }
+   ],
+   "pooled": {
+    "n_rows": 21151,
+    "ours_mean": 0.47099,
+    "theirs_mean": 0.2893,
+    "paired_mean": 0.18169,
+    "paired_mean_ci95_row_bootstrap": [
+     0.18041,
+     0.18301
+    ],
+    "paired_median": 0.17752,
+    "frac_rows_ours_better": 0.9793,
+    "largest_cell": "MCF7",
+    "largest_cell_share": 0.5113,
+    "LABEL": "row-pooled; dominated by MCF7 at 51.1% of rows; NOT a cell-level generalisation claim"
+   }
+  }
+ },
+ "lead_intact": 0.04176,
+ "lead_replaced": -0.11531,
+ "lead_global_reported": -0.09846,
+ "rule": "replaced < 0.5 x intact, if the intact lead is > 0 with its cluster CI excluding 0",
+ "assessable": true,
+ "statement": "v9's unseen-cell lead over XPert is substantially carried by the cell-average input, which for unseen cells is available only transductively",
+ "seen_cell_bound_p9": {
+  "note": "the same x_cell replacements on P9 test rows (seen cells, x_cell training-derived): input shift plus the deviation signal, an upper bound on pure shift",
+  "ctl": {
+   "rows": 13364,
+   "intact_mean_r": 0.6494236520189433,
+   "replaced_mean_r": 0.39704520447859964,
+   "drop_row_mean": 0.2523784475403436
+  },
+  "global": {
+   "rows": 13364,
+   "intact_mean_r": 0.6494236520189433,
+   "replaced_mean_r": 0.42333249060854616,
+   "drop_row_mean": 0.22609116141039717
+  }
+ },
+ "code_sha1": "fab9ff251f989c2563f0ed502e2cb5a256919281"
+}
