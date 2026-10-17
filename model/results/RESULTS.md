@@ -10836,6 +10836,47 @@ responsiveness on CPU"*. A pass or fail changes nothing downstream (the principa
 - plant R_cg += β · z(accessibility_cg) at β ∈ {0.02, 0.05, 0.1, 0.2} (in SD units) on the real data;
 - record the smallest β the gain detects above the cell-swap null (as 91.9 did).
 
+### 100.6a RESULT, T-A read once as registered: **no pass**; a post hoc within-cell diagnostic is also null, with a 0.02 SD detection limit (PI, 2026-10-17)
+**The data:**
+- 173 unseen-cell training cells with ≥ 200 contrast rows, 60 of them with chromatin;
+- λ = 100, chosen by leave-cell-out CV on the base model;
+- `model/results/v10c/ta_gate.json`, 25 min on CPU.
+
+**As registered** (R standardised per gene across cells):
+
+| | leave-cell-out R² gain (full − base) |
+|---|---|
+| **real chromatin** | **−0.054** |
+| cell-swap null (200) | mean −0.009, 95th pct +0.021 |
+| gene-permute null (200) | mean −0.051, 95th pct −0.051 |
+
+- **No pass.** The planted calibration detects β ≥ 0.2 SD only (0.02, 0.05 and 0.1 missed).
+- **Why it is negative:**
+  - the registered target keeps each cell's overall responsiveness level, and the chromatin channels that are constant
+    within a cell (the mask, the level) act as cell intercepts that don't transfer to a held-out cell;
+  - the real gain equals the gene-permute null's, which keeps exactly that cell summary.
+  - This is a weakness of the design (mine and the critic's), not a reading.
+
+**POST HOC diagnostic, never a gate** (`--centre`; `ta_gate_centred_posthoc.json`). R, basal and chromatin are centred within
+each cell, so only the within-cell gene pattern is left, *"which genes respond more in this cell"*:
+
+| | gain |
+|---|---|
+| **real chromatin** | **+0.00001** |
+| cell-swap null | mean −0.00014, 95th pct +0.00004 |
+| gene-permute null | mean −0.00022, 95th pct −0.00006 |
+
+- **The calibration detects β = 0.02 SD** (gain +0.0008), and β = 0.05, 0.1 and 0.2 (+0.007, +0.030, +0.115).
+- **So:** a *linear, drug-averaged, cell-specific* effect of chromatin on gene responsiveness is below 0.02 SD.
+- **What real chromatin carries** beats gene-permuted chromatin, but not another cell's chromatin. That is the gene-generic
+  structure (genes open in most cells), as §93's gene-generic test found, not cell-specific information.
+
+**What T-A cannot see, and why L4 still runs:**
+- T-A averages over all compounds;
+- the v10-C gate conditions on the drug, its dose and the gene's chromatin together, which is a different effect;
+- the prior for T-B is now explicitly low: the drug-averaged, linear version of the mechanism is absent at a 0.02 SD
+  resolution.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
