@@ -34,6 +34,22 @@ def obs_col(obs, k):
     return np.array([x.decode() if isinstance(x, bytes) else x for x in v]) if v.dtype.kind in 'OS' else v
 
 
+def plate_codes(obs, rows):
+    """det_plate (the replicate plate set; up to ~4,000 characters) as a compact id per row, plus sha1[:16] of each used
+    set's name, without materialising the long strings per row."""
+    g = obs['det_plate']
+    if isinstance(g, h5py.Group):
+        codes = g['codes'][()][rows]
+        cats = g['categories']
+        used, plate_id = np.unique(codes, return_inverse=True)
+        names = [cats[int(c)] for c in used]
+    else:
+        v = obs_col(obs, 'det_plate')[rows]
+        names, plate_id = np.unique(v, return_inverse=True)
+    key = np.array([hashlib.sha1((n.decode() if isinstance(n, bytes) else str(n)).encode()).hexdigest()[:16] for n in names])
+    return plate_id.astype(np.int64), key
+
+
 def bench_keys(b):
     return np.array([f'{c}:{p}:{int(t)} h:{int(d)}' for c, p, t, d in
                      zip(b['meta_cell'], b['meta_pert_id'], b['meta_time'], b['meta_dose_idx'])])
@@ -124,11 +140,12 @@ def build(out_path, h5ad=H5AD, bundle=BUNDLE, drug_index=DRUG_INDEX, drug_list=D
     if not (np.array_equal(X[bsub[nb]], b['X'][nb]) and np.array_equal(ctl[ctl_id[bsub[nb]]], b['X_ctl'][nb])):
         raise SystemExit('FATAL: benchmark X / X_ctl differ from the full release on matched rows')
     meta = {k: obs_col(obs, k)[rows] for k in ('cell_iname', 'pert_id', 'pert_dose', 'pert_dose_idx', 'pert_time',
-                                               'det_plate', 'cell_drug_dose_time')}
+                                               'cell_drug_dose_time')}
+    plate_id, plate_key = plate_codes(obs, rows)
     br = np.full(n, -1, np.int64)  # the benchmark row each substrate row is, or -1
     br[bsub] = np.arange(len(bk))
     os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
-    np.savez(out_path, X=X, ctl=ctl, ctl_id=ctl_id, full_row=rows, bench_row=br,
+    np.savez(out_path, X=X, ctl=ctl, ctl_id=ctl_id, full_row=rows, bench_row=br, plate_id=plate_id, plate_key=plate_key,
              **{'meta_' + k: v.astype(str) for k, v in meta.items()},
              **{'split_' + s: labels[s][rows] for s in SPLITS})
     counts = {s: {k: int(v) for k, v in zip(*np.unique(labels[s], return_counts=True))} for s in SPLITS}

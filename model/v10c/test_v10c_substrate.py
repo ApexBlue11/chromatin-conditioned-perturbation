@@ -71,7 +71,8 @@ def test_build_end_to_end(tmp_path):
     assert list(z['bench_row']) == [0, 2, -1, -1, 1]
     assert list(z['split_cold_cell_1']) == ['train', 'train', 'train', 'train', 'test']
     assert list(z['split_cold_drug_1']) == ['train', 'test', 'excluded_test_compound', 'excluded_test_compound', 'test']
-    assert list(z['meta_det_plate']) == ['P1', 'P1', 'P2', 'P2', 'P3']
+    assert list(z['plate_id']) == [0, 0, 1, 1, 2]
+    assert list(z['plate_key']) == [bfs.hashlib.sha1(x.encode()).hexdigest()[:16] for x in ('P1', 'P2', 'P3')]
     assert rec['compounds_without_features'] == 1 and rec['out_sha1'] == bfs.sha1(str(out))
 
 

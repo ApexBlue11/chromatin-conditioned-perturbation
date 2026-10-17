@@ -10437,6 +10437,49 @@ training run.
 **Tests:** 4 (the split rules on a fixture, an end-to-end build, a refusal on a value mismatch, a refusal on an unmatched
 benchmark row).
 
+### 100.3 RESULT: the L1–L3 data, as registered in 100.1 / 100.2 (PI, 2026-10-17; outcome-free, no expression response read)
+**The ChIP-Atlas signal:**
+- 4 Kaggle CPU kernels, `lincs-v10c-signal-s0..s3`;
+- **356 of 356 distinct tracks read** (360 selections; H1975 and NCIH1975 share theirs), each downloaded whole,
+  hashed, read over the 5 windows and deleted;
+- 177 GB in all (42–46 GB per shard), 17–28 minutes per shard;
+- one gene, SLC37A4, sits on a patch scaffold (`NW_009646203.1`) that no bigWig carries, so its signal is missing (rule:
+  an absent chromosome is missing).
+
+**Methylation** (`lincs-v10c-methyl`, version 2):
+- 115 of our lines are among the file's 843 (114 with any landmark value), and 865 of 978 genes have a value;
+- the first version stopped on the file's key: rows are `locus_id = GENE_chr_start_end`, not a `gene` column. Fixed in
+  `ccle_methyl` and tested on the real row shape (169f078); the signal kernels did not use that function.
+
+**The features** (`model/v10c/chromatin_features.py`; `external/v10c_chromatin.npz`, sha1 `00977d40…`):
+- shape 217 cells × 978 genes × 16 features (3 axes × 5 windows + methylation), plus a 4-channel availability mask;
+- 90 cells with chromatin; **140 with chromatin or methylation**; 43 with all three axes;
+- MUC1 is never observed (no MANE TSS, no RRBS row).
+
+**The substrate** (`external/v10c_full/v10c_full_substrate.npz`, sha1 `353da6e6…`; record
+`model/results/v10c/substrate_record.json`):
+
+| | benchmark (v9) | v10-C substrate |
+|---|---|---|
+| rows stored | 68,830 | 314,775 (25,130 distinct controls) |
+| unseen cells: training rows / cells / compounds | 47,509 / 32 / 1,849 | **254,685 / 209 / 7,900** |
+| unseen compounds: training rows / cells / compounds | 55,385 / 39 / 1,581 | **281,126 / 217 / 7,510** |
+| test rows | 21,321 / 13,445 | identical |
+| excluded (test cell / test compound incl. same-SMILES IDs) | — | 42,045 / 22,407 |
+
+- **The builder checked all 68,830 benchmark rows:** X and X_ctl are byte-identical to the full release.
+- **Amendment to 100.2 (a count, not a rule):** 59 benchmark compounds are not in `drug_feature_index.json` either. v9
+  already drops their rows (`xpert_arm.py`, "the comparison runs on the rows BOTH models can score"), so the v10-C loader
+  drops them the same way. The substrate keeps their benchmark labels, and the 7,900 includes 57 such compounds.
+
+**Chromatin over the unseen-cell training set:**
+
+| | v9 | v10-C |
+|---|---|---|
+| training cells with chromatin | 18 of 32 | **82 of 209** (132 with chromatin or methylation) |
+| training rows with chromatin | — | 61 % (76 % with methylation) |
+| the 8 test lines | 5 with any | **8** (ACC + ACT in all; PCG in CD34, MCF7, MDAMB231, THP1; methylation in 5) |
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
