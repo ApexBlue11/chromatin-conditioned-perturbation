@@ -1,0 +1,5984 @@
+{
+ "rule": "RESULTS 100.1",
+ "K": 2,
+ "selection": {
+  "22RV1": {
+   "ACC": [
+    "SRX11222445",
+    "SRX11222446"
+   ],
+   "ACT": [
+    "SRX3323030",
+    "SRX3323029"
+   ],
+   "PCG": [
+    "SRX18799686",
+    "SRX8470162"
+   ]
+  },
+  "5637": {
+   "ACT": [
+    "SRX17608304",
+    "SRX13814016"
+   ],
+   "PCG": [
+    "SRX13814013"
+   ]
+  },
+  "A375": {
+   "ACC": [
+    "SRX23336250",
+    "SRX15385827"
+   ],
+   "ACT": [
+    "SRX15408728",
+    "SRX2267490"
+   ],
+   "PCG": [
+    "SRX10020161",
+    "SRX10020169"
+   ]
+  },
+  "A549": {
+   "ACC": [
+    "SRX10475233",
+    "SRX10475231"
+   ],
+   "ACT": [
+    "SRX10976170",
+    "SRX10977375"
+   ],
+   "PCG": [
+    "SRX471983",
+    "SRX22478439"
+   ]
+  },
+  "A673": {
+   "ACC": [
+    "SRX2370636",
+    "SRX2370635"
+   ],
+   "ACT": [
+    "SRX2636199",
+    "SRX2636198"
+   ],
+   "PCG": [
+    "SRX2636251",
+    "SRX9975617"
+   ]
+  },
+  "AGS": {
+   "ACC": [
+    "SRX24335686"
+   ],
+   "ACT": [
+    "SRX12764561"
+   ],
+   "PCG": [
+    "SRX7668896",
+    "SRX4797268"
+   ]
+  },
+  "AN3CA": {
+   "ACC": [
+    "SRX16712054",
+    "SRX16712062"
+   ],
+   "ACT": [
+    "SRX25759871"
+   ],
+   "PCG": [
+    "SRX25759872"
+   ]
+  },
+  "BICR6": {
+   "ACT": [
+    "SRX2254519"
+   ]
+  },
+  "BJAB": {
+   "ACC": [
+    "SRX6784124",
+    "SRX6784123"
+   ],
+   "ACT": [
+    "SRX11783347",
+    "SRX11783346"
+   ]
+  },
+  "BT20": {
+   "ACC": [
+    "SRX23076108",
+    "SRX23076106"
+   ]
+  },
+  "BT474": {
+   "ACC": [
+    "SRX21051927",
+    "SRX21051906"
+   ]
+  },
+  "C42": {
+   "ACC": [
+    "SRX7735969",
+    "SRX4552970"
+   ],
+   "ACT": [
+    "SRX3322165",
+    "SRX3322164"
+   ],
+   "PCG": [
+    "SRX5253445",
+    "SRX5253444"
+   ]
+  },
+  "CD34": {
+   "ACC": [
+    "SRX21762712",
+    "SRX21762714"
+   ],
+   "ACT": [
+    "SRX9520829",
+    "SRX1901616"
+   ],
+   "PCG": [
+    "SRX386200",
+    "SRX2018539"
+   ]
+  },
+  "CJM": {
+   "ACT": [
+    "SRX1451223"
+   ]
+  },
+  "COV434": {
+   "ACC": [
+    "SRX24065406",
+    "SRX24065407"
+   ]
+  },
+  "CW2": {
+   "ACT": [
+    "SRX6802691"
+   ]
+  },
+  "DU145": {
+   "ACC": [
+    "SRX13445085"
+   ],
+   "ACT": [
+    "SRX7902039",
+    "SRX19295956"
+   ],
+   "PCG": [
+    "SRX276786",
+    "SRX1819605"
+   ]
+  },
+  "G401": {
+   "ACC": [
+    "SRX14410465",
+    "SRX9857620"
+   ],
+   "ACT": [
+    "SRX10881828",
+    "SRX4720621"
+   ],
+   "PCG": [
+    "SRX11508301",
+    "SRX11508300"
+   ]
+  },
+  "H1299": {
+   "ACC": [
+    "SRX7218472",
+    "SRX4020921"
+   ],
+   "ACT": [
+    "SRX10652950",
+    "SRX1756898"
+   ],
+   "PCG": [
+    "SRX3178554",
+    "SRX3178552"
+   ]
+  },
+  "H1975": {
+   "ACC": [
+    "SRX7213204",
+    "SRX7213203"
+   ],
+   "ACT": [
+    "SRX20905933",
+    "DRX015304"
+   ]
+  },
+  "HAP1": {
+   "ACC": [
+    "SRX2370713",
+    "SRX2370712"
+   ],
+   "ACT": [
+    "SRX10187632",
+    "SRX10187631"
+   ],
+   "PCG": [
+    "SRX10187689",
+    "SRX10187688"
+   ]
+  },
+  "HBL1": {
+   "ACT": [
+    "SRX683858",
+    "SRX11783359"
+   ]
+  },
+  "HCC827": {
+   "ACC": [
+    "SRX13660488",
+    "SRX13660486"
+   ],
+   "ACT": [
+    "SRX1528527"
+   ]
+  },
+  "HCC95": {
+   "ACT": [
+    "SRX3186357"
+   ]
+  },
+  "HCT116": {
+   "ACC": [
+    "SRX13007775",
+    "SRX13007774"
+   ],
+   "ACT": [
+    "SRX16495602",
+    "SRX16495452"
+   ],
+   "PCG": [
+    "SRX16495429",
+    "SRX16495769"
+   ]
+  },
+  "HEK293": {
+   "ACC": [
+    "SRX6367602",
+    "SRX6367598"
+   ],
+   "ACT": [
+    "SRX10976115",
+    "SRX10976114"
+   ],
+   "PCG": [
+    "SRX14466856",
+    "SRX4599954"
+   ]
+  },
+  "HELA": {
+   "ACC": [
+    "SRX2370816",
+    "SRX2370817"
+   ],
+   "ACT": [
+    "SRX717853",
+    "SRX10760660"
+   ],
+   "PCG": [
+    "SRX3664727",
+    "SRX3664728"
+   ]
+  },
+  "HEPG2": {
+   "ACC": [
+    "SRX2370603",
+    "SRX10475734"
+   ],
+   "ACT": [
+    "SRX11453856",
+    "SRX2708830"
+   ],
+   "PCG": [
+    "SRX067505",
+    "SRX3733795"
+   ]
+  },
+  "HL60": {
+   "ACC": [
+    "SRX10476721",
+    "SRX10476722"
+   ],
+   "ACT": [
+    "SRX10187725",
+    "SRX10187724"
+   ],
+   "PCG": [
+    "SRX10976747",
+    "SRX10976748"
+   ]
+  },
+  "HS578T": {
+   "ACC": [
+    "SRX23397052"
+   ],
+   "ACT": [
+    "SRX22997529",
+    "SRX22997533"
+   ]
+  },
+  "HT29": {
+   "ACC": [
+    "SRX2370775",
+    "SRX2370774"
+   ],
+   "ACT": [
+    "SRX1538775",
+    "SRX1538774"
+   ]
+  },
+  "HUH7": {
+   "ACC": [
+    "SRX13554181",
+    "SRX13554180"
+   ],
+   "ACT": [
+    "SRX2270107",
+    "SRX12367778"
+   ]
+  },
+  "HUVEC": {
+   "ACC": [
+    "SRX100902",
+    "SRX14428471"
+   ],
+   "ACT": [
+    "SRX067442",
+    "SRX5527611"
+   ],
+   "PCG": [
+    "SRX5527628",
+    "SRX5527626"
+   ]
+  },
+  "IM95": {
+   "ACC": [
+    "SRX24335667"
+   ],
+   "ACT": [
+    "SRX12764568"
+   ],
+   "PCG": [
+    "SRX4797270"
+   ]
+  },
+  "IMR90": {
+   "ACC": [
+    "SRX10474876",
+    "SRX10474877"
+   ],
+   "ACT": [
+    "SRX620740",
+    "SRX3166967"
+   ],
+   "PCG": [
+    "SRX737197",
+    "SRX275795"
+   ]
+  },
+  "J82": {
+   "ACT": [
+    "SRX17608306",
+    "SRX1443864"
+   ]
+  },
+  "JHH7": {
+   "ACT": [
+    "DRX431470"
+   ]
+  },
+  "JURKAT": {
+   "ACC": [
+    "SRX7785407",
+    "SRX24623282"
+   ],
+   "ACT": [
+    "SRX8336404",
+    "SRX8336405"
+   ],
+   "PCG": [
+    "SRX2022913",
+    "SRX2022912"
+   ]
+  },
+  "K562": {
+   "ACC": [
+    "SRX2370609",
+    "SRX2370600"
+   ],
+   "ACT": [
+    "SRX5516743",
+    "SRX5646086"
+   ],
+   "PCG": [
+    "SRX10184473",
+    "SRX13731631"
+   ]
+  },
+  "KMS34": {
+   "ACC": [
+    "SRX4949868"
+   ]
+  },
+  "LN229": {
+   "ACC": [
+    "SRX5517027",
+    "SRX15782182"
+   ],
+   "ACT": [
+    "SRX5236154",
+    "SRX5236152"
+   ]
+  },
+  "LNCAP": {
+   "ACC": [
+    "SRX14611958",
+    "SRX14611959"
+   ],
+   "ACT": [
+    "SRX6878600",
+    "SRX15676167"
+   ],
+   "PCG": [
+    "SRX8142300",
+    "SRX4404405"
+   ]
+  },
+  "LOVO": {
+   "ACC": [
+    "SRX2370695",
+    "SRX2370694"
+   ],
+   "ACT": [
+    "SRX5343532",
+    "SRX5343533"
+   ]
+  },
+  "MCF10A": {
+   "ACC": [
+    "SRX17444112",
+    "SRX17444109"
+   ],
+   "ACT": [
+    "SRX16500329",
+    "SRX16500330"
+   ],
+   "PCG": [
+    "SRX16500331",
+    "SRX16500332"
+   ]
+  },
+  "MCF7": {
+   "ACC": [
+    "SRX10475184",
+    "SRX10475183"
+   ],
+   "ACT": [
+    "SRX2636263",
+    "SRX2636262"
+   ],
+   "PCG": [
+    "SRX2636279",
+    "SRX3083140"
+   ]
+  },
+  "MDAMB231": {
+   "ACC": [
+    "SRX23076144",
+    "SRX23076142"
+   ],
+   "ACT": [
+    "SRX1156500",
+    "SRX1998094"
+   ],
+   "PCG": [
+    "SRX10583052",
+    "SRX16101741"
+   ]
+  },
+  "MDAMB468": {
+   "ACC": [
+    "SRX23076094",
+    "SRX23076096"
+   ],
+   "ACT": [
+    "SRX1998130",
+    "SRX1998131"
+   ],
+   "PCG": [
+    "SRX9799911",
+    "SRX9803155"
+   ]
+  },
+  "MINO": {
+   "ACC": [
+    "SRX12878014"
+   ],
+   "ACT": [
+    "SRX2733328",
+    "SRX2733330"
+   ]
+  },
+  "MKN45": {
+   "ACT": [
+    "SRX1605576"
+   ]
+  },
+  "NALM6": {
+   "ACC": [
+    "SRX10975930",
+    "SRX23485575"
+   ],
+   "ACT": [
+    "SRX10976043",
+    "SRX10976045"
+   ],
+   "PCG": [
+    "SRX4824696",
+    "SRX2612175"
+   ]
+  },
+  "NCIH1437": {
+   "ACC": [
+    "SRX10159885",
+    "SRX10159884"
+   ],
+   "ACT": [
+    "DRX015259"
+   ],
+   "PCG": [
+    "DRX015258"
+   ]
+  },
+  "NCIH1563": {
+   "ACC": [
+    "SRX20982935",
+    "SRX20982936"
+   ]
+  },
+  "NCIH1694": {
+   "ACT": [
+    "SRX8377229"
+   ]
+  },
+  "NCIH1836": {
+   "ACT": [
+    "SRX8377230"
+   ]
+  },
+  "NCIH1975": {
+   "ACC": [
+    "SRX7213204",
+    "SRX7213203"
+   ],
+   "ACT": [
+    "SRX20905933",
+    "DRX015304"
+   ]
+  },
+  "NCIH838": {
+   "ACC": [
+    "SRX4020920"
+   ]
+  },
+  "NPC": {
+   "ACC": [
+    "SRX4863815",
+    "SRX4863803"
+   ],
+   "ACT": [
+    "SRX11163507",
+    "SRX11163502"
+   ],
+   "PCG": [
+    "SRX16497551",
+    "SRX16497555"
+   ]
+  },
+  "OCILY10": {
+   "ACT": [
+    "SRX11783287",
+    "SRX11783286"
+   ]
+  },
+  "OCILY3": {
+   "ACC": [
+    "SRX12878022"
+   ],
+   "ACT": [
+    "SRX2157032",
+    "SRX2157031"
+   ],
+   "PCG": [
+    "SRX2157039",
+    "SRX2157040"
+   ]
+  },
+  "OVCAR8": {
+   "ACC": [
+    "SRX7735968",
+    "SRX4132361"
+   ],
+   "ACT": [
+    "SRX7556117",
+    "SRX9005644"
+   ],
+   "PCG": [
+    "SRX17082062",
+    "SRX17082063"
+   ]
+  },
+  "PC3": {
+   "ACC": [
+    "SRX2370580",
+    "SRX2370581"
+   ],
+   "ACT": [
+    "SRX2636582",
+    "SRX2636581"
+   ],
+   "PCG": [
+    "SRX2636440",
+    "SRX2636441"
+   ]
+  },
+  "PHH": {
+   "ACC": [
+    "SRX12495367",
+    "SRX16043177"
+   ],
+   "ACT": [
+    "SRX2869673",
+    "SRX2869676"
+   ]
+  },
+  "RKO": {
+   "ACC": [
+    "SRX2370660",
+    "SRX2370661"
+   ],
+   "ACT": [
+    "SRX3482106",
+    "SRX2631830"
+   ]
+  },
+  "RMGI": {
+   "ACC": [
+    "SRX3241381"
+   ],
+   "ACT": [
+    "SRX3241387",
+    "SRX4704624"
+   ]
+  },
+  "SHSY5Y": {
+   "ACT": [
+    "SRX11926431",
+    "SRX7254951"
+   ],
+   "PCG": [
+    "SRX4999186",
+    "SRX4999185"
+   ]
+  },
+  "SKBR3": {
+   "ACC": [
+    "SRX21241802",
+    "SRX22997333"
+   ],
+   "ACT": [
+    "SRX1998040",
+    "SRX1998041"
+   ],
+   "PCG": [
+    "SRX1998042",
+    "SRX1998043"
+   ]
+  },
+  "SKES1": {
+   "ACT": [
+    "SRX11094570"
+   ],
+   "PCG": [
+    "SRX11094569"
+   ]
+  },
+  "SKM1": {
+   "ACT": [
+    "SRX8002111"
+   ]
+  },
+  "SKMEL28": {
+   "ACT": [
+    "SRX15408730",
+    "SRX15408746"
+   ],
+   "PCG": [
+    "SRX109447"
+   ]
+  },
+  "SKMEL5": {
+   "ACC": [
+    "SRX10474917"
+   ],
+   "ACT": [
+    "SRX1471741",
+    "SRX7556109"
+   ],
+   "PCG": [
+    "SRX685339"
+   ]
+  },
+  "SKNSH": {
+   "ACC": [
+    "SRX10661444",
+    "SRX10661443"
+   ],
+   "ACT": [
+    "SRX2156854",
+    "SRX2636021"
+   ],
+   "PCG": [
+    "SRX2157058",
+    "SRX189993"
+   ]
+  },
+  "SNUC5": {
+   "ACT": [
+    "SRX6802697"
+   ]
+  },
+  "SUDHL4": {
+   "ACC": [
+    "SRX12123174",
+    "SRX12123173"
+   ],
+   "ACT": [
+    "SRX5985311",
+    "SRX5985313"
+   ],
+   "PCG": [
+    "SRX11865064",
+    "SRX11865063"
+   ]
+  },
+  "SW480": {
+   "ACC": [
+    "SRX2370615",
+    "SRX2370616"
+   ],
+   "ACT": [
+    "SRX11354212",
+    "SRX3394270"
+   ]
+  },
+  "SW620": {
+   "ACT": [
+    "SRX3394276",
+    "SRX2631834"
+   ]
+  },
+  "SW948": {
+   "ACT": [
+    "SRX6802687"
+   ]
+  },
+  "T47D": {
+   "ACC": [
+    "SRX21241803",
+    "SRX7347991"
+   ],
+   "ACT": [
+    "SRX5786515",
+    "SRX5786514"
+   ],
+   "PCG": [
+    "SRX19662666",
+    "SRX395612"
+   ]
+  },
+  "TC32": {
+   "ACT": [
+    "SRX4155867",
+    "SRX4155868"
+   ]
+  },
+  "THP1": {
+   "ACC": [
+    "SRX23461904",
+    "SRX23461905"
+   ],
+   "ACT": [
+    "SRX13589445",
+    "SRX8722277"
+   ],
+   "PCG": [
+    "SRX5266967",
+    "SRX11136873"
+   ]
+  },
+  "TMD8": {
+   "ACT": [
+    "SRX11783337",
+    "SRX11783336"
+   ]
+  },
+  "U251MG": {
+   "ACT": [
+    "SRX7556080",
+    "SRX8848859"
+   ]
+  },
+  "U266B1": {
+   "ACC": [
+    "SRX4949881",
+    "SRX17010435"
+   ],
+   "ACT": [
+    "SRX20095568",
+    "SRX20095566"
+   ]
+  },
+  "U2OS": {
+   "ACC": [
+    "SRX14175618",
+    "SRX14175616"
+   ],
+   "ACT": [
+    "SRX18703158",
+    "SRX18703154"
+   ],
+   "PCG": [
+    "SRX2566761"
+   ]
+  },
+  "U937": {
+   "ACC": [
+    "SRX21476975",
+    "SRX21476976"
+   ],
+   "ACT": [
+    "SRX6866215",
+    "ERX626824"
+   ]
+  },
+  "VCAP": {
+   "ACC": [
+    "SRX17042035",
+    "SRX22162247"
+   ],
+   "ACT": [
+    "SRX3322681",
+    "SRX3322680"
+   ],
+   "PCG": [
+    "SRX022555",
+    "SRX7512730"
+   ]
+  },
+  "VMCUB1": {
+   "ACC": [
+    "SRX13445081"
+   ]
+  },
+  "WA09": {
+   "ACC": [
+    "SRX10475591",
+    "SRX10475592"
+   ],
+   "ACT": [
+    "SRX11163582",
+    "SRX11163581"
+   ],
+   "PCG": [
+    "SRX16495334",
+    "SRX16495335"
+   ]
+  },
+  "WI38": {
+   "ACC": [
+    "SRX25922501",
+    "SRX25922508"
+   ],
+   "PCG": [
+    "SRX750664",
+    "SRX5735085"
+   ]
+  },
+  "WSUDLCL2": {
+   "ACT": [
+    "SRX10270336",
+    "SRX11783344"
+   ],
+   "PCG": [
+    "SRX20363597",
+    "SRX271859"
+   ]
+  },
+  "ZR751": {
+   "ACC": [
+    "SRX20546939",
+    "SRX20546957"
+   ],
+   "ACT": [
+    "SRX1997985",
+    "SRX1997986"
+   ],
+   "PCG": [
+    "SRX1997987",
+    "SRX1997988"
+   ]
+  }
+ },
+ "records": [
+  {
+   "srx": "SRX11222445",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 113943,
+   "chipatlas_cell": "22Rv1",
+   "title": "GSM5399615: 22Rv1 ATAC DMSO Rep1; Homo sapiens; ATAC-seq",
+   "cell": "22RV1",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 16
+  },
+  {
+   "srx": "SRX11222446",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 109273,
+   "chipatlas_cell": "22Rv1",
+   "title": "GSM5399616: 22Rv1 ATAC DMSO Rep2; Homo sapiens; ATAC-seq",
+   "cell": "22RV1",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 16
+  },
+  {
+   "srx": "SRX3323030",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 28173,
+   "chipatlas_cell": "22Rv1",
+   "title": "GSM2828935: ChIP-seq from 22Rv1 (ENCLB707NFY); Homo sapiens; ChIP-Seq",
+   "cell": "22RV1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 18
+  },
+  {
+   "srx": "SRX3323029",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 25396,
+   "chipatlas_cell": "22Rv1",
+   "title": "GSM2828934: ChIP-seq from 22Rv1 (ENCLB989TCG); Homo sapiens; ChIP-Seq",
+   "cell": "22RV1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 18
+  },
+  {
+   "srx": "SRX18799686",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 7012,
+   "chipatlas_cell": "22Rv1",
+   "title": "GSM6857375: 22Rv1-WT-H3K27me3-ChIP-seq; Homo sapiens; ChIP-Seq",
+   "cell": "22RV1",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX8470162",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 6077,
+   "chipatlas_cell": "22Rv1",
+   "title": "GSM4591229: CWR22Rv1 -R H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "22RV1",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX17608304",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 63702,
+   "chipatlas_cell": "5637",
+   "title": "GSM6588852: 5637 cell line H3K27ac ChIP; Homo sapiens; ChIP-Seq",
+   "cell": "5637",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX13814016",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 56075,
+   "chipatlas_cell": "5637",
+   "title": "GSM5821795: 5637 H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "5637",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX13814013",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 2258,
+   "chipatlas_cell": "5637",
+   "title": "GSM5821792: 5637 H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "5637",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX23336250",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 61634,
+   "chipatlas_cell": "A-375",
+   "title": "GSM8028142: A375 ATACseq HMGB2 EV2; Homo sapiens; ATAC-seq",
+   "cell": "A375",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX15385827",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 41767,
+   "chipatlas_cell": "A-375",
+   "title": "GSM6171485: Veh1 A375; Homo sapiens; ATAC-seq",
+   "cell": "A375",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX15408728",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 60251,
+   "chipatlas_cell": "A-375",
+   "title": "GSM6176084: A375, S (ChIP-seq); Homo sapiens; ChIP-Seq",
+   "cell": "A375",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX2267490",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 58194,
+   "chipatlas_cell": "A-375",
+   "title": "GSM2359487: 5 A375 DMSO H3K27Ac [lab: Hammerman-DFCI]; Homo sapiens; ChIP-Seq",
+   "cell": "A375",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX10020161",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1037,
+   "chipatlas_cell": "A-375",
+   "title": "GSM5062158: A375-A-H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "A375",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX10020169",
+   "antigen": "EZH2",
+   "antigen_class": "TFs and others",
+   "kind": "substitute",
+   "tier": "C",
+   "peaks": 976,
+   "chipatlas_cell": "A-375",
+   "title": "GSM5062166: A375-NC-EZH2; Homo sapiens; ChIP-Seq",
+   "cell": "A375",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX10475233",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 69095,
+   "chipatlas_cell": "A549",
+   "title": "GSM5214098: ATAC-seq from A549 (ENCLB605LCC); Homo sapiens; ATAC-seq",
+   "cell": "A549",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 331
+  },
+  {
+   "srx": "SRX10475231",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 63920,
+   "chipatlas_cell": "A549",
+   "title": "GSM5214096: ATAC-seq from A549 (ENCLB404SKN); Homo sapiens; ATAC-seq",
+   "cell": "A549",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 331
+  },
+  {
+   "srx": "SRX10976170",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 65824,
+   "chipatlas_cell": "A549",
+   "title": "GSM5330472: Histone ChIP-seq from A549 (ENCLB577BAE); Homo sapiens; ChIP-Seq",
+   "cell": "A549",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 113
+  },
+  {
+   "srx": "SRX10977375",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 64929,
+   "chipatlas_cell": "A549",
+   "title": "GSM5331213: Histone ChIP-seq from A549 (ENCLB603HPF); Homo sapiens; ChIP-Seq",
+   "cell": "A549",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 113
+  },
+  {
+   "srx": "SRX471983",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 3223,
+   "chipatlas_cell": "A549",
+   "title": "Human A549 cell line - ChIP-seq H3K27me3",
+   "cell": "A549",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 16
+  },
+  {
+   "srx": "SRX22478439",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 614,
+   "chipatlas_cell": "A549",
+   "title": "GSM7889166: A549, H3K27me3, ChIP, Biol Rep2; Homo sapiens; ChIP-Seq",
+   "cell": "A549",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 16
+  },
+  {
+   "srx": "SRX2370636",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 124194,
+   "chipatlas_cell": "A-673",
+   "title": "GSM2400324: DNase-seq from A673 (ENCLB729MKU); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "A673",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX2370635",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 87573,
+   "chipatlas_cell": "A-673",
+   "title": "GSM2400323: DNase-seq from A673 (ENCLB408KJJ); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "A673",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX2636199",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 17678,
+   "chipatlas_cell": "A-673",
+   "title": "GSM2534351: ChIP-seq from A673 (ENCLB606JWW); Homo sapiens; ChIP-Seq",
+   "cell": "A673",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX2636198",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 11463,
+   "chipatlas_cell": "A-673",
+   "title": "GSM2534350: ChIP-seq from A673 (ENCLB823XKP); Homo sapiens; ChIP-Seq",
+   "cell": "A673",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX2636251",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 1001,
+   "chipatlas_cell": "A-673",
+   "title": "GSM2534384: ChIP-seq from A673 (ENCLB600ZPF); Homo sapiens; ChIP-Seq",
+   "cell": "A673",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX9975617",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 6398,
+   "chipatlas_cell": "A-673",
+   "title": "GSM5049900: H3K27me3 on A673 STAG2 WT [BA A673 STAG2WT H3K27me3]; Homo sapiens; ChIP-Seq",
+   "cell": "A673",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX24335686",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 112156,
+   "chipatlas_cell": "AGS",
+   "title": "GSM8219921: ATAC AGS r2; Homo sapiens; ATAC-seq",
+   "cell": "AGS",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX12764561",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 9567,
+   "chipatlas_cell": "AGS",
+   "title": "GSM5655082: AGS H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "AGS",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX7668896",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 2832,
+   "chipatlas_cell": "AGS",
+   "title": "GSM4294241: AGS-DMSO-H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "AGS",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX4797268",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 15413,
+   "chipatlas_cell": "AGS",
+   "title": "GSM3416546: AGS-H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "AGS",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX16712054",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 80461,
+   "chipatlas_cell": "AN3 CA",
+   "title": "GSM6411362: ATACseq.AN3CA.ARID1A.WT.Rep1; Homo sapiens; ATAC-seq",
+   "cell": "AN3CA",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 20
+  },
+  {
+   "srx": "SRX16712062",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 65737,
+   "chipatlas_cell": "AN3 CA",
+   "title": "GSM6411370: ATACseq.AN3CA.ARID1B.WT.Rep1; Homo sapiens; ATAC-seq",
+   "cell": "AN3CA",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 20
+  },
+  {
+   "srx": "SRX25759871",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 9095,
+   "chipatlas_cell": "AN3 CA",
+   "title": "GSM8473079: AN3CA, CUT&amp;Tag, H3K27ac; Homo sapiens; OTHER",
+   "cell": "AN3CA",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX25759872",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 3011,
+   "chipatlas_cell": "AN3 CA",
+   "title": "GSM8473080: AN3CA, CUT&amp;Tag, H3K27me3; Homo sapiens; OTHER",
+   "cell": "AN3CA",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX2254519",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 8628,
+   "chipatlas_cell": "BICR 6",
+   "title": "GSM2356645: H3K27ac-BICR6; Homo sapiens; ChIP-Seq",
+   "cell": "BICR6",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX6784124",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 22038,
+   "chipatlas_cell": "BJAB",
+   "title": "GSM4055236: BJAB 1; Homo sapiens; ATAC-seq",
+   "cell": "BJAB",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX6784123",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 20606,
+   "chipatlas_cell": "BJAB",
+   "title": "GSM4055235: BJAB 0; Homo sapiens; ATAC-seq",
+   "cell": "BJAB",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX11783347",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 36966,
+   "chipatlas_cell": "BJAB",
+   "title": "GSM5525120: BJAB-H3K27Ac-Diagenode; Homo sapiens; ChIP-Seq",
+   "cell": "BJAB",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX11783346",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 32277,
+   "chipatlas_cell": "BJAB",
+   "title": "GSM5525119: BJAB-H3K27Ac-Active Motif; Homo sapiens; ChIP-Seq",
+   "cell": "BJAB",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX23076108",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 86639,
+   "chipatlas_cell": "BT-20",
+   "title": "GSM8000548: BT-20 DMSO rep3, ATAC; Homo sapiens; ATAC-seq",
+   "cell": "BT20",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX23076106",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 85498,
+   "chipatlas_cell": "BT-20",
+   "title": "GSM8000546: BT-20 DMSO rep1, ATAC; Homo sapiens; ATAC-seq",
+   "cell": "BT20",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX21051927",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 69846,
+   "chipatlas_cell": "BT-474",
+   "title": "GSM7634688: R0 baseline, 0 hr, ATAC-Seq, rep 1; Homo sapiens; ATAC-seq",
+   "cell": "BT474",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 28
+  },
+  {
+   "srx": "SRX21051906",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 64112,
+   "chipatlas_cell": "BT-474",
+   "title": "GSM7634668: S0 Baseline, 0hr, ATAC-Seq, rep1; Homo sapiens; ATAC-seq",
+   "cell": "BT474",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 28
+  },
+  {
+   "srx": "SRX7735969",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 59621,
+   "chipatlas_cell": "C4-2",
+   "title": "GSM4317808: Prostate cancer cell line; Homo sapiens; ATAC-seq",
+   "cell": "C42",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX4552970",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 17716,
+   "chipatlas_cell": "C4-2",
+   "title": "ATAC-seq of C4-2B",
+   "cell": "C42",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX3322165",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 38884,
+   "chipatlas_cell": "C4-2",
+   "title": "GSM2825931: ChIP-seq from C4-2B (ENCLB151CZX); Homo sapiens; ChIP-Seq",
+   "cell": "C42",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX3322164",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 37243,
+   "chipatlas_cell": "C4-2",
+   "title": "GSM2825930: ChIP-seq from C4-2B (ENCLB205HAN); Homo sapiens; ChIP-Seq",
+   "cell": "C42",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX5253445",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 1836,
+   "chipatlas_cell": "C4-2",
+   "title": "GSM3564272: H3K27me3 ChIP-seq in C42B rep2; Homo sapiens; ChIP-Seq",
+   "cell": "C42",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX5253444",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 1403,
+   "chipatlas_cell": "C4-2",
+   "title": "GSM3564271: H3K27me3 ChIP-seq in C42B rep1; Homo sapiens; ChIP-Seq",
+   "cell": "C42",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX21762712",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 66606,
+   "chipatlas_cell": "CD34+",
+   "title": "GSM7777019: bulkATACseq CD34+ Xvivo 00h rep1; Homo sapiens; ATAC-seq",
+   "cell": "CD34",
+   "axis": "ACC",
+   "primary_celltype": true,
+   "n_eligible": 179
+  },
+  {
+   "srx": "SRX21762714",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 62610,
+   "chipatlas_cell": "CD34+",
+   "title": "GSM7777022: bulkATACseq CD34+ CTRL 03h rep1; Homo sapiens; ATAC-seq",
+   "cell": "CD34",
+   "axis": "ACC",
+   "primary_celltype": true,
+   "n_eligible": 179
+  },
+  {
+   "srx": "SRX9520829",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 8670,
+   "chipatlas_cell": "CD34+",
+   "title": "GSM4911340: Empty vector CD34; Homo sapiens; ChIP-Seq",
+   "cell": "CD34",
+   "axis": "ACT",
+   "primary_celltype": true,
+   "n_eligible": 18
+  },
+  {
+   "srx": "SRX1901616",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 29394,
+   "chipatlas_cell": "CD34+",
+   "title": "GSM2227580: CD34 H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "CD34",
+   "axis": "ACT",
+   "primary_celltype": true,
+   "n_eligible": 18
+  },
+  {
+   "srx": "SRX386200",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 29643,
+   "chipatlas_cell": "CD34+",
+   "title": "GSM1278238: H3K27me3-A (ChIP-Seq); Homo sapiens; ChIP-Seq",
+   "cell": "CD34",
+   "axis": "PCG",
+   "primary_celltype": true,
+   "n_eligible": 15
+  },
+  {
+   "srx": "SRX2018539",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 15021,
+   "chipatlas_cell": "CD34+",
+   "title": "GSM2277181: H3K27me3 CD34+ 2; Homo sapiens; ChIP-Seq",
+   "cell": "CD34",
+   "axis": "PCG",
+   "primary_celltype": true,
+   "n_eligible": 15
+  },
+  {
+   "srx": "SRX1451223",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 38898,
+   "chipatlas_cell": "CJM",
+   "title": "GSM1953837: CJM H3K27Ac; Homo sapiens; ChIP-Seq",
+   "cell": "CJM",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX24065406",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 31506,
+   "chipatlas_cell": "COV434",
+   "title": "GSM8170183: COV434-ATAC-seq-Rep1; Homo sapiens; ATAC-seq",
+   "cell": "COV434",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX24065407",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 31120,
+   "chipatlas_cell": "COV434",
+   "title": "GSM8170184: COV434-ATAC-seq-Rep2; Homo sapiens; ATAC-seq",
+   "cell": "COV434",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX6802691",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 7736,
+   "chipatlas_cell": "CW-2",
+   "title": "GSM4060935: CW2 Cell line H3K27ac ChIP-seq; Homo sapiens; ChIP-Seq",
+   "cell": "CW2",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX13445085",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 65578,
+   "chipatlas_cell": "DU 145",
+   "title": "GSM5741259: DU-145 DMSO; Homo sapiens; ATAC-seq",
+   "cell": "DU145",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX7902039",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 20756,
+   "chipatlas_cell": "DU 145",
+   "title": "GSM4408797: DU145 AcH3K27; Homo sapiens; ChIP-Seq",
+   "cell": "DU145",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX19295956",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 31619,
+   "chipatlas_cell": "DU 145",
+   "title": "GSM7029497: DU145, H3K27ac, biol rep 2; Homo sapiens; ChIP-Seq",
+   "cell": "DU145",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX276786",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 6016,
+   "chipatlas_cell": "DU 145",
+   "title": "GSM1138596: H3K27Me3 CST Scr ChIPSeq; Homo sapiens; ChIP-Seq",
+   "cell": "DU145",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX1819605",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 4079,
+   "chipatlas_cell": "DU 145",
+   "title": "GSM2187237: H3K27me3 ChIP-Seq; Homo sapiens; ChIP-Seq",
+   "cell": "DU145",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX14410465",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 34385,
+   "chipatlas_cell": "G-401",
+   "title": "GSM5939904: ATAC-seq G401 DMSO rep1; Homo sapiens; ATAC-seq",
+   "cell": "G401",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX9857620",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 19799,
+   "chipatlas_cell": "G-401",
+   "title": "GSM5023033: ATAC-seq DMSO rep1; Homo sapiens; ATAC-seq",
+   "cell": "G401",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX10881828",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 23523,
+   "chipatlas_cell": "G-401",
+   "title": "GSM5311620: K27ac MOCK G401; Homo sapiens; ChIP-Seq",
+   "cell": "G401",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX4720621",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 21388,
+   "chipatlas_cell": "G-401",
+   "title": "GSM3396529: G401 control H3K27Ac rep2; Homo sapiens; ChIP-Seq",
+   "cell": "G401",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX11508301",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1361,
+   "chipatlas_cell": "G-401",
+   "title": "GSM5463741: G401 shCTRL H3K27me3 2; Homo sapiens; ChIP-Seq",
+   "cell": "G401",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX11508300",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1242,
+   "chipatlas_cell": "G-401",
+   "title": "GSM5463740: G401 shCTRL H3K27me3 1; Homo sapiens; ChIP-Seq",
+   "cell": "G401",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX7218472",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 49572,
+   "chipatlas_cell": "NCI-H1299",
+   "title": "GSM4193348: Control [ATAC-seq]; Homo sapiens; ATAC-seq",
+   "cell": "H1299",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 274
+  },
+  {
+   "srx": "SRX4020921",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 26996,
+   "chipatlas_cell": "NCI-H1299",
+   "title": "GSM3124389: omniATAC-seq H1299; Homo sapiens; ATAC-seq",
+   "cell": "H1299",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 274
+  },
+  {
+   "srx": "SRX10652950",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 36319,
+   "chipatlas_cell": "NCI-H1299",
+   "title": "GSM5258163: DNA H1299 WT2 H3K27Ac; Homo sapiens; ChIP-Seq",
+   "cell": "H1299",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 16
+  },
+  {
+   "srx": "SRX1756898",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 34998,
+   "chipatlas_cell": "NCI-H1299",
+   "title": "GSM2150362: DMSO H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "H1299",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 16
+  },
+  {
+   "srx": "SRX3178554",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 2791,
+   "chipatlas_cell": "NCI-H1299",
+   "title": "GSM2780336: H1299 H3K27me3 1000cells; Homo sapiens; ChIP-Seq",
+   "cell": "H1299",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX3178552",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 1288,
+   "chipatlas_cell": "NCI-H1299",
+   "title": "GSM2780334: H1299 H3K27me3 100cells; Homo sapiens; ChIP-Seq",
+   "cell": "H1299",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX7213204",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 108242,
+   "chipatlas_cell": "NCI-H1975",
+   "title": "GSM4190848: ATAC 7: safe 3; Homo sapiens; ATAC-seq",
+   "cell": "H1975",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 72
+  },
+  {
+   "srx": "SRX7213203",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 106953,
+   "chipatlas_cell": "NCI-H1975",
+   "title": "GSM4190847: ATAC 6: safe 2; Homo sapiens; ATAC-seq",
+   "cell": "H1975",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 72
+  },
+  {
+   "srx": "SRX20905933",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 47817,
+   "chipatlas_cell": "NCI-H1975",
+   "title": "GSM7559432: H1975.H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "H1975",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "DRX015304",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 52915,
+   "chipatlas_cell": "NCI-H1975",
+   "title": "H1975 H3K27Ac [ChIPseq]",
+   "cell": "H1975",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX2370713",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 74545,
+   "chipatlas_cell": "HAP1",
+   "title": "GSM2400414: DNase-seq from HAP-1 (ENCLB760TOD); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "HAP1",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 69
+  },
+  {
+   "srx": "SRX2370712",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 70978,
+   "chipatlas_cell": "HAP1",
+   "title": "GSM2400413: DNase-seq from HAP-1 (ENCLB949CJA); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "HAP1",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 69
+  },
+  {
+   "srx": "SRX10187632",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 15075,
+   "chipatlas_cell": "HAP1",
+   "title": "GSM5112019: Histone ChIP-seq from HAP-1 (ENCLB393NVP); Homo sapiens; ChIP-Seq",
+   "cell": "HAP1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX10187631",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 11868,
+   "chipatlas_cell": "HAP1",
+   "title": "GSM5112018: Histone ChIP-seq from HAP-1 (ENCLB552VPO); Homo sapiens; ChIP-Seq",
+   "cell": "HAP1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX10187689",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 2439,
+   "chipatlas_cell": "HAP1",
+   "title": "GSM5112388: Histone ChIP-seq from HAP-1 (ENCLB945IWR); Homo sapiens; ChIP-Seq",
+   "cell": "HAP1",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX10187688",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 1889,
+   "chipatlas_cell": "HAP1",
+   "title": "GSM5112387: Histone ChIP-seq from HAP-1 (ENCLB787MBS); Homo sapiens; ChIP-Seq",
+   "cell": "HAP1",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX683858",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 50240,
+   "chipatlas_cell": "HBL-1",
+   "title": "GSM1254196: HBL1 H3K27AC; Homo sapiens; ChIP-Seq",
+   "cell": "HBL1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX11783359",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 34307,
+   "chipatlas_cell": "HBL-1",
+   "title": "GSM5525132: HBL1-H3K27Ac-Diagenode; Homo sapiens; ChIP-Seq",
+   "cell": "HBL1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX13660488",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 40704,
+   "chipatlas_cell": "HCC827",
+   "title": "GSM5777958: HCC827 DMSO-3 [ATAC-seq]; Homo sapiens; ATAC-seq",
+   "cell": "HCC827",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX13660486",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 23409,
+   "chipatlas_cell": "HCC827",
+   "title": "GSM5777956: HCC827 DMSO-1 [ATAC-seq]; Homo sapiens; ATAC-seq",
+   "cell": "HCC827",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX1528527",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 81727,
+   "chipatlas_cell": "HCC827",
+   "title": "GSM2037787: HCC827 H3K27Ac; Homo sapiens; ChIP-Seq",
+   "cell": "HCC827",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX3186357",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 5188,
+   "chipatlas_cell": "HCC95",
+   "title": "GSM2784723: H3K27ac-HCC95-WT-A; Homo sapiens; ChIP-Seq",
+   "cell": "HCC95",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX13007775",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 55140,
+   "chipatlas_cell": "HCT 116",
+   "title": "GSM5668258: ATAC-seq from HCT116 (ENCLB729PGH); Homo sapiens; ATAC-seq",
+   "cell": "HCT116",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 69
+  },
+  {
+   "srx": "SRX13007774",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 54825,
+   "chipatlas_cell": "HCT 116",
+   "title": "GSM5668257: ATAC-seq from HCT116 (ENCLB348ZOF); Homo sapiens; ATAC-seq",
+   "cell": "HCT116",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 69
+  },
+  {
+   "srx": "SRX16495602",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 45469,
+   "chipatlas_cell": "HCT 116",
+   "title": "GSM6372355: Mint-ChIP-seq from HCT116 (ENCLB902EBZ); Homo sapiens; ChIP-Seq",
+   "cell": "HCT116",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 92
+  },
+  {
+   "srx": "SRX16495452",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 41372,
+   "chipatlas_cell": "HCT 116",
+   "title": "GSM6347340: Mint-ChIP-seq from HCT116 (ENCLB828AKP); Homo sapiens; ChIP-Seq",
+   "cell": "HCT116",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 92
+  },
+  {
+   "srx": "SRX16495429",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 50278,
+   "chipatlas_cell": "HCT 116",
+   "title": "GSM6347317: Mint-ChIP-seq from HCT116 (ENCLB253QLR); Homo sapiens; ChIP-Seq",
+   "cell": "HCT116",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 49
+  },
+  {
+   "srx": "SRX16495769",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 47938,
+   "chipatlas_cell": "HCT 116",
+   "title": "GSM6372578: Mint-ChIP-seq from HCT116 (ENCLB079QSE); Homo sapiens; ChIP-Seq",
+   "cell": "HCT116",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 49
+  },
+  {
+   "srx": "SRX6367602",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 85979,
+   "chipatlas_cell": "293",
+   "title": "GSM3905878: HEK293flpGR3KR ATAC EtOH rep1; Homo sapiens; ATAC-seq",
+   "cell": "HEK293",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 73
+  },
+  {
+   "srx": "SRX6367598",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 85660,
+   "chipatlas_cell": "293",
+   "title": "GSM3905874: HEK293flpGR ATAC EtOH rep1; Homo sapiens; ATAC-seq",
+   "cell": "HEK293",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 73
+  },
+  {
+   "srx": "SRX10976115",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 16179,
+   "chipatlas_cell": "293",
+   "title": "GSM5330288: Histone ChIP-seq from HEK293 (ENCLB555ACG); Homo sapiens; ChIP-Seq",
+   "cell": "HEK293",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 73
+  },
+  {
+   "srx": "SRX10976114",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 7513,
+   "chipatlas_cell": "293",
+   "title": "GSM5330287: Histone ChIP-seq from HEK293 (ENCLB555ACH); Homo sapiens; ChIP-Seq",
+   "cell": "HEK293",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 73
+  },
+  {
+   "srx": "SRX14466856",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1156,
+   "chipatlas_cell": "293",
+   "title": "GSM5954236: WT 293T cells - H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "HEK293",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 24
+  },
+  {
+   "srx": "SRX4599954",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 882,
+   "chipatlas_cell": "293",
+   "title": "GSM3354643: 293TRex H3K27me3 K27M 72hr; Homo sapiens; ChIP-Seq",
+   "cell": "HEK293",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 24
+  },
+  {
+   "srx": "SRX2370816",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 164594,
+   "chipatlas_cell": "HeLa",
+   "title": "GSM2400514: DNase-seq from HeLa-S3 (ENCLB257LLW); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "HELA",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 52
+  },
+  {
+   "srx": "SRX2370817",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 63188,
+   "chipatlas_cell": "HeLa",
+   "title": "GSM2400515: DNase-seq from HeLa-S3 (ENCLB036JHP); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "HELA",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 52
+  },
+  {
+   "srx": "SRX717853",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 51615,
+   "chipatlas_cell": "HeLa",
+   "title": "GSM1517089: H3K27ac DMSO; Homo sapiens; ChIP-Seq",
+   "cell": "HELA",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 64
+  },
+  {
+   "srx": "SRX10760660",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 41475,
+   "chipatlas_cell": "HeLa",
+   "title": "GSM5278097: ChIPseq H3K27ac HeLa 6hours DMSO Control; Homo sapiens; ChIP-Seq",
+   "cell": "HELA",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 64
+  },
+  {
+   "srx": "SRX3664727",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 10225,
+   "chipatlas_cell": "HeLa",
+   "title": "GSM2988421: H3K27me3 ChIP-seq biotin Parental rep1; Homo sapiens; ChIP-Seq",
+   "cell": "HELA",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX3664728",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 7062,
+   "chipatlas_cell": "HeLa",
+   "title": "GSM2988422: H3K27me3 ChIP-seq biotin Parental rep2; Homo sapiens; ChIP-Seq",
+   "cell": "HELA",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX2370603",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 114017,
+   "chipatlas_cell": "Hep G2",
+   "title": "GSM2400286: DNase-seq from HepG2 (ENCLB029COU); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "HEPG2",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 26
+  },
+  {
+   "srx": "SRX10475734",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 72159,
+   "chipatlas_cell": "Hep G2",
+   "title": "GSM5214560: ATAC-seq from HepG2 (ENCLB524DHQ); Homo sapiens; ATAC-seq",
+   "cell": "HEPG2",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 26
+  },
+  {
+   "srx": "SRX11453856",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 47189,
+   "chipatlas_cell": "Hep G2",
+   "title": "GSM5454396: ChIP-seq HepG2-Control H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "HEPG2",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 30
+  },
+  {
+   "srx": "SRX2708830",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 23784,
+   "chipatlas_cell": "Hep G2",
+   "title": "GSM2564091: HepG2 DMSO H3K27ac 1; Homo sapiens; ChIP-Seq",
+   "cell": "HEPG2",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 30
+  },
+  {
+   "srx": "SRX067505",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1700,
+   "chipatlas_cell": "Hep G2",
+   "title": "GSM733754: Bernstein HepG2 H3K27me3",
+   "cell": "HEPG2",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX3733795",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 2688,
+   "chipatlas_cell": "Hep G2",
+   "title": "GSM3019943: Traditional HepG2 H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "HEPG2",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX10476721",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 60581,
+   "chipatlas_cell": "HL-60",
+   "title": "GSM5214953: DNase-seq from HL-60 (ENCLB145WLK); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "HL60",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX10476722",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 47113,
+   "chipatlas_cell": "HL-60",
+   "title": "GSM5214954: DNase-seq from HL-60 (ENCLB826XUW); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "HL60",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX10187725",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 35668,
+   "chipatlas_cell": "HL-60",
+   "title": "GSM5112483: Histone ChIP-seq from HL-60 (ENCLB505HVT); Homo sapiens; ChIP-Seq",
+   "cell": "HL60",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 20
+  },
+  {
+   "srx": "SRX10187724",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 31875,
+   "chipatlas_cell": "HL-60",
+   "title": "GSM5112482: Histone ChIP-seq from HL-60 (ENCLB103QTT); Homo sapiens; ChIP-Seq",
+   "cell": "HL60",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 20
+  },
+  {
+   "srx": "SRX10976747",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 2314,
+   "chipatlas_cell": "HL-60",
+   "title": "GSM5330833: Histone ChIP-seq from HL-60 (ENCLB805WEO); Homo sapiens; ChIP-Seq",
+   "cell": "HL60",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX10976748",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 1980,
+   "chipatlas_cell": "HL-60",
+   "title": "GSM5330834: Histone ChIP-seq from HL-60 (ENCLB884PDL); Homo sapiens; ChIP-Seq",
+   "cell": "HL60",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX23397052",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 35140,
+   "chipatlas_cell": "Hs 578T",
+   "title": "GSM8036166: Hs578T ATAC; Homo sapiens; ATAC-seq",
+   "cell": "HS578T",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX22997529",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 45271,
+   "chipatlas_cell": "Hs 578T",
+   "title": "GSM7989295: Hs578T control K27 UT1; Homo sapiens; ChIP-Seq",
+   "cell": "HS578T",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 6
+  },
+  {
+   "srx": "SRX22997533",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 43587,
+   "chipatlas_cell": "Hs 578T",
+   "title": "GSM7989299: Hs578T Fn14KO K27 UT1; Homo sapiens; ChIP-Seq",
+   "cell": "HS578T",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 6
+  },
+  {
+   "srx": "SRX2370775",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 102212,
+   "chipatlas_cell": "HT-29",
+   "title": "GSM2400470: DNase-seq from HT-29 (ENCLB387UAW); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "HT29",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 20
+  },
+  {
+   "srx": "SRX2370774",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 100130,
+   "chipatlas_cell": "HT-29",
+   "title": "GSM2400469: DNase-seq from HT-29 (ENCLB540APO); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "HT29",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 20
+  },
+  {
+   "srx": "SRX1538775",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 39580,
+   "chipatlas_cell": "HT-29",
+   "title": "GSM2042876: H3K27ac DMSO Rep2; Homo sapiens; ChIP-Seq",
+   "cell": "HT29",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX1538774",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 25890,
+   "chipatlas_cell": "HT-29",
+   "title": "GSM2042874: H3K27ac DMSO Rep1; Homo sapiens; ChIP-Seq",
+   "cell": "HT29",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX13554181",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 53642,
+   "chipatlas_cell": "HuH-7",
+   "title": "GSM5765171: Huh7 cell lines-ATAC-DMSO-rep2; Homo sapiens; ATAC-seq",
+   "cell": "HUH7",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX13554180",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 47766,
+   "chipatlas_cell": "HuH-7",
+   "title": "GSM5765170: Huh7 cell lines-ATAC-DMSO-rep1; Homo sapiens; ATAC-seq",
+   "cell": "HUH7",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX2270107",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 47443,
+   "chipatlas_cell": "HuH-7",
+   "title": "GSM2360939: ChIP-seq analysis of H3K27ac in Huh7 cells ( control ); Homo sapiens; ChIP-Seq",
+   "cell": "HUH7",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX12367778",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 28312,
+   "chipatlas_cell": "HuH-7",
+   "title": "GSM5597553: Huh7 H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "HUH7",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX100902",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 22674,
+   "chipatlas_cell": "HUVEC",
+   "title": "GSM816646: Duke DnaseSeq HUVEC",
+   "cell": "HUVEC",
+   "axis": "ACC",
+   "primary_celltype": true,
+   "n_eligible": 49
+  },
+  {
+   "srx": "SRX14428471",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 106070,
+   "chipatlas_cell": "HUVEC",
+   "title": "GSM5941059: Control ATAC-Seq Rep2; Homo sapiens; ATAC-seq",
+   "cell": "HUVEC",
+   "axis": "ACC",
+   "primary_celltype": true,
+   "n_eligible": 49
+  },
+  {
+   "srx": "SRX067442",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 48686,
+   "chipatlas_cell": "HUVEC",
+   "title": "GSM733691: Bernstein HUVEC H3K27ac",
+   "cell": "HUVEC",
+   "axis": "ACT",
+   "primary_celltype": true,
+   "n_eligible": 36
+  },
+  {
+   "srx": "SRX5527611",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 59751,
+   "chipatlas_cell": "HUVEC",
+   "title": "GSM3673415: HUVEC H3K27ac ChipSeq Rep1; Homo sapiens; ChIP-Seq",
+   "cell": "HUVEC",
+   "axis": "ACT",
+   "primary_celltype": true,
+   "n_eligible": 36
+  },
+  {
+   "srx": "SRX5527628",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 12154,
+   "chipatlas_cell": "HUVEC",
+   "title": "GSM3673432: HUVEC H3K27me3 ChIPSeq Rep2; Homo sapiens; ChIP-Seq",
+   "cell": "HUVEC",
+   "axis": "PCG",
+   "primary_celltype": true,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX5527626",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 10216,
+   "chipatlas_cell": "HUVEC",
+   "title": "GSM3673430: HUVEC H3K27me3 ChIPSeq Rep1; Homo sapiens; ChIP-Seq",
+   "cell": "HUVEC",
+   "axis": "PCG",
+   "primary_celltype": true,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX24335667",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 58869,
+   "chipatlas_cell": "IM-95",
+   "title": "GSM8219910: ATAC IM95; Homo sapiens; ATAC-seq",
+   "cell": "IM95",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX12764568",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 11167,
+   "chipatlas_cell": "IM-95",
+   "title": "GSM5655087: IM95 H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "IM95",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX4797270",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 14806,
+   "chipatlas_cell": "IM-95",
+   "title": "GSM3416548: IM95-H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "IM95",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX10474876",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 62306,
+   "chipatlas_cell": "IMR-90",
+   "title": "GSM5213804: ATAC-seq from IMR-90 (ENCLB937FOM); Homo sapiens; ATAC-seq",
+   "cell": "IMR90",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 57
+  },
+  {
+   "srx": "SRX10474877",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 47043,
+   "chipatlas_cell": "IMR-90",
+   "title": "GSM5213805: ATAC-seq from IMR-90 (ENCLB432QLN); Homo sapiens; ATAC-seq",
+   "cell": "IMR90",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 57
+  },
+  {
+   "srx": "SRX620740",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 62724,
+   "chipatlas_cell": "IMR-90",
+   "title": "GSM1418963: H3K27ac ChIP (DMSO); Homo sapiens; ChIP-Seq",
+   "cell": "IMR90",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 28
+  },
+  {
+   "srx": "SRX3166967",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 67695,
+   "chipatlas_cell": "IMR-90",
+   "title": "GSM2774998: ChIP RIS H3K27Ac Rep3; Homo sapiens; ChIP-Seq",
+   "cell": "IMR90",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 28
+  },
+  {
+   "srx": "SRX737197",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 6719,
+   "chipatlas_cell": "IMR-90",
+   "title": "GSM1528887: H3K27me3 IMR90; Homo sapiens; ChIP-Seq",
+   "cell": "IMR90",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX275795",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 4988,
+   "chipatlas_cell": "IMR-90",
+   "title": "GSM1135041: Proliferating H3K27me3 ChIP R3; Homo sapiens; ChIP-Seq",
+   "cell": "IMR90",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX17608306",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 3927,
+   "chipatlas_cell": "J82",
+   "title": "GSM6588854: J82 cell line H3K27ac ChIP; Homo sapiens; ChIP-Seq",
+   "cell": "J82",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX1443864",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 44781,
+   "chipatlas_cell": "J82",
+   "title": "GSM1948902: J82 H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "J82",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "DRX431470",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 34854,
+   "chipatlas_cell": "JHH-7",
+   "title": "Illumina NovaSeq 6000 paired end sequencing of SAMD00582832",
+   "cell": "JHH7",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX7785407",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 65404,
+   "chipatlas_cell": "Jurkat",
+   "title": "GSM4332959: Wild Type Untreated ATAC; Homo sapiens; ATAC-seq",
+   "cell": "JURKAT",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 66
+  },
+  {
+   "srx": "SRX24623282",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 63151,
+   "chipatlas_cell": "Jurkat",
+   "title": "GSM8283326: Jurkat, control, rep3; Homo sapiens; ATAC-seq",
+   "cell": "JURKAT",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 66
+  },
+  {
+   "srx": "SRX8336404",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 29673,
+   "chipatlas_cell": "Jurkat",
+   "title": "GSM4551183: Chip-seq Jurkat/WT H3K27Ac rep1; Homo sapiens; ChIP-Seq",
+   "cell": "JURKAT",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 15
+  },
+  {
+   "srx": "SRX8336405",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 16538,
+   "chipatlas_cell": "Jurkat",
+   "title": "GSM4551184: Chip-seq Jurkat/WT H3K27Ac rep2; Homo sapiens; ChIP-Seq",
+   "cell": "JURKAT",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 15
+  },
+  {
+   "srx": "SRX2022913",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 353875,
+   "chipatlas_cell": "Jurkat",
+   "title": "GSM2279072: H3K27me3 t0 2; Homo sapiens; ChIP-Seq",
+   "cell": "JURKAT",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX2022912",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 337146,
+   "chipatlas_cell": "Jurkat",
+   "title": "GSM2279071: H3K27me3 t0 1; Homo sapiens; ChIP-Seq",
+   "cell": "JURKAT",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX2370609",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 108342,
+   "chipatlas_cell": "K-562",
+   "title": "GSM2400297: DNase-seq from K562 (ENCLB119SZN); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "K562",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 275
+  },
+  {
+   "srx": "SRX2370600",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 101208,
+   "chipatlas_cell": "K-562",
+   "title": "GSM2400288: DNase-seq from K562 (ENCLB870RAD); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "K562",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 275
+  },
+  {
+   "srx": "SRX5516743",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 40636,
+   "chipatlas_cell": "K-562",
+   "title": "GSM3669509: GS702 K562 WT H3K27ac ChIPseq; Homo sapiens; ChIP-Seq",
+   "cell": "K562",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 98
+  },
+  {
+   "srx": "SRX5646086",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 38241,
+   "chipatlas_cell": "K-562",
+   "title": "GSM3712097: K562-H3K27ac ChIP Control; Homo sapiens; ChIP-Seq",
+   "cell": "K562",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 98
+  },
+  {
+   "srx": "SRX10184473",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1678,
+   "chipatlas_cell": "K-562",
+   "title": "GSM5114236: K562 WT H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "K562",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 62
+  },
+  {
+   "srx": "SRX13731631",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1598,
+   "chipatlas_cell": "K-562",
+   "title": "GSM5808360: EV H3K27me3 rep2; Homo sapiens; ChIP-Seq",
+   "cell": "K562",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 62
+  },
+  {
+   "srx": "SRX4949868",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 11926,
+   "chipatlas_cell": "KMS-34",
+   "title": "GSM3449828: KMS34; Homo sapiens; ATAC-seq",
+   "cell": "KMS34",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX5517027",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 110746,
+   "chipatlas_cell": "LN-229",
+   "title": "GSM3669996: LN229 ATAC-seq; Homo sapiens; ATAC-seq",
+   "cell": "LN229",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX15782182",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 3226,
+   "chipatlas_cell": "LN-229",
+   "title": "GSM6252560: LN229 glioma cell line ATACseq seq; Homo sapiens; ATAC-seq",
+   "cell": "LN229",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX5236154",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 11020,
+   "chipatlas_cell": "LN-229",
+   "title": "GSM3557810: LN229 PbR H3K27ac ChIP; Homo sapiens; ChIP-Seq",
+   "cell": "LN229",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX5236152",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 5775,
+   "chipatlas_cell": "LN-229",
+   "title": "GSM3557808: LN229 Ctr H3K27ac ChIP; Homo sapiens; ChIP-Seq",
+   "cell": "LN229",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX14611958",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 126477,
+   "chipatlas_cell": "LNCAP",
+   "title": "GSM5972321: LNCaP EV-Rep1; Homo sapiens; ATAC-seq",
+   "cell": "LNCAP",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 66
+  },
+  {
+   "srx": "SRX14611959",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 116497,
+   "chipatlas_cell": "LNCAP",
+   "title": "GSM5972322: LNCaP EV-Rep2; Homo sapiens; ATAC-seq",
+   "cell": "LNCAP",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 66
+  },
+  {
+   "srx": "SRX6878600",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 54320,
+   "chipatlas_cell": "LNCAP",
+   "title": "GSM4087690: H3K27Ac ChIPseq 2; Homo sapiens; ChIP-Seq",
+   "cell": "LNCAP",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 35
+  },
+  {
+   "srx": "SRX15676167",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 53902,
+   "chipatlas_cell": "LNCAP",
+   "title": "GSM6234907: H3K27ac ChIP-seq, veh, R2; Homo sapiens; ChIP-Seq",
+   "cell": "LNCAP",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 35
+  },
+  {
+   "srx": "SRX8142300",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 27300,
+   "chipatlas_cell": "LNCAP",
+   "title": "GSM4486254: H3K27me3 veh rep2; Homo sapiens; ChIP-Seq",
+   "cell": "LNCAP",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 18
+  },
+  {
+   "srx": "SRX4404405",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 5393,
+   "chipatlas_cell": "LNCAP",
+   "title": "GSM3290787: LNCaP N-Myc EtOH H3K27me3 IP; Homo sapiens; ChIP-Seq",
+   "cell": "LNCAP",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 18
+  },
+  {
+   "srx": "SRX2370695",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 77479,
+   "chipatlas_cell": "LoVo",
+   "title": "GSM2400378: DNase-seq from LoVo (ENCLB644CCC); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "LOVO",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX2370694",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 69461,
+   "chipatlas_cell": "LoVo",
+   "title": "GSM2400377: DNase-seq from LoVo (ENCLB058OPC); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "LOVO",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX5343532",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 67863,
+   "chipatlas_cell": "LoVo",
+   "title": "GSM3592818: nsg-1f12-2-PT1 H3K27ac ChIP Seq; Homo sapiens; ChIP-Seq",
+   "cell": "LOVO",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 13
+  },
+  {
+   "srx": "SRX5343533",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 65951,
+   "chipatlas_cell": "LoVo",
+   "title": "GSM3592819: nsg-1f12-2-PT2 H3K27ac ChIP Seq; Homo sapiens; ChIP-Seq",
+   "cell": "LOVO",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 13
+  },
+  {
+   "srx": "SRX17444112",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 86760,
+   "chipatlas_cell": "MCF 10A",
+   "title": "GSM6547239: MCF10A Cells, untreated, Rep 2; Homo sapiens; ATAC-seq",
+   "cell": "MCF10A",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 32
+  },
+  {
+   "srx": "SRX17444109",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 56720,
+   "chipatlas_cell": "MCF 10A",
+   "title": "GSM6547235: MCF10A Cells, untreated, Rep 1; Homo sapiens; ATAC-seq",
+   "cell": "MCF10A",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 32
+  },
+  {
+   "srx": "SRX16500329",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 45622,
+   "chipatlas_cell": "MCF 10A",
+   "title": "GSM6373676: Mint-ChIP-seq from MCF 10A (ENCLB795KWE); Homo sapiens; ChIP-Seq",
+   "cell": "MCF10A",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 35
+  },
+  {
+   "srx": "SRX16500330",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 33290,
+   "chipatlas_cell": "MCF 10A",
+   "title": "GSM6373677: Mint-ChIP-seq from MCF 10A (ENCLB896BSE); Homo sapiens; ChIP-Seq",
+   "cell": "MCF10A",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 35
+  },
+  {
+   "srx": "SRX16500331",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 24699,
+   "chipatlas_cell": "MCF 10A",
+   "title": "GSM6373678: Mint-ChIP-seq from MCF 10A (ENCLB300BZA); Homo sapiens; ChIP-Seq",
+   "cell": "MCF10A",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 14
+  },
+  {
+   "srx": "SRX16500332",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 12167,
+   "chipatlas_cell": "MCF 10A",
+   "title": "GSM6373679: Mint-ChIP-seq from MCF 10A (ENCLB703KDX); Homo sapiens; ChIP-Seq",
+   "cell": "MCF10A",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 14
+  },
+  {
+   "srx": "SRX10475184",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 58751,
+   "chipatlas_cell": "MCF-7",
+   "title": "GSM5214059: ATAC-seq from MCF-7 (ENCLB303WWU); Homo sapiens; ATAC-seq",
+   "cell": "MCF7",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 146
+  },
+  {
+   "srx": "SRX10475183",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 55168,
+   "chipatlas_cell": "MCF-7",
+   "title": "GSM5214058: ATAC-seq from MCF-7 (ENCLB657JDY); Homo sapiens; ATAC-seq",
+   "cell": "MCF7",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 146
+  },
+  {
+   "srx": "SRX2636263",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 61260,
+   "chipatlas_cell": "MCF-7",
+   "title": "GSM2534390: ChIP-seq from MCF-7 (ENCLB356TON); Homo sapiens; ChIP-Seq",
+   "cell": "MCF7",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 104
+  },
+  {
+   "srx": "SRX2636262",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 32418,
+   "chipatlas_cell": "MCF-7",
+   "title": "GSM2534389: ChIP-seq from MCF-7 (ENCLB632NJV); Homo sapiens; ChIP-Seq",
+   "cell": "MCF7",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 104
+  },
+  {
+   "srx": "SRX2636279",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 977,
+   "chipatlas_cell": "MCF-7",
+   "title": "GSM2534412: ChIP-seq from MCF-7 (ENCLB425PRL); Homo sapiens; ChIP-Seq",
+   "cell": "MCF7",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 27
+  },
+  {
+   "srx": "SRX3083140",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 18299,
+   "chipatlas_cell": "MCF-7",
+   "title": "GSM2736572: MCF7 ctrl H3K27ME3 R1 and R2; Homo sapiens; ChIP-Seq",
+   "cell": "MCF7",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 27
+  },
+  {
+   "srx": "SRX23076144",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 73207,
+   "chipatlas_cell": "MDA-MB-231",
+   "title": "GSM8000584: MDA-MB-231 DMSO rep3, ATAC; Homo sapiens; ATAC-seq",
+   "cell": "MDAMB231",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 29
+  },
+  {
+   "srx": "SRX23076142",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 72740,
+   "chipatlas_cell": "MDA-MB-231",
+   "title": "GSM8000582: MDA-MB-231 DMSO rep1, ATAC; Homo sapiens; ATAC-seq",
+   "cell": "MDAMB231",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 29
+  },
+  {
+   "srx": "SRX1156500",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 55475,
+   "chipatlas_cell": "MDA-MB-231",
+   "title": "GSM1855992: H3K27ac ChIP-seq control Rep2; Homo sapiens; ChIP-Seq",
+   "cell": "MDAMB231",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 58
+  },
+  {
+   "srx": "SRX1998094",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 53409,
+   "chipatlas_cell": "MDA-MB-231",
+   "title": "GSM2258848: MB231.H3K27ac.rep1; Homo sapiens; ChIP-Seq",
+   "cell": "MDAMB231",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 58
+  },
+  {
+   "srx": "SRX10583052",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1163,
+   "chipatlas_cell": "MDA-MB-231",
+   "title": "GSM5238764: CPPS-rep2; Homo sapiens; ChIP-Seq",
+   "cell": "MDAMB231",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX16101741",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 899,
+   "chipatlas_cell": "MDA-MB-231",
+   "title": "GSM6318381: Control K27 2; Homo sapiens; ChIP-Seq",
+   "cell": "MDAMB231",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX23076094",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 76498,
+   "chipatlas_cell": "MDA-MB-468",
+   "title": "GSM8000534: MDA-MB-468 DMSO rep1, ATAC; Homo sapiens; ATAC-seq",
+   "cell": "MDAMB468",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX23076096",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 74437,
+   "chipatlas_cell": "MDA-MB-468",
+   "title": "GSM8000536: MDA-MB-468 DMSO rep3, ATAC; Homo sapiens; ATAC-seq",
+   "cell": "MDAMB468",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX1998130",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 44475,
+   "chipatlas_cell": "MDA-MB-468",
+   "title": "GSM2258884: MB468.H3K27ac.rep1; Homo sapiens; ChIP-Seq",
+   "cell": "MDAMB468",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX1998131",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 11975,
+   "chipatlas_cell": "MDA-MB-468",
+   "title": "GSM2258885: MB468.H3K27ac.rep2; Homo sapiens; ChIP-Seq",
+   "cell": "MDAMB468",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX9799911",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 30271,
+   "chipatlas_cell": "MDA-MB-468",
+   "title": "GSM5008855: MM468 DMSO1 day60 H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "MDAMB468",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX9803155",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 17413,
+   "chipatlas_cell": "MDA-MB-468",
+   "title": "GSM5009168: MM468bc hu dilution primaryK27 IgG m10y20 H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "MDAMB468",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX12878014",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 8177,
+   "chipatlas_cell": "Mino",
+   "title": "GSM5663915: Mino ATAC-Seq; Homo sapiens; ATAC-seq",
+   "cell": "MINO",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX2733328",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 19094,
+   "chipatlas_cell": "Mino",
+   "title": "GSM2571795: Mino ctrl-IgG-DMSO H3K27ac r1; Homo sapiens; ChIP-Seq",
+   "cell": "MINO",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX2733330",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 18957,
+   "chipatlas_cell": "Mino",
+   "title": "GSM2571797: Mino DLL1-IgG-DMSO H3K27ac r1; Homo sapiens; ChIP-Seq",
+   "cell": "MINO",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX1605576",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 5452,
+   "chipatlas_cell": "MKN-45",
+   "title": "GSM2076193: MKN45.H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "MKN45",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX10975930",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 24351,
+   "chipatlas_cell": "NALM-6",
+   "title": "GSM5335200: Nalm6 0hr Rep1 6-24hr ATACseq; Homo sapiens; ATAC-seq",
+   "cell": "NALM6",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 14
+  },
+  {
+   "srx": "SRX23485575",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 21991,
+   "chipatlas_cell": "NALM-6",
+   "title": "GSM8057759: ATAC NALM6 parental 2; Homo sapiens; ATAC-seq",
+   "cell": "NALM6",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 14
+  },
+  {
+   "srx": "SRX10976043",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 48844,
+   "chipatlas_cell": "NALM-6",
+   "title": "GSM5335262: H3K27ac Nalm6 0hr Rep1 ChIPseq; Homo sapiens; ChIP-Seq",
+   "cell": "NALM6",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX10976045",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 48695,
+   "chipatlas_cell": "NALM-6",
+   "title": "GSM5335264: H3K27ac Nalm6 0hr Rep3 ChIPseq; Homo sapiens; ChIP-Seq",
+   "cell": "NALM6",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 12
+  },
+  {
+   "srx": "SRX4824696",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1493,
+   "chipatlas_cell": "NALM-6",
+   "title": "GSM3425378: NALM6 H3K27ME3; Homo sapiens; ChIP-Seq",
+   "cell": "NALM6",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX2612175",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 3915,
+   "chipatlas_cell": "NALM-6",
+   "title": "GSM2521638: H3K27me3 suppl ChIP-seq; Homo sapiens; ChIP-Seq",
+   "cell": "NALM6",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX10159885",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 61110,
+   "chipatlas_cell": "NCI-H1437",
+   "title": "GSM5104204: bATAC-Human H1437 LKB1 Rep2; Homo sapiens; ATAC-seq",
+   "cell": "NCIH1437",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX10159884",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 51606,
+   "chipatlas_cell": "NCI-H1437",
+   "title": "GSM5104203: bATAC-Human H1437 LKB1 Rep1; Homo sapiens; ATAC-seq",
+   "cell": "NCIH1437",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "DRX015259",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 46608,
+   "chipatlas_cell": "NCI-H1437",
+   "title": "H1437 H3K27Ac [ChIPseq]",
+   "cell": "NCIH1437",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "DRX015258",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 908,
+   "chipatlas_cell": "NCI-H1437",
+   "title": "H1437 H3K27me3 [ChIPseq]",
+   "cell": "NCIH1437",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX20982935",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 43458,
+   "chipatlas_cell": "NCI-H1563",
+   "title": "GSM7594340: H1563-r2; Homo sapiens; ATAC-seq",
+   "cell": "NCIH1563",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX20982936",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 42658,
+   "chipatlas_cell": "NCI-H1563",
+   "title": "GSM7594341: H1563-r3; Homo sapiens; ATAC-seq",
+   "cell": "NCIH1563",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX8377229",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 20445,
+   "chipatlas_cell": "NCI-H1694",
+   "title": "GSM4563956: H1694 Hi-ChIP; Homo sapiens; ChIP-Seq",
+   "cell": "NCIH1694",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX8377230",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 9956,
+   "chipatlas_cell": "NCI-H1836",
+   "title": "GSM4563957: H1836 Hi-ChIP; Homo sapiens; ChIP-Seq",
+   "cell": "NCIH1836",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX7213204",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 108242,
+   "chipatlas_cell": "NCI-H1975",
+   "title": "GSM4190848: ATAC 7: safe 3; Homo sapiens; ATAC-seq",
+   "cell": "NCIH1975",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 72
+  },
+  {
+   "srx": "SRX7213203",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 106953,
+   "chipatlas_cell": "NCI-H1975",
+   "title": "GSM4190847: ATAC 6: safe 2; Homo sapiens; ATAC-seq",
+   "cell": "NCIH1975",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 72
+  },
+  {
+   "srx": "SRX20905933",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 47817,
+   "chipatlas_cell": "NCI-H1975",
+   "title": "GSM7559432: H1975.H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "NCIH1975",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "DRX015304",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 52915,
+   "chipatlas_cell": "NCI-H1975",
+   "title": "H1975 H3K27Ac [ChIPseq]",
+   "cell": "NCIH1975",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX4020920",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 28389,
+   "chipatlas_cell": "NCI-H838",
+   "title": "GSM3124388: omniATAC-seq H838; Homo sapiens; ATAC-seq",
+   "cell": "NCIH838",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX4863815",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 43507,
+   "chipatlas_cell": "Neural progenitor cells",
+   "title": "GSM3426563: Neural progenitor day 6 DMSO biological replicate 1 library 1; Homo sapiens; ATAC-seq",
+   "cell": "NPC",
+   "axis": "ACC",
+   "primary_celltype": true,
+   "n_eligible": 15
+  },
+  {
+   "srx": "SRX4863803",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 41567,
+   "chipatlas_cell": "Neural progenitor cells",
+   "title": "GSM3426551: Neural progenitor day 5 DMSO biological replicate 1 library 1; Homo sapiens; ATAC-seq",
+   "cell": "NPC",
+   "axis": "ACC",
+   "primary_celltype": true,
+   "n_eligible": 15
+  },
+  {
+   "srx": "SRX11163507",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 1967,
+   "chipatlas_cell": "Neural progenitor cells",
+   "title": "GSM5369797: Mint-ChIP-seq from neural progenitor cell (ENCLB476MFE); Homo sapiens; ChIP-Seq",
+   "cell": "NPC",
+   "axis": "ACT",
+   "primary_celltype": true,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX11163502",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 1309,
+   "chipatlas_cell": "Neural progenitor cells",
+   "title": "GSM5369792: Mint-ChIP-seq from neural progenitor cell (ENCLB961GFL); Homo sapiens; ChIP-Seq",
+   "cell": "NPC",
+   "axis": "ACT",
+   "primary_celltype": true,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX16497551",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 2716,
+   "chipatlas_cell": "Neural progenitor cells",
+   "title": "GSM6372671: Mint-ChIP-seq from neural progenitor cell (ENCLB259SPJ); Homo sapiens; ChIP-Seq",
+   "cell": "NPC",
+   "axis": "PCG",
+   "primary_celltype": true,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX16497555",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 2267,
+   "chipatlas_cell": "Neural progenitor cells",
+   "title": "GSM6372673: Mint-ChIP-seq from neural progenitor cell (ENCLB176ONB); Homo sapiens; ChIP-Seq",
+   "cell": "NPC",
+   "axis": "PCG",
+   "primary_celltype": true,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX11783287",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 40596,
+   "chipatlas_cell": "OCI-LY-10",
+   "title": "GSM5525147: LY10-H3K27Ac-Diagenode; Homo sapiens; ChIP-Seq",
+   "cell": "OCILY10",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX11783286",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 35632,
+   "chipatlas_cell": "OCI-LY-10",
+   "title": "GSM5525146: LY10-H3K27Ac-Active Motif; Homo sapiens; ChIP-Seq",
+   "cell": "OCILY10",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX12878022",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 66004,
+   "chipatlas_cell": "OCI-LY-3",
+   "title": "GSM5663919: OCILy3 ATAC-Seq; Homo sapiens; ATAC-seq",
+   "cell": "OCILY3",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX2157032",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 47828,
+   "chipatlas_cell": "OCI-LY-3",
+   "title": "GSM2308619: ChIP-seq from OCI-LY3 (ENCLB083CCE); Homo sapiens; ChIP-Seq",
+   "cell": "OCILY3",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 16
+  },
+  {
+   "srx": "SRX2157031",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 38550,
+   "chipatlas_cell": "OCI-LY-3",
+   "title": "GSM2308618: ChIP-seq from OCI-LY3 (ENCLB627TJR); Homo sapiens; ChIP-Seq",
+   "cell": "OCILY3",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 16
+  },
+  {
+   "srx": "SRX2157039",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 1519,
+   "chipatlas_cell": "OCI-LY-3",
+   "title": "GSM2308626: ChIP-seq from OCI-LY3 (ENCLB190ZSO); Homo sapiens; ChIP-Seq",
+   "cell": "OCILY3",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX2157040",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 924,
+   "chipatlas_cell": "OCI-LY-3",
+   "title": "GSM2308627: ChIP-seq from OCI-LY3 (ENCLB791ERU); Homo sapiens; ChIP-Seq",
+   "cell": "OCILY3",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX7735968",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 101802,
+   "chipatlas_cell": "OVCAR-8",
+   "title": "GSM4317807: Ovarian cancer cell line; Homo sapiens; ATAC-seq",
+   "cell": "OVCAR8",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX4132361",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 81375,
+   "chipatlas_cell": "OVCAR-8",
+   "title": "GSM3161724: OVCAR8 ATAC-seq replicate 1; Homo sapiens; ATAC-seq",
+   "cell": "OVCAR8",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX7556117",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 19017,
+   "chipatlas_cell": "OVCAR-8",
+   "title": "GSM4271304: H3K27ac OV OVCAR-8; Homo sapiens; ChIP-Seq",
+   "cell": "OVCAR8",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX9005644",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 11905,
+   "chipatlas_cell": "OVCAR-8",
+   "title": "GSM4745337: OVCAR8-H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "OVCAR8",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX17082062",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 9798,
+   "chipatlas_cell": "OVCAR-8",
+   "title": "GSM6465757: OVCAR8, H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "OVCAR8",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX17082063",
+   "antigen": "SUZ12",
+   "antigen_class": "TFs and others",
+   "kind": "substitute",
+   "tier": "N",
+   "peaks": 2691,
+   "chipatlas_cell": "OVCAR-8",
+   "title": "GSM6465758: OVCAR8, SUZ12; Homo sapiens; ChIP-Seq",
+   "cell": "OVCAR8",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX2370580",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 194250,
+   "chipatlas_cell": "PC-3",
+   "title": "GSM2400265: DNase-seq from PC-3 (ENCLB670JIB); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "PC3",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX2370581",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 177367,
+   "chipatlas_cell": "PC-3",
+   "title": "GSM2400266: DNase-seq from PC-3 (ENCLB620TSQ); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "PC3",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX2636582",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 67630,
+   "chipatlas_cell": "PC-3",
+   "title": "GSM2534488: ChIP-seq from PC-3 (ENCLB714CJJ); Homo sapiens; ChIP-Seq",
+   "cell": "PC3",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 15
+  },
+  {
+   "srx": "SRX2636581",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 67087,
+   "chipatlas_cell": "PC-3",
+   "title": "GSM2534487: ChIP-seq from PC-3 (ENCLB560SRL); Homo sapiens; ChIP-Seq",
+   "cell": "PC3",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 15
+  },
+  {
+   "srx": "SRX2636440",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 1388,
+   "chipatlas_cell": "PC-3",
+   "title": "GSM2534582: ChIP-seq from PC-3 (ENCLB806AMH); Homo sapiens; ChIP-Seq",
+   "cell": "PC3",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX2636441",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 506,
+   "chipatlas_cell": "PC-3",
+   "title": "GSM2534583: ChIP-seq from PC-3 (ENCLB711MXO); Homo sapiens; ChIP-Seq",
+   "cell": "PC3",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX12495367",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 32158,
+   "chipatlas_cell": "Hepatocytes",
+   "title": "GSM5611543: ATAC-seq Primary hepatocytes; Homo sapiens; ATAC-seq",
+   "cell": "PHH",
+   "axis": "ACC",
+   "primary_celltype": true,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX16043177",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 17828,
+   "chipatlas_cell": "Hepatocytes",
+   "title": "GSM6300670: White Hepatocytes ATAC Seq; Homo sapiens; ATAC-seq",
+   "cell": "PHH",
+   "axis": "ACC",
+   "primary_celltype": true,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX2869673",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 56707,
+   "chipatlas_cell": "Hepatocytes",
+   "title": "GSM2644050: d1 wcl H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "PHH",
+   "axis": "ACT",
+   "primary_celltype": true,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX2869676",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 50349,
+   "chipatlas_cell": "Hepatocytes",
+   "title": "GSM2644053: d3 wcl H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "PHH",
+   "axis": "ACT",
+   "primary_celltype": true,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX2370660",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 96731,
+   "chipatlas_cell": "RKO",
+   "title": "GSM2400357: DNase-seq from RKO (ENCLB307RIV); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "RKO",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX2370661",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 74241,
+   "chipatlas_cell": "RKO",
+   "title": "GSM2400358: DNase-seq from RKO (ENCLB741CNW); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "RKO",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX3482106",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 11766,
+   "chipatlas_cell": "RKO",
+   "title": "GSM2894027: RKO DMSO day30 H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "RKO",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX2631830",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 25962,
+   "chipatlas_cell": "RKO",
+   "title": "GSM2532775: RKO H3K27ac ChIPSeq; Homo sapiens; ChIP-Seq",
+   "cell": "RKO",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX3241381",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 87501,
+   "chipatlas_cell": "RMG-I",
+   "title": "GSM2803054: ATACSEQ CTRL REP1; Homo sapiens; ATAC-seq",
+   "cell": "RMGI",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX3241387",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 45698,
+   "chipatlas_cell": "RMG-I",
+   "title": "GSM2803060: H3K27ac CTRL; Homo sapiens; ChIP-Seq",
+   "cell": "RMGI",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX4704624",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 34432,
+   "chipatlas_cell": "RMG-I",
+   "title": "GSM3392692: CHIP-seq of H3K27ac in ARID1A WT cells; Homo sapiens; ChIP-Seq",
+   "cell": "RMGI",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX11926431",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 36073,
+   "chipatlas_cell": "SH-SY5Y",
+   "title": "GSM5542261: H3K27ac ChIPSeq SY5YtetCASZ1b H3K27Ac Ctrl; Homo sapiens; ChIP-Seq",
+   "cell": "SHSY5Y",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 11
+  },
+  {
+   "srx": "SRX7254951",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 30120,
+   "chipatlas_cell": "SH-SY5Y",
+   "title": "GSM4199232: Wild-type H3K27ac ChIP-seq; Homo sapiens; ChIP-Seq",
+   "cell": "SHSY5Y",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 11
+  },
+  {
+   "srx": "SRX4999186",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1821,
+   "chipatlas_cell": "SH-SY5Y",
+   "title": "GSM3465068: H3K27me3 ChIPRx DMSO rep2; Homo sapiens; ChIP-Seq",
+   "cell": "SHSY5Y",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX4999185",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1800,
+   "chipatlas_cell": "SH-SY5Y",
+   "title": "GSM3465067: H3K27me3 ChIPRx DMSO rep1; Homo sapiens; ChIP-Seq",
+   "cell": "SHSY5Y",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX21241802",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 97691,
+   "chipatlas_cell": "SK-BR-3",
+   "title": "GSM7680405: SKBR3, ATAC; Homo sapiens; ATAC-seq",
+   "cell": "SKBR3",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX22997333",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 55614,
+   "chipatlas_cell": "SK-BR-3",
+   "title": "GSM7989341: SKBR3 UT ATAC rep1; Homo sapiens; ATAC-seq",
+   "cell": "SKBR3",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX1998040",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 45306,
+   "chipatlas_cell": "SK-BR-3",
+   "title": "GSM2258794: SKBR3.H3K27ac.rep1; Homo sapiens; ChIP-Seq",
+   "cell": "SKBR3",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX1998041",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 24419,
+   "chipatlas_cell": "SK-BR-3",
+   "title": "GSM2258795: SKBR3.H3K27ac.rep2; Homo sapiens; ChIP-Seq",
+   "cell": "SKBR3",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX1998042",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 8144,
+   "chipatlas_cell": "SK-BR-3",
+   "title": "GSM2258796: SKBR3.H3K27me3.rep1; Homo sapiens; ChIP-Seq",
+   "cell": "SKBR3",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX1998043",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1712,
+   "chipatlas_cell": "SK-BR-3",
+   "title": "GSM2258797: SKBR3.H3K27me3.rep2; Homo sapiens; ChIP-Seq",
+   "cell": "SKBR3",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX11094570",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 22650,
+   "chipatlas_cell": "SK-ES-1",
+   "title": "GSM5364004: SKES1 H3K27ac ChIPSeq; Homo sapiens; ChIP-Seq",
+   "cell": "SKES1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX11094569",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 522,
+   "chipatlas_cell": "SK-ES-1",
+   "title": "GSM5364003: SKES1 H3K27me3 ChIPSeq; Homo sapiens; ChIP-Seq",
+   "cell": "SKES1",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX8002111",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 17167,
+   "chipatlas_cell": "SKM-1",
+   "title": "GSM4432721: 01 SKM1-DMSO H3K27Ac; Homo sapiens; ChIP-Seq",
+   "cell": "SKM1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX15408730",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 50693,
+   "chipatlas_cell": "SK-MEL-28",
+   "title": "GSM6176086: SK-MEL-28, S (ChIP-seq); Homo sapiens; ChIP-Seq",
+   "cell": "SKMEL28",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX15408746",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 855,
+   "chipatlas_cell": "SK-MEL-28",
+   "title": "GSM6176102: SK-MEL-28, S, Input (ChIP-seq); Homo sapiens; ChIP-Seq",
+   "cell": "SKMEL28",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX109447",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 894,
+   "chipatlas_cell": "SK-MEL-28",
+   "title": "GSM838934: SK-MEL-28 H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "SKMEL28",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX10474917",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 77122,
+   "chipatlas_cell": "SK-MEL-5",
+   "title": "GSM5213815: DNase-seq from SK-MEL-5 (ENCLB338ZYZ); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "SKMEL5",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX1471741",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 24163,
+   "chipatlas_cell": "SK-MEL-5",
+   "title": "GSM1968285: SK-MEL-5 H3K27Ac; Homo sapiens; ChIP-Seq",
+   "cell": "SKMEL5",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX7556109",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 31402,
+   "chipatlas_cell": "SK-MEL-5",
+   "title": "GSM4271296: H3K27ac ME SK-MEL-5; Homo sapiens; ChIP-Seq",
+   "cell": "SKMEL5",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX685339",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 3426,
+   "chipatlas_cell": "SK-MEL-5",
+   "title": "GSM1484315: SKMEL5 Me3; Homo sapiens; ChIP-Seq",
+   "cell": "SKMEL5",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX10661444",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 96770,
+   "chipatlas_cell": "SK-N-SH",
+   "title": "GSM5259107: ATAC-seq from SK-N-SH (ENCLB252SEN); Homo sapiens; ATAC-seq",
+   "cell": "SKNSH",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX10661443",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 96241,
+   "chipatlas_cell": "SK-N-SH",
+   "title": "GSM5259106: ATAC-seq from SK-N-SH (ENCLB575VWN); Homo sapiens; ATAC-seq",
+   "cell": "SKNSH",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX2156854",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 53154,
+   "chipatlas_cell": "SK-N-SH",
+   "title": "GSM2308440: ChIP-seq from SK-N-SH (ENCLB555ACQ); Homo sapiens; ChIP-Seq",
+   "cell": "SKNSH",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 11
+  },
+  {
+   "srx": "SRX2636021",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 51991,
+   "chipatlas_cell": "SK-N-SH",
+   "title": "GSM2534162: ChIP-seq from SK-N-SH (ENCLB208JNZ); Homo sapiens; ChIP-Seq",
+   "cell": "SKNSH",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 11
+  },
+  {
+   "srx": "SRX2157058",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 984,
+   "chipatlas_cell": "SK-N-SH",
+   "title": "GSM2308645: ChIP-seq from SK-N-SH (ENCLB891ZOW); Homo sapiens; ChIP-Seq",
+   "cell": "SKNSH",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX189993",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 874,
+   "chipatlas_cell": "SK-N-SH",
+   "title": "GSM945210: UW ChipSeq SK-N-SH RA H3K27me3",
+   "cell": "SKNSH",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 4
+  },
+  {
+   "srx": "SRX6802697",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 20929,
+   "chipatlas_cell": "SNU-C5",
+   "title": "GSM4060941: SNU-C5 Cell line H3K27ac ChIP-seq; Homo sapiens; ChIP-Seq",
+   "cell": "SNUC5",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX12123174",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 42726,
+   "chipatlas_cell": "SU-DHL-4",
+   "title": "GSM5571602: SUDH4 Control rep1 [ATAC-seq]; Homo sapiens; ATAC-seq",
+   "cell": "SUDHL4",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX12123173",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 39923,
+   "chipatlas_cell": "SU-DHL-4",
+   "title": "GSM5571601: SUDH4 Control rep2 [ATAC-seq]; Homo sapiens; ATAC-seq",
+   "cell": "SUDHL4",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX5985311",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 46560,
+   "chipatlas_cell": "SU-DHL-4",
+   "title": "GSM3860932: N4-8-IP-H3K27AC-10 SL012; Homo sapiens; ChIP-Seq",
+   "cell": "SUDHL4",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX5985313",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 40594,
+   "chipatlas_cell": "SU-DHL-4",
+   "title": "GSM3860934: N5-8-IP-H3K27AC-10 SL017; Homo sapiens; ChIP-Seq",
+   "cell": "SUDHL4",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX11865064",
+   "antigen": "RNF2",
+   "antigen_class": "TFs and others",
+   "kind": "substitute",
+   "tier": "C",
+   "peaks": 6402,
+   "chipatlas_cell": "SU-DHL-4",
+   "title": "GSM5531911: Ring1B SUDHL4 DMSO rep2; Homo sapiens; ChIP-Seq",
+   "cell": "SUDHL4",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX11865063",
+   "antigen": "RNF2",
+   "antigen_class": "TFs and others",
+   "kind": "substitute",
+   "tier": "C",
+   "peaks": 2488,
+   "chipatlas_cell": "SU-DHL-4",
+   "title": "GSM5531910: Ring1B SUDHL4 DMSO rep1; Homo sapiens; ChIP-Seq",
+   "cell": "SUDHL4",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX2370615",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 97824,
+   "chipatlas_cell": "SW 480",
+   "title": "GSM2400298: DNase-seq from SW480 (ENCLB090JSJ); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "SW480",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX2370616",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 52269,
+   "chipatlas_cell": "SW 480",
+   "title": "GSM2400299: DNase-seq from SW480 (ENCLB699TII); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "SW480",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX11354212",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 31977,
+   "chipatlas_cell": "SW 480",
+   "title": "GSM5418684: SW480 cells, WT H3K27ac ChIP-seq; Homo sapiens; ChIP-Seq",
+   "cell": "SW480",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX3394270",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 28736,
+   "chipatlas_cell": "SW 480",
+   "title": "GSM2857645: SW480 H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "SW480",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX3394276",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 26308,
+   "chipatlas_cell": "SW 620",
+   "title": "GSM2857651: SW620 H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "SW620",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX2631834",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 30409,
+   "chipatlas_cell": "SW 620",
+   "title": "GSM2532779: SW620 H3K27ac ChIPSeq; Homo sapiens; ChIP-Seq",
+   "cell": "SW620",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX6802687",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 26811,
+   "chipatlas_cell": "SW 948",
+   "title": "GSM4060931: SW948 Cell line H3K27ac ChIP-seq; Homo sapiens; ChIP-Seq",
+   "cell": "SW948",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX21241803",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 88483,
+   "chipatlas_cell": "T-47D",
+   "title": "GSM7680406: T47D, ATAC; Homo sapiens; ATAC-seq",
+   "cell": "T47D",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 41
+  },
+  {
+   "srx": "SRX7347991",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 52379,
+   "chipatlas_cell": "T-47D",
+   "title": "GSM4214064: T47D Ctrl ATACseq; Homo sapiens; ATAC-seq",
+   "cell": "T47D",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 41
+  },
+  {
+   "srx": "SRX5786515",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 40351,
+   "chipatlas_cell": "T-47D",
+   "title": "GSM3748030: ChIP-seq H3K27ac CR3flp rep2; Homo sapiens; ChIP-Seq",
+   "cell": "T47D",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 32
+  },
+  {
+   "srx": "SRX5786514",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 34706,
+   "chipatlas_cell": "T-47D",
+   "title": "GSM3748029: ChIP-seq H3K27ac CF3flp rep1; Homo sapiens; ChIP-Seq",
+   "cell": "T47D",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 32
+  },
+  {
+   "srx": "SRX19662666",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 9069,
+   "chipatlas_cell": "T-47D",
+   "title": "GSM7093728: T-47D H3K27me3 DMSO; Homo sapiens; ChIP-Seq",
+   "cell": "T47D",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 11
+  },
+  {
+   "srx": "SRX395612",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1990,
+   "chipatlas_cell": "T-47D",
+   "title": "GSM1294050: ChIP-Seq H3K27me3 T0; Homo sapiens; ChIP-Seq",
+   "cell": "T47D",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 11
+  },
+  {
+   "srx": "SRX4155867",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 23560,
+   "chipatlas_cell": "TC-32",
+   "title": "GSM3172713: David TC32 H3K27ac 1; Homo sapiens; ChIP-Seq",
+   "cell": "TC32",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX4155868",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 18351,
+   "chipatlas_cell": "TC-32",
+   "title": "GSM3172714: David TC32 H3K27ac 2; Homo sapiens; ChIP-Seq",
+   "cell": "TC32",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX23461904",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 121573,
+   "chipatlas_cell": "THP-1",
+   "title": "GSM8048440: ATAC NTC 2; Homo sapiens; ATAC-seq",
+   "cell": "THP1",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 19
+  },
+  {
+   "srx": "SRX23461905",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 112541,
+   "chipatlas_cell": "THP-1",
+   "title": "GSM8048441: ATAC NTC 3; Homo sapiens; ATAC-seq",
+   "cell": "THP1",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 19
+  },
+  {
+   "srx": "SRX13589445",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 57095,
+   "chipatlas_cell": "THP-1",
+   "title": "GSM5770037: TS80 4 NTC H3K27ac S2; Homo sapiens; ChIP-Seq",
+   "cell": "THP1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 31
+  },
+  {
+   "srx": "SRX8722277",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 46328,
+   "chipatlas_cell": "THP-1",
+   "title": "GSM4669241: ChIP DMSO CTRL 1; Homo sapiens; ChIP-Seq",
+   "cell": "THP1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 31
+  },
+  {
+   "srx": "SRX5266967",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 2205,
+   "chipatlas_cell": "THP-1",
+   "title": "GSM3572791: NTC H3K27me3 ChIP; Homo sapiens; ChIP-Seq",
+   "cell": "THP1",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX11136873",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1421,
+   "chipatlas_cell": "THP-1",
+   "title": "GSM5379678: ChIP-seq H3K27me3 WT; Homo sapiens; ChIP-Seq",
+   "cell": "THP1",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 10
+  },
+  {
+   "srx": "SRX11783337",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 33385,
+   "chipatlas_cell": "TMD8",
+   "title": "GSM5525195: TMD8-H3K27Ac-Diagenode Lib-6 LE056; Homo sapiens; ChIP-Seq",
+   "cell": "TMD8",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX11783336",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 29301,
+   "chipatlas_cell": "TMD8",
+   "title": "GSM5525194: TMD8-H3K27Ac-Active Motif; Homo sapiens; ChIP-Seq",
+   "cell": "TMD8",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX7556080",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 23796,
+   "chipatlas_cell": "U-251 MG",
+   "title": "GSM4271267: H3K27ac CNS U251; Homo sapiens; ChIP-Seq",
+   "cell": "U251MG",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX8848859",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 20595,
+   "chipatlas_cell": "U-251 MG",
+   "title": "GSM4703818: H3K27ac CNS U251 rep2; Homo sapiens; ChIP-Seq",
+   "cell": "U251MG",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX4949881",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 17387,
+   "chipatlas_cell": "U-266",
+   "title": "GSM3449841: U266; Homo sapiens; ATAC-seq",
+   "cell": "U266B1",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX17010435",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 15188,
+   "chipatlas_cell": "U-266",
+   "title": "GSM6439304: ATACseq U266 EV rep2; Homo sapiens; ATAC-seq",
+   "cell": "U266B1",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX20095568",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 41473,
+   "chipatlas_cell": "U-266",
+   "title": "GSM7224181: U266, untreated, H3K27ac ChIP, biorep3; Homo sapiens; ChIP-Seq",
+   "cell": "U266B1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX20095566",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 40935,
+   "chipatlas_cell": "U-266",
+   "title": "GSM7224179: U266, untreated, H3K27ac ChIP, biorep1; Homo sapiens; ChIP-Seq",
+   "cell": "U266B1",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 5
+  },
+  {
+   "srx": "SRX14175618",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 96414,
+   "chipatlas_cell": "U2OS",
+   "title": "GSM5899261: ATAC siCtrl 5Gy rep1; Homo sapiens; ATAC-seq",
+   "cell": "U2OS",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 55
+  },
+  {
+   "srx": "SRX14175616",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 96068,
+   "chipatlas_cell": "U2OS",
+   "title": "GSM5899259: ATAC siCtrl 0Gy rep1; Homo sapiens; ATAC-seq",
+   "cell": "U2OS",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 55
+  },
+  {
+   "srx": "SRX18703158",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 5404,
+   "chipatlas_cell": "U2OS",
+   "title": "GSM6836725: 220401 U2OS rep 2 untreated H3K27ac S23; Homo sapiens; ChIP-Seq",
+   "cell": "U2OS",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 38
+  },
+  {
+   "srx": "SRX18703154",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 1629,
+   "chipatlas_cell": "U2OS",
+   "title": "GSM6836721: 220324 U2OS untreated H3K27ac S19; Homo sapiens; ChIP-Seq",
+   "cell": "U2OS",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 38
+  },
+  {
+   "srx": "SRX2566761",
+   "antigen": "H2AK119ub",
+   "antigen_class": "Histone",
+   "kind": "substitute",
+   "tier": "N",
+   "peaks": 709,
+   "chipatlas_cell": "U2OS",
+   "title": "GSM2492612: U2OS UbH2A Chip-seq; Homo sapiens; ChIP-Seq",
+   "cell": "U2OS",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX21476975",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 82526,
+   "chipatlas_cell": "U-937",
+   "title": "GSM7728646: ATAC-Seq U937, DMSO, 6h, ATACseq Rep1; Homo sapiens; ATAC-seq",
+   "cell": "U937",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 17
+  },
+  {
+   "srx": "SRX21476976",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 79949,
+   "chipatlas_cell": "U-937",
+   "title": "GSM7728647: ATAC-Seq U937, DMSO, 6h, ATACseq Rep2; Homo sapiens; ATAC-seq",
+   "cell": "U937",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 17
+  },
+  {
+   "srx": "SRX6866215",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 35671,
+   "chipatlas_cell": "U-937",
+   "title": "GSM4083812: ChIP-seq U937 H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "U937",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "ERX626824",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 1166,
+   "chipatlas_cell": "U-937",
+   "title": "Illumina HiSeq 2500 sequencing",
+   "cell": "U937",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 8
+  },
+  {
+   "srx": "SRX17042035",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 69793,
+   "chipatlas_cell": "VCaP",
+   "title": "GSM6451100: VCaP ATAC DMSO-EtOH rep2; Homo sapiens; ATAC-seq",
+   "cell": "VCAP",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 17
+  },
+  {
+   "srx": "SRX22162247",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 65428,
+   "chipatlas_cell": "VCaP",
+   "title": "GSM7852490: VCaP ATAC DMSO EtOH rep2; Homo sapiens; ATAC-seq",
+   "cell": "VCAP",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 17
+  },
+  {
+   "srx": "SRX3322681",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 50551,
+   "chipatlas_cell": "VCaP",
+   "title": "GSM2827607: ChIP-seq from VCaP (ENCLB856OBQ); Homo sapiens; ChIP-Seq",
+   "cell": "VCAP",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 13
+  },
+  {
+   "srx": "SRX3322680",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 46095,
+   "chipatlas_cell": "VCaP",
+   "title": "GSM2827606: ChIP-seq from VCaP (ENCLB904PZW); Homo sapiens; ChIP-Seq",
+   "cell": "VCAP",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 13
+  },
+  {
+   "srx": "SRX022555",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 981,
+   "chipatlas_cell": "VCaP",
+   "title": "GSM353621: VCaP regular medium H3K27me3",
+   "cell": "VCAP",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX7512730",
+   "antigen": "H2AK119ub",
+   "antigen_class": "Histone",
+   "kind": "substitute",
+   "tier": "C",
+   "peaks": 1020,
+   "chipatlas_cell": "VCaP",
+   "title": "GSM4253775: ChIP-seq VCaP input EtOH rep1; Homo sapiens; ChIP-Seq",
+   "cell": "VCAP",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX13445081",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 80503,
+   "chipatlas_cell": "VM-CUB1",
+   "title": "GSM5741255: VM-CUB-1 DMSO; Homo sapiens; ATAC-seq",
+   "cell": "VMCUB1",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 1
+  },
+  {
+   "srx": "SRX10475591",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 133426,
+   "chipatlas_cell": "hESC H9",
+   "title": "GSM5214417: DNase-seq from H9 (ENCLB079RKK); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "WA09",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 108
+  },
+  {
+   "srx": "SRX10475592",
+   "antigen": "DNase-Seq",
+   "antigen_class": "DNase-seq",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 118589,
+   "chipatlas_cell": "hESC H9",
+   "title": "GSM5214418: DNase-seq from H9 (ENCLB476DLP); Homo sapiens; DNase-Hypersensitivity",
+   "cell": "WA09",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 108
+  },
+  {
+   "srx": "SRX11163582",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 31319,
+   "chipatlas_cell": "hESC H9",
+   "title": "GSM5378653: Mint-ChIP-seq from H9 (ENCLB491CYH); Homo sapiens; ChIP-Seq",
+   "cell": "WA09",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 37
+  },
+  {
+   "srx": "SRX11163581",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 29508,
+   "chipatlas_cell": "hESC H9",
+   "title": "GSM5378652: Mint-ChIP-seq from H9 (ENCLB735DIR); Homo sapiens; ChIP-Seq",
+   "cell": "WA09",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 37
+  },
+  {
+   "srx": "SRX16495334",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 62695,
+   "chipatlas_cell": "hESC H9",
+   "title": "GSM6347222: Mint-ChIP-seq from H9 (ENCLB494XJL); Homo sapiens; ChIP-Seq",
+   "cell": "WA09",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 47
+  },
+  {
+   "srx": "SRX16495335",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "E",
+   "peaks": 58579,
+   "chipatlas_cell": "hESC H9",
+   "title": "GSM6347223: Mint-ChIP-seq from H9 (ENCLB269DFN); Homo sapiens; ChIP-Seq",
+   "cell": "WA09",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 47
+  },
+  {
+   "srx": "SRX25922501",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 62789,
+   "chipatlas_cell": "WI-38",
+   "title": "GSM8490220: WT2, 0.5kPa, timepoint 4, ATAC-Seq, replicate 2; Homo sapiens; ATAC-seq",
+   "cell": "WI38",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 19
+  },
+  {
+   "srx": "SRX25922508",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 61740,
+   "chipatlas_cell": "WI-38",
+   "title": "GSM8490227: WT1, 2.3GPa, timepoint 7, ATAC-Seq, replicate 1; Homo sapiens; ATAC-seq",
+   "cell": "WI38",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 19
+  },
+  {
+   "srx": "SRX750664",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 2081,
+   "chipatlas_cell": "WI-38",
+   "title": "GSM1537289: H3K27me3-WI38 ChIP-seq; Homo sapiens; ChIP-Seq",
+   "cell": "WI38",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX5735085",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 1581,
+   "chipatlas_cell": "WI-38",
+   "title": "GSM3735798: ChIP OISD0 H3K27me3 Rep2; Homo sapiens; ChIP-Seq",
+   "cell": "WI38",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 7
+  },
+  {
+   "srx": "SRX10270336",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 10693,
+   "chipatlas_cell": "WSU-DLCL2",
+   "title": "GSM5141210: WSU-DLCL2 ChiPSeq H3K27ac; Homo sapiens; ChIP-Seq",
+   "cell": "WSUDLCL2",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX11783344",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "N",
+   "peaks": 32550,
+   "chipatlas_cell": "WSU-DLCL2",
+   "title": "GSM5525201: WSU-DLCL2-H3K27Ac-Diagenode; Homo sapiens; ChIP-Seq",
+   "cell": "WSUDLCL2",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX20363597",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 562,
+   "chipatlas_cell": "WSU-DLCL2",
+   "title": "GSM7360008: WSU-DLCL2 DMSO H3K27me3; Homo sapiens; ChIP-Seq",
+   "cell": "WSUDLCL2",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX271859",
+   "antigen": "EZH2",
+   "antigen_class": "TFs and others",
+   "kind": "substitute",
+   "tier": "N",
+   "peaks": 2880,
+   "chipatlas_cell": "WSU-DLCL2",
+   "title": "GSM1129363: WSUDLCL2 EZH2; Homo sapiens; ChIP-Seq",
+   "cell": "WSUDLCL2",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 2
+  },
+  {
+   "srx": "SRX20546939",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 56385,
+   "chipatlas_cell": "ZR-75-1",
+   "title": "GSM7434885: ZR751 DMSO 48hr R1; Homo sapiens; ATAC-seq",
+   "cell": "ZR751",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX20546957",
+   "antigen": "ATAC-Seq",
+   "antigen_class": "ATAC-Seq",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 54007,
+   "chipatlas_cell": "ZR-75-1",
+   "title": "GSM7434903: ZR751 DMSO 120hr R1; Homo sapiens; ATAC-seq",
+   "cell": "ZR751",
+   "axis": "ACC",
+   "primary_celltype": false,
+   "n_eligible": 9
+  },
+  {
+   "srx": "SRX1997985",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 44585,
+   "chipatlas_cell": "ZR-75-1",
+   "title": "GSM2258740: ZR751.H3K27ac.rep1; Homo sapiens; ChIP-Seq",
+   "cell": "ZR751",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 6
+  },
+  {
+   "srx": "SRX1997986",
+   "antigen": "H3K27ac",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 17259,
+   "chipatlas_cell": "ZR-75-1",
+   "title": "GSM2258741: ZR751.H3K27ac.rep2; Homo sapiens; ChIP-Seq",
+   "cell": "ZR751",
+   "axis": "ACT",
+   "primary_celltype": false,
+   "n_eligible": 6
+  },
+  {
+   "srx": "SRX1997987",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 2951,
+   "chipatlas_cell": "ZR-75-1",
+   "title": "GSM2258742: ZR751.H3K27me3.rep1; Homo sapiens; ChIP-Seq",
+   "cell": "ZR751",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  },
+  {
+   "srx": "SRX1997988",
+   "antigen": "H3K27me3",
+   "antigen_class": "Histone",
+   "kind": "direct",
+   "tier": "C",
+   "peaks": 826,
+   "chipatlas_cell": "ZR-75-1",
+   "title": "GSM2258743: ZR751.H3K27me3.rep2; Homo sapiens; ChIP-Seq",
+   "cell": "ZR751",
+   "axis": "PCG",
+   "primary_celltype": false,
+   "n_eligible": 3
+  }
+ ]
+}

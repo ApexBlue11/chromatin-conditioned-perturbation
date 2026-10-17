@@ -10322,6 +10322,88 @@ subsection before its code.
 - O9 session 3 and D's timing run were pushed after the reset (09:24 IST);
 - **B1 is deferred**: C3 answered whether v9 uses the compound, and its 6 GPU-h go to v10-C.
 
+### 100.1 🔒 REGISTERED: L2/L3 data — one uniform source, the cell match, the sample rule and the windows (PI, 2026-10-17; before any signal is downloaded)
+**The principal approved the downloads on 2026-10-17** (ChIP-Atlas metadata and bigWig signal, CCLE RRBS, pyBigWig).
+
+**The source of record: ChIP-Atlas, hg38.**
+- It reprocesses every public SRA experiment with one pipeline (one aligner, RPM-normalised bigWig), so cells do not
+  differ by the lab that processed them. ENCODE samples are in it too.
+- The metadata: `experimentList.tab`, streamed 2026-10-17 from chip-atlas.dbcls.jp (359,492,249 bytes, sha1 `29effeba…`).
+  I streamed it locally, not on Kaggle as first said, because the rule below needed fast iteration on metadata; the
+  87,846 hg38 rows for the marks and their substitutes are kept (`external/v10c_chipatlas/chipatlas_hg38_epi.tab`,
+  sha1 `f8a6b3ee…`). Metadata only: no signal and no expression data were read to set the rule.
+
+**The cell match** (`model/v10c/chromatin_select.py`, sha1 `a2406191…`):
+- exact equality of the normalised name (uppercase, alphanumerics only); never a substring (the 2026-07 SNUC4 / C4-2 error);
+- the NCI-H rule (H1975 ↔ NCI-H1975, both ways);
+- a fixed table of same-line names: HEK293 ↔ "293", WA09 ↔ "hESC H9" / "hESC WA09", HME1 ↔ "hTERT-HME1", U266B1 ↔ "U-266";
+- primary cells by their cell type: PHH ↔ "Hepatocytes", NPC ↔ "Neural progenitor cells" (flagged `primary_celltype`).
+
+**The axes:**
+- ACC (accessibility): ATAC-seq, DNase-seq;
+- ACT (activation): H3K27ac; substitutes H3K9ac, EP300, CREBBP;
+- PCG (Polycomb repression): H3K27me3; substitutes EZH2, SUZ12, EED, H2AK119ub, RNF2;
+- the 2026-07 menu's tier-2 proxies (H3K4me1 / me3, H3K9me3) are **not used**.
+
+**The sample rule, per (cell, axis):**
+1. QC: ≥ 5 M reads, ≥ 50 % mapped, ≥ 500 peaks.
+2. **Perturbed samples are excluded:** a perturbation term in the title, the cell / source name, or a treatment /
+   agent / genotype-type metadata value outside the control vocabulary. Most public samples are treated or edited
+   (knockdowns, drugs, hormones, edits), and a treated cell's chromatin is not the cell's baseline.
+3. The rest are ranked by: direct mark before substitute; then baseline tier, **E** (ENCODE reference) > **C** (an explicit
+   control: DMSO, vehicle, untreated, parental, WT, non-targeting …) > **N** (neither); then standard library (ChIP-seq,
+   ATAC-seq, DNase) before others (CUT&Tag …); then most peaks.
+4. Up to **K = 2** tracks, averaged after per-track normalisation. A slot with no eligible sample stays **missing** (the
+   missingness channel); it is never filled from another cell.
+
+**The selection** (`model/results/v10c/chipatlas_selection.json`, sha1 `70052ec4…`, over the 217 cells of
+`full_cells.json`, sha1 `71932be1…`):
+
+| of the 217 full-release cells | v9 chromatin | v10-C selection |
+|---|---|---|
+| with any axis | 40 | **90** |
+| with all three | 16 | **43** |
+| benchmark cells (of 40) with any / all three | 23 / 14 | 29 / 20 |
+| the 8 unseen-cell test lines with any | 5 (BJAB, H1975, HS578T none) | **8** (all have ACC and ACT; 4 also PCG) |
+
+- **Lost against v9:** 9 cells had v9 chromatin from ENCODE / Cistrome / EpiMap peak files but have no eligible
+  ChIP-Atlas sample (ASC, HCC15, HEK293T, HME1, HUES3, NKDBA, SKB, SKL, SKMEL1). They are not back-filled from those
+  peak files: a second source with another representation would bring back the per-lab differences this source removes.
+
+- 360 tracks: ACC 67 cells, ACT 82, PCG 49;
+- tiers E 89, C 180, N 91; direct 353, substitute 7; 36 slots have one track.
+
+**The windows** (per landmark gene; MANE Select TSS and strand from `tss_hg38.tsv`, sha1 `012c9f9a…`; 977 genes, as MUC1
+has no MANE TSS and is missing):
+
+| window | span (gene orientation) |
+|---|---|
+| prom_1kb | TSS ± 1 kb |
+| tss_10kb | TSS ± 10 kb |
+| down_1_20kb | TSS +1 to +20 kb, **a gene-body proxy** (the TSS table has no gene ends: an amendment of §100's "gene body") |
+| up_2_50kb | TSS −50 to −2 kb (upstream enhancers) |
+| tss_50kb | TSS ± 50 kb (broad domains, e.g. H3K27me3) |
+
+- The value is the bigWig mean over the window: no data inside a covered chromosome = 0; a chromosome absent from the
+  file = missing.
+- Normalisation happens in the feature builder, not in the data kernels: log1p, then the rank across genes within each
+  (track, window), scaled to [0, 1]; then the K tracks are averaged.
+
+**Methylation, a fourth axis:** CCLE RRBS TSS ± 1 kb (`CCLE_RRBS_TSS1kb_20181022.txt.gz`, data.broadinstitute.org/ccle,
+40,101,337 bytes). A gene's TSS rows are averaged, and lines are matched by the name before the first `_`, normalised.
+
+**Execution** (`orchestration/make_v10c_data_kernels.py`):
+- 4 ChIP-Atlas signal kernels (the 360 tracks split by index) and 1 methylation kernel;
+- Kaggle CPU, internet on, `pyBigWig==0.3.26`;
+- the bigWigs average about 420 MB (6 sampled), so each file is downloaded whole on Kaggle, read, hashed and deleted.
+  This is more efficient than range reads, whose thousands of round trips would cost more than the bytes saved;
+- every input is sha1-pinned, and a kernel refuses to run if any expression data is mounted.
+
+**Tests:** 37 pass (`model/v10c/test_v10c_chromatin_data.py`). **Mutation: 0 of 25 survive** (6 survived the first pass;
+tests were added for each).
+
+**Nothing in this rule changes after signal is seen.** A bug fix is logged as an amendment with its diff.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
