@@ -123,8 +123,10 @@ def run(R, basal, chrom, has_chrom, n_null=200, seed=0, betas=(0.02, 0.05, 0.1, 
         cal[str(b)] = {'gain': gb, 'cell_swap_p95': float(np.percentile(nb, 95)), 'detected': bool(gb > np.percentile(nb, 95))}
     return {'lambda': lam, 'lambda_cv_r2_base': {str(k): v for k, v in lam_scores.items()}, 'n_cells': int(len(R)),
             'n_eval_cells': int(len(eval_cells)), 'gain': g,
-            'cell_swap_null': {'mean': float(cs.mean()), 'p95': float(np.percentile(cs, 95)), 'n': int(len(cs))},
-            'gene_permute_null': {'mean': float(gp.mean()), 'p95': float(np.percentile(gp, 95)), 'n': int(len(gp))},
+            'cell_swap_null': {'mean': float(cs.mean()), 'p95': float(np.percentile(cs, 95)), 'n': int(len(cs)),
+                               'rank_of_real': float((cs < g).mean()), 'draws': [float(x) for x in cs]},
+            'gene_permute_null': {'mean': float(gp.mean()), 'p95': float(np.percentile(gp, 95)), 'n': int(len(gp)),
+                                  'rank_of_real': float((gp < g).mean()), 'draws': [float(x) for x in gp]},
             'passes': bool(g > np.percentile(cs, 95)),
             'calibration': cal,
             'smallest_detected_beta': min([float(b) for b in cal if cal[b]['detected']], default=None)}

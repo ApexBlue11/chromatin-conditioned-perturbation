@@ -21,9 +21,7 @@
     "set_on": "2026-09-20"
   },
   "loop_state": "RUNNING",
-  "open_packets": [
-    "089_ta_result"
-  ],
+  "open_packets": [],
   "_encoding_note": "UTF-8 WITHOUT BOM. Do NOT rewrite with PowerShell Set-Content/Out-File -Encoding utf8 (adds a BOM, breaks json.load). -Encoding utf8NoBOM is PowerShell 7+ ONLY and fails on the 5.1 here. Use python io.open(..., encoding='utf-8').",
   "closed_packets": [
     "001_cold_cell_chromatin",
@@ -115,7 +113,8 @@
     "085_phase1_local_results",
     "086_v10c_chromatin_design",
     "087_v10c_data",
-    "088_v10c_model_code"
+    "088_v10c_model_code",
+    "089_ta_result"
   ],
   "gpu_hours_spent_this_session": 18.71,
   "pending_decision": "T-B seed 0 on/off pushed after reviews 086-088 (SOUND / SWC); then seeds 1-2 and the d384 screen; T-A and 100.5 (T-C over 7 clean cells) to register.",
