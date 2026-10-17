@@ -62,7 +62,7 @@ def name_keys(cell):
     return k
 
 
-CCLE_META = ('tss_id', 'gene', 'chr', 'fpos', 'tpos', 'strand', 'avg_coverage')
+CCLE_META = ('tss_id', 'gene', 'chr', 'fpos', 'tpos', 'strand', 'avg_coverage', 'locus_id', 'cpg_sites_hg19')
 
 
 def ccle_methyl(text, symbols, cells):
@@ -72,9 +72,13 @@ def ccle_methyl(text, symbols, cells):
     rd = csv.reader(io.StringIO(text), delimiter='\t')
     header = next(rd)
     low = [h.strip().lower() for h in header]
-    if 'gene' not in low:
-        raise ValueError(f'no gene column in {header[:10]}')
-    gcol = low.index('gene')
+    # The 20181022 release keys rows by locus_id = GENE_chr_start_end (seen 2026-10-17); a 'gene' column is used if present.
+    if 'gene' in low:
+        gcol, gene_of = low.index('gene'), (lambda v: v.strip())
+    elif 'locus_id' in low:
+        gcol, gene_of = low.index('locus_id'), (lambda v: v.strip().rsplit('_', 3)[0])
+    else:
+        raise ValueError(f'no gene or locus_id column in {header[:10]}')
     meta_idx = {i for i, h in enumerate(low) if h in CCLE_META}
     want = {}
     for c in cells:
@@ -93,7 +97,7 @@ def ccle_methyl(text, symbols, cells):
     for row in rd:
         if len(row) <= gcol:
             continue
-        k = sym_idx.get(row[gcol].strip())
+        k = sym_idx.get(gene_of(row[gcol]))
         if k is None:
             continue
         for i, cs in colcell.items():

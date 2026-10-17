@@ -165,7 +165,7 @@ def test_ccle_methyl_average_match_and_missing():
 
 
 def test_ccle_methyl_requires_gene_column():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='no gene or locus_id'):
         sig.ccle_methyl('a\tb\n1\t2\n', ['DDR1'], ['MCF7'])
 
 
@@ -232,3 +232,17 @@ def test_ccle_methyl_h_prefixed_column():
 
 def test_outcome_guard_raises():
     assert "raise SystemExit(f'FATAL: expression data mounted in an outcome-free kernel: {p}')" in mk.COMMON
+
+
+def test_ccle_methyl_locus_id_format_of_the_real_file():
+    """The 20181022 header and row shapes, as read from the file on 2026-10-17 (values padded with spaces, NaN)."""
+    rows = [['locus_id', 'CpG_sites_hg19', 'avg_coverage', 'DMS53_LUNG', 'MCF7_BREAST'],
+            ['DDR1_6_30884000_30885000', '6:30884100;6:30884200', '  25.00', '0.00000', '0.75000'],
+            ['DDR1_6_30885000_30886000', '6:30885100', '   8.27', '    NaN', '0.25000'],
+            ['HLA-DRB1_6_1_2', '6:1', ' 3.0', '0.5', '    NaN'],
+            ['SGIP1_1_66998638_66999638', '1:66998970', ' 25.0', '1.0', '1.0']]
+    text = ''.join(chr(9).join(r) + chr(10) for r in rows)
+    m, info = sig.ccle_methyl(text, ['DDR1', 'HLA-DRB1', 'PAX8'], ['MCF7', 'DMS53'])
+    assert info['n_cell_columns'] == 2 and set(m) == {'MCF7', 'DMS53'}
+    assert m['MCF7'][0] == pytest.approx(0.5) and math.isnan(m['MCF7'][1]) and math.isnan(m['MCF7'][2])
+    assert m['DMS53'][0] == 0.0 and m['DMS53'][1] == pytest.approx(0.5)
