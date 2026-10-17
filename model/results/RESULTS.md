@@ -10486,6 +10486,79 @@ benchmark row).
 | training rows with chromatin | — | 61 % (76 % with methylation) |
 | the 8 test lines | 5 with any | **8** (ACC + ACT in all; PCG in CD34, MCF7, MDAMB231, THP1; methylation in 5) |
 
+### 100.4 🔒 REGISTERED: the v10-C model, its recipe, the dev carve and T-B's rule (PI, 2026-10-17; before any v10-C GPU run)
+**The model** (`model/v10c/model_v10c.py`; v9's gene, control and drug blocks are reused):
+
+| part | v10-C |
+|---|---|
+| gene token | learned + STRING vector; **no chromatin** (the principal's "keep them separate") |
+| cell inputs | the binned plate control x_ctl and the L6 baseline x_cell, two control encoders as v9; lineage FiLM (21 tissues of the full release), identity at init; **dose and time do not touch the cell tokens** (F5) |
+| chromatin | its own stream c_g = MLP([F_g·m_g; m_g]), d wide, from the 16 features + 4-channel mask of §100.3 |
+| where c_g acts | (1) the drug query, n(h_g) + W_c c_g; (2) a gate on each block's drug update, γ_g = 2σ(MLP([c_g; drug token; dose])); (3) STRING propagation with edge weight √(a_i a_j), a_g = σ(w·c_g + b); (4) an additive basal term w_c·c_g |
+| at initialisation | all four are exact no-ops (W_c = 0; γ = 1; w = 0 with a = 0.95; w_c = 0), so the model begins as v10 without chromatin (tested) |
+| drug (F7, F9) | global token = 2-layer MLP over Uni-Mol CLS + descriptors + ECFP4; atoms; drug self-attention **on**; no stochastic depth on the drug path |
+| dose and time (F5) | s = σ(a_d(log dose − b_d)) scales every drug update, so zero dose gives zero effect (tested); dose and time enter the drug token |
+| pathways (F4) | the 800 named nodes read **after** the drug blocks |
+| output (F6) | delta = basal(cell) + Δ(drug, dose, time, cell); the basal term is drug-free (tested), so the plate contrast is carried by Δ alone |
+| width | d = 256 (15.0 M parameters; v9 13.3 M); d = 384 (31.4 M) screened once (below) |
+
+**The data:**
+- the substrate of §100.2 / §100.3;
+- v9's drop of rows whose compound lacks features;
+- chromatin looked up per cell;
+- x_cell = the mean of the cell's **other** distinct control profiles (L6), identical in training and evaluation (a cell
+  with one control profile gets that profile, counted);
+- the quantiser fitted on training rows only.
+
+**The loss:**
+- Huber(delta) + 0.5·(1 − PCC(delta)) + Huber(contrast) + 0.5·(1 − PCC(contrast));
+- the contrast is each row minus the mean of its other-compound plate-mates **in the batch**;
+- batches are built from whole plates (at most 16 rows per plate, 48 rows per batch), so plate-mates train together.
+
+**The recipe:**
+- AdamW, lr 4e-4, weight decay 1e-4, betas (0.9, 0.95);
+- WSD schedule (3 % warm-up, 20 % decay), gradient clip 1.0, AMP, 2 × T4 DataParallel;
+- seeds 0, 1, 2; scored once at the end.
+- **Epochs: 4**, unless the timing kernel projects more than 10 h. Then the largest whole number that fits is fixed
+  before T-B and used by every arm. A run the budget guard would cut refuses to start; a cut run is never read.
+
+**The dev carve (T-B):**
+- pool = training cells of `split_cold_cell_1` with ACC and ACT chromatin and 500–5,000 training rows: **9 cells**
+  (22RV1, HUVEC, LNCAP, MDAMB468, NPC, SKBR3, T47D, U2OS, U937);
+- 6 chosen by `RandomState(0)`: **HUVEC 3,209 · LNCAP 850 · NPC 3,891 · T47D 1,358 · U2OS 3,259 · U937 574** (13,141 rows);
+- dev cells are removed from training. The 8 test cells stay out of every dev run.
+
+**T-B, chromatin on against chromatin off** (identical in all else; the off arm gives every cell the training-row-weighted
+mean features and mask, so the machinery stays and the cell-specific information goes):
+- **The primary score:** the per-row mean **contrast r** on the dev rows (each row against the other-compound dev rows on
+  its plate, ≥ 2 mates; RESULTS 99.6's C1 definition).
+- **"Chromatin contributes on dev"** iff all three hold:
+  - the 3-seed mean Δ(on − off) ≥ **max(0.003, 2·√(s_on²/3 + s_off²/3))**;
+  - Δ > 0 on the mean of per-cell means;
+  - ≥ 4 of 6 dev cells favour on.
+
+  This is §85.2 rule 7, on the contrast.
+- **Reported, not ruled:**
+  - delta r (XPert's metric);
+  - the mean gate γ by accessibility tercile and mark;
+  - the STRING gate a;
+  - the dose scale against dose.
+- **The width screen:** d = 384 with chromatin on, seed 0, against d = 256 on, seed 0. T-C uses 384 for both arms iff
+  Δ ≥ max(0.003, 2·s_on), with s_on from the three d = 256 on seeds. Otherwise it uses 256.
+- **Whatever T-B finds, T-C runs** (the principal's direction). T-C's rule (unseen cells: per cell ≥ 6 of 8 and a cell-
+  cluster CI; the unseen-cell / unseen-compound gap; XPert under L6) is registered in full in §100.5 before T-C's code.
+
+**Tests:** 71 v10-C tests pass. Those on the model, data and trainer establish:
+- the no-op at initialisation; that each chromatin pathway carries chromatin once opened;
+- the factorised STRING gate equals the explicit edge weights;
+- zero dose removes the drug effect; the basal term is drug-free; the contrast cancels it;
+- the contrast and L6 values by hand; plate batches whole and complete;
+- the dev rule; the off switch; held-out cells absent from training;
+- an end-to-end CPU train-and-score, the timing mode and the CPU refusal;
+- the kernel builder's pins and layout.
+
+Mutation testing runs before any T-B kernel.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
