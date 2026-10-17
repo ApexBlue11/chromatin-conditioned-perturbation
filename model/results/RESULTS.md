@@ -10404,6 +10404,39 @@ tests were added for each).
 
 **Nothing in this rule changes after signal is seen.** A bug fix is logged as an amendment with its diff.
 
+### 100.2 🔒 REGISTERED: L1, the full-release substrate — the benchmark's test rows unchanged, training grown around them (PI, 2026-10-17; before the substrate is built)
+**The source:** XPert's full release `l1000_mdmt_full_336852.h5ad` (336,852 rows, 217 cells, 8,416 compounds; X and the
+plate-matched X_ctl, Level 3, as in the benchmark).
+
+**The benchmark is a strict subset of it** (measured 2026-10-17):
+- every one of the 68,830 benchmark rows maps to exactly one full row by `cell:compound:time h:dose index`;
+- X and X_ctl are identical on the matched rows (a 2,000-row sample; the builder checks all of them and refuses on any
+  difference).
+
+**The rule** (`model/v10c/build_full_substrate.py`), per split, `split_cold_cell_1` and `split_cold_drug_1`:
+- **test** = the benchmark's test rows, exactly, so every v10-C number is on the same rows as v9's and XPert's;
+- **unseen cells:** every row of the 8 test cells that is not a benchmark test row is **excluded**, from training and
+  from test alike;
+- **unseen compounds:** every row whose compound is a test compound, **or shares a test compound's canonical SMILES under
+  another ID**, is excluded;
+- **train** = every other row, plus the benchmark's own training rows (always kept, so the benchmark training set is a
+  subset of ours);
+- rows whose compound lacks our drug features are excluded: 568 of the 8,416 compounds (20,634 rows), all from the
+  LINCS 2020 release, outside the GSE92742 / GSE70138 compound tables our features were built from. No benchmark row is
+  affected.
+
+**What is stored:**
+- X (float32);
+- each distinct control profile once, with an index per row: rows on one plate share an identical X_ctl;
+- the plate set (`det_plate`), the group for the L5 contrast target and the L6 leave-own-plate-out baseline;
+- the benchmark row of each substrate row.
+
+**Not here:** the dev carve for T-B. It is drawn from these training cells and registered in §100.3 before any v10-C
+training run.
+
+**Tests:** 4 (the split rules on a fixture, an end-to-end build, a refusal on a value mismatch, a refusal on an unmatched
+benchmark row).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
