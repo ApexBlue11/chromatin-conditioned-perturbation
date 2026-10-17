@@ -46,3 +46,16 @@ def test_calibration_detects_a_large_plant():
 def test_derangement_moves_every_cell():
     p = ta.derangement(10, np.random.default_rng(0))
     assert sorted(p) == list(range(10)) and not (p == np.arange(10)).any()
+
+
+def test_centring_removes_cell_levels():
+    A = np.arange(12.).reshape(2, 3, 2)
+    c = ta.centre_cells(A)
+    assert np.allclose(c.mean(1), 0) and np.allclose(c[0, :, 0], [-2, 0, 2])
+
+
+def test_centred_run_detects_a_within_cell_plant():
+    R, basal, chrom, has = _world(3, beta=0.5)
+    R = R + np.random.default_rng(9).normal(scale=3.0, size=(R.shape[0], 1))      # large cell-level noise
+    rec = ta.run(R, basal, chrom, has, n_null=20, betas=(0.1,), n_null_cal=5, centre=True)
+    assert rec['passes']

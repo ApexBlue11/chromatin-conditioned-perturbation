@@ -86,9 +86,17 @@ def derangement(n, rng):
             return p
 
 
-def run(R, basal, chrom, has_chrom, n_null=200, seed=0, betas=(0.02, 0.05, 0.1, 0.2), acc_feature=0, n_null_cal=50):
+def centre_cells(A):
+    """Remove each cell's mean over genes (for [C, G] or [C, G, P]): what is left is the within-cell gene pattern."""
+    return A - A.mean(1, keepdims=True)
+
+
+def run(R, basal, chrom, has_chrom, n_null=200, seed=0, betas=(0.02, 0.05, 0.1, 0.2), acc_feature=0, n_null_cal=50,
+        centre=False):
     rng = np.random.default_rng(seed)
     Rz = (R - R.mean(0)) / (R.std(0) + 1e-9)
+    if centre:   # POST HOC diagnostic (100.6a): the within-cell gene pattern only, cell-level levels removed
+        Rz, basal, chrom = centre_cells(Rz), centre_cells(basal), centre_cells(chrom)
     eval_cells = np.flatnonzero(has_chrom)
     lam_scores = {lam: loco_r2(Rz, basal, chrom, False, lam, np.arange(len(Rz))) for lam in LAMBDAS}
     lam = max(lam_scores, key=lam_scores.get)
@@ -128,6 +136,7 @@ def main():
     ap.add_argument('--chromatin', required=True)
     ap.add_argument('--out', required=True)
     ap.add_argument('--n_null', type=int, default=200)
+    ap.add_argument('--centre', action='store_true', help='POST HOC diagnostic: centre R, basal and chromatin per cell')
     a = ap.parse_args()
     if os.path.exists(a.out):
         raise SystemExit(f'FATAL: {a.out} exists -- touched once')
@@ -150,7 +159,8 @@ def main():
     F, M = ch['F'][[cidx[str(c)] for c in cells]], ch['M'][[cidx[str(c)] for c in cells]].astype(np.float64)
     chrom = np.concatenate([F, M], -1)
     has = M[:, :, :3].any((1, 2))
-    rec = run(R, basal, chrom, has, n_null=a.n_null)
+    rec = run(R, basal, chrom, has, n_null=a.n_null, centre=a.centre)
+    rec['centred_post_hoc'] = bool(a.centre)
     rec.update({'rule': 'RESULTS 100.6', 'cells': [str(c) for c in cells], 'rows_per_cell': {str(c): int(k) for c, k in zip(cells, n)},
                 'cells_with_chromatin': int(has.sum()), 'wall_s': round(time.time() - t0, 1)})
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
