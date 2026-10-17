@@ -1463,3 +1463,15 @@ def test_pi_review082_timing_bound_to_what_was_timed(monkeypatch, tiny_world_dat
         _pi_raises(lambda: make_p10_d_kernels.build_kernels(**dict(w["kw"], timing_json_path=jp)), needle)
     # the template's version pin is the builder's
     assert f'PINNED_GPU_VERSIONS = "{make_p10_d_kernels.PINNED_GPU_VERSIONS}"' in open(w["timing"], encoding="utf-8").read()
+
+
+def test_pi_numpy_torch_imported_only_after_the_wheel_install():
+    """Timing v2 (2026-10-17): numpy imported before the scanpy wheels upgraded it broke numpy.ma in the kernel."""
+    import make_p10_d_kernels as mk
+    tpl = mk.KERNEL_TEMPLATE
+    cut = tpl.index('installed_versions = "pip bypassed (tests only)"')
+    head = tpl[:cut]
+    starts = ("import numpy", "import torch", "from numpy", "from torch")
+    assert not any(l.strip().startswith(starts) for l in head.splitlines())
+    assert " np." not in head and "not torch.cuda" not in head and "subprocess.run([sys.executable, \"-c\", \"import json, torch" in head
+    assert tpl.index("import numpy as np") > cut and tpl.index("import torch  #") > cut

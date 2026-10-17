@@ -12,8 +12,6 @@ import shutil
 import subprocess
 import sys
 import threading
-import numpy as np
-import torch
 
 MODE = 'timing'
 PINNED_GPU_VERSIONS = "scanpy=1.12.4 anndata=0.13.3.post0 diffusers=0.30.2 einops=0.8.0 huggingface_hub=0.24.6 rdkit=2023.09.1"
@@ -57,10 +55,17 @@ def find_one(pattern):
 print(f"=== Starting P10 arm D {MODE} ===", flush=True)
 
 # 1. GPU guard: two non-P100 GPUs (make_p9 lines)
+# numpy and torch are imported only after the wheels are installed (step 2): the scanpy wheels upgrade numpy on disk, and
+# a numpy already loaded in this process then fails inside numpy.ma (timing v2, 2026-10-17). The GPU probe runs in a child.
 if os.environ.get("P10D_BYPASS_GPU_GUARD", "0") != "1":
-    if not torch.cuda.is_available():
+    res_gpu = subprocess.run([sys.executable, "-c", "import json, torch; print(json.dumps("
+                              "[torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())] "
+                              "if torch.cuda.is_available() else []))"], capture_output=True, text=True)
+    if res_gpu.returncode != 0:
+        fatal(f"GPU probe failed: {res_gpu.stderr[-2000:]}")
+    names = json.loads(res_gpu.stdout.strip().splitlines()[-1])
+    if not names:
         fatal("no CUDA device. NOT falling back to CPU.")
-    names = [torch.cuda.get_device_name(i) for i in range(torch.cuda.device_count())]
     if any("P100" in n for n in names) or len(names) < 2:
         fatal(f"need 2 non-P100 GPUs, got {names!r}")
     print(f"GPUs: {names}", flush=True)
@@ -111,6 +116,9 @@ if os.environ.get("P10D_BYPASS_PIP", "0") != "1":
         fatal(f"GUARD 1: installed versions {installed_versions!r} != pinned {PINNED_GPU_VERSIONS!r} (review 081 C4)")
 else:
     installed_versions = "pip bypassed (tests only)"
+
+import numpy as np  # noqa: E402  (after the wheel install: see step 1)
+import torch  # noqa: E402
 
 # 3. Mounted-file guards
 bundle_path = find_one(os.path.join(KAGGLE_INPUT, "**/xpert_mdmt_splits.npz"))
