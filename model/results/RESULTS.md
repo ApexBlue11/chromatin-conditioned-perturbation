@@ -10067,6 +10067,27 @@ their pins before the reset.
 3. then, from its downloaded `p10d_timing.json`, the run kernel. The builder refuses `not_run_cost` and any timing not measured
    with the run's pins. It is pushed only if O9's next session still fits.
 
+### 98.22 RESULT: D's timing, read by ruling 5 → **D (PertDiT) is recorded as not run (cost)** (PI, 2026-10-17)
+**The timing kernel** (`lincs-p10d-timing`, version 3 on 2 × T4; versions 1–2 failed at setup and are recorded in packet
+087: Kaggle unzips uploaded `.zip` files, and numpy was imported before the wheel install):
+
+| seed | t_pre | t_epoch | t_test |
+|---|---|---|---|
+| 117 | 137 s | 889 s | 1,673 s |
+| 118 | 137 s | 859 s | 1,581 s |
+
+**Ruling 5's projection:**
+- P62 = t_pre + 62·t_epoch + t_test = **56,916 s (15.8 h)** > the 21,600 s cap;
+- P1000 = 890,620 s.
+
+So the decision is **`not_run_cost`**. The builder refuses to build a run kernel (checked 2026-10-17), and no D number
+exists.
+
+**What it means for P10:**
+- arm D is reported as *"not run: PertDiT's published recipe (62 epochs) needs ≈ 16 GPU-h per seed on 2 × T4 at our row
+  count, over the 6 h cap fixed in 98.15"*;
+- no statement about PertDiT's accuracy on this split is licensed.
+
 ## 99. 🔒 PRE-REGISTERED: the architecture and target audit, and Phase 1 of its confirmation (principal's request, PI, 2026-10-13; before any Phase 1 code or test-row reading)
 **The full record** is `model/V10_AUDIT_AND_PLAN.md` (this commit). It holds:
 - the reference-model comparison, read from the code of DeepCE, CIGER, MultiDCP, PRnet, TranSiGen, chemCPA and STATE;
