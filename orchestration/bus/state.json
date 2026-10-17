@@ -4,7 +4,7 @@
   "opened": "2026-09-20",
   "objective": "Establish whether v9 generalises to unseen cell lines better than published SOTA, and what in it is load-bearing.",
   "note": "PI refuses to open an iteration past max_iterations without explicit human approval.",
-  "responses_since_checkpoint": 2,
+  "responses_since_checkpoint": 3,
   "checkpoint_every": 30,
   "autonomy": {
     "delegated": [
@@ -22,7 +22,6 @@
   },
   "loop_state": "RUNNING",
   "open_packets": [
-    "085_phase1_local_results",
     "086_v10c_chromatin_design",
     "087_v10c_data"
   ],
@@ -113,7 +112,8 @@
     "081_d_gpu_code",
     "082_d_fixes_scorer",
     "083_v10_audit_phase1",
-    "084_phase1_code"
+    "084_phase1_code",
+    "085_phase1_local_results"
   ],
   "gpu_hours_spent_this_session": 18.71,
   "pending_decision": "O9 FINAL (early stop, best 104), reproduced 0.6467; P9 vs O9 read (97.10): tie on the field metric, XPert per-molecule edge uninterpretable. v10-C timing kernel running; D timing running; T-B next. Packets 085-087 await the critic (session offline).",

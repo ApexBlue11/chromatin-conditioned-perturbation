@@ -10198,7 +10198,7 @@ All five MINOR points were adopted before anything ran:
 **Tests:** 30 pass. **Mutation: 0 of 25 survive** (the 20 before, plus the floorless-mate fix, the donor equality, the
 budget guard, the probe's single-copy check and the kernel's single-copy check).
 
-### 99.6 RESULT, Phase 1's local tests, each read once: **C1 — v9 beats a drug-free model with dose and time on the within-plate contrast**; on the field's own target a zero-parameter plate lookup beats every model (PI, 2026-10-15)
+### 99.6 RESULT, Phase 1's local tests, each read once: **C1 — v9 beats a drug-free model with dose and time on the within-plate contrast**; on the field's own target a zero-parameter plate lookup ~~beats every model~~ matches or beats v9 and M on 79 % of clean rows (review 085 C2) (PI, 2026-10-15)
 **The runs:**
 - `audit99_phase1.py --test C1 / C1b / C1c / C2a / C2c / C4`, once each, after 99.5's fixes (code at 8cadb6a), GPU hidden;
 - outputs in `model/results/audit99/phase1_*.json`.
@@ -10234,8 +10234,10 @@ budget guard, the probe's single-copy check and the kernel's single-copy check).
 **C1c** (the original target, on 9,466 clean rows that have ≥ 2 other-compound training wells on their plate):
 - **the zero-parameter training-plate lookup scores 0.662**, against v9 0.654 and M 0.661;
 - per molecule, v9 − lookup is **−0.018** [−0.022, −0.015] and M − lookup is −0.004 [−0.006, −0.003];
-- **on the field's own target, averaging the other compounds' training wells on the same plate beats every model,** v9
-  included.
+- ~~on the field's own target, averaging the other compounds' training wells on the same plate beats every model, v9
+  included~~ **(review 085 C2, §99.9):** on the 79 % of clean test rows with ≥ 2 other-compound training wells on their plate,
+  the mean training response of those plate-mates scores 0.662, at or above v9 (0.654, −0.018 per molecule) and M (0.661,
+  −0.004). Only v9 and M were compared; O9 is added in §99.9.
 
 **C2a** (unseen cells, 21,151 rows), the row mean (cluster of cell means):
 
@@ -10262,13 +10264,18 @@ budget guard, the probe's single-copy check and the kernel's single-copy check).
 - **v9 ties its response size to dose despite M7's design.**
 
 **What this changes:**
-- **M3 is answered for the benchmark.** R1's tie (§98.11) hid a real advantage: with the plate removed, v9 beats the
-  drug-free models by +0.076 per molecule, while those models do no better than a dose floor.
-- **M1 / M2 are confirmed on test rows** (C1c): the field's cold-compound benchmark is won by a plate lookup.
+- **M3 is answered for the benchmark.** ~~R1's tie (§98.11) hid a real advantage~~ **R1's tie on the standard target
+  coexists with a +0.076 per-molecule advantage on the within-plate contrast** (review 085 C3): with the plate removed, v9
+  beats the drug-free models by +0.076 per molecule, while those models do no better than a dose floor.
+- **M1 / M2 are confirmed on test rows** (C1c): ~~the field's cold-compound benchmark is won by a plate lookup~~ on 79 % of
+  clean rows a plate lookup matches or beats v9 and M (review 085 C2).
 - **Not yet licensed: "v9 uses the compound".** That is C3's, which holds dose fixed and swaps only the compound. It runs now
   (`kern_audit99_p9_s*`), with C2b (`kern_audit99_p7_s*`).
-- **M7 is weaker than stated:** dose is coupled in practice (C4). F5 (the chemCPA-style dose) stays in Phase 2, but as a
-  design cleanup, not a fix for a measured failure.
+- ~~M7 is weaker than stated: dose is coupled in practice (C4). F5 (the chemCPA-style dose) stays in Phase 2, but as a
+  design cleanup, not a fix for a measured failure.~~ **(review 085 C5):** v9 couples response size to dose on average
+  (mean ρ 0.36 against the truth's 0.47). **Compound-specific** dose coupling is weak: corr(ρ_truth, ρ_pred) is 0.25 for v9
+  against 0.20 for M+dt, which has no compound input (both magnitudes subtract the same measured plate term). F5 stays a
+  fix, not only a cleanup.
 
 ### 99.7 RESULT, C3 read once: **v9's predictions depend on the right compound** (PI, 2026-10-15)
 **The runs:**
@@ -10291,8 +10298,12 @@ budget guard, the probe's single-copy check and the kernel's single-copy check).
 **Reading together with C1 (99.6):**
 - v9 uses the compound, and the use is worth about as much on the plate-removed target (+0.070) as v9's margin over the
   drug-free models (+0.076).
-- The field's target registers about a quarter of it. **That is why R1, and Bai et al.'s benchmark, read "no drug use".**
-- M3 is confirmed in the sense that matters: our drug-use tests on the standard target could not see a real effect.
+- ~~The field's target registers about a quarter of it. That is why R1, and Bai et al.'s benchmark, read "no drug use".~~
+- ~~M3 is confirmed in the sense that matters: our drug-use tests on the standard target could not see a real effect.~~
+- **(review 085 C1, MAJOR, §99.9):** *v9 uses the compound (C3): +0.070 per molecule on the contrast and +0.017 on the
+  standard target, both CIs excluding 0. On the standard target that use does not appear as a **margin over a drug-free
+  model**, which recovers the plate through the control (C1c). The same mechanism may explain Bai et al.'s "no drug use"
+  on their benchmark; that is untested here (they tested seven other models, on single-dose data, by retrain ablation).*
 
 ### 99.8 RESULT, C2b read once: the registered statement fires, but the seen-cell bound shows the test cannot separate transduction from input shift (PI, 2026-10-17)
 **The runs:**
@@ -10311,13 +10322,59 @@ budget guard, the probe's single-copy check and the kernel's single-copy check).
 - **The seen-cell bound:** on P9's seen cells, where x_cell is training-derived, the same replacement drops v9 from **0.649 to
   0.397 (−0.252)**; the global mean drops it to 0.423.
 - **That is larger than the unseen-cell drop** (−0.223 rows pooled).
-- **So the collapse is fully explained by input shift.** The model never saw x_cell = x_ctl in training, and breaks on it
-  even where the input is legitimate.
+- ~~So the collapse is fully explained by input shift.~~ **(review 085 C6):** the unseen-cell drop (−0.223) is no larger
+  than the same replacement costs in seen cells (−0.252), where nothing transductive is at stake. The seen-cell drop is
+  input shift **plus** the legitimate plate-deviation signal, an upper bound on pure shift. **So this test cannot attribute
+  any of the unseen-cell drop to transduction.** The model never saw x_cell = x_ctl in training.
 - **What the transductive mean itself contributes is NOT identified by this inference test.** The registered sentence stands
   as the rule's output, with this bound attached wherever it is quoted.
 - **The identifying test is a retrain** with an inductive cell input (F3). The cell-level comparison with XPert keeps M4's
   caveat until then.
 - **Global-mean variant:** −0.0985, 0 of 8 cells.
+
+
+### 99.9 Review 085 (SOUND-WITH-CAVEATS) adopted: §99.7's reading corrected, C1c scoped, O9 added (PI, 2026-10-17)
+**The critic reproduced every checked number with its own code**, exactly:
+- C1 +0.0756 [+0.0616, +0.0904], 263 / 337;
+- C1c 0.662 / 0.654 / 0.661;
+- C3 +0.0700 on the contrast and +0.0171 on the standard target.
+
+**All six challenges are adopted.** Each corrected passage is struck through in place and points here.
+- **C1 (MAJOR), §99.7:**
+  - *"Our drug-use tests on the standard target could not see a real effect"* contradicted C3, which sees +0.017 there
+    with a CI clear of 0.
+  - What the standard target hides is the **margin over a drug-free model**, which recovers the plate through the control.
+  - The Bai et al. sentence was an extrapolation, and is now a hypothesis.
+  - M3's status: *compound use is visible to a compound-swap test on the standard target, but not as a margin over a
+    drug-free model.*
+- **C2, C1c's scope:**
+  - The claim covers 79 % of clean rows, and v9 and M only.
+  - **O9 is added (reported, never a claim;** `model/v9/audit99_o9_report.py` → `model/results/audit99/phase1_o9_reported.json`).
+  - On C1c's 9,466 rows, the lookup scores 0.662 against XPert's 0.655. XPert − lookup is **−0.014** [−0.017, −0.010] per
+    molecule, with 22 % of molecules favouring XPert. So the lookup also matches or beats XPert there.
+- **C3:** "R1's tie hid a real advantage" now names its estimand, the within-plate contrast.
+- **C4:** `score_p9.verdict` names the left-hand model "v9", so C1c's M-against-lookup verdict string is mislabelled. The
+  JSON stays as run, noted; the O9 report carries the same note.
+- **C5, M7:**
+  - v9 couples response size to dose on average.
+  - Compound-specific coupling is weak: corr(ρ_truth, ρ_pred) is 0.25 for v9 against 0.20 for M+dt, which has no compound
+    input.
+  - F5 stays a fix.
+- **C6, §99.8:** "fully explained by input shift" now reads *"this test cannot attribute any of the unseen-cell drop to
+  transduction"*. The seen-cell drop is shift plus the deviation signal, an upper bound.
+- **Ask 3, C2a's cluster of cell means with / without H1975** (F_tr is 0 there by definition: one shared control):
+  - F_tr 0.277 / 0.317; F_ind 0.237 / 0.210; v9 0.446 / 0.432; XPert 0.396 / 0.370.
+  - v9 leads XPert by 0.050 with H1975 and 0.062 without.
+  - §99.6's table gave v9's cluster mean as 0.447; the JSON's value is 0.4465, i.e. 0.446 (a rounding slip, corrected here).
+  - For H1975, C2b's Δ is 0 by construction (its x_cell equals X_ctl).
+
+**Reported beside C1 (the within-plate contrast, the same 7,980 clean rows, 337 molecules)**, XPert as published (O9):
+- the row-mean contrast r is **0.086**, against v9's 0.109 and M+dt's 0.032;
+- **v9 − O9 = +0.017** [+0.006, +0.029] per molecule, with 64 % favouring v9;
+- O9 − M+dt = +0.054 [+0.041, +0.069].
+
+**Never a claim.** O9's checkpoint was selected on these test rows on the field's target (97.3). It is reported because it
+locates XPert on the target v10-C is scored on: XPert also separates compounds on a plate, by less than v9.
 
 ## 100. 🔒 REGISTERED (design): v10-C, the chromatin programme — every lever at once, judged once (principal's direction, PI, 2026-10-17; before any of its code or data)
 **The full record** is `model/V10_CHROMATIN_PROGRAMME.md` (this commit). Each test is registered in full in its own
@@ -10610,7 +10667,8 @@ their published 0.645. XPert's recipe is reproduced on this fold.
   row-pooled).
 - XPert wins about 65 % of molecules by a tiny margin, but that cannot be read as a model win: their stopper chose the
   checkpoint on these rows.
-- The 99.6 audit already showed this target is plate-dominated (C1c: a zero-parameter plate lookup beats every model). On
+- The 99.6 audit already showed this target is plate-dominated (C1c: on 79 % of clean rows a zero-parameter plate lookup
+  matches or beats v9 and M; review 085 C2). On
   the contrast, v9 beats a drug-free model by +0.076 per molecule (C1), and v10-C (§100) is scored there.
 
 ### 100.4a AMENDMENT to 100.4, two loader fixes found before any v10-C training step (PI, 2026-10-17)

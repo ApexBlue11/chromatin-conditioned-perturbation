@@ -1,0 +1,99 @@
+{
+ "label": "review 085 C2: reported, never a claim; O9 checkpoint was selected on these test rows (RESULTS 97.3)",
+ "C1c_original_target": {
+  "rows": 9466,
+  "row_mean_r_original_target": {
+   "lookup": {
+    "mean": 0.6623058342275548,
+    "median": 0.6734746343583662,
+    "n": 9466
+   },
+   "o9": {
+    "mean": 0.6554667975686069,
+    "median": 0.6678438738332506,
+    "n": 9466
+   },
+   "v9": {
+    "mean": 0.6543221148597409,
+    "median": 0.6636227978270675,
+    "n": 9466
+   }
+  },
+  "o9_vs_lookup": {
+   "mean_d": -0.013725776126288586,
+   "ci95": [
+    -0.017120424854013282,
+    -0.01037265905551616
+   ],
+   "ci_lo": -0.017120424854013282,
+   "ci_hi": -0.01037265905551616,
+   "ci_width": 0.006747765798497122,
+   "n_molecules": 345,
+   "n_favour_ours": 77,
+   "n_favour_ref": 268,
+   "n_tie": 0,
+   "frac_favour_ours": 0.22318840579710145,
+   "frac_favour_ref": 0.7768115942028986,
+   "sign_p": 7.090544401819183e-26,
+   "verdict": "the training-plate predictor predicts unseen compounds better than v9",
+   "verdict_note": "score_p9.verdict names the left-hand model \"v9\"; here it is O9 (review 085 C4)"
+  }
+ },
+ "C1_contrast": {
+  "rows": 7980,
+  "row_mean_contrast_r": {
+   "o9": {
+    "mean": 0.08599851242454679,
+    "median": 0.07564992387696293,
+    "n": 7980
+   },
+   "v9": {
+    "mean": 0.10939653508697876,
+    "median": 0.084202788525048,
+    "n": 7980
+   },
+   "mdt": {
+    "mean": 0.03244365789431418,
+    "median": 0.013027452936894019,
+    "n": 7980
+   }
+  },
+  "v9_vs_o9": {
+   "mean_d": 0.017463937408404177,
+   "ci95": [
+    0.005761469987594534,
+    0.029351787586790964
+   ],
+   "ci_lo": 0.005761469987594534,
+   "ci_hi": 0.029351787586790964,
+   "ci_width": 0.023590317599196428,
+   "n_molecules": 337,
+   "n_favour_ours": 215,
+   "n_favour_ref": 122,
+   "n_tie": 0,
+   "frac_favour_ours": 0.6379821958456974,
+   "frac_favour_ref": 0.3620178041543027,
+   "sign_p": 4.600138181166514e-07,
+   "verdict": "v9 predicts unseen compounds better than XPert as published (O9)"
+  },
+  "o9_vs_mdt": {
+   "mean_d": 0.05436557788832653,
+   "ci95": [
+    0.040890142152787565,
+    0.0685193737724996
+   ],
+   "ci_lo": 0.040890142152787565,
+   "ci_hi": 0.0685193737724996,
+   "ci_width": 0.027629231619712036,
+   "n_molecules": 337,
+   "n_favour_ours": 244,
+   "n_favour_ref": 93,
+   "n_tie": 0,
+   "frac_favour_ours": 0.7240356083086054,
+   "frac_favour_ref": 0.27596439169139464,
+   "sign_p": 9.21569954756851e-17,
+   "verdict": "v9 predicts unseen compounds better than M+dt",
+   "verdict_note": "score_p9.verdict names the left-hand model \"v9\"; here it is O9 (review 085 C4)"
+  }
+ }
+}
