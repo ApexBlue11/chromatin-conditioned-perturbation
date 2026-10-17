@@ -4,8 +4,13 @@
  "bundle_sha1": "1444b253d48c5adf066bf7a3cc0ba8ea5fb71464",
  "drug_index_sha1": "0b812337aa4dfce1e00d5d86e2dba3cb3f9c0a32",
  "drug_list_sha1": "c99e5b0066f24fea2132b6cd3656be4b4cce38b7",
- "n_rows": 314775,
- "n_unique_controls": 25130,
+ "drug_fp_sha1": "8ba2da5982d67d8424b90e854086bad6b786d221",
+ "pert_info_sha1": [
+  "29a6f0b00e4e250462e2f9d7e722396b746d3068",
+  "f93f699a48b8dfa7297955636cf5126d9554d54a"
+ ],
+ "n_rows": 314094,
+ "n_unique_controls": 25092,
  "label_counts_full_release": {
   "cold_cell_1": {
    "excluded_no_features": 18801,
@@ -15,9 +20,9 @@
   },
   "cold_drug_1": {
    "excluded_no_features": 19874,
-   "excluded_test_compound": 22407,
+   "excluded_test_compound": 26983,
    "test": 13445,
-   "train": 281126
+   "train": 276550
   }
  },
  "train_sets": {
@@ -27,9 +32,9 @@
   },
   "cold_drug_1": {
    "train_cells": 217,
-   "train_compounds": 7510
+   "train_compounds": 7402
   }
  },
  "compounds_without_features": 568,
- "out_sha1": "353da6e69f48e4cb119a453724ac4e87cbbc112c"
+ "out_sha1": "38a5dfb50302ae73be7bb7d2a6dee8afcf6227a6"
 }

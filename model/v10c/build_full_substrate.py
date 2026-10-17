@@ -13,6 +13,11 @@ H5AD = os.path.join(REPO, 'external', 'xpert', 'l1000_mdmt_full_336852.h5ad')
 BUNDLE = os.path.join(REPO, 'external', 'xpert_split_bundle', 'xpert_mdmt_splits.npz')
 DRUG_INDEX = os.path.join(REPO, 'drug', 'outputs', 'drug_feature_index.json')
 DRUG_LIST = os.path.join(REPO, 'drug', 'outputs', 'drug_list.tsv')
+DRUG_FP = os.path.join(REPO, 'drug', 'outputs', 'drug_fingerprints.npy')
+PERT_INFO = [os.path.join(REPO, 'Data Info', 'GSE92742_Broad_LINCS_pert_info.txt', 'GSE92742_Broad_LINCS_pert_info.txt'),
+             os.path.join(REPO, 'Data Info', 'GSE70138_Broad_LINCS_pert_info_2017-03-06.txt',
+                          'GSE70138_Broad_LINCS_pert_info.txt')]
+TANI_DUP = 0.999  # RESULTS 96.6: the same molecule is an InChIKey first-block match or ECFP4 Tanimoto >= 0.999
 SPLITS = ('cold_cell_1', 'cold_drug_1')
 CHUNK = 20_000
 
@@ -66,7 +71,45 @@ def structure_groups(drug_list):
     return out
 
 
-def assign_splits(full_cell, full_pert, bench_pos, bench_split, has_feat, smiles):
+def inchi_blocks(paths=PERT_INFO):
+    """pert_id -> InChIKey first block, from the LINCS pert_info tables (as RESULTS 96.6)."""
+    out = {}
+    for p in paths:
+        with open(p, encoding='utf-8', newline='') as f:
+            for r in csv.DictReader(f, delimiter='\t'):
+                k = (r.get('inchi_key') or '').strip()
+                if k and k not in ('-666', 'nan') and r['pert_id'] not in out:
+                    out[r['pert_id']] = k.split('-')[0]
+    return out
+
+
+def same_molecule(test_perts, candidates, smiles, inchi, fp_of, tani=TANI_DUP):
+    """The candidates that are a test compound's molecule under another ID: same canonical SMILES, same InChIKey first
+    block, or ECFP4 Tanimoto >= tani (RESULTS 96.6). fp_of(pert) -> a 0/1 vector or None."""
+    test_smiles = {smiles[p] for p in test_perts if p in smiles}
+    test_ik = {inchi[p] for p in test_perts if p in inchi}
+    T = [fp_of(p) for p in sorted(test_perts)]
+    T = np.array([t for t in T if t is not None], np.float32)
+    tcount = T.sum(1) if len(T) else None
+    out = set()
+    for p in candidates:
+        if p in test_perts:
+            continue
+        if smiles.get(p) in test_smiles or inchi.get(p) in test_ik:
+            out.add(p)
+            continue
+        v = fp_of(p)
+        if v is None or tcount is None:
+            continue
+        v = np.asarray(v, np.float32)
+        inter = T @ v
+        union = tcount + v.sum() - inter
+        if np.any(np.where(union > 0, inter / np.maximum(union, 1e-9), 0.0) >= tani):
+            out.add(p)
+    return out
+
+
+def assign_splits(full_cell, full_pert, bench_pos, bench_split, has_feat, smiles, inchi=None, fp_of=None):
     """bench_pos[i] = the full row of benchmark row i. Returns {split: labels over full rows} with labels
     train / test / excluded_test_cell / excluded_test_compound / excluded_no_features."""
     n = len(full_cell)
@@ -79,9 +122,8 @@ def assign_splits(full_cell, full_pert, bench_pos, bench_split, has_feat, smiles
             lab[np.isin(full_cell, sorted(test_cells))] = 'excluded_test_cell'
         else:
             test_perts = set(full_pert[test_rows])
-            test_smiles = {smiles[p] for p in test_perts if p in smiles}
-            dup = np.array([p in test_perts or smiles.get(p) in test_smiles for p in full_pert])
-            lab[dup] = 'excluded_test_compound'
+            same = same_molecule(test_perts, set(full_pert), smiles, inchi or {}, fp_of or (lambda p: None))
+            lab[np.isin(full_pert, sorted(test_perts | same))] = 'excluded_test_compound'
         lab[~has_feat & (lab == 'train')] = 'excluded_no_features'
         lab[test_rows] = 'test'
         # a benchmark training row is always training here (the benchmark's own train set is a subset of ours)
@@ -90,7 +132,8 @@ def assign_splits(full_cell, full_pert, bench_pos, bench_split, has_feat, smiles
     return out
 
 
-def build(out_path, h5ad=H5AD, bundle=BUNDLE, drug_index=DRUG_INDEX, drug_list=DRUG_LIST, verify_all=True):
+def build(out_path, h5ad=H5AD, bundle=BUNDLE, drug_index=DRUG_INDEX, drug_list=DRUG_LIST, verify_all=True,
+          drug_fp=DRUG_FP, pert_info=PERT_INFO):
     b = np.load(bundle, allow_pickle=True)
     f = h5py.File(h5ad, 'r')
     obs = f['obs']
@@ -110,7 +153,11 @@ def build(out_path, h5ad=H5AD, bundle=BUNDLE, drug_index=DRUG_INDEX, drug_list=D
     feat = json.load(open(drug_index, encoding='utf-8'))
     has_feat = np.array([p in feat for p in pert])
     smiles = structure_groups(drug_list)
-    labels = assign_splits(cell, pert, bench_pos, {s: b['split_split_' + s] for s in SPLITS}, has_feat, smiles)
+    inchi = inchi_blocks(pert_info)
+    fps = np.load(drug_fp, mmap_mode='r')
+    fp_of = lambda p: (np.asarray(fps[feat[p]]) > 0) if p in feat else None
+    labels = assign_splits(cell, pert, bench_pos, {s: b['split_split_' + s] for s in SPLITS}, has_feat, smiles,
+                           inchi, fp_of)
     keep = np.zeros(len(key), bool)
     for lab in labels.values():
         keep |= np.isin(lab, ['train', 'test'])
@@ -152,7 +199,8 @@ def build(out_path, h5ad=H5AD, bundle=BUNDLE, drug_index=DRUG_INDEX, drug_list=D
     kept = {s: {'train_cells': int(len(set(meta['cell_iname'][labels[s][rows] == 'train']))),
                 'train_compounds': int(len(set(meta['pert_id'][labels[s][rows] == 'train'])))} for s in SPLITS}
     rec = {'rule': 'RESULTS 100.2', 'h5ad_sha1': sha1(h5ad), 'bundle_sha1': sha1(bundle),
-           'drug_index_sha1': sha1(drug_index), 'drug_list_sha1': sha1(drug_list), 'n_rows': n,
+           'drug_index_sha1': sha1(drug_index), 'drug_list_sha1': sha1(drug_list), 'drug_fp_sha1': sha1(drug_fp),
+           'pert_info_sha1': [sha1(x) for x in pert_info], 'n_rows': n,
            'n_unique_controls': int(len(ctl)), 'label_counts_full_release': counts, 'train_sets': kept,
            'compounds_without_features': int(len(set(pert[~has_feat]))), 'out_sha1': sha1(out_path)}
     return rec

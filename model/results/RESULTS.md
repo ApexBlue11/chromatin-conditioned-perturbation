@@ -10456,16 +10456,22 @@ benchmark row).
 - 90 cells with chromatin; **140 with chromatin or methylation**; 43 with all three axes;
 - MUC1 is never observed (no MANE TSS, no RRBS row).
 
-**The substrate** (`external/v10c_full/v10c_full_substrate.npz`, sha1 `353da6e6…`; record
+**The substrate** (`external/v10c_full/v10c_full_substrate.npz`, sha1 `38a5dfb5…`; record
 `model/results/v10c/substrate_record.json`):
+
+- **Amendment to 100.2, before any training (the principal-facing rule is unchanged, the duplicate test is stricter):**
+  "shares a test compound's canonical SMILES" is replaced by **RESULTS 96.6's same-molecule rule**: the same canonical
+  SMILES, the same InChIKey first block (LINCS pert_info), or ECFP4 Tanimoto ≥ 0.999. With ~6,000 compounds added, the
+  weaker test let 108 same-molecule compounds (4,576 rows) into the unseen-compound training set. The first build
+  (sha1 `353da6e6…`, uploaded once) is superseded and was read by nothing.
 
 | | benchmark (v9) | v10-C substrate |
 |---|---|---|
-| rows stored | 68,830 | 314,775 (25,130 distinct controls) |
+| rows stored | 68,830 | 314,094 (25,092 distinct controls) |
 | unseen cells: training rows / cells / compounds | 47,509 / 32 / 1,849 | **254,685 / 209 / 7,900** |
-| unseen compounds: training rows / cells / compounds | 55,385 / 39 / 1,581 | **281,126 / 217 / 7,510** |
+| unseen compounds: training rows / cells / compounds | 55,385 / 39 / 1,581 | **276,550 / 217 / 7,402** |
 | test rows | 21,321 / 13,445 | identical |
-| excluded (test cell / test compound incl. same-SMILES IDs) | — | 42,045 / 22,407 |
+| excluded (test cell / test compound incl. same-molecule IDs) | — | 42,045 / 26,983 |
 
 - **The builder checked all 68,830 benchmark rows:** X and X_ctl are byte-identical to the full release.
 - **Amendment to 100.2 (a count, not a rule):** 59 benchmark compounds are not in `drug_feature_index.json` either. v9

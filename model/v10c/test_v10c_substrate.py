@@ -55,6 +55,8 @@ def _write_fixture(tmp, perturb_x=False):
              split_split_cold_drug_1=np.array(['train', 'test', 'test']))
     json.dump({'p1': 0, 'p2': 1, 'p3': 2}, open(tmp / 'idx.json', 'w'))
     (tmp / 'list.tsv').write_text('pert_id\tcanonical_smiles\np1\tCC\np2\tCO\np3\tCO\np9\tN\n', encoding='utf-8')
+    np.save(tmp / 'fp.npy', np.eye(3, 8, dtype=np.uint8))
+    (tmp / 'pi.txt').write_text('pert_id\tinchi_key\np1\tAAA-B-C\n', encoding='utf-8')
     return h, X, C
 
 
@@ -62,7 +64,8 @@ def test_build_end_to_end(tmp_path):
     h, X, C = _write_fixture(tmp_path)
     out = tmp_path / 'sub.npz'
     rec = bfs.build(str(out), h5ad=str(h), bundle=str(tmp_path / 'bundle.npz'), drug_index=str(tmp_path / 'idx.json'),
-                    drug_list=str(tmp_path / 'list.tsv'))
+                    drug_list=str(tmp_path / 'list.tsv'), drug_fp=str(tmp_path / 'fp.npy'),
+                    pert_info=[str(tmp_path / 'pi.txt')])
     z = np.load(out)
     # kept: rows that are train or test in either split -> not row 5 (excluded in both) nor row 6 (no features)
     assert list(z['full_row']) == [0, 1, 2, 3, 4]
@@ -80,7 +83,8 @@ def test_build_refuses_value_mismatch(tmp_path):
     h, _, _ = _write_fixture(tmp_path, perturb_x=True)
     with pytest.raises(SystemExit, match='differ from the full release'):
         bfs.build(str(tmp_path / 'sub.npz'), h5ad=str(h), bundle=str(tmp_path / 'bundle.npz'),
-                  drug_index=str(tmp_path / 'idx.json'), drug_list=str(tmp_path / 'list.tsv'))
+                  drug_index=str(tmp_path / 'idx.json'), drug_list=str(tmp_path / 'list.tsv'), drug_fp=str(tmp_path / 'fp.npy'),
+                    pert_info=[str(tmp_path / 'pi.txt')])
 
 
 def test_build_refuses_unmatched_benchmark_row(tmp_path):
@@ -90,4 +94,24 @@ def test_build_refuses_unmatched_benchmark_row(tmp_path):
     np.savez(tmp_path / 'bundle.npz', **b)
     with pytest.raises(SystemExit, match='not in the full release'):
         bfs.build(str(tmp_path / 'sub.npz'), h5ad=str(h), bundle=str(tmp_path / 'bundle.npz'),
-                  drug_index=str(tmp_path / 'idx.json'), drug_list=str(tmp_path / 'list.tsv'))
+                  drug_index=str(tmp_path / 'idx.json'), drug_list=str(tmp_path / 'list.tsv'), drug_fp=str(tmp_path / 'fp.npy'),
+                    pert_info=[str(tmp_path / 'pi.txt')])
+
+
+def test_same_molecule_rule_96_6():
+    fps = {'t1': np.array([1, 1, 0, 0, 0]), 'a': np.array([1, 1, 0, 0, 0]), 'b': np.array([1, 1, 1, 0, 0]),
+           't2': np.array([0, 0, 0, 1, 1]), 'c': np.array([0, 0, 0, 0, 1])}
+    smiles = {'t1': 'X', 'd': 'X', 'e': 'Y'}
+    inchi = {'t2': 'KEYA', 'f': 'KEYA', 'g': 'KEYB'}
+    got = bfs.same_molecule({'t1', 't2'}, {'t1', 't2', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'}, smiles, inchi, fps.get)
+    # a: Tanimoto 1.0 to t1; d: t1's SMILES; f: t2's InChIKey block; b (2/3) and c (1/2) are analogs, not the molecule
+    assert got == {'a', 'd', 'f'}
+
+
+def test_assign_splits_excludes_tanimoto_duplicate():
+    cell = np.array(['A', 'A', 'A'])
+    pert = np.array(['p1', 'q1', 'r1'])
+    fps = {'p1': np.array([1, 0, 1]), 'q1': np.array([1, 0, 1]), 'r1': np.array([0, 1, 0])}
+    lab = bfs.assign_splits(cell, pert, np.array([0]), {'cold_drug_1': np.array(['test'])}, np.ones(3, bool), {}, {},
+                            fps.get)
+    assert list(lab['cold_drug_1']) == ['test', 'excluded_test_compound', 'train']
