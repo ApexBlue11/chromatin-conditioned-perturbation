@@ -170,7 +170,7 @@ carves_path = find_one(os.path.join(KAGGLE_INPUT, "**/p10_carves.json"))
 p10_mlp_path = find_one(os.path.join(KAGGLE_INPUT, "**/p10_mlp.py"))
 p10_pertdit_path = find_one(os.path.join(KAGGLE_INPUT, "**/p10_pertdit.py"))
 train_pertdit_path = find_one(os.path.join(KAGGLE_INPUT, "**/train_pertdit.py"))
-pertdit_src_zip = find_one(os.path.join(KAGGLE_INPUT, "**/pertdit_src.zip"))
+pertdit_src_zip = find_one(os.path.join(KAGGLE_INPUT, "**/pertdit_src.pzip"))
 compound_map_path = find_one(os.path.join(KAGGLE_INPUT, "**/compound_map.json"))
 dose_list_path = find_one(os.path.join(KAGGLE_INPUT, "**/dose_list.json"))
 drug_emb_path = find_one(os.path.join(KAGGLE_INPUT, "**/bench_drug_emb.pkl"))
@@ -471,7 +471,7 @@ def build_kernels(
     src_cap_trainer = os.path.join(src_root, "p10_train_pertdit_cap.py")
     p10_pertdit.make_cap_trainer(train_pertdit_path, src_cap_trainer)
 
-    src_pertdit_zip = os.path.join(src_root, "pertdit_src.zip")
+    src_pertdit_zip = os.path.join(src_root, "pertdit_src.pzip")  # not .zip: Kaggle unzips uploaded .zip files into folders
     make_deterministic_zip(pertdit_src_dir, src_pertdit_zip)
 
     src_p10_mlp = os.path.join(src_root, "p10_mlp.py")
