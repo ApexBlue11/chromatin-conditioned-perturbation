@@ -10298,6 +10298,30 @@ budget guard, the probe's single-copy check and the kernel's single-copy check).
   caveat until then.
 - **Global-mean variant:** −0.0985, 0 of 8 cells.
 
+## 100. 🔒 REGISTERED (design): v10-C, the chromatin programme — every lever at once, judged once (principal's direction, PI, 2026-10-17; before any of its code or data)
+**The full record** is `model/V10_CHROMATIN_PROGRAMME.md` (this commit). Each test is registered in full in its own
+subsection before its code.
+
+**The levers:**
+- **L1:** the full XPert release, 209 training cells (35 with chromatin) instead of 32 (18);
+- **L2:** coverage, by a ChIP-Atlas re-search over all 217 lines plus CCLE RRBS promoter methylation (137 DepMap lines);
+- **L3:** quantitative bigWig signal over several windows per gene;
+- **L4:** a separate chromatin stream, with chromatin-conditioned drug attention, a chromatin gate on the drug's effect, and
+  chromatin-gated STRING propagation; width 384 screened once;
+- **L5:** the plate-contrast target;
+- **L6:** an inductive, leave-own-plate-out cell baseline.
+
+**The tests:**
+- T-A, a CPU gate;
+- T-B, the dev carve: v10-C against chromatin-off, 3 seeds;
+- T-C, unseen cells: the per-cell rule, the unseen-cell / unseen-compound gap, and XPert under L6.
+
+**No lever is tuned after its result is seen.**
+
+**The Saturday 17 Oct reset:**
+- O9 session 3 and D's timing run were pushed after the reset (09:24 IST);
+- **B1 is deferred**: C3 answered whether v9 uses the compound, and its 6 GPU-h go to v10-C.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
