@@ -10758,6 +10758,84 @@ Both fit the 10 h ceiling, so **4 epochs** for every arm.
 
 **Seed 0 of both arms is run before nothing else** (review 088 ask 4). It is recorded as such, and nothing is selected on it.
 
+### 100.5 🔒 REGISTERED: T-C, unseen cells — chromatin on against off over the 7 clean test cells; the gap; the head-to-head (PI, 2026-10-17; before any T-C code or run)
+**The runs:**
+- `train_v10c.py --split cold_cell_1`, no dev carve: all 208 training cells of the a276eda8 substrate, 4 epochs;
+- the width chosen by T-B's screen (100.4);
+- seeds 0, 1, 2 × {chromatin on, off};
+- each scored **once** at the end on the test rows (v9's featureless drop applies).
+
+**The test cells:**
+- the **7 clean cells**: BJAB, CD34, HS578T, HT29, MCF7, MDAMB231, THP1;
+- **H1975 is reported apart**: its alias NCIH1975 was in XPert's training, and is out of ours (99.10).
+
+**The unit and the score:**
+- per test cell c, the 3-seed mean of the per-row mean **contrast r** (each row against the other-compound test rows on its
+  plate, ≥ 2 mates; the C1 definition);
+- Δ_c = on − off.
+
+**The rule.** *"Cell-specific chromatin contributes on unseen cells"* iff:
+- **≥ 5 of the 7 cells** have Δ_c > 0, **and**
+- the cell-cluster bootstrap 95 % CI of the mean Δ_c (resampling the 7 cells, 20,000 draws) excludes 0.
+
+Otherwise there is no claim. If the mirror rule holds, the result is *"chromatin hurts on unseen cells"*. The CI over 7 clusters
+is coarse, and that is accepted. The claim is worded as review 086 C5 requires: chromatin information used through L4, not a
+single lever.
+
+**Reported beside it, never read:**
+- delta r (XPert's metric) on the same rows;
+- the row-pooled means;
+- H1975;
+- the gene-shuffle and cell-swap permutations;
+- the gate γ against accessibility, by mark;
+- the single-control count. x_cell is *"leave-own-plate-out, input-transductive across a cell's plates"* (086 C3).
+
+**The gap (reported):**
+- **The arm:** v10-C (on, the chosen width, seeds 0–2) trained on the substrate's `split_cold_drug_1`, scored once on the
+  **molecule-clean** test subset (96.6).
+- **The gap:** the unseen-compound minus unseen-cell value, per target:
+  - on the contrast;
+  - on delta r.
+- **Shown beside v9's:** contrast 0.109 (C1) against 0.160 (C2c); delta r 0.642 (97.10) against 0.481 (C2a).
+- **Worded** *"full-release v10-C"*: the data scale is not separated from the architecture (086 C1).
+
+**The head-to-head (reported, no claim):**
+- *v10-C trained on the full release against XPert trained on the benchmark (O2)*, per clean cell, on both targets.
+- A model claim would need XPert retrained on the substrate with its cell-input path pinned (086 C1 option a). That is not
+  registered.
+
+**Cost:**
+- T-C: 6 runs × ≈ 4 GPU-h;
+- the gap arm: 3 runs × ≈ 4 GPU-h;
+- the head-to-head reuses O2.
+
+### 100.6 🔒 REGISTERED: T-A, the CPU gate, on review 086's design (PI, 2026-10-17; before any T-A code; reported, it gates nothing)
+**The question:** does a cell's chromatin predict **which genes respond to drugs in that cell**, beyond the gene itself and its
+basal level?
+
+**The target, per (cell, gene),** on the unseen-cell training rows of the substrate (the 8 test cells and NCIH1975 excluded):
+- responsiveness R_cg = the mean over that cell's rows of |c_i,g|, where c is the within-plate contrast (other-compound
+  training plate-mates, ≥ 2);
+- only cells with ≥ 200 such rows;
+- standardised per gene across cells.
+
+**The models (ridge, λ chosen by leave-cell-out CV on the no-chromatin model, then fixed):**
+- **base:** a gene fixed effect + the gene's basal level in the cell (the mean control expression, rank-normalised per cell);
+- **full:** base + the 16 chromatin features and the 4-channel mask.
+
+**The score:** the leave-cell-out R² gain, full − base, pooled over (cell, gene), over the cells with chromatin.
+
+**The nulls (each 200 draws):**
+- **cell-swap:** each cell gets another cell's chromatin (a derangement), keeping gene structure and breaking cell specificity;
+- **gene-permute:** each cell's chromatin is permuted across genes.
+
+**The pass reading:** the gain exceeds the cell-swap null's 95th percentile. It is recorded as *"chromatin predicts cell-specific
+responsiveness on CPU"*. A pass or fail changes nothing downstream (the principal's direction: L4 runs regardless).
+
+**The calibration:**
+- plant R_cg += β · z(accessibility_cg) at β ∈ {0.02, 0.05, 0.1, 0.2} (in SD units) on the real data;
+- record the smallest β the gain detects above the cell-swap null (as 91.9 did).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
