@@ -10,6 +10,8 @@ DEV_POOL_ROWS = (500, 5000)
 DEV_K, DEV_SEED = 6, 0
 # The benchmark's dose for each of the full release's 10 dose indices (one-to-one on all 68,830 benchmark rows; measured
 # 2026-10-17). `pert_dose` itself can list several doses ('0.12;0.04') where replicates were pooled.
+# Review 087 C1 / 088 C1: one cell line under two LINCS names (as build_full_substrate.CELL_ALIASES).
+CELL_ALIASES = {'NCIH1975': 'H1975'}
 DOSE_OF_IDX = {0: 0.1, 1: 0.37, 2: 0.62, 3: 0.77, 4: 1.11, 5: 2.31, 6: 3.33, 7: 5.0, 8: 10.0, 9: 40.0}
 
 
@@ -103,8 +105,9 @@ class V10CData:
         keep = np.flatnonzero(tr | ev)
         self.tr = np.flatnonzero(tr[keep])
         self.ev = np.flatnonzero(ev[keep])
-        if set(cell_all[keep][self.tr]) & set(cell_all[keep][self.ev]) and split.startswith('cold_cell'):
-            raise SystemExit('FATAL: a held-out cell is in training')
+        canon = lambda cs: {CELL_ALIASES.get(str(c), str(c)) for c in cs}
+        if canon(cell_all[keep][self.tr]) & canon(cell_all[keep][self.ev]) and split.startswith('cold_cell'):
+            raise SystemExit('FATAL: a held-out cell (under any of its names) is in training')
         self.sub_row = keep
         self.X = np.asarray(sub['X'][keep], np.float32)
         self.ctl = np.asarray(sub['ctl'], np.float32)

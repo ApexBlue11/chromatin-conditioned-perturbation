@@ -18,6 +18,13 @@ PERT_INFO = [os.path.join(REPO, 'Data Info', 'GSE92742_Broad_LINCS_pert_info.txt
              os.path.join(REPO, 'Data Info', 'GSE70138_Broad_LINCS_pert_info_2017-03-06.txt',
                           'GSE70138_Broad_LINCS_pert_info.txt')]
 TANI_DUP = 0.999  # RESULTS 96.6: the same molecule is an InChIKey first-block match or ECFP4 Tanimoto >= 0.999
+# Review 087 C1: one cell line under two LINCS names. NCIH1975 (unseen-cell TRAINING in XPert's split) is test cell H1975:
+# the same 54 (compound, dose, time) and mean-X r 0.9997 (the next test / training pair in the 217 cells is 0.89).
+CELL_ALIASES = {'NCIH1975': 'H1975'}
+
+
+def same_cell(c):
+    return CELL_ALIASES.get(str(c), str(c))
 SPLITS = ('cold_cell_1', 'cold_drug_1')
 CHUNK = 20_000
 
@@ -111,23 +118,30 @@ def same_molecule(test_perts, candidates, smiles, inchi, fp_of, tani=TANI_DUP):
 
 def assign_splits(full_cell, full_pert, bench_pos, bench_split, has_feat, smiles, inchi=None, fp_of=None):
     """bench_pos[i] = the full row of benchmark row i. Returns {split: labels over full rows} with labels
-    train / test / excluded_test_cell / excluded_test_compound / excluded_no_features."""
+    train / test / excluded_test_cell / excluded_test_compound / excluded_no_features.
+
+    Order (review 087 C2): the identity exclusions (a test cell under any of its names; a test compound's molecule under
+    any ID) rank ABOVE "keep the benchmark's own training rows", so a benchmark leak is not carried over."""
     n = len(full_cell)
     out = {}
     for name, sp in bench_split.items():
         lab = np.full(n, 'train', dtype=object)
         test_rows = bench_pos[sp == 'test']
         if name.startswith('cold_cell'):
-            test_cells = set(full_cell[test_rows])
-            lab[np.isin(full_cell, sorted(test_cells))] = 'excluded_test_cell'
+            test_cells = {same_cell(c) for c in full_cell[test_rows]}
+            ident = np.array([same_cell(c) in test_cells for c in full_cell])
+            reason = 'excluded_test_cell'
         else:
             test_perts = set(full_pert[test_rows])
             same = same_molecule(test_perts, set(full_pert), smiles, inchi or {}, fp_of or (lambda p: None))
-            lab[np.isin(full_pert, sorted(test_perts | same))] = 'excluded_test_compound'
+            ident = np.isin(full_pert, sorted(test_perts | same))
+            reason = 'excluded_test_compound'
+        lab[ident] = reason
         lab[~has_feat & (lab == 'train')] = 'excluded_no_features'
         lab[test_rows] = 'test'
-        # a benchmark training row is always training here (the benchmark's own train set is a subset of ours)
-        lab[bench_pos[sp == 'train']] = 'train'
+        # the benchmark's own training rows are kept, unless an identity rule excludes them (review 087 C2)
+        bt = bench_pos[sp == 'train']
+        lab[bt[~ident[bt]]] = 'train'
         out[name] = lab.astype(str)
     return out
 

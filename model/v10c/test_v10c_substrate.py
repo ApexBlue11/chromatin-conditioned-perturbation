@@ -21,8 +21,9 @@ def test_assign_splits_rules():
     lab = bfs.assign_splits(cell, pert, bench_pos, split, has, smiles)
     cc, cd = lab['cold_cell_1'], lab['cold_drug_1']
     assert list(cc) == ['train', 'train', 'train', 'train', 'test', 'excluded_test_cell', 'excluded_no_features']
-    # cold drug: test compounds p1 (row 4) and p2 (row 1); p3 shares p2's structure; benchmark train row 0 (p1) stays train
-    assert list(cd) == ['train', 'test', 'excluded_test_compound', 'excluded_test_compound', 'test',
+    # cold drug: test compounds p1 (row 4) and p2 (row 1); p3 shares p2's structure. Benchmark train row 0 is p1, a test
+    # compound: the identity rule outranks "keep the benchmark's training rows" (review 087 C2), so it is excluded
+    assert list(cd) == ['excluded_test_compound', 'test', 'excluded_test_compound', 'excluded_test_compound', 'test',
                         'excluded_test_compound', 'excluded_no_features']
 
 
@@ -73,7 +74,8 @@ def test_build_end_to_end(tmp_path):
     assert np.array_equal(z['ctl'][z['ctl_id']], C[:5].astype(np.float32)) and rec['n_unique_controls'] == 3
     assert list(z['bench_row']) == [0, 2, -1, -1, 1]
     assert list(z['split_cold_cell_1']) == ['train', 'train', 'train', 'train', 'test']
-    assert list(z['split_cold_drug_1']) == ['train', 'test', 'excluded_test_compound', 'excluded_test_compound', 'test']
+    assert list(z['split_cold_drug_1']) == ['excluded_test_compound', 'test', 'excluded_test_compound',
+                                            'excluded_test_compound', 'test']
     assert list(z['plate_id']) == [0, 0, 1, 1, 2]
     assert list(z['plate_key']) == [bfs.hashlib.sha1(x.encode()).hexdigest()[:16] for x in ('P1', 'P2', 'P3')]
     assert rec['compounds_without_features'] == 1 and rec['out_sha1'] == bfs.sha1(str(out))
@@ -115,3 +117,14 @@ def test_assign_splits_excludes_tanimoto_duplicate():
     lab = bfs.assign_splits(cell, pert, np.array([0]), {'cold_drug_1': np.array(['test'])}, np.ones(3, bool), {}, {},
                             fps.get)
     assert list(lab['cold_drug_1']) == ['test', 'excluded_test_compound', 'train']
+
+
+def test_cell_alias_outranks_the_benchmark_training_rows():
+    """Review 087 C1: NCIH1975 is test cell H1975; its benchmark TRAINING rows must leave unseen-cell training."""
+    cell = np.array(['H1975', 'NCIH1975', 'NCIH1975', 'A549', 'A549'])
+    pert = np.array(['p1', 'p1', 'p2', 'p1', 'p2'])
+    bench_pos = np.array([0, 1, 3])
+    split = {'cold_cell_1': np.array(['test', 'train', 'train'])}
+    lab = bfs.assign_splits(cell, pert, bench_pos, split, np.ones(5, bool), {})
+    assert list(lab['cold_cell_1']) == ['test', 'excluded_test_cell', 'excluded_test_cell', 'train', 'train']
+    assert bfs.same_cell('NCIH1975') == 'H1975' and bfs.same_cell('A549') == 'A549'

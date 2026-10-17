@@ -285,7 +285,7 @@ def test_timing_mode_stops_and_records(tmp_path, monkeypatch):
 
 
 def test_refuses_cpu_without_flag(tmp_path):
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and torch.cuda.device_count() > 0:
         pytest.skip('a GPU is present')
     with pytest.raises(SystemExit, match='no CUDA'):
         tv.main(['--roots', str(tmp_path), '--out', str(tmp_path / 'o')])
@@ -367,3 +367,44 @@ def test_dose_comes_from_the_dose_index_not_the_pooled_string(tmp_path):
     raw = ld[np.arange(len(D.X)) % 3]
     assert np.allclose(D.dose_n, (raw - raw[D.tr].mean()) / (raw[D.tr].std() + 1e-6), atol=1e-5)
     assert dv.DOSE_OF_IDX[9] == 40.0 and len(dv.DOSE_OF_IDX) == 10
+
+
+def test_permuted_chromatin_kinds():
+    r = np.random.default_rng(0)
+    F = r.random((4, G, 16)).astype(np.float32)
+    M = (r.random((4, G, 4)) > 0.3).astype(np.float32)
+    Fg, Mg = tv.permuted_chromatin(F, M, [1, 3], 'gene_shuffle', np.random.default_rng(1))
+    assert np.allclose(Fg[0], F[0]) and np.allclose(Fg[2], F[2]) and not np.allclose(Fg[1], F[1])
+    assert np.allclose(np.sort(Fg[1].ravel()), np.sort(F[1].ravel())) and np.allclose(Mg[1].sum(), M[1].sum())
+    Fs, Ms = tv.permuted_chromatin(F, M, [3, 1], 'cell_swap', np.random.default_rng(1))
+    assert np.allclose(Fs[1], F[3]) and np.allclose(Fs[3], F[1]) and np.allclose(Fs[0], F[0]) and np.allclose(Ms[1], M[3])
+
+
+def test_end_to_end_reports_the_permutations_and_restores_chromatin(tmp_path, monkeypatch):
+    write_fixture(tmp_path)
+    monkeypatch.setattr(tv, 'V10CConfig', lambda **kw: tiny_cfg(**kw))
+    rec = tv.main(['--roots', str(tmp_path), '--out', str(tmp_path / 'o'), '--cpu_ok', '--epochs', '1', '--batch', '16',
+                   '--d_model', '32'])
+    pr = rec['reported_permutations']
+    assert set(pr) == {'gene_shuffle', 'cell_swap'} and set(pr['cell_swap']['per_cell_contrast_r']) == {'C6', 'C7'}
+    assert np.isfinite(pr['gene_shuffle']['contrast_r_row_mean'])
+    off = tv.main(['--roots', str(tmp_path), '--out', str(tmp_path / 'o2'), '--cpu_ok', '--epochs', '1', '--batch', '16',
+                   '--d_model', '32', '--chrom_off'])
+    assert off['reported_permutations'] == {}
+
+
+def test_heldout_alias_in_training_is_refused(tmp_path):
+    """Review 088 C1: the held-out check canonicalises names, so H1975 held out with NCIH1975 in training is refused."""
+    write_fixture(tmp_path)
+    z = dict(np.load(tmp_path / 'v10c_full_substrate.npz'))
+    z['meta_cell_iname'] = np.where(z['meta_cell_iname'] == 'C7', 'H1975', z['meta_cell_iname'])
+    z['meta_cell_iname'] = np.where(z['meta_cell_iname'] == 'C0', 'NCIH1975', z['meta_cell_iname'])
+    np.savez(tmp_path / 'v10c_full_substrate.npz', **z)
+    ch = dict(np.load(tmp_path / 'v10c_chromatin.npz'))
+    ch['cells'] = np.array(['NCIH1975' if c == 'C0' else 'H1975' if c == 'C7' else c for c in ch['cells']])
+    np.savez(tmp_path / 'v10c_chromatin.npz', **ch)
+    t = json.load(open(tmp_path / 'cell_tissue.json'))
+    t['tissue']['H1975'] = t['tissue'].pop('C7'); t['tissue']['NCIH1975'] = t['tissue'].pop('C0')
+    json.dump(t, open(tmp_path / 'cell_tissue.json', 'w'))
+    with pytest.raises(SystemExit, match='under any of its names'):
+        dv.V10CData([str(tmp_path)])

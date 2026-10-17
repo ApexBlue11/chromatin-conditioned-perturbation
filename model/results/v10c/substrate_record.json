@@ -14,27 +14,27 @@
  "label_counts_full_release": {
   "cold_cell_1": {
    "excluded_no_features": 18801,
-   "excluded_test_cell": 42045,
+   "excluded_test_cell": 42099,
    "test": 21321,
-   "train": 254685
+   "train": 254631
   },
   "cold_drug_1": {
    "excluded_no_features": 19874,
-   "excluded_test_compound": 26983,
+   "excluded_test_compound": 28857,
    "test": 13445,
-   "train": 276550
+   "train": 274676
   }
  },
  "train_sets": {
   "cold_cell_1": {
-   "train_cells": 209,
+   "train_cells": 208,
    "train_compounds": 7900
   },
   "cold_drug_1": {
    "train_cells": 217,
-   "train_compounds": 7402
+   "train_compounds": 7347
   }
  },
  "compounds_without_features": 568,
- "out_sha1": "38a5dfb50302ae73be7bb7d2a6dee8afcf6227a6"
+ "out_sha1": "a276eda863d052214aa8d78afee1ab7c26a95c09"
 }

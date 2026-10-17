@@ -69,6 +69,24 @@ def predict_by_plate(model, D, rows, device, batch):
     return pd, pg
 
 
+def permuted_chromatin(F, M, held_cells, kind, rng):
+    """Review 086 C4 (reported, never read): chromatin for the held-out cells with
+    'gene_shuffle': each cell's genes permuted (F and M together), keeping the cell's summary, breaking gene identity;
+    'cell_swap':    each held-out cell given the next held-out cell's chromatin (a cyclic derangement of the sorted cells)."""
+    F2, M2 = F.copy(), M.copy()
+    cells = np.sort(np.asarray(held_cells))
+    if kind == 'gene_shuffle':
+        for c in cells:
+            p = rng.permutation(F.shape[1])
+            F2[c], M2[c] = F[c][p], M[c][p]
+    elif kind == 'cell_swap':
+        for c, d in zip(cells, np.roll(cells, 1)):
+            F2[c], M2[c] = F[d], M[d]
+    else:
+        raise ValueError(kind)
+    return F2, M2
+
+
 def build_parser():
     ap = argparse.ArgumentParser()
     ap.add_argument('--split', default='cold_cell_1')
@@ -94,10 +112,11 @@ def main(argv=None):
     t0 = time.time()
     if a.plate_cap > a.batch:
         raise SystemExit(f'FATAL: plate_cap {a.plate_cap} > batch {a.batch} would make batches larger than --batch')
-    if not torch.cuda.is_available() and not a.cpu_ok:
+    # review 088 C2: decide by device_count (CUDA_VISIBLE_DEVICES="" can leave is_available() True with 0 devices)
+    n_gpu = torch.cuda.device_count() if torch.cuda.is_available() else 0
+    if n_gpu == 0 and not a.cpu_ok:
         raise SystemExit('FATAL: no CUDA device; not falling back to CPU')
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    n_gpu = torch.cuda.device_count() if device == 'cuda' else 0
+    device = 'cuda' if n_gpu > 0 else 'cpu'
     if device == 'cuda':
         names = [torch.cuda.get_device_name(i) for i in range(n_gpu)]
         if any('P100' in n for n in names) or n_gpu < 2:
@@ -178,6 +197,18 @@ def main(argv=None):
     pd, pg = predict_by_plate(core, D, D.ev, device, 64)
     T = D.X[D.ev] - D.ctl[D.ctl_id[D.ev]]
     scores, r_con, r_del = heldout_scores(pd, T, D.plate[D.ev], D.pert_code[D.ev], D.cell[D.ev])
+    permutations = {}
+    if not a.chrom_off and len(np.unique(D.cell_row[D.ev])) > 1:
+        F0, M0 = D.F, D.M
+        try:
+            for kind in ('gene_shuffle', 'cell_swap'):
+                D.F, D.M = permuted_chromatin(F0, M0, np.unique(D.cell_row[D.ev]), kind, np.random.default_rng(1000 + a.seed))
+                pk, _ = predict_by_plate(core, D, D.ev, device, 64)
+                sk, _, _ = heldout_scores(pk, T, D.plate[D.ev], D.pert_code[D.ev], D.cell[D.ev])
+                permutations[kind] = {k: sk[k] for k in ('contrast_r_row_mean', 'contrast_r_cell_mean', 'delta_r_row_mean')}
+                permutations[kind]['per_cell_contrast_r'] = {c: v['contrast_r'] for c, v in sk['per_cell'].items()}
+        finally:
+            D.F, D.M = F0, M0
     tag = f"{a.split}_{'dev' if a.dev else 'test'}_{'off' if a.chrom_off else 'on'}_d{a.d_model}_s{a.seed}"
     pred_path = os.path.join(a.out, f'v10c_pred_{tag}.npz')
     np.savez_compressed(pred_path, sub_row=D.sub_row[D.ev], bench_row=D.bench_row[D.ev], delta=pd, drug=pg,
@@ -185,6 +216,7 @@ def main(argv=None):
     h = hashlib.sha1(open(pred_path, 'rb').read()).hexdigest()
     rec = {'tag': tag, 'args': vars(a), 'dev_cells': D.dev_cells, 'n_train': int(len(D.tr)), 'n_heldout': int(len(D.ev)),
            'dropped': D.n_dropped, 'params': n_par, 'hist': hist, 'scores': scores, 'pred_sha1': h,
+           'reported_permutations': permutations, 'single_control_heldout_rows': int(D.single_ctl[D.ev].sum()),
            'wall_h': (time.time() - t0) / 3600}
     json.dump(rec, open(os.path.join(a.out, f'V10C_COMPLETE_{tag}.json'), 'w'), indent=1)
     torch.save({'model': core.state_dict(), 'cfg': {k: getattr(cfg, k) for k in dir(cfg) if not k.startswith('_')

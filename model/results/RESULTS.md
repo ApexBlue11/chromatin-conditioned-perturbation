@@ -10376,6 +10376,29 @@ budget guard, the probe's single-copy check and the kernel's single-copy check).
 **Never a claim.** O9's checkpoint was selected on these test rows on the field's target (97.3). It is reported because it
 locates XPert on the target v10-C is scored on: XPert also separates compounds on a plate, by less than v9.
 
+### 99.10 FINDING (review 087 C1, verified): **XPert's `split_cold_cell_1` leaks one test cell — H1975 is in training as NCIH1975** (PI, 2026-10-17)
+**The evidence** (critic's, reproduced by me on the bundle, identity level):
+- `NCIH1975`'s 54 rows are all `train`, and `H1975`'s 54 rows are all `test`;
+- they cover the **same 54 (compound, dose, time)**;
+- mean-X r = **0.9997**. The next-closest test / training pair over the 217 full-release cells is 0.89;
+- the critic finds per-row delta r 0.417 between the twins, against 0.150 for the same conditions in other cells.
+
+**No other test cell has an alias** (the critic's scan of all 217 cells). The only other pair above 0.99 is two training
+cells (MCLF035SZ / MCLF056CN). My chromatin match had already mapped both names to one ChIP-Atlas line (§100.3), and I did
+not follow it up.
+
+**Effect on the existing unseen-cell head-to-head** (P7, v9 against O2, `coldcell_h2h_split_cold_cell_1_P7.json`,
+recomputed by me):
+
+| | all 8 cells | without H1975 (7) |
+|---|---|---|
+| cell-cluster mean d (v9 − XPert) | +0.050, 6 of 8 favour v9 | **+0.062, 6 of 7** |
+| centred | +0.030, 8 of 8 | +0.029, 7 of 7 |
+
+- H1975 is where both models score highest among the small cells (v9 0.548, XPert 0.583): the leak helps both, XPert more.
+- **From now on every unseen-cell reading carries an excluding-H1975 line** (§71.3, §85.14, C2a / C2b / C2c, O2). T-C is
+  registered over the 7 clean cells (§100.5).
+
 ## 100. 🔒 REGISTERED (design): v10-C, the chromatin programme — every lever at once, judged once (principal's direction, PI, 2026-10-17; before any of its code or data)
 **The full record** is `model/V10_CHROMATIN_PROGRAMME.md` (this commit). Each test is registered in full in its own
 subsection before its code.
@@ -10688,6 +10711,52 @@ The rule, recipe and comparison are otherwise unchanged. The local smoke on the 
 - all inputs are finite;
 - 8,116 training rows (3.4 %) belong to cells with a single distinct control, so x_cell = x_ctl for them (counted, as
   registered).
+
+### 100.4b AMENDMENT, reviews 086, 087 and 088 adopted, before any T-B run (PI, 2026-10-17)
+**Review 088 (the model code): SOUND.** T-B may run.
+- **C1:** the loader's held-out-cell check canonicalises names (`CELL_ALIASES`), so H1975 held out with NCIH1975 in training
+  is refused (test added).
+- **C2:** the device is chosen by `device_count()`, since `CUDA_VISIBLE_DEVICES=""` can leave `is_available()` True with 0
+  devices.
+- **C3:** the off arm keeps a cell-*invariant* per-gene chromatin vector. So T-B's positive reading is worded *"cell-specific
+  chromatin contributes"*.
+- **Ask 2:** `contrast_rows_per_step` is in every run record.
+
+**Review 087 (the data): SOUND-WITH-CAVEATS.**
+- **C1 (MAJOR), C2 — the rule order:** identity exclusions now rank above "keep the benchmark's own training rows".
+  - `NCIH1975` = `H1975` leaves unseen-cell training: 54 rows; 254,631 rows and 208 cells remain.
+  - The benchmark's same-molecule training rows leave unseen-compound training: 1,874 rows; 274,676 rows and 7,347
+    compounds remain.
+  - The substrate is rebuilt (sha1 `a276eda8…`); the dev carve is unaffected.
+- **C3:** tier composition per cell is reported with T-B, and the mechanism check (gate against accessibility) is also run
+  on E / C-only cells as a sensitivity. There is no perturbed fallback.
+
+**Review 086 (the design): SOUND-WITH-CAVEATS.**
+- **C1 (MAJOR), T-C's head-to-head:** worded *"v10-C trained on the full release against XPert trained on the benchmark"*,
+  attributing nothing to architecture.
+  - The gap is worded the same way.
+  - XPert retrained on the substrate is option (a), only if registered later with its input path pinned.
+- **C2 (MAJOR):** T-C is over the **7 clean cells**: ≥ 5 of 7 and a cell-cluster CI, with H1975 reported apart (§100.5).
+- **C3:** L6 is labelled *"leave-own-plate-out, input-transductive across a cell's plates"* wherever an unseen-cell result is
+  stated. Held-out rows of cells with a single control profile are counted in every record.
+  - Per review 088 ask 3, there is no x_cell := x_ctl comparison (off-distribution, as C2b showed).
+- **C4:** two **reported, never read** inference-time permutations on each trained "on" model:
+  - **gene-shuffle** (each held-out cell's chromatin permuted across genes, F and M together);
+  - **cell-swap** (each held-out cell given the next held-out cell's chromatin).
+  - On ≫ gene-shuffle would mean gene-level chromatin is used (`permuted_chromatin` in `train_v10c.py`, tested).
+- **C5:** a positive result licenses *"chromatin information (L2–L3), used through L4, contributes"*, not which lever.
+- **Ask 4:** T-A is registered on the critic's design before it runs:
+  - the target: responsiveness per (cell, gene);
+  - the model: gene fixed effect + basal level + chromatin, scored by leave-cell-out R² gain;
+  - the nulls: cell-swap and gene-permute; planted calibration.
+
+**The epochs (100.4's rule):** the timing kernel (`lincs-v10c-timing` v3, 2 × T4) measured:
+- d 256: 0.600 s / step, 5,650 steps / epoch, so 4 epochs project to **3.77 h**;
+- d 384: 0.897 s / step, 5.63 h.
+
+Both fit the 10 h ceiling, so **4 epochs** for every arm.
+
+**Seed 0 of both arms is run before nothing else** (review 088 ask 4). It is recorded as such, and nothing is selected on it.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
