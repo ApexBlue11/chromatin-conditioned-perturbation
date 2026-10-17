@@ -10559,6 +10559,39 @@ mean features and mask, so the machinery stays and the cell-specific information
 
 Mutation testing runs before any T-B kernel.
 
+### 97.10 RESULT, O9 FINAL and P9 against it, read once: **on unseen compounds v9 and XPert as published are tied on the field's metric; XPert's per-molecule edge is uninterpretable by 97.3** (PI, 2026-10-17)
+**O9's termination** (session 3, `lincs-xpert-cd1` v3, 6.7 h):
+- their early stopping fired: `stopped_by` finished, best epoch 104, last 154, counter 50 (asserted);
+- **admissible** under 97.3 item 2.
+
+**Reproduction (97.3 item 4):** O9's row-pooled delta r on all 13,445 test rows is **0.6467**, inside [0.621, 0.669] around
+their published 0.645. XPert's recipe is reproduced on this fold.
+
+**The reading** (`score_p9.py --ref xpert_o9`, once; `model/results/p9_accuracy_xpert_o9.json`):
+
+| subset | per-molecule mean d (v9 − XPert) [95 % CI] | molecules favouring v9 | verdict |
+|---|---|---|---|
+| **clean (of record)**, 11,983 rows, 346 molecules | **−0.0029** [−0.0056, −0.0002] | 122 / 346 (35 %), sign p 5e-8 | **uninterpretable as a model comparison** (XPert's checkpoint was selected on these test rows, 97.3 item 1) |
+| full (the benchmark as defined), 13,364 rows, 384 molecules | −0.0019 [−0.0048, +0.0012] | 137 / 384 (36 %) | no compound-level claim |
+
+**Reported, never a claim:**
+- **Row-pooled delta r:**
+  - clean: v9 0.6417, XPert 0.6420;
+  - full: 0.6467 against 0.6466;
+  - the v9 3-seed ensemble: 0.6475 (clean), 0.6527 (full).
+- **The ensemble against XPert, per molecule:** +0.0026 (clean, CI touches 0) and +0.0037 (full); about 51 % of molecules
+  favour it.
+- **The duplicate lift** (the 38 same-molecule compounds against the clean ones): v9 +0.049, XPert +0.045. Both models
+  gain about the same from seen molecules.
+
+**What this means:**
+- On the field's target and metric, a v9 seed and XPert as published predict unseen compounds equally well (to 0.0003
+  row-pooled).
+- XPert wins about 65 % of molecules by a tiny margin, but that cannot be read as a model win: their stopper chose the
+  checkpoint on these rows.
+- The 99.6 audit already showed this target is plate-dominated (C1c: a zero-parameter plate lookup beats every model). On
+  the contrast, v9 beats a drug-free model by +0.076 per molecule (C1), and v10-C (§100) is scored there.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
