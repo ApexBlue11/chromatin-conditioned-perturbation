@@ -10613,6 +10613,24 @@ their published 0.645. XPert's recipe is reproduced on this fold.
 - The 99.6 audit already showed this target is plate-dominated (C1c: a zero-parameter plate lookup beats every model). On
   the contrast, v9 beats a drug-free model by +0.076 per molecule (C1), and v10-C (§100) is scored there.
 
+### 100.4a AMENDMENT to 100.4, two loader fixes found before any v10-C training step (PI, 2026-10-17)
+1. **Dose:**
+   - The full release's `pert_dose` lists several doses where replicates were pooled (`'0.12;0.04'`, 38,766 rows). The
+     first timing kernel stopped on it at load, before any training step.
+   - The dose is now the benchmark's own value for each of the 10 dose indices. The mapping is one-to-one on all 68,830
+     benchmark rows: 0.1, 0.37, 0.62, 0.77, 1.11, 2.31, 3.33, 5, 10 and 40 µM.
+2. **Batches:**
+   - A local real-data smoke test showed that "at most 16 rows per plate" kept only **75k of the 255k** training rows per
+     epoch. The plate sets have a median of 1 row, 30 at the 90th percentile and 322 at most.
+   - Now each plate's rows are shuffled and split into chunks of at most 16, and every row is used once per epoch:
+     5,991 batches of 42.5 rows on average. Plate-mates still train together within a chunk.
+
+The rule, recipe and comparison are otherwise unchanged. The local smoke on the real substrate also confirmed:
+- the dev carve reproduces 100.4's six cells (12,995 scorable dev rows after v9's drop of featureless compounds);
+- all inputs are finite;
+- 8,116 training rows (3.4 %) belong to cells with a single distinct control, so x_cell = x_ctl for them (counted, as
+  registered).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

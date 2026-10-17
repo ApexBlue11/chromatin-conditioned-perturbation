@@ -8,6 +8,9 @@ import torch
 
 DEV_POOL_ROWS = (500, 5000)
 DEV_K, DEV_SEED = 6, 0
+# The benchmark's dose for each of the full release's 10 dose indices (one-to-one on all 68,830 benchmark rows; measured
+# 2026-10-17). `pert_dose` itself can list several doses ('0.12;0.04') where replicates were pooled.
+DOSE_OF_IDX = {0: 0.1, 1: 0.37, 2: 0.62, 3: 0.77, 4: 1.11, 5: 2.31, 6: 3.33, 7: 5.0, 8: 10.0, 9: 40.0}
 
 
 def find(name, roots):
@@ -48,17 +51,20 @@ def leave_own_plate_out(cell, ctl_id, ctl):
 
 
 def plate_batches(plates, batch, rng, cap=16):
-    """Index batches over rows grouped by plate: plates in random order, each contributing up to `cap` of its rows
-    (random subset), packed whole into batches of at most `batch` rows. Returns a list of index arrays."""
+    """Index batches over rows grouped by plate. Each plate's rows are shuffled and split into chunks of at most `cap`
+    (a plate of <= cap rows is one chunk); chunks are shuffled and packed whole into batches of at most `batch` rows.
+    Every row appears exactly once per call (100.4 amendment: an earlier version kept only `cap` rows per plate, which
+    on the real data used 75k of 255k training rows per epoch). Returns a list of index arrays."""
     order = np.argsort(plates, kind='stable')
     ps = plates[order]
     cuts = np.flatnonzero(np.diff(ps)) + 1
-    groups = np.split(order, cuts)
+    groups = []
+    for g in np.split(order, cuts):
+        g = rng.permutation(g)
+        groups.extend(np.array_split(g, -(-len(g) // cap)))
     rng.shuffle(groups)
     out, cur, n = [], [], 0
     for g in groups:
-        if len(g) > cap:
-            g = rng.choice(g, cap, replace=False)
         if n + len(g) > batch and cur:
             out.append(np.concatenate(cur))
             cur, n = [], 0
@@ -108,7 +114,7 @@ class V10CData:
         self.plate = sub['plate_id'][keep].astype(np.int64)
         self.bench_row = sub['bench_row'][keep]
         _, self.pert_code = np.unique(self.pert, return_inverse=True)
-        dose = sub['meta_pert_dose'][keep].astype(np.float32)
+        dose = np.array([DOSE_OF_IDX[int(k)] for k in sub['meta_pert_dose_idx'][keep]], np.float32)
         time = sub['meta_pert_time'][keep].astype(np.float32)
         ldose = np.log10(np.clip(dose, 1e-4, None))
         self.dose_n = ((ldose - ldose[self.tr].mean()) / (ldose[self.tr].std() + 1e-6)).astype(np.float32)

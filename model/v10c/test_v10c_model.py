@@ -192,8 +192,8 @@ def test_plate_batches_keep_plates_whole_and_cover_each_row_once():
         assert len(b) <= 16
         for p in np.unique(plates[b]):
             assert (plates[b] == p).sum() == (plates == p).sum()
-    capped = dv.plate_batches(np.zeros(40, int), 16, np.random.default_rng(1), cap=5)
-    assert sum(len(b) for b in capped) == 5
+    big = dv.plate_batches(np.zeros(40, int), 16, np.random.default_rng(1), cap=5)
+    assert sorted(np.concatenate(big).tolist()) == list(range(40)) and all(len(b) <= 16 for b in big)
 
 
 def test_dev_carve_rule():
@@ -214,13 +214,14 @@ def write_fixture(tmp, n_cells=8, rows_per=60):
     for ci, c in enumerate(cells):
         for k in range(rows_per):
             cell.append(c); pert.append(f'p{k % 12}'); p = ci * 3 + (k % 3); plate.append(p); ctl_id.append(p)
-            split.append('test' if ci >= n_cells - 2 else 'train'); dose.append(str([0.1, 1.0, 10.0][k % 3]))
+            split.append('test' if ci >= n_cells - 2 else 'train'); dose.append(['0.1;0.04', '1.11', '10.0'][k % 3])
             time.append('24.0')
     n = len(cell)
     X = (ctl[np.array(ctl_id)] + r.normal(size=(n, G)) * 0.3).astype(np.float32)
     np.savez(tmp / 'v10c_full_substrate.npz', X=X, ctl=ctl, ctl_id=np.array(ctl_id), plate_id=np.array(plate),
              bench_row=np.arange(n), full_row=np.arange(n), meta_cell_iname=np.array(cell), meta_pert_id=np.array(pert),
-             meta_pert_dose=np.array(dose), meta_pert_time=np.array(time), split_cold_cell_1=np.array(split))
+             meta_pert_dose=np.array(dose), meta_pert_dose_idx=np.array([str([0, 4, 8][k % 3]) for k in range(n)]),
+             meta_pert_time=np.array(time), split_cold_cell_1=np.array(split))
     F = r.random((n_cells, G, 16)).astype(np.float32)
     M = np.ones((n_cells, G, 4), bool)
     M[1] = False
@@ -357,3 +358,12 @@ def test_unavailable_features_are_masked_out():
     with torch.no_grad():
         assert torch.allclose(cs(F, Mk), cs(F2, Mk), atol=1e-6)
     assert torch.equal(mv.mask_per_feature(Mk)[0, 0], torch.tensor([1.] * 5 + [0.] * 5 + [1.] * 5 + [1.]))
+
+
+def test_dose_comes_from_the_dose_index_not_the_pooled_string(tmp_path):
+    write_fixture(tmp_path)
+    D = dv.V10CData([str(tmp_path)])
+    ld = np.log10(np.array([0.1, 1.11, 10.0]))
+    raw = ld[np.arange(len(D.X)) % 3]
+    assert np.allclose(D.dose_n, (raw - raw[D.tr].mean()) / (raw[D.tr].std() + 1e-6), atol=1e-5)
+    assert dv.DOSE_OF_IDX[9] == 40.0 and len(dv.DOSE_OF_IDX) == 10
