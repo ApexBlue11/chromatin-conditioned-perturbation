@@ -266,7 +266,7 @@ def test_end_to_end_cpu_training_and_scoring(tmp_path, monkeypatch):
     write_fixture(tmp_path)
     out = tmp_path / 'out'
     monkeypatch.setattr(tv, 'V10CConfig', lambda **kw: tiny_cfg(**kw))
-    rec = tv.main(['--roots', str(tmp_path), '--out', str(out), '--cpu_ok', '--epochs', '1', '--batch', '12',
+    rec = tv.main(['--roots', str(tmp_path), '--out', str(out), '--cpu_ok', '--epochs', '1', '--batch', '16',
                    '--d_model', '32'])
     s = rec['scores']
     assert s['n_rows'] == 120 and s['n_contrast_rows'] > 0 and np.isfinite(s['contrast_r_row_mean'])
@@ -279,7 +279,7 @@ def test_timing_mode_stops_and_records(tmp_path, monkeypatch):
     write_fixture(tmp_path)
     monkeypatch.setattr(tv, 'V10CConfig', lambda **kw: tiny_cfg(**kw))
     rec = tv.main(['--roots', str(tmp_path), '--out', str(tmp_path / 'o'), '--cpu_ok', '--timing_steps', '3',
-                   '--batch', '12', '--d_model', '32'])
+                   '--batch', '16', '--d_model', '32'])
     assert rec['s_per_step'] > 0 and (tmp_path / 'o' / 'timing.json').exists()
 
 
@@ -315,3 +315,45 @@ def test_kernel_builder_pins_compile_and_layout(tmp_path):
     meta = json.load(open(os.path.join(d, 'kernel-metadata.json')))
     assert meta['enable_gpu'] and not meta['enable_internet'] and meta['machine_shape'] == 'NvidiaTeslaT4'
     assert meta['dataset_sources'] == mk.DATASETS
+
+
+def test_gate_and_string_gate_start_at_their_registered_values():
+    m = built()
+    with torch.no_grad():
+        _, aux = m(make_batch(), return_aux=True)
+    assert torch.allclose(aux['gamma'], torch.ones_like(aux['gamma']))
+    assert torch.allclose(aux['a_ppi'], torch.full_like(aux['a_ppi'], 0.95), atol=1e-5)
+
+
+def test_rows_of_featureless_compounds_are_dropped(tmp_path):
+    write_fixture(tmp_path)
+    json.dump({f'p{k}': k for k in range(11)}, open(tmp_path / 'drug_feature_index.json', 'w'))   # p11 unfeaturised
+    D = dv.V10CData([str(tmp_path)])
+    assert 'p11' not in set(D.pert) and D.n_dropped['train'] == 30 and D.n_dropped['test'] == 10
+
+
+def test_heldout_contrast_needs_two_mates():
+    T = np.random.default_rng(1).normal(size=(5, 20))
+    s, rc, _ = tv.heldout_scores(T, T, np.array([0, 0, 1, 1, 1]), np.arange(5), np.array(['A'] * 5))
+    assert s['n_contrast_rows'] == 3 and np.isnan(rc[:2]).all()
+
+
+def test_budget_guard_refuses_a_run_that_would_be_cut(tmp_path, monkeypatch):
+    write_fixture(tmp_path)
+    monkeypatch.setattr(tv, 'V10CConfig', lambda **kw: tiny_cfg(**kw))
+    with pytest.raises(SystemExit, match='budget'):
+        tv.main(['--roots', str(tmp_path), '--out', str(tmp_path / 'o'), '--cpu_ok', '--epochs', '4', '--batch', '16',
+                 '--d_model', '32', '--budget_h', '1e-9'])
+
+
+def test_unavailable_features_are_masked_out():
+    torch.manual_seed(0)
+    cs = mv.ChromatinStream(16, 8)
+    F = torch.rand(2, G, 16)
+    Mk = torch.ones(2, G, 4)
+    Mk[:, :, 1] = 0                                        # ACT missing: its 5 window features must not matter
+    F2 = F.clone()
+    F2[..., 5:10] = torch.rand(2, G, 5) * 10
+    with torch.no_grad():
+        assert torch.allclose(cs(F, Mk), cs(F2, Mk), atol=1e-6)
+    assert torch.equal(mv.mask_per_feature(Mk)[0, 0], torch.tensor([1.] * 5 + [0.] * 5 + [1.] * 5 + [1.]))

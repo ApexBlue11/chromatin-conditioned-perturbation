@@ -92,6 +92,8 @@ def build_parser():
 def main(argv=None):
     a = build_parser().parse_args(argv)
     t0 = time.time()
+    if a.plate_cap > a.batch:
+        raise SystemExit(f'FATAL: plate_cap {a.plate_cap} > batch {a.batch} would make batches larger than --batch')
     if not torch.cuda.is_available() and not a.cpu_ok:
         raise SystemExit('FATAL: no CUDA device; not falling back to CPU')
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
