@@ -10916,18 +10916,22 @@ This section records a training failure found in one of them, and its diagnosis.
 
 - **The mechanism:**
   - F5's s = σ(a_d(log dose − b_d)) multiplies every drug update. Its slope a_d and threshold b_d come from the drug token.
-  - In seed 0's on arm, the argument went far enough negative that s is 0 in fp32. From then on, every drug-path parameter
-    received zero gradient.
-  - Those parameters ended near their initial scale while weight decay shrank them:
-    - w_dt has norm 0.09 (4.0 in the healthy runs);
-    - W_c 0.32–0.36 (8.6–9.4);
-    - the first layer of the drug MLP 13.1 (65–67).
+  - ~~In seed 0's on arm, the argument went far enough negative that s is 0 in fp32.~~ **(review 090 C3)** In seed 0's on
+    arm, **s < 1e-6 on every sampled row**, and the gradient behind it vanished. Exact zeros aren't shown: a few rows have
+    tiny contrast (T47D −0.0017).
+  - ~~Those parameters ended near their initial scale while weight decay shrank them~~ **(C3)** The drug-path weights
+    **stayed at their initial values**. AdamW's decoupled decay removes only ≈ 0.09 % over the run.
+    - The zero-initialised w_dt and W_c ended near 0: norms 0.09 and 0.32–0.36 (4.0 and 8.6–9.4 in the healthy runs).
+    - The first layer of the drug MLP ended at 13.1, its default initialisation norm √(512/3) = 13.06 (65–67 healthy).
+    - So the collapse came **very early**, before the drug MLP moved at all.
   - The γ gates never left γ = 1.
-- **Why this is not a chromatin effect:**
-  - The dose scale reads only the drug token and the dose, not chromatin.
-  - The same seed's off arm had the same initialisation and the same batches (the first logged step is identical, loss
-    2.1207), and it survived.
-  - Chromatin changes the trajectory, not the failing unit. This is an optimisation failure of F5 that either arm can hit.
+- ~~Why this is not a chromatin effect~~ **(review 090 C2) What can and cannot be said:**
+  - The failing unit (F5) reads no chromatin in its forward pass.
+  - A same-initialisation off run survived. Its first logged loss is identical, 2.1207, because all four chromatin pathways
+    are exact no-ops at init.
+  - So the failure is **not specific to the chromatin machinery**.
+  - **Whether chromatin information changes how often it happens cannot be told from one failure.** The gradient reaching s
+    does read chromatin, through γ and W_c. The counts so far: on 1 of 2, off 0 of 1.
 - **Even the healthy runs keep s small** (median ≈ 0.12): training pushes the drug update down, and seed 0 crossed into
   saturation. This fragility belongs to the shared v10 base, not to v10-C's chromatin.
 
@@ -10937,8 +10941,14 @@ This section records a training failure found in one of them, and its diagnosis.
   - seed 0's paired Δ(on − off) is −0.166;
   - for the 3-seed mean Δ to pass, seeds 1 and 2 would need a summed Δ above +0.175;
   - that is more than the off arm's whole contrast r.
-- **T-B as registered therefore cannot pass.** That is a consequence of the rule, not a reading. T-B is still read in full
-  when the six runs exist.
+- **Stronger (review 090, Ask 2):**
+  - The threshold contains s_on.
+  - For three values, 2·s/√3 ≥ mean − minimum.
+  - So with one on seed at −0.0001, the threshold is at least mean_on + 0.0001.
+  - Mean Δ therefore stays below the threshold unless the off arm's mean is ≤ −0.0001.
+  - **T-B as registered cannot pass, whatever seeds 1 and 2 give.** The critic's brute-force check over 200,000 draws
+    confirms it.
+- That is a consequence of the rule, not a reading. T-B is still read in full when the six runs exist.
 - **Beside the registered reading, labelled POST HOC (motivated by this run) and never a pass:**
   - the same means over the runs whose dose scale is not identically zero;
   - the same s check applied to every T-B checkpoint, both arms.
@@ -10971,6 +10981,58 @@ one arm of T-C, it would decide the comparison with an optimiser failure rather 
 - T-B and the d = 384 screen, which run as registered **without** the guard (their code is pinned and already pushed).
 
 The guard's code is tested and mutation-tested, then reviewed by the critic, before any T-C kernel is built.
+
+### 100.9 AMENDMENT, review 090 adopted (SOUND-WITH-CAVEATS) before the d = 384 screen exists (PI, 2026-10-18)
+**C1 (MAJOR), the width screen.** As registered (100.4), the screen compares d = 384 on s0 against d = 256 on s0.
+- **The problem:** d = 256 on s0 is the collapsed run (contrast r −0.0001). Its threshold, 2·s_on over the three d = 256 on
+  seeds, comes to **0.184–0.193** for any plausible on s2.
+- **The consequence:** d = 384 would be picked only at r ≳ 0.19, about +0.025 over the trained d = 256 runs. The registered
+  intent was +0.003. The screen could err only toward 256, so a "256" outcome would say nothing about width.
+- **Decision, made before the d = 384 kernel has been pushed (so blind to its result), and LABELLED POST HOC:** the screen
+  is read as follows.
+  - **The comparator:** the mean contrast r of the d = 256 on seeds whose drug path trained, by the criterion below.
+  - **The threshold:** max(0.003, 2·s_on), with s_on over those seeds.
+  - T-C uses d = 384 iff d384 − comparator ≥ threshold, and d = 256 otherwise.
+  - If the d = 384 run itself fails the criterion, the screen is uninformative and T-C uses d = 256.
+  - **The as-registered outcome is recorded beside it,** with this note.
+- Per Ask 5, the d = 384 run stays **unguarded**, as registered.
+
+**The "drug path trained" criterion, fixed numerically before it is applied to any run.**
+- **The rule:** a run's drug path is counted as **untrained** iff the median dose scale s, over 480 training rows, is below
+  **1e-4** (§100.8's floor).
+- **The rows:** drawn by `np.random.default_rng(0)` exactly as in `diag_dose_collapse.py`, after its 480 dev rows. The
+  training rows are the same in both arms.
+- **The script:** `model/v10c/tb_trained_check.py`. It is applied to every T-B checkpoint, both arms and d = 384, and its
+  output is recorded.
+
+**The post hoc "trained runs" T-B view** (reported, never a pass; Ask 2):
+- the same per-row contrast r;
+- Δ = mean_on − mean_off over trained runs;
+- the threshold in the unequal-n form, max(0.003, 2·√(s_on²/n_on + s_off²/n_off));
+- per-cell counts as in the registered rule.
+- **Recorded beside it:** the per-arm dev scores of on s0, on s1 and off s0 were visible in the ledger when this view and
+  its criterion were defined.
+
+**C2:**
+- §100.7 is reworded;
+- collapsed-attempt counts per arm (every attempt) are reported beside T-B and T-C;
+- any T-C result is worded *"among runs whose drug path trained (100.8)"*.
+
+**C3:** §100.7 is corrected: the weights were frozen near init, not shrunk by decay, and s < 1e-6 is shown, not exact zero.
+`tb_trained_check.py` also reports the minimum and maximum of a_d(ld − b_d).
+
+**C4, a new-kernel retry:** `make_v10c_kernels.py run --start_attempt k` renders the kernel at attempt k.
+- Its seed bump is taken from the **registered** seed: +10 for k = 1, +20 for k = 2.
+- The two-retry cap holds across kernels.
+- `--start_attempt` without `--guard` is refused (tested).
+
+**C5:** the guard's rule is also evaluated once at the final training step, before scoring: the same window, training batches
+only (tested).
+
+**Asks 3 and 4:**
+- no post hoc on seed 3 (not needed for any registered reading);
+- the guard's rule is unchanged;
+- **F5 is not changed for T-C**, because T-C must run the model that T-B and the screen evaluated.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
