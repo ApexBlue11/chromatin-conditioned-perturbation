@@ -1,0 +1,47 @@
+{
+ "rule": "RESULTS 100.9: untrained iff median s over 480 training rows < 1e-4",
+ "runs": [
+  {
+   "checkpoint": "v10c_cold_cell_1_dev_on_d256_s0.pt",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 2.1408879714596846e-13,
+   "s_min": 7.157685605770554e-20,
+   "s_max": 7.276894198327e-09,
+   "frac_s_below_1e-6": 1.0,
+   "n_s_exactly_0": 0,
+   "z_min": -44.08351516723633,
+   "z_max": -18.738561630249023,
+   "drug_path_trained": false
+  },
+  {
+   "checkpoint": "v10c_cold_cell_1_dev_on_d256_s1.pt",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.11169946193695068,
+   "s_min": 0.010788102634251118,
+   "s_max": 0.5741562247276306,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -4.5184645652771,
+   "z_max": 0.298829048871994,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_cell_1_dev_off_d256_s0.pt",
+   "arm": "off",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.13268455862998962,
+   "s_min": 0.024057017639279366,
+   "s_max": 0.5667257308959961,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -3.702977418899536,
+   "z_max": 0.2685045301914215,
+   "drug_path_trained": true
+  }
+ ]
+}

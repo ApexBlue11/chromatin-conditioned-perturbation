@@ -11020,6 +11020,16 @@ The guard's code is tested and mutation-tested, then reviewed by the critic, bef
 
 **C3:** §100.7 is corrected: the weights were frozen near init, not shrunk by decay, and s < 1e-6 is shown, not exact zero.
 `tb_trained_check.py` also reports the minimum and maximum of a_d(ld − b_d).
+- **Applied to the first three T-B checkpoints** (`model/results/v10c/tb_trained_check_first3.json`):
+
+  | run | median s | max s | a_d(ld − b_d) range | verdict |
+  |---|---|---|---|---|
+  | on s0 | 2.1e-13 | 7.3e-9 | −44.1 to −18.7 | **untrained** |
+  | on s1 | 0.112 | 0.574 | −4.5 to +0.3 | trained |
+  | off s0 | 0.133 | 0.567 | −3.7 to +0.3 | trained |
+
+  - None of on s0's rows is exactly 0, so the gradient behind s is tiny rather than zero; the critic's reading holds.
+  - **Collapse count so far:** on 1 of 2, off 0 of 1.
 
 **C4, a new-kernel retry:** `make_v10c_kernels.py run --start_attempt k` renders the kernel at attempt k.
 - Its seed bump is taken from the **registered** seed: +10 for k = 1, +20 for k = 2.
