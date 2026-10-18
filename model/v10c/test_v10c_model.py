@@ -408,3 +408,97 @@ def test_heldout_alias_in_training_is_refused(tmp_path):
     json.dump(t, open(tmp_path / 'cell_tissue.json', 'w'))
     with pytest.raises(SystemExit, match='under any of its names'):
         dv.V10CData([str(tmp_path)])
+
+
+# --- RESULTS 100.8: the drug-path guard -------------------------------------------------------------------------------
+def test_model_returns_the_dose_scale_it_applies():
+    m = built()
+    with torch.no_grad():
+        out, aux = m(make_batch(), return_aux=True)
+        out2 = m(make_batch())
+    assert out['dose_scale'].shape == (6,) and torch.equal(out['dose_scale'], aux['dose_scale'])
+    assert torch.equal(out['delta'], out2['delta'])
+
+
+def test_drug_path_guard_rule_by_hand():
+    g = tv.DrugPathGuard(start=4, every=2, window=3, floor=1e-4)
+    for _ in range(2):
+        g.update(0.0)
+    assert not g.failed(4)                      # the window is not full
+    g.update(0.0)
+    assert not g.failed(3) and not g.failed(5)  # before start; not on the check cadence
+    assert g.failed(4) and g.failed(6)
+    for v in (0.5, 0.5):
+        g.update(v)
+    assert len(g.meds) == 3 and not g.failed(8)  # median 0.5
+    g2 = tv.DrugPathGuard(start=1, every=1, window=3, floor=1e-4)
+    for v in (0.0, 0.0, 1e-3):
+        g2.update(v)
+    assert g2.failed(1)                          # median 0 < floor although one batch is above it
+
+
+def _tight_guard(monkeypatch):
+    real = tv.DrugPathGuard
+    monkeypatch.setattr(tv, 'DrugPathGuard', lambda: real(start=2, every=1, window=2, floor=1e-4))
+
+
+def test_guard_stops_a_run_whose_dose_scale_is_zero(tmp_path, monkeypatch):
+    write_fixture(tmp_path)
+    out = tmp_path / 'out'
+    monkeypatch.setattr(tv, 'V10CConfig', lambda **kw: tiny_cfg(**kw))
+    monkeypatch.setattr(mv.DoseScale, 'forward', lambda self, g, ld: torch.zeros_like(ld))
+    _tight_guard(monkeypatch)
+    with pytest.raises(SystemExit) as e:
+        tv.main(['--roots', str(tmp_path), '--out', str(out), '--cpu_ok', '--epochs', '1', '--batch', '16',
+                 '--d_model', '32', '--guard'])
+    assert e.value.code == tv.GUARD_EXIT
+    fails = list(out.glob('V10C_FAILED_*.json'))
+    assert len(fails) == 1 and not list(out.glob('v10c_pred_*')) and not list(out.glob('V10C_COMPLETE_*'))
+    f = json.load(open(fails[0]))
+    assert f['step'] == 2 and f['guard_level'] == 0.0 and f['tag'].endswith('_s0')
+
+
+def test_guard_lets_a_healthy_run_finish_and_logs_the_dose_scale(tmp_path, monkeypatch):
+    write_fixture(tmp_path)
+    monkeypatch.setattr(tv, 'V10CConfig', lambda **kw: tiny_cfg(**kw))
+    _tight_guard(monkeypatch)
+    rec = tv.main(['--roots', str(tmp_path), '--out', str(tmp_path / 'o'), '--cpu_ok', '--epochs', '1', '--batch', '16',
+                   '--d_model', '32', '--guard'])
+    h = rec['hist'][0]
+    assert rec['guard'] and 0 < h['dose_scale_batch_median_mean'] < 1 and 0 < h['gamma_mean_last_batch'] < 2
+
+
+def test_without_guard_a_dead_dose_scale_runs_to_the_end(tmp_path, monkeypatch):
+    write_fixture(tmp_path)
+    monkeypatch.setattr(tv, 'V10CConfig', lambda **kw: tiny_cfg(**kw))
+    monkeypatch.setattr(mv.DoseScale, 'forward', lambda self, g, ld: torch.zeros_like(ld))
+    _tight_guard(monkeypatch)
+    rec = tv.main(['--roots', str(tmp_path), '--out', str(tmp_path / 'o'), '--cpu_ok', '--epochs', '1', '--batch', '16',
+                   '--d_model', '32'])
+    assert not rec['guard'] and rec['hist'][0]['dose_scale_batch_median_mean'] == 0.0
+
+
+def test_next_attempt_bumps_the_seed_and_respects_the_budget():
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), 'orchestration'))
+    import make_v10c_kernels as mk
+    assert mk.GUARD_EXIT == tv.GUARD_EXIT
+    args = ['--seed', '1', '--guard']
+    assert mk.next_attempt(args, 0, 50.0, 3.8) == args                 # the registered run always starts
+    assert mk.next_attempt(args, 1, 2.0, 3.8) == ['--seed', '11', '--guard']
+    assert mk.next_attempt(args, 2, 6.0, 3.8) == ['--seed', '21', '--guard']
+    assert mk.next_attempt(args, 1, 7.3, 3.8) is None                  # 7.3 + 3.8 > 11
+    assert mk.next_attempt(args, 3, 0.0, 3.8) is None                  # at most two retries
+    assert args == ['--seed', '1', '--guard']                          # not mutated
+
+
+def test_guarded_kernel_renders_and_compiles(tmp_path):
+    import py_compile
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), 'orchestration'))
+    import make_v10c_kernels as mk
+    pins = mk.build_src(str(tmp_path / 'src'))
+    d = mk.render('lincs-v10c-tc-on-s0', [['tc_on_s0', ['--seed', '0', '--guard']]], pins, kern_dir=str(tmp_path / 'k'),
+                  run_h=5.7)
+    py = os.path.join(d, 'lincs-v10c-tc-on-s0.py')
+    py_compile.compile(py, doraise=True)
+    code = open(py, encoding='utf-8').read()
+    assert 'def next_attempt(' in code and 'RUN_H = 5.7' in code and 'GUARD_EXIT = 3' in code and "'attempts'" in code

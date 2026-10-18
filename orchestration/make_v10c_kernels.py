@@ -6,7 +6,7 @@
 The source dataset apexblue/lincs-v10c-src carries the code and the small data files; the substrate is
 apexblue/lincs-v10c-full; drug and network files come from apexblue/lincs-v9-bundle with the audit99 probe's pins.
 """
-import argparse, hashlib, json, os, shlex, shutil, sys
+import argparse, hashlib, inspect, json, os, shlex, shutil, sys
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC_DIR = os.path.join(REPO, 'external', 'kaggle_v10c_src')
@@ -31,12 +31,30 @@ def sha1(p):
     return h.hexdigest()
 
 
+GUARD_EXIT = 3          # train_v10c.GUARD_EXIT (asserted equal in the tests)
+
+
+def next_attempt(args, attempt, elapsed_h, run_h, budget_h=11.0, bumps=(0, 10, 20)):
+    """RESULTS 100.8: the arguments of attempt `attempt` (0 = the registered run) with the seed bumped by 0, 10, 20, or None
+    when no retry is left or the retry would not fit this session's budget (it then runs in a new kernel)."""
+    if attempt >= len(bumps) or (attempt > 0 and elapsed_h + run_h > budget_h):
+        return None
+    a = list(args)
+    i = a.index('--seed')
+    a[i + 1] = str(int(a[i + 1]) + bumps[attempt])
+    return a
+
+
 TEMPLATE = r'''# __NAME__ : RESULTS 100.4, v10-C. Kaggle 2 x T4, internet off.
 import glob, hashlib, json, os, shutil, subprocess, sys, time
 T0 = time.time()
 PINS = __PINS__
 CODE = __CODE__
 RUNS = __RUNS__
+RUN_H = __RUN_H__
+GUARD_EXIT = __GUARD_EXIT__
+
+__NEXT_ATTEMPT__
 
 def sha1(p):
     h = hashlib.sha1()
@@ -69,17 +87,29 @@ names = json.loads(probe.stdout.strip().splitlines()[-1]) if probe.returncode ==
 if len(names) < 2 or any('P100' in n for n in names):
     raise SystemExit(f'FATAL: need 2 non-P100 GPUs, got {names} {probe.stderr[-500:]}')
 print('GPUs', names, flush=True)
-done = []
+done, attempts = [], {}
 for tag, args in RUNS:
-    out = os.path.join(OUT, tag)
-    os.makedirs(out, exist_ok=True)
-    cmd = [sys.executable, os.path.join(SRC, 'model/v10c/train_v10c.py'), '--roots', DATA, '--out', out] + args
-    print('RUN', tag, ' '.join(cmd), flush=True)
-    r = subprocess.run(cmd)
-    if r.returncode != 0:
-        raise SystemExit(f'FATAL: run {tag} exited {r.returncode}')
-    done.append(tag)
-json.dump({'pins': PINS, 'runs': RUNS, 'done': done, 'gpus': names, 'wall_s': round(time.time() - T0, 1)},
+    guard, k, attempts[tag] = '--guard' in args, 0, []
+    while True:
+        a2 = next_attempt(args, k, (time.time() - T0) / 3600, RUN_H) if guard else (args if k == 0 else None)
+        if a2 is None:
+            print('NO ATTEMPT LEFT IN THIS KERNEL', tag, flush=True)
+            break
+        out = os.path.join(OUT, tag if k == 0 else f'{tag}_retry{k}')
+        os.makedirs(out, exist_ok=True)
+        cmd = [sys.executable, os.path.join(SRC, 'model/v10c/train_v10c.py'), '--roots', DATA, '--out', out] + a2
+        print('RUN', tag, k, ' '.join(cmd), flush=True)
+        r = subprocess.run(cmd)
+        attempts[tag].append({'attempt': k, 'args': a2, 'out': out, 'returncode': r.returncode,
+                              'elapsed_h': round((time.time() - T0) / 3600, 3)})
+        if r.returncode == 0:
+            done.append(tag)
+            break
+        if not (guard and r.returncode == GUARD_EXIT):
+            raise SystemExit(f'FATAL: run {tag} exited {r.returncode}')
+        k += 1
+json.dump({'pins': PINS, 'runs': RUNS, 'done': done, 'attempts': attempts, 'gpus': names,
+           'wall_s': round(time.time() - T0, 1)},
           open(os.path.join(OUT, 'V10C_KERNEL_COMPLETE.json'), 'w'), indent=1)
 print('KERNEL DONE', done, flush=True)
 '''
@@ -103,11 +133,12 @@ def build_src(src_dir=SRC_DIR):
     return pins
 
 
-def render(name, runs, pins, kern_dir=KERN_DIR):
+def render(name, runs, pins, kern_dir=KERN_DIR, run_h=3.8):
     d = os.path.join(kern_dir, 'kern_' + name.replace('lincs-', '').replace('-', '_'))
     os.makedirs(d, exist_ok=True)
     code = (TEMPLATE.replace('__NAME__', name).replace('__PINS__', repr(pins)).replace('__CODE__', repr(CODE))
-            .replace('__RUNS__', repr(runs)))
+            .replace('__RUNS__', repr(runs)).replace('__RUN_H__', repr(float(run_h)))
+            .replace('__GUARD_EXIT__', repr(GUARD_EXIT)).replace('__NEXT_ATTEMPT__', inspect.getsource(next_attempt)))
     with open(os.path.join(d, name + '.py'), 'w', encoding='utf-8', newline='\n') as f:
         f.write(code)
     meta = {'id': f'apexblue/{name}', 'title': name, 'code_file': f'{name}.py', 'language': 'python',
@@ -124,6 +155,7 @@ def main(argv=None):
     ap.add_argument('mode', choices=['timing', 'run'])
     ap.add_argument('--tag')
     ap.add_argument('--args', default='')
+    ap.add_argument('--run_h', type=float, default=3.8, help='projected hours of one run (100.8 retry budget)')
     a = ap.parse_args(argv)
     pins = build_src()
     if a.mode == 'timing':
@@ -133,7 +165,7 @@ def main(argv=None):
     else:
         if not a.tag:
             raise SystemExit('--tag is required for a run kernel')
-        d = render('lincs-v10c-' + a.tag.replace('_', '-'), [[a.tag, shlex.split(a.args)]], pins)
+        d = render('lincs-v10c-' + a.tag.replace('_', '-'), [[a.tag, shlex.split(a.args)]], pins, run_h=a.run_h)
     print(json.dumps(pins, indent=1))
     print(d)
 

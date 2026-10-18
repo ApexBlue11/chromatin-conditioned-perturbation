@@ -19,6 +19,7 @@ from model_v10c import V10CConfig, LincsV10C, v10c_loss, batch_contrast, row_pcc
 from data_v10c import V10CData, plate_batches, find  # noqa: E402
 
 ID_KEYS = ('sub_row', 'bench_row')
+GUARD_EXIT = 3      # RESULTS 100.8: the exit code of a run stopped by the drug-path guard
 
 
 def wsd(step, total, warm=0.03, decay=0.20):
@@ -28,6 +29,29 @@ def wsd(step, total, warm=0.03, decay=0.20):
     if step >= total - d:
         return max(0.0, (total - step) / d)
     return 1.0
+
+
+class DrugPathGuard:
+    """RESULTS 100.8: stop a run whose dose scale s has saturated at zero, so its drug path cannot train (100.7). Reads
+    training batches only. From step `start`, every `every` steps: failed iff the median of the last `window` per-batch
+    medians of s is below `floor`."""
+
+    def __init__(self, start=1000, every=500, window=200, floor=1e-4):
+        self.start, self.every, self.window, self.floor = start, every, window, floor
+        self.meds = []
+
+    def update(self, batch_median):
+        self.meds.append(float(batch_median))
+        if len(self.meds) > self.window:
+            del self.meds[0]
+
+    def level(self):
+        return float(np.median(self.meds)) if self.meds else float('nan')
+
+    def failed(self, step):
+        if step < self.start or step % self.every or len(self.meds) < self.window:
+            return False
+        return self.level() < self.floor
 
 
 def heldout_scores(pred, true, plate, pert, cell, min_mates=2):
@@ -104,6 +128,7 @@ def build_parser():
     ap.add_argument('--out', default='/kaggle/working')
     ap.add_argument('--cpu_ok', action='store_true', help='tests only')
     ap.add_argument('--limit_rows', type=int, default=0, help='tests only')
+    ap.add_argument('--guard', action='store_true', help='RESULTS 100.8: stop if the dose scale saturates at zero')
     return ap
 
 
@@ -153,16 +178,23 @@ def main(argv=None):
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: wsd(s, total))
     scaler = torch.amp.GradScaler('cuda', enabled=device == 'cuda')
     step, hist = 0, []
+    tag = f"{a.split}_{'dev' if a.dev else 'test'}_{'off' if a.chrom_off else 'on'}_d{a.d_model}_s{a.seed}"
+    guard = DrugPathGuard() if a.guard else None
+    recent = []
     t_train = time.time()
     for ep in range(a.epochs):
         batches = plate_batches(D.plate[D.tr], a.batch, rng, a.plate_cap)
-        run, n_ok = 0.0, 0
+        run, n_ok, s_sum = 0.0, 0, 0.0
         for it, bi in enumerate(batches):
             b = D.batch(D.tr[bi], device)
             opt.zero_grad(set_to_none=True)
             with torch.amp.autocast('cuda', enabled=device == 'cuda'):
                 out = model(b)
                 loss, parts = v10c_loss(out, b, cfg)
+            s_med = float(out['dose_scale'].detach().float().median())
+            s_sum += s_med
+            if guard is not None:
+                guard.update(s_med)
             scaler.scale(loss).backward()
             scaler.unscale_(opt)
             torch.nn.utils.clip_grad_norm_(core.parameters(), 1.0)
@@ -174,6 +206,14 @@ def main(argv=None):
             n_ok += parts['n_contrast_rows']
             if not np.isfinite(float(loss.detach())):
                 raise SystemExit(f'FATAL: non-finite loss at epoch {ep} step {it}')
+            recent = (recent + [{'step': step, 'loss': float(loss.detach()), 'dose_scale_median': s_med, **parts}])[-20:]
+            if guard is not None and guard.failed(step):
+                fail = {'tag': tag, 'args': vars(a), 'status': 'drug path did not train (RESULTS 100.8)', 'step': step,
+                        'epoch': ep, 'guard_level': guard.level(), 'guard': vars(guard) | {'meds': guard.meds[-50:]},
+                        'recent': recent, 'hist': hist, 'wall_h': (time.time() - t0) / 3600}
+                json.dump(fail, open(os.path.join(a.out, f'V10C_FAILED_{tag}.json'), 'w'), indent=1)
+                print('FAILED ' + json.dumps({k: fail[k] for k in ('tag', 'step', 'guard_level')}), flush=True)
+                raise SystemExit(GUARD_EXIT)
             if a.timing_steps and step == a.timing_steps:
                 sec = (time.time() - t_train) / step
                 rec = {'s_per_step': sec, 'steps_per_epoch': n_batches, 'projected_h': sec * total / 3600,
@@ -190,8 +230,13 @@ def main(argv=None):
                                      f'would be cut (a cut run is not read)')
             if it % 500 == 0:
                 print(f'  e{ep} it{it}/{len(batches)} loss {float(loss):.4f} {parts}', flush=True)
+        core.eval()                                                  # 100.8, reported only: no RNG is consumed
+        with torch.no_grad(), torch.amp.autocast('cuda', enabled=device == 'cuda'):
+            _, aux = core(b, return_aux=True)
+        core.train()
         hist.append({'epoch': ep, 'loss': run / max(1, len(batches)), 'contrast_rows_per_step': n_ok / max(1, len(batches)),
-                     'elapsed_h': (time.time() - t0) / 3600})
+                     'elapsed_h': (time.time() - t0) / 3600, 'dose_scale_batch_median_mean': s_sum / max(1, len(batches)),
+                     'gamma_mean_last_batch': float(aux['gamma'].float().mean())})
         print('EPOCH ' + json.dumps(hist[-1]), flush=True)
 
     pd, pg = predict_by_plate(core, D, D.ev, device, 64)
@@ -209,7 +254,6 @@ def main(argv=None):
                 permutations[kind]['per_cell_contrast_r'] = {c: v['contrast_r'] for c, v in sk['per_cell'].items()}
         finally:
             D.F, D.M = F0, M0
-    tag = f"{a.split}_{'dev' if a.dev else 'test'}_{'off' if a.chrom_off else 'on'}_d{a.d_model}_s{a.seed}"
     pred_path = os.path.join(a.out, f'v10c_pred_{tag}.npz')
     np.savez_compressed(pred_path, sub_row=D.sub_row[D.ev], bench_row=D.bench_row[D.ev], delta=pd, drug=pg,
                         r_contrast=r_con, r_delta=r_del)
@@ -217,7 +261,7 @@ def main(argv=None):
     rec = {'tag': tag, 'args': vars(a), 'dev_cells': D.dev_cells, 'n_train': int(len(D.tr)), 'n_heldout': int(len(D.ev)),
            'dropped': D.n_dropped, 'params': n_par, 'hist': hist, 'scores': scores, 'pred_sha1': h,
            'reported_permutations': permutations, 'single_control_heldout_rows': int(D.single_ctl[D.ev].sum()),
-           'wall_h': (time.time() - t0) / 3600}
+           'guard': bool(a.guard), 'wall_h': (time.time() - t0) / 3600}
     json.dump(rec, open(os.path.join(a.out, f'V10C_COMPLETE_{tag}.json'), 'w'), indent=1)
     torch.save({'model': core.state_dict(), 'cfg': {k: getattr(cfg, k) for k in dir(cfg) if not k.startswith('_')
                                                      and not callable(getattr(cfg, k))}},

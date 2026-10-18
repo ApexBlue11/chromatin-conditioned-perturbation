@@ -242,7 +242,7 @@ class LincsV10C(nn.Module):
         basal = (self.basal_h(h_basal) + self.basal_c(c)).squeeze(-1)
         drug = self.drug_head(h).squeeze(-1)
         delta = basal + drug
-        out = {'delta': delta, 'abs': x_ctl + delta, 'drug': drug, 'basal': basal}
+        out = {'delta': delta, 'abs': x_ctl + delta, 'drug': drug, 'basal': basal, 'dose_scale': s}   # s: 100.8's guard
         if return_aux:
             return out, {'gamma': torch.stack(gammas, 1), 'a_ppi': a_ppi, 'dose_scale': s, 'pathways': pathways}
         return out
