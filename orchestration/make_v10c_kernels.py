@@ -2,6 +2,8 @@
 
   python orchestration/make_v10c_kernels.py timing                 -> kern_v10c_timing (d 256 and d 384, 300 steps each)
   python orchestration/make_v10c_kernels.py run --tag tb_on_s0 --args "--dev --seed 0"
+  python orchestration/make_v10c_kernels.py run --tag tc_on_s1 --args "--seed 1 --guard" --start_attempt 1
+      (RESULTS 100.8 / review 090 C4: a retry in a new kernel; the seed is bumped from the REGISTERED seed)
 
 The source dataset apexblue/lincs-v10c-src carries the code and the small data files; the substrate is
 apexblue/lincs-v10c-full; drug and network files come from apexblue/lincs-v9-bundle with the audit99 probe's pins.
@@ -52,6 +54,7 @@ PINS = __PINS__
 CODE = __CODE__
 RUNS = __RUNS__
 RUN_H = __RUN_H__
+START_ATTEMPT = __START_ATTEMPT__
 GUARD_EXIT = __GUARD_EXIT__
 
 __NEXT_ATTEMPT__
@@ -89,7 +92,8 @@ if len(names) < 2 or any('P100' in n for n in names):
 print('GPUs', names, flush=True)
 done, attempts = [], {}
 for tag, args in RUNS:
-    guard, k, attempts[tag] = '--guard' in args, 0, []
+    guard = '--guard' in args
+    k, attempts[tag] = (START_ATTEMPT if guard else 0), []
     while True:
         a2 = next_attempt(args, k, (time.time() - T0) / 3600, RUN_H) if guard else (args if k == 0 else None)
         if a2 is None:
@@ -133,11 +137,16 @@ def build_src(src_dir=SRC_DIR):
     return pins
 
 
-def render(name, runs, pins, kern_dir=KERN_DIR, run_h=3.8):
+def render(name, runs, pins, kern_dir=KERN_DIR, run_h=3.8, start_attempt=0):
+    if start_attempt not in (0, 1, 2):
+        raise SystemExit(f'FATAL: start_attempt {start_attempt} outside 100.8\'s two retries')
+    if start_attempt and not all('--guard' in args for _, args in runs):
+        raise SystemExit('FATAL: --start_attempt is a 100.8 retry and needs --guard in every run')
     d = os.path.join(kern_dir, 'kern_' + name.replace('lincs-', '').replace('-', '_'))
     os.makedirs(d, exist_ok=True)
     code = (TEMPLATE.replace('__NAME__', name).replace('__PINS__', repr(pins)).replace('__CODE__', repr(CODE))
             .replace('__RUNS__', repr(runs)).replace('__RUN_H__', repr(float(run_h)))
+            .replace('__START_ATTEMPT__', repr(int(start_attempt)))
             .replace('__GUARD_EXIT__', repr(GUARD_EXIT)).replace('__NEXT_ATTEMPT__', inspect.getsource(next_attempt)))
     with open(os.path.join(d, name + '.py'), 'w', encoding='utf-8', newline='\n') as f:
         f.write(code)
@@ -156,6 +165,7 @@ def main(argv=None):
     ap.add_argument('--tag')
     ap.add_argument('--args', default='')
     ap.add_argument('--run_h', type=float, default=3.8, help='projected hours of one run (100.8 retry budget)')
+    ap.add_argument('--start_attempt', type=int, default=0, help='100.8 retry in a new kernel (review 090 C4)')
     a = ap.parse_args(argv)
     pins = build_src()
     if a.mode == 'timing':
@@ -165,7 +175,8 @@ def main(argv=None):
     else:
         if not a.tag:
             raise SystemExit('--tag is required for a run kernel')
-        d = render('lincs-v10c-' + a.tag.replace('_', '-'), [[a.tag, shlex.split(a.args)]], pins, run_h=a.run_h)
+        d = render('lincs-v10c-' + a.tag.replace('_', '-'), [[a.tag, shlex.split(a.args)]], pins, run_h=a.run_h,
+                   start_attempt=a.start_attempt)
     print(json.dumps(pins, indent=1))
     print(d)
 

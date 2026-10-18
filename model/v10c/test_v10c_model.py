@@ -502,3 +502,65 @@ def test_guarded_kernel_renders_and_compiles(tmp_path):
     py_compile.compile(py, doraise=True)
     code = open(py, encoding='utf-8').read()
     assert 'def next_attempt(' in code and 'RUN_H = 5.7' in code and 'GUARD_EXIT = 3' in code and "'attempts'" in code
+
+
+# --- review 090: C5 (the guard at the final step), C4 (--start_attempt) and the trained-run criterion --------------------
+def test_guard_checks_the_final_step(tmp_path, monkeypatch):
+    write_fixture(tmp_path)
+    out = tmp_path / 'out'
+    monkeypatch.setattr(tv, 'V10CConfig', lambda **kw: tiny_cfg(**kw))
+    monkeypatch.setattr(mv.DoseScale, 'forward', lambda self, g, ld: torch.zeros_like(ld))
+    real = tv.DrugPathGuard
+    monkeypatch.setattr(tv, 'DrugPathGuard', lambda: real(start=10 ** 6, every=500, window=2, floor=1e-4))
+    with pytest.raises(SystemExit) as e:                # no cadence check can fire in this run: only the final one
+        tv.main(['--roots', str(tmp_path), '--out', str(out), '--cpu_ok', '--epochs', '1', '--batch', '16',
+                 '--d_model', '32', '--guard'])
+    assert e.value.code == tv.GUARD_EXIT and not list(out.glob('v10c_pred_*'))
+    g = real(start=10 ** 6, every=500, window=2)
+    g.update(0.0)
+    assert not g.failed(7, final=True)                  # the window must still be full
+    g.update(0.0)
+    assert g.failed(7, final=True) and not g.failed(7)
+
+
+def test_start_attempt_renders_and_is_refused_without_guard(tmp_path):
+    import py_compile
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), 'orchestration'))
+    import make_v10c_kernels as mk
+    pins = mk.build_src(str(tmp_path / 'src'))
+    d = mk.render('lincs-v10c-tc-on-s1-r1', [['tc_on_s1', ['--seed', '1', '--guard']]], pins, kern_dir=str(tmp_path / 'k'),
+                  start_attempt=1)
+    py = os.path.join(d, 'lincs-v10c-tc-on-s1-r1.py')
+    py_compile.compile(py, doraise=True)
+    code = open(py, encoding='utf-8').read()
+    assert 'START_ATTEMPT = 1' in code and "'--seed', '1'" in code      # the registered seed; the bump happens at run time
+    assert 'k, attempts[tag] = (START_ATTEMPT if guard else 0), []' in code
+    assert mk.next_attempt(['--seed', '1', '--guard'], 1, 0.0, 3.8) == ['--seed', '11', '--guard']
+    with pytest.raises(SystemExit, match='needs --guard'):
+        mk.render('x', [['t', ['--seed', '1']]], pins, kern_dir=str(tmp_path / 'k2'), start_attempt=1)
+    with pytest.raises(SystemExit, match='two retries'):
+        mk.render('x', [['t', ['--seed', '1', '--guard']]], pins, kern_dir=str(tmp_path / 'k3'), start_attempt=3)
+
+
+def test_trained_check_verdict_and_dose_terms():
+    import tb_trained_check as tc
+    v = tc.verdict(np.array([0.0, 0.0, 1e-8, 5e-5, 0.3]), np.array([-120.0, -90.0, -18.4, -9.9, -0.8]))
+    assert not v['drug_path_trained'] and v['n_s_exactly_0'] == 2 and v['frac_s_below_1e-6'] == 0.6
+    assert v['z_min'] == -120.0
+    assert tc.verdict(np.array([1e-4, 1e-4, 0.0]), np.zeros(3))['drug_path_trained']    # median == floor: trained
+    m = built()
+    with torch.no_grad():
+        b = make_batch()
+        s, z = tc.dose_terms(m, b)
+        out = m(b)
+    assert torch.allclose(s, torch.sigmoid(z), atol=1e-6) and torch.equal(s, out['dose_scale'])
+
+
+def test_trained_check_draws_the_diagnostic_rows():
+    import tb_trained_check as tc
+
+    class _D:
+        ev, tr = np.arange(1000, 2000), np.arange(5000)
+    rng = np.random.default_rng(0)
+    np.sort(rng.choice(_D.ev, 480, replace=False))
+    assert np.array_equal(tc.training_rows(_D()), np.sort(rng.choice(_D.tr, 480, replace=False)))

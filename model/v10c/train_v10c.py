@@ -33,8 +33,8 @@ def wsd(step, total, warm=0.03, decay=0.20):
 
 class DrugPathGuard:
     """RESULTS 100.8: stop a run whose dose scale s has saturated at zero, so its drug path cannot train (100.7). Reads
-    training batches only. From step `start`, every `every` steps: failed iff the median of the last `window` per-batch
-    medians of s is below `floor`."""
+    training batches only. From step `start`, every `every` steps, and once at the final step (review 090 C5): failed iff
+    the median of the last `window` per-batch medians of s is below `floor`."""
 
     def __init__(self, start=1000, every=500, window=200, floor=1e-4):
         self.start, self.every, self.window, self.floor = start, every, window, floor
@@ -48,10 +48,22 @@ class DrugPathGuard:
     def level(self):
         return float(np.median(self.meds)) if self.meds else float('nan')
 
-    def failed(self, step):
-        if step < self.start or step % self.every or len(self.meds) < self.window:
+    def failed(self, step, final=False):
+        if not final and (step < self.start or step % self.every):
+            return False
+        if len(self.meds) < self.window:
             return False
         return self.level() < self.floor
+
+
+def guard_stop(a, tag, guard, step, ep, recent, hist, t0):
+    """RESULTS 100.8: record a run stopped by the drug-path guard and exit with GUARD_EXIT (nothing scored)."""
+    fail = {'tag': tag, 'args': vars(a), 'status': 'drug path did not train (RESULTS 100.8)', 'step': step, 'epoch': ep,
+            'guard_level': guard.level(), 'guard': vars(guard) | {'meds': guard.meds[-50:]}, 'recent': recent,
+            'hist': hist, 'wall_h': (time.time() - t0) / 3600}
+    json.dump(fail, open(os.path.join(a.out, f'V10C_FAILED_{tag}.json'), 'w'), indent=1)
+    print('FAILED ' + json.dumps({k: fail[k] for k in ('tag', 'step', 'guard_level')}), flush=True)
+    raise SystemExit(GUARD_EXIT)
 
 
 def heldout_scores(pred, true, plate, pert, cell, min_mates=2):
@@ -208,12 +220,7 @@ def main(argv=None):
                 raise SystemExit(f'FATAL: non-finite loss at epoch {ep} step {it}')
             recent = (recent + [{'step': step, 'loss': float(loss.detach()), 'dose_scale_median': s_med, **parts}])[-20:]
             if guard is not None and guard.failed(step):
-                fail = {'tag': tag, 'args': vars(a), 'status': 'drug path did not train (RESULTS 100.8)', 'step': step,
-                        'epoch': ep, 'guard_level': guard.level(), 'guard': vars(guard) | {'meds': guard.meds[-50:]},
-                        'recent': recent, 'hist': hist, 'wall_h': (time.time() - t0) / 3600}
-                json.dump(fail, open(os.path.join(a.out, f'V10C_FAILED_{tag}.json'), 'w'), indent=1)
-                print('FAILED ' + json.dumps({k: fail[k] for k in ('tag', 'step', 'guard_level')}), flush=True)
-                raise SystemExit(GUARD_EXIT)
+                guard_stop(a, tag, guard, step, ep, recent, hist, t0)
             if a.timing_steps and step == a.timing_steps:
                 sec = (time.time() - t_train) / step
                 rec = {'s_per_step': sec, 'steps_per_epoch': n_batches, 'projected_h': sec * total / 3600,
@@ -239,6 +246,8 @@ def main(argv=None):
                      'gamma_mean_last_batch': float(aux['gamma'].float().mean())})
         print('EPOCH ' + json.dumps(hist[-1]), flush=True)
 
+    if guard is not None and guard.failed(step, final=True):           # review 090 C5: the end of training, before scoring
+        guard_stop(a, tag, guard, step, a.epochs - 1, recent, hist, t0)
     pd, pg = predict_by_plate(core, D, D.ev, device, 64)
     T = D.X[D.ev] - D.ctl[D.ctl_id[D.ev]]
     scores, r_con, r_del = heldout_scores(pd, T, D.plate[D.ev], D.pert_code[D.ev], D.cell[D.ev])
