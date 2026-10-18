@@ -1,0 +1,80 @@
+{
+ "on_s0": {
+  "dev": {
+   "s_quantiles": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "s_eq_0_frac": 1.0,
+   "gamma_mean": 0.989056408405304,
+   "drug_out_sd_across_rows_per_gene_mean": 0.09233608096837997
+  },
+  "train": {
+   "s_quantiles": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "s_eq_0_frac": 1.0,
+   "gamma_mean": 0.9890888929367065,
+   "drug_out_sd_across_rows_per_gene_mean": 0.09674347937107086
+  }
+ },
+ "on_s1": {
+  "dev": {
+   "s_quantiles": [
+    0.007684,
+    0.049947,
+    0.11639,
+    0.256175,
+    0.614639
+   ],
+   "s_eq_0_frac": 0.0,
+   "gamma_mean": 0.4269384443759918,
+   "drug_out_sd_across_rows_per_gene_mean": 0.20219539105892181
+  },
+  "train": {
+   "s_quantiles": [
+    0.010788,
+    0.058046,
+    0.111699,
+    0.220968,
+    0.574156
+   ],
+   "s_eq_0_frac": 0.0,
+   "gamma_mean": 0.42992693185806274,
+   "drug_out_sd_across_rows_per_gene_mean": 0.21372149884700775
+  }
+ },
+ "off_s0": {
+  "dev": {
+   "s_quantiles": [
+    0.016285,
+    0.053503,
+    0.134146,
+    0.258606,
+    0.580225
+   ],
+   "s_eq_0_frac": 0.0,
+   "gamma_mean": 0.43386510014533997,
+   "drug_out_sd_across_rows_per_gene_mean": 0.19891098141670227
+  },
+  "train": {
+   "s_quantiles": [
+    0.024057,
+    0.06415,
+    0.132685,
+    0.231497,
+    0.566726
+   ],
+   "s_eq_0_frac": 0.0,
+   "gamma_mean": 0.4340331256389618,
+   "drug_out_sd_across_rows_per_gene_mean": 0.21783381700515747
+  }
+ }
+}

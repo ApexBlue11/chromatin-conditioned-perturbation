@@ -10894,6 +10894,84 @@ each cell, so only the within-cell gene pattern is left, *"which genes respond m
 - **T-A is carried beside T-B as its prior** (review 089 ask 3). It doesn't change T-B's rule. If T-B passes, the gain must
   come from drug-conditioned or nonlinear use, and the gene-shuffle / cell-swap permutations become the key reading.
 
+### 100.7 OBSERVATION: T-B's `on` seed 0 did not train its drug path; the dose scale saturated at zero (PI, 2026-10-18; no T-B reading)
+Three of T-B's six d = 256 runs are complete (`model/results/v10c/tb_ledger.jsonl`). T-B is **not read** until all six exist.
+This section records a training failure found in one of them, and its diagnosis. Nothing is dropped.
+
+**What was seen** (`lincs-v10c-tb-on-s0`, chromatin on, seed 0):
+- The training contrast loss, 1 − PCC, averaged **0.999, 0.993, 0.994, 1.001** over the four epochs.
+  - The same seed's off arm fell to 0.908, 0.867, 0.804, 0.832.
+  - On seed 1 it fell to 0.921, 0.873, 0.817, 0.820.
+- The held-out contrast r is **−0.0001**, and exactly 0 on LNCAP. The model's prediction does not depend on the compound.
+- Delta r is 0.404; the basal path trained.
+
+**The diagnosis** (CPU; the three checkpoints on 480 random dev rows and 480 random training rows;
+`model/v10c/diag_dose_collapse.py` → `model/results/v10c/tb_collapse_diag.json`):
+
+| | dose scale s, median (10–90 %) | s ≤ 1e-6 | mean gate γ |
+|---|---|---|---|
+| **on, seed 0** | **0.000000** (0.000000–0.000000) | **100 %** of rows | 0.989 (init 1) |
+| on, seed 1 | 0.116 (0.050–0.256) | 0 % | 0.427 |
+| off, seed 0 | 0.134 (0.054–0.259) | 0 % | 0.434 |
+
+- **The mechanism:**
+  - F5's s = σ(a_d(log dose − b_d)) multiplies every drug update. Its slope a_d and threshold b_d come from the drug token.
+  - In seed 0's on arm, the argument went far enough negative that s is 0 in fp32. From then on, every drug-path parameter
+    received zero gradient.
+  - Those parameters ended near their initial scale while weight decay shrank them:
+    - w_dt has norm 0.09 (4.0 in the healthy runs);
+    - W_c 0.32–0.36 (8.6–9.4);
+    - the first layer of the drug MLP 13.1 (65–67).
+  - The γ gates never left γ = 1.
+- **Why this is not a chromatin effect:**
+  - The dose scale reads only the drug token and the dose, not chromatin.
+  - The same seed's off arm had the same initialisation and the same batches (the first logged step is identical, loss
+    2.1207), and it survived.
+  - Chromatin changes the trajectory, not the failing unit. This is an optimisation failure of F5 that either arm can hit.
+- **Even the healthy runs keep s small** (median ≈ 0.12): training pushes the drug update down, and seed 0 crossed into
+  saturation. This fragility belongs to the shared v10 base, not to v10-C's chromatin.
+
+**What it means for T-B** (registered 100.4, read as registered):
+- **The run stays in the reading.** 100.4 has no exclusion clause, and none is added after seeing it.
+- **The arithmetic:**
+  - seed 0's paired Δ(on − off) is −0.166;
+  - for the 3-seed mean Δ to pass, seeds 1 and 2 would need a summed Δ above +0.175;
+  - that is more than the off arm's whole contrast r.
+- **T-B as registered therefore cannot pass.** That is a consequence of the rule, not a reading. T-B is still read in full
+  when the six runs exist.
+- **Beside the registered reading, labelled POST HOC (motivated by this run) and never a pass:**
+  - the same means over the runs whose dose scale is not identically zero;
+  - the same s check applied to every T-B checkpoint, both arms.
+- **The d = 384 screen** (on, seed 0) runs as registered. If it fails the same way, the screen's rule picks d = 256.
+
+### 100.8 🔒 REGISTERED AMENDMENT to 100.5: a drug-path guard for T-C and the gap arm (PI, 2026-10-18; before any T-C code or run)
+**Why:** §100.7. A run whose dose scale saturates at zero has no drug effect, and so contrast r ≡ 0. If such a run landed in
+one arm of T-C, it would decide the comparison with an optimiser failure rather than with chromatin.
+
+**The guard** (`train_v10c.py --guard`; on in every T-C and gap-arm run, both arms alike):
+- The model also returns s. Nothing is computed differently, and this is tested: outputs are identical with and without it.
+- The trainer keeps the **median s of each training batch**.
+- **The check:** from step 1,000, every 500 steps, the trainer takes the median of the last 200 batch medians. If it is
+  **below 1e-4**, the run stops as **"drug path did not train"**:
+  - it writes `V10C_FAILED_{tag}.json` (the step, the recent medians and losses);
+  - it scores nothing and writes no predictions.
+- **The threshold:** the healthy runs end at a median of 0.12–0.13, with a minimum of 0.008 over 480 rows. 1e-4 is about
+  1,000 × below the healthy median. The failed run's s is 0 to six places.
+- **Retries:**
+  - the failed slot is re-run with seed + 10, then seed + 20, at most two retries;
+  - a retry runs inside the same kernel only when the 11 h budget guard allows it; otherwise it runs in a new kernel;
+  - for each arm and seed slot, the reading uses the **first attempt that completes**;
+  - every attempt is listed in the run record and the ledger.
+  - If a slot has no completed attempt after the retries, T-C reports the failure and makes **no claim**.
+- **What the guard reads:** training batches only. It never sees a held-out row, and it acts the same on the on and off arms.
+- **Also logged per epoch** (reported only): the median of s and the mean γ.
+
+**Unchanged:**
+- T-C's rule, cells, score and reporting (100.5);
+- T-B and the d = 384 screen, which run as registered **without** the guard (their code is pinned and already pushed).
+
+The guard's code is tested and mutation-tested, then reviewed by the critic, before any T-C kernel is built.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
