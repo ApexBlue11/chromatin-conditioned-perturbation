@@ -1,0 +1,33 @@
+{
+ "rule": "RESULTS 100.9: untrained iff median s over 480 training rows < 1e-4",
+ "runs": [
+  {
+   "checkpoint": "v10c_cold_cell_1_dev_off_d256_s1.pt",
+   "arm": "off",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.1072094775736332,
+   "s_min": 0.014893191866576672,
+   "s_max": 0.49250203371047974,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -4.191845893859863,
+   "z_max": -0.02999412640929222,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_cell_1_dev_on_d256_s2.pt",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.07387802377343178,
+   "s_min": 0.018171336501836777,
+   "s_max": 0.3894258737564087,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -3.9895713329315186,
+   "z_max": -0.4497261643409729,
+   "drug_path_trained": true
+  }
+ ]
+}
