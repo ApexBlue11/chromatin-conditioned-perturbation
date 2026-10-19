@@ -1,0 +1,25 @@
+{
+ "registered_100_4": {
+  "delta": 0.00028141514112449417,
+  "threshold": 0.19048627841759458,
+  "width": 256,
+  "note": "comparator is d256 on s0, whose drug path did not train; can err only toward 256 (review 090 C1)"
+ },
+ "read_100_9": {
+  "width": 256,
+  "reason": "d384's drug path did not train: the screen is uninformative (100.9)"
+ },
+ "T_C_width": 256,
+ "d384_contrast_r": 0.00016529382713043788,
+ "d384_drug_path_trained": false,
+ "d256_on_contrast_r": {
+  "0": -0.0001161213139940563,
+  "1": 0.16332712896518917,
+  "2": 0.16633150132737518
+ },
+ "d256_on_trained": {
+  "0": false,
+  "1": true,
+  "2": true
+ }
+}
