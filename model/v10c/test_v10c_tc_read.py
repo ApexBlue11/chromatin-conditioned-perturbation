@@ -113,3 +113,89 @@ def test_the_earliest_completed_attempt_is_used_and_attempts_are_ordered(tmp_pat
     assert [x[0] for x in a] == [0, 1]
     k, rec = tc.first_completed(a)
     assert k == 0 and json.load(open(rec))['sub'] == 'tc_on_s2'
+
+
+# --- end to end: tc_ledger.add + tc_read.main (100.11: the ledger, the per-attempt report) ------------------------------
+import tc_ledger  # noqa: E402
+
+
+def _record(cells, seed, arm):
+    pc = {c: {'contrast_r': v, 'delta_r': 0.5} for c, v in cells.items()}
+    return {'tag': f'cold_cell_1_test_{arm}_d256_s{seed}', 'args': {'seed': seed}, 'pred_sha1': f'p{arm}{seed}',
+            'scores': {'per_cell': pc, 'contrast_r_row_mean': 0.2, 'delta_r_row_mean': 0.5},
+            'reported_permutations': {}, 'single_control_heldout_rows': 0,
+            'hist': [{'dose_scale_batch_median_mean': 0.12}]}
+
+
+def _slot(root, arm, s, attempts, cells):
+    """attempts: list of returncodes for attempts 0..k in one kernel; the seed of attempt k is s + 10 k."""
+    slot = f'tc_{arm}_s{s}'
+    kd = root / slot
+    kd.mkdir(parents=True)
+    att = []
+    for k, rc in enumerate(attempts):
+        sub = slot if k == 0 else f'{slot}_retry{k}'
+        (kd / sub).mkdir()
+        seed = s + 10 * k
+        if rc == 0:
+            (kd / sub / f'V10C_COMPLETE_x.json').write_text(json.dumps(_record(cells, seed, arm)))
+        else:
+            (kd / sub / 'V10C_FAILED_x.json').write_text(json.dumps({'step': 1500, 'guard_level': 1e-12}))
+        att.append({'attempt': k, 'returncode': rc, 'out': f'/kaggle/working/{sub}', 'args': ['--seed', str(seed), '--guard']})
+    (kd / 'V10C_KERNEL_COMPLETE.json').write_text(json.dumps({'attempts': {slot: att}}))
+    return kd
+
+
+def _world(tmp_path, on_s0=(3, 0)):
+    on = {c: 0.21 for c in tc.CLEAN + tc.APART}
+    off = {c: 0.20 for c in tc.CLEAN + tc.APART}
+    led = tmp_path / 'ledger.jsonl'
+    runs = tmp_path / 'runs'
+    for s in tc.SEEDS:
+        for arm, cells, atts in (('on', on, on_s0 if s == 0 else (0,)), ('off', off, (0,))):
+            tc_ledger.add(str(_slot(runs, arm, s, atts, cells)), ledger=str(led))
+    return runs, led
+
+
+def _read(runs, led, out, monkeypatch):
+    monkeypatch.setattr(sys, 'argv', ['tc_read.py', '--runs_dir', str(runs), '--out', str(out), '--ledger', str(led)])
+    tc.main()
+    return json.load(open(out))
+
+
+def test_end_to_end_reads_the_first_completed_attempt_and_reports_every_attempt(tmp_path, monkeypatch):
+    runs, led = _world(tmp_path)
+    r = _read(runs, led, tmp_path / 'out.json', monkeypatch)
+    assert r['verdict'].startswith('cell-specific chromatin contributes') and r['n_cells_on_better'] == 7
+    assert r['attempt_counts']['on']['failed_guard'] == 1 and r['attempt_counts']['on']['by_seed']['0']['used_attempt'] == 1
+    rows = [x for x in r['attempts'] if x['slot'] == 'tc_on_s0']
+    assert [(x['attempt'], x['seed'], x['returncode']) for x in rows] == [(0, 0, 3), (1, 10, 0)]
+    assert rows[0]['guard_level'] == 1e-12 and rows[1]['end_dose_scale_batch_median_mean'] == 0.12
+    assert rows[0]['other_arm_same_seed_completed'] and not rows[1]['other_arm_same_seed_completed']   # off s0 yes, off s10 no
+    assert r['reported']['seeds_used']['on_s0'] == 10
+
+
+def test_end_to_end_refuses_a_record_changed_after_logging(tmp_path, monkeypatch):
+    runs, led = _world(tmp_path)
+    p = runs / 'tc_off_s2' / 'tc_off_s2' / 'V10C_COMPLETE_x.json'
+    d = json.load(open(p))
+    d['scores']['per_cell']['MCF7']['contrast_r'] = 0.9
+    p.write_text(json.dumps(d))
+    with pytest.raises(SystemExit, match='not the one in the ledger'):
+        _read(runs, led, tmp_path / 'out.json', monkeypatch)
+
+
+def test_end_to_end_exhausted_slot_is_no_claim(tmp_path, monkeypatch):
+    runs, led = _world(tmp_path, on_s0=(3, 3, 3))
+    r = _read(runs, led, tmp_path / 'out.json', monkeypatch)
+    assert r['missing_slots'] == ['on_s0'] and r['verdict'].startswith('no claim')
+
+
+def test_ledger_add_is_idempotent_and_logs_deaths(tmp_path):
+    runs, led = _world(tmp_path)
+    n = len(open(led).read().splitlines())
+    assert tc_ledger.add(str(runs / 'tc_on_s1'), ledger=str(led)) == [] and len(open(led).read().splitlines()) == n
+    tc_ledger.death('tc_on_s1', 0, 'OOM', ledger=str(led))
+    last = json.loads(open(led).read().splitlines()[-1])
+    assert last['kind'] == 'non_guard_death' and 'same seed and attempt' in last['action']
+    assert ('tc_on_s1', 0) in tc_ledger.ledger_sha1s(str(led))
