@@ -564,3 +564,79 @@ def test_trained_check_draws_the_diagnostic_rows():
     rng = np.random.default_rng(0)
     np.sort(rng.choice(_D.ev, 480, replace=False))
     assert np.array_equal(tc.training_rows(_D()), np.sort(rng.choice(_D.tr, 480, replace=False)))
+
+
+# --- the rendered kernel EXECUTED with a stub trainer (100.8's retry loop; review 090 C4) --------------------------------
+STUB_TRAINER = r'''
+import json, os, sys
+a = sys.argv
+seed, out = a[a.index('--seed') + 1], a[a.index('--out') + 1]
+fail = os.environ['STUB_FAIL_SEEDS'].split(',')
+if seed in fail:
+    json.dump({'seed': seed}, open(os.path.join(out, f'V10C_FAILED_s{seed}.json'), 'w'))
+    sys.exit(int(os.environ.get('STUB_CODE', '3')))
+json.dump({'seed': seed}, open(os.path.join(out, f'V10C_COMPLETE_s{seed}.json'), 'w'))
+'''
+
+
+def _run_kernel(tmp_path, runs, fail_seeds, start_attempt=0, run_h=1.0, code='3'):
+    import subprocess, hashlib
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), 'orchestration'))
+    import make_v10c_kernels as mk
+    inp, work = tmp_path / 'input' / 'ds', tmp_path / 'working'
+    inp.mkdir(parents=True)
+    work.mkdir()
+    names = list(mk.CODE) + list(mk.SMALL) + [mk.SUBSTRATE[0]] + list(mk.FROM_V9)
+    pins = {}
+    for n in names:
+        body = STUB_TRAINER if n == 'train_v10c.py' else f'stub {n}'
+        (inp / n).write_text(body, encoding='utf-8')
+        pins[n] = hashlib.sha1((inp / n).read_bytes()).hexdigest()
+    d = mk.render('lincs-v10c-x', runs, pins, kern_dir=str(tmp_path / 'k'), run_h=run_h, start_attempt=start_attempt)
+    code_txt = open(os.path.join(d, 'lincs-v10c-x.py'), encoding='utf-8').read()
+    probe = "'import json, torch; print(json.dumps([torch.cuda.get_device_name(i) '"
+    assert code_txt.count(probe) == 1 and code_txt.count('os.symlink(') == 1 and code_txt.count("'/kaggle/input/**/'") == 1
+    assert code_txt.count("'/kaggle/working/src', '/kaggle/working/data', '/kaggle/working'") == 1
+    code_txt = (code_txt.replace(probe, "'import json; print(json.dumps([\"Tesla T4\", \"Tesla T4\"])) #'")
+                .replace('os.symlink(', 'shutil.copyfile(')
+                .replace("'/kaggle/input/**/'", repr(str(tmp_path / 'input').replace('\\', '/') + '/**/'))
+                .replace("'/kaggle/working/src', '/kaggle/working/data', '/kaggle/working'",
+                         ', '.join(repr(str(p).replace('\\', '/')) for p in (work / 'src', work / 'data', work))))
+    py = tmp_path / 'kernel.py'
+    py.write_text(code_txt, encoding='utf-8')
+    env = dict(os.environ, STUB_FAIL_SEEDS=','.join(fail_seeds), STUB_CODE=code)
+    r = subprocess.run([sys.executable, str(py)], capture_output=True, text=True, env=env, cwd=str(tmp_path))
+    rec = work / 'V10C_KERNEL_COMPLETE.json'
+    return r, (json.load(open(rec)) if rec.exists() else None)
+
+
+def test_executed_kernel_retries_a_guard_failure_with_seed_plus_10(tmp_path):
+    r, rec = _run_kernel(tmp_path, [['tc_on_s0', ['--seed', '0', '--guard']]], fail_seeds=['0'])
+    assert r.returncode == 0, r.stderr[-2000:]
+    a = rec['attempts']['tc_on_s0']
+    assert rec['done'] == ['tc_on_s0'] and [x['returncode'] for x in a] == [3, 0]
+    assert a[1]['args'] == ['--seed', '10', '--guard'] and a[1]['out'].endswith('tc_on_s0_retry1')
+
+
+def test_executed_kernel_stops_after_two_retries(tmp_path):
+    r, rec = _run_kernel(tmp_path, [['tc_on_s0', ['--seed', '0', '--guard']]], fail_seeds=['0', '10', '20'])
+    assert r.returncode == 0 and rec['done'] == [] and len(rec['attempts']['tc_on_s0']) == 3
+
+
+def test_executed_kernel_start_attempt_bumps_from_the_registered_seed(tmp_path):
+    r, rec = _run_kernel(tmp_path, [['tc_on_s1', ['--seed', '1', '--guard']]], fail_seeds=['11'], start_attempt=1)
+    a = rec['attempts']['tc_on_s1']
+    assert rec['done'] == ['tc_on_s1'] and [x['args'][1] for x in a] == ['11', '21']
+
+
+def test_executed_kernel_no_retry_without_guard_and_other_exit_codes_are_fatal(tmp_path):
+    r, rec = _run_kernel(tmp_path, [['tb_on_s0', ['--seed', '0']]], fail_seeds=['0'])
+    assert r.returncode != 0 and 'FATAL: run tb_on_s0 exited 3' in (r.stdout + r.stderr) and rec is None
+    r2, rec2 = _run_kernel(tmp_path / 'b', [['tc_on_s0', ['--seed', '0', '--guard']]], fail_seeds=['0'], code='1')
+    assert r2.returncode != 0 and 'exited 1' in (r2.stdout + r2.stderr) and rec2 is None
+
+
+def test_executed_kernel_retry_that_does_not_fit_the_budget_is_left_for_a_new_kernel(tmp_path):
+    r, rec = _run_kernel(tmp_path, [['tc_on_s0', ['--seed', '0', '--guard']]], fail_seeds=['0'], run_h=11.5)
+    assert r.returncode == 0 and rec['done'] == [] and len(rec['attempts']['tc_on_s0']) == 1
+    assert 'NO ATTEMPT LEFT IN THIS KERNEL' in r.stdout
