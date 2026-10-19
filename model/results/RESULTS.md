@@ -11044,6 +11044,97 @@ only (tested).
 - the guard's rule is unchanged;
 - **F5 is not changed for T-C**, because T-C must run the model that T-B and the screen evaluated.
 
+### 100.10 RESULT, T-B read once (100.4) and the width screen (100.9): **cell-specific chromatin does not contribute on dev**; T-C uses d = 256 (PI, 2026-10-19)
+**The files:**
+- `model/v10c/tb_read.py`, committed 3dc8024 before the last run existed, → `model/results/v10c/tb_reading.json`;
+- `width_screen.py` → `width_screen.json`;
+- the ledger `tb_ledger.jsonl`, with every record's sha1 checked by the reader;
+- the trained-run checks `tb_trained_check_{first3,next2,last2}.json`.
+
+**The six d = 256 runs** (dev contrast r, the per-row mean over 12,202 rows with ≥ 2 mates; delta r over 12,995 rows):
+
+| run | contrast r | delta r | drug path (100.9) |
+|---|---|---|---|
+| on s0 | −0.0001 | 0.404 | **untrained** (median s 2.1e-13) |
+| on s1 | 0.1633 | 0.430 | trained (0.112) |
+| on s2 | 0.1663 | 0.438 | trained (0.074) |
+| off s0 | 0.1656 | 0.430 | trained (0.133) |
+| off s1 | 0.1646 | 0.434 | trained (0.107) |
+| off s2 | 0.1591 | 0.438 | trained (0.118) |
+
+**As registered (100.4): no pass,** as §100.7 showed it must be:
+- mean on 0.1098 against off 0.1631, so **Δ = −0.0532**;
+- the threshold is 0.1101 (s_on 0.095, s_off 0.0035);
+- the mean of per-cell means gives Δ −0.061;
+- **0 of 6** dev cells favour on.
+
+**The trained-runs view (100.9), POST HOC, never a pass.** It was defined after the per-arm dev scores of on s0, on s1 and off
+s0 were visible.
+
+| | on (s1, s2) | off (s0, s1, s2) | Δ |
+|---|---|---|---|
+| row-mean contrast r | 0.1648 | 0.1631 | **+0.0017** (threshold 0.0050, unequal n) |
+| mean of per-cell means | | | +0.0033 |
+| HUVEC | 0.1570 | 0.1595 | −0.0025 |
+| LNCAP | 0.3215 | 0.3146 | +0.0069 |
+| NPC | 0.1214 | 0.1186 | +0.0028 |
+| T47D | 0.1717 | 0.1666 | +0.0051 |
+| U2OS | 0.1670 | 0.1660 | +0.0010 |
+| U937 | 0.2249 | 0.2185 | +0.0064 |
+
+- 5 of 6 cells favour on, but Δ is a third of the threshold, which is set by seed spread: SD 0.002 in the on arm, 0.0035 in the
+  off arm. This view would not pass either.
+
+**Reported, not ruled:**
+- **The permutations** (each trained on run, scored with the held-out cells' chromatin perturbed):
+  - real − gene-shuffle is **+0.0006** and +0.0006;
+  - real − cell-swap is +0.0005 and +0.0004.
+  - So at most ≈ 0.0005 of contrast r depends on a cell's own gene-level chromatin. That is about a third of the post hoc
+    on − off gap, and well inside one seed SD.
+- **The gate γ,** by the cell's own prom_1kb tercile, for ACC, ACT and PCG, on 960 dev rows per run:
+  - top − bottom is **≤ 0.002** on mean γ of 0.43 and 0.59 in the trained on runs (≤ 0.5 % relative);
+  - in the off arm it is ≤ 0.0006;
+  - in the collapsed run γ stays at its init of 0.989.
+  - The E / C-only sensitivity (087 C3) agrees: all six dev cells' ACC tracks are E / C; for ACT 5 cells, for PCG 4.
+- **The STRING gate a:**
+  - it fell from 0.95 at init to **0.10–0.12 in every run, both arms**. Training mostly switched STRING propagation off;
+  - its tercile slope is ≤ 0.0041, and of similar size in the off arm, so it is not cell-specific.
+- **The dose scale** rises with dose in every trained run: quintile means go from 0.04–0.07 up to 0.13–0.22 (Spearman
+  0.60–0.72). F5 behaves as intended when it trains.
+- **Delta r:** on 0.424 against off 0.434 over all runs. Over trained runs it is 0.430 and 0.438 against 0.430–0.438.
+- **Collapse counts** (100.9, every attempt):
+  - d = 256: on **1 of 3**, off 0 of 3;
+  - with the d = 384 screen (on, seed 0, also untrained): on **2 of 4**, both at seed 0;
+  - the batch order is seeded by the seed alone, so it is shared across arms and widths. Seed 0's off arm survived it.
+  - Whether chromatin raises the rate cannot be told from these counts: Fisher p ≈ 0.43 for 2 / 4 against 0 / 3.
+- **Tier composition of the dev cells:**
+  - HUVEC E/C on all axes;
+  - LNCAP and T47D C on all axes;
+  - NPC C for ACC, E for ACT and PCG;
+  - U2OS C for ACC and ACT, N for PCG;
+  - U937 C for ACC, N for ACT, no PCG.
+
+**The width screen** (`width_screen.json`):
+- **as registered:** Δ = +0.0003 against a threshold of 0.190, so 256 (the comparator is the collapsed run, review 090 C1);
+- **as read (100.9):** the d = 384 run's drug path did not train (median s 1.1e-12, contrast r 0.0002), so the screen is
+  **uninformative**;
+- **T-C uses d = 256.** Nothing is claimed about width.
+
+**The reading:**
+- **Cell-specific chromatin, used through L4, does not contribute on dev.** As registered there is no pass, and that is
+  driven by a training failure.
+- Among runs that trained:
+  - the on − off gap is +0.0017, a third of its threshold;
+  - the model's dependence on a cell's own gene-level chromatin is ≤ 0.0006;
+  - the chromatin-conditioned gates are flat in chromatin.
+- This agrees with T-A's prior (§100.6a: ≲ 0.003 SD for the linear, drug-averaged effect). It adds that the drug-conditioned
+  route L4 was built for is not used either, at this data scale.
+- **What it does not say:**
+  - that chromatin cannot matter (only these features, through these four levers, on these six dev cells);
+  - anything about width.
+- **Per 100.4, T-C runs anyway,** guarded (100.8), d = 256. Its prior for "chromatin contributes" is now very low. Its value
+  is the full-release unseen-cell number, the gap arm, and the head-to-head (100.5).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
