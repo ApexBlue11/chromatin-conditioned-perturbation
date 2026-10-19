@@ -166,6 +166,7 @@ def main(argv=None):
     ap.add_argument('--args', default='')
     ap.add_argument('--run_h', type=float, default=3.8, help='projected hours of one run (100.8 retry budget)')
     ap.add_argument('--start_attempt', type=int, default=0, help='100.8 retry in a new kernel (review 090 C4)')
+    ap.add_argument('--kernel_name', help='a new-kernel retry: e.g. lincs-v10c-tc-on-s0-r1, keeping --tag as the slot')
     a = ap.parse_args(argv)
     pins = build_src()
     if a.mode == 'timing':
@@ -175,7 +176,10 @@ def main(argv=None):
     else:
         if not a.tag:
             raise SystemExit('--tag is required for a run kernel')
-        d = render('lincs-v10c-' + a.tag.replace('_', '-'), [[a.tag, shlex.split(a.args)]], pins, run_h=a.run_h,
+        name = a.kernel_name or 'lincs-v10c-' + a.tag.replace('_', '-')
+        if a.start_attempt and not a.kernel_name:
+            raise SystemExit('FATAL: a new-kernel retry (--start_attempt) needs --kernel_name ...-r<k>')
+        d = render(name, [[a.tag, shlex.split(a.args)]], pins, run_h=a.run_h,
                    start_attempt=a.start_attempt)
     print(json.dumps(pins, indent=1))
     print(d)

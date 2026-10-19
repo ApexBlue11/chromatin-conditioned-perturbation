@@ -640,3 +640,18 @@ def test_executed_kernel_retry_that_does_not_fit_the_budget_is_left_for_a_new_ke
     r, rec = _run_kernel(tmp_path, [['tc_on_s0', ['--seed', '0', '--guard']]], fail_seeds=['0'], run_h=11.5)
     assert r.returncode == 0 and rec['done'] == [] and len(rec['attempts']['tc_on_s0']) == 1
     assert 'NO ATTEMPT LEFT IN THIS KERNEL' in r.stdout
+
+
+def test_new_kernel_retry_keeps_the_slot_tag_and_needs_a_kernel_name(tmp_path, monkeypatch):
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(HERE)), 'orchestration'))
+    import make_v10c_kernels as mk
+    pins = mk.build_src(str(tmp_path / 'src'))
+    real_render = mk.render
+    monkeypatch.setattr(mk, 'build_src', lambda: pins)
+    monkeypatch.setattr(mk, 'render', lambda *a, **k: real_render(*a, kern_dir=str(tmp_path / 'k'), **k))
+    mk.main(['run', '--tag', 'tc_on_s0', '--args', '--seed 0 --guard', '--start_attempt', '1',
+             '--kernel_name', 'lincs-v10c-tc-on-s0-r1'])
+    code = open(tmp_path / 'k' / 'kern_v10c_tc_on_s0_r1' / 'lincs-v10c-tc-on-s0-r1.py', encoding='utf-8').read()
+    assert "RUNS = [['tc_on_s0', ['--seed', '0', '--guard']]]" in code and 'START_ATTEMPT = 1' in code
+    with pytest.raises(SystemExit, match='needs --kernel_name'):
+        mk.main(['run', '--tag', 'tc_on_s0', '--args', '--seed 0 --guard', '--start_attempt', '1'])
