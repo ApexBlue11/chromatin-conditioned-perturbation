@@ -1,0 +1,10 @@
+substrate keys ['X', 'ctl', 'ctl_id', 'full_row', 'bench_row', 'plate_id', 'plate_key', 'split_cold_cell_1', 'split_cold_drug_1']
+bundle keys ['X', 'X_ctl', 'row_index', 'meta_pert_id', 'meta_cell', 'meta_dose', 'meta_dose_idx', 'meta_dose_pooled', 'meta_time', 'meta_pert_idx', 'meta_cell_idx', 'split_split_1', 'split_split_2', 'split_split_3', 'split_split_4', 'split_split_5', 'split_split_cold_cell_1', 'split_split_cold_cell_2', 'split_split_cold_cell_3', 'split_split_cold_cell_4', 'split_split_cold_cell_5', 'split_split_cold_drug_1', 'split_split_cold_drug_2', 'split_split_cold_drug_3', 'split_split_cold_drug_4', 'split_split_cold_drug_5']
+cold_cell_1 test rows 21321 mapped to bundle 21321
+  real plates 5075, proxy plates 5075, distinct (real, proxy) pairs 5075
+  proxy groups spanning >1 real plate: 0 | real plates split into >1 proxy group: 0
+  max |substrate ctl - bundle X_ctl| 0.0
+cold_drug_1 test rows 13445 mapped to bundle 13445
+  real plates 4403, proxy plates 4403, distinct (real, proxy) pairs 4403
+  proxy groups spanning >1 real plate: 0 | real plates split into >1 proxy group: 0
+  max |substrate ctl - bundle X_ctl| 0.0
