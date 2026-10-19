@@ -11044,7 +11044,7 @@ only (tested).
 - the guard's rule is unchanged;
 - **F5 is not changed for T-C**, because T-C must run the model that T-B and the screen evaluated.
 
-### 100.10 RESULT, T-B read once (100.4) and the width screen (100.9): **cell-specific chromatin does not contribute on dev**; T-C uses d = 256 (PI, 2026-10-19)
+### 100.10 RESULT, T-B read once (100.4) and the width screen (100.9): **no contribution of cell-specific chromatin detected on dev**; T-C uses d = 256 (PI, 2026-10-19; wording per review 091 C1)
 **The files:**
 - `model/v10c/tb_read.py`, committed 3dc8024 before the last run existed, → `model/results/v10c/tb_reading.json`;
 - `width_screen.py` → `width_screen.json`;
@@ -11120,20 +11120,87 @@ s0 were visible.
   **uninformative**;
 - **T-C uses d = 256.** Nothing is claimed about width.
 
-**The reading:**
-- **Cell-specific chromatin, used through L4, does not contribute on dev.** As registered there is no pass, and that is
-  driven by a training failure.
-- Among runs that trained:
-  - the on − off gap is +0.0017, a third of its threshold;
-  - the model's dependence on a cell's own gene-level chromatin is ≤ 0.0006;
-  - the chromatin-conditioned gates are flat in chromatin.
-- This agrees with T-A's prior (§100.6a: ≲ 0.003 SD for the linear, drug-averaged effect). It adds that the drug-conditioned
-  route L4 was built for is not used either, at this data scale.
+**The reading** (reworded per review 091 C1; the earlier wording, *"does not contribute"*, stated absence where non-detection
+is shown):
+- **No contribution of cell-specific chromatin was detected on dev.** As registered there is no pass, and that is driven by a
+  training failure.
+- **The strongest evidence is the permutation bound.** The trained on models' dev contrast r depends on a cell's own
+  gene-level chromatin by **≈ 0.0006**, on both trained seeds (gene-shuffle; cell-swap ≈ 0.0005).
+  - Gene-shuffle also destroys the gene-level average that the off arm keeps. So it bounds *all* gene-level chromatin use,
+    not only the cell-specific part.
+- **Among trained runs,** on − off is +0.0017 against a 0.005 threshold.
+  - That comparison alone does not exclude effects up to ≈ +0.007 contrast r (≈ 4 % of 0.165).
+  - The cell-level direction leans slightly positive: 5 of 6 cells, cell-mean +0.0033.
+- **L4 is barely used (≈ 0.0006).** The chromatin-conditioned gates are flat in chromatin.
+- This is **consistent with** T-A's prior (§100.6a: ≲ 0.003 SD), though T-A's estimand is different: drug-averaged response
+  magnitude along one feature, in SD, where T-B measures contrast r.
 - **What it does not say:**
   - that chromatin cannot matter (only these features, through these four levers, on these six dev cells);
   - anything about width.
 - **Per 100.4, T-C runs anyway,** guarded (100.8), d = 256. Its prior for "chromatin contributes" is now very low. Its value
   is the full-release unseen-cell number, the gap arm, and the head-to-head (100.5).
+
+### 100.11 🔒 REGISTERED AMENDMENT, review 091 adopted (SOUND-WITH-CAVEATS) before any T-C run (PI, 2026-10-19)
+**C1:** §100.10's title and reading are reworded: *"no contribution of cell-specific chromatin detected on dev"*, led by
+the permutation bound.
+
+**C2, the gap and the head-to-head (§100.5, reported):**
+- **The cells:**
+  - the unseen-cell side of the gap, and every head-to-head summary, are read on the **7 clean cells** as primary;
+  - v9's and XPert's values are **recomputed on the same rows and cells** from their saved predictions (P7's three seeds;
+    O2);
+  - 8-cell values, H1975 included, are shown and labelled.
+  - The references §100.5 quotes, C2c 0.160 and C2a 0.481, are 8-cell values over the P7 ∩ O2 rows, including H1975 (whose
+    alias NCIH1975 was in v9's and XPert's training, 99.10).
+- **The mate sets:** each comparison uses its reference number's mate set, the same for truth and prediction and for every
+  model.
+  - **The unseen-compound side (C1):** mates among all P9 test rows (13,364), ≥ 2 other-compound mates, scored on P9's clean
+    rows. Plus 97.10's clean row-pooled delta r.
+  - **The unseen-cell side (C2c / C2a):** mates among all P7 ∩ O2 rows (21,151), ≥ 2, scored on the 7 clean cells' rows
+    (primary) and on all 8 (labelled). Plus C2a's delta r row mean.
+  - Per-row r is averaged over seeds, as in C1 / C2c.
+- **The row identity:** checked now and outcome-free, and asserted in the reader.
+  - v10-C's held-out rows after v9's featureless drop equal **P7's 21,151 rows** (cold_cell_1) and **P9's 13,364 rows**
+    (cold_drug_1) through `bench_row`.
+  - The substrate's plates equal v9's control-identity plates on both (8349ba8).
+- **The wording:**
+  - the gap is the unseen-compound value minus the unseen-cell value, per target;
+  - v10-C is worded *"full-release v10-C"* (086 C1), with v9's gap beside it.
+
+**C3, exhausted slots and admissibility:**
+- **(a) The gap arm** (on only, reported): with an exhausted slot it reports over its completed slots, n stated.
+- **(b) The guard (100.8) decides admissibility.** §100.9's checkpoint check runs on every T-C and gap checkpoint, reported
+  only. Any disagreement is shown beside the reading.
+- **(c) "No claim" is a live outcome.**
+  - If each on-arm attempt failed independently with p = 0.5 (T-B's 2 / 4), P(some on slot exhausts its three attempts) =
+    1 − 0.875³ ≈ **0.33**. At p = 0.25 it is ≈ 0.05.
+  - The retry cap is unchanged.
+
+**Ask 2, reported per (arm, seed slot, attempt):**
+- the seed used;
+- the guard level at a stop (from the FAILED record), or, at completion, the last epoch's mean batch-median s (from the
+  record's `hist`; the pinned code does not save the final guard window);
+- the §100.9 check;
+- whether the same-seed attempt of the other arm trained.
+
+T-C's seed-0 batch order is not T-B's, because T-C's training rows differ.
+
+**Ask 4, fixed in the readers before the last run:**
+- **The bootstrap:** percentile method, 20,000 draws over the 7 cells, `np.random.default_rng(0)`. "Excludes 0" means
+  lower > 0, or upper < 0 for the mirror rule.
+- **(i) A T-C ledger** (`model/results/v10c/tc_ledger.jsonl`): each completed attempt's record sha1 is logged at download,
+  and the reader refuses a mismatch.
+- **(ii) A kernel that dies for a non-guard reason** (infrastructure, OOM, a pin refusal) is re-run at the **same seed and
+  attempt**.
+  - It is logged in the ledger with the reason, never silently.
+  - It does not count as a guard failure.
+- **The wording carried into every T-C sentence:**
+  - *"among runs whose drug path trained (100.8)"*;
+  - L6 *"leave-own-plate-out, input-transductive across a cell's plates"*;
+  - *"full-release v10-C"*;
+  - no lever named (086 C5).
+
+**The kernels:** review 091 cleared all nine (Ask 3). They are pushed after this section is committed.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
