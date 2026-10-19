@@ -26,15 +26,20 @@ ARMS, SEEDS = ('on', 'off'), (0, 1, 2)
 N_BOOT, MIN_FAV = 20000, 5
 
 
-def slot_attempts(runs_dir, arm, seed, prefix='tc'):
-    """Every attempt of slot (arm, seed) over its kernels ({prefix}_{arm}_s{seed}, and any new-kernel retries
-    {prefix}_{arm}_s{seed}_r{k}), ordered by attempt index. Each item: (attempt, returncode, record path or None)."""
+def slot_attempts(runs_dir, arm, seed, prefix='tc', ledger=None):
+    """Every attempt of slot (arm, seed) over its kernels ({prefix}_{arm}_s{seed}; new-kernel retries _r1 / _r2; re-runs
+    after a non-guard death _d1.._d9), ordered by attempt index. Each item: (attempt, returncode, record path or None).
+    A kernel without V10C_KERNEL_COMPLETE.json is accepted only if the ledger logs it as dead (review 092 C5)."""
     out = []
     slot = f'{prefix}_{arm}_s{seed}'
     for kd in slot_kernel_dirs(runs_dir, slot):
         kc = os.path.join(kd, 'V10C_KERNEL_COMPLETE.json')
         if not os.path.exists(kc):
-            raise SystemExit(f'FATAL: {kc} missing (download the kernel output first)')
+            dead = tc_ledger.dead_kernel_attempts(slot, os.path.basename(kd), ledger or tc_ledger.LEDGER)
+            if dead is None:
+                raise SystemExit(f'FATAL: {kc} missing (download the kernel output first, or log its death)')
+            out.extend(dead)
+            continue
         for a in json.load(open(kc, encoding='utf-8'))['attempts'][slot]:
             sub = os.path.join(kd, os.path.basename(a['out'].rstrip('/')))
             recs = glob.glob(os.path.join(sub, 'V10C_COMPLETE_*.json'))
@@ -46,7 +51,8 @@ def slot_attempts(runs_dir, arm, seed, prefix='tc'):
 
 
 def slot_kernel_dirs(runs_dir, slot):
-    return sorted(glob.glob(os.path.join(runs_dir, slot)) + glob.glob(os.path.join(runs_dir, f'{slot}_r[12]')))
+    return sorted(glob.glob(os.path.join(runs_dir, slot)) + glob.glob(os.path.join(runs_dir, f'{slot}_r[12]')) +
+                  glob.glob(os.path.join(runs_dir, f'{slot}_d[1-9]')))
 
 
 def attempt_report(runs_dir, trained_flags):
@@ -56,6 +62,8 @@ def attempt_report(runs_dir, trained_flags):
     for arm in ARMS:
         for s in SEEDS:
             for kd in slot_kernel_dirs(runs_dir, f'tc_{arm}_s{s}'):
+                if not os.path.exists(os.path.join(kd, 'V10C_KERNEL_COMPLETE.json')):
+                    continue                                    # a dead kernel: its attempts are in the ledger
                 for e in tc_ledger.attempt_entries(kd):
                     e = dict(e, arm=arm, slot_seed=s)
                     if e['returncode'] == 0 and e.get('tag'):
@@ -118,7 +126,7 @@ def main():
             flags[r['checkpoint'].replace('v10c_', '').replace('.pt', '')] = r['drug_path_trained']
     for arm in ARMS:
         for s in SEEDS:
-            att = slot_attempts(a.runs_dir, arm, s)
+            att = slot_attempts(a.runs_dir, arm, s, ledger=a.ledger)
             k, rec = first_completed(att)
             n_fail = sum(rc == 3 for _, rc, _ in att)
             counts[arm]['attempts'] += len(att)

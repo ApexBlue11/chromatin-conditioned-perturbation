@@ -11202,6 +11202,52 @@ T-C's seed-0 batch order is not T-B's, because T-C's training rows differ.
 
 **The kernels:** review 091 cleared all nine (Ask 3). They are pushed after this section is committed.
 
+### 100.12 🔒 AMENDMENT, review 092 adopted (SOUND-WITH-CAVEATS) before any T-C run; v9's and XPert's clean-7 references recorded (PI, 2026-10-19)
+**The readers** (`tc_read.py`, `tc_gap.py`, `tc_ledger.py`; the repro `tc_gap_repro.py` → `tc_gap_repro.json`):
+- **C1:** the gap / head-to-head reader checks each record against the T-C ledger's sha1, and each prediction file against
+  its record's `pred_sha1`. It refuses either mismatch (tested with an edited record and a tampered prediction file).
+- **C2 (registered):**
+  - both reported sides, T-C's on arm (the unseen-cell side and the head-to-head) and the gap arm, report over their
+    **completed slots, n stated** per side and per model;
+  - T-C's **rule** still makes no claim when a slot is missing (100.8).
+  - This replaces the suppression of v10-C's unseen-cell side in 092's draft.
+- **C3:** at read time the reader asserts that v9's and XPert's values reproduce the references below to 1e-4, and that C1's
+  row count is 7,980. Otherwise it refuses.
+  - It records the sha1s of `audit99_phase1.py`, `score_p10.py`, `coldcell_h2h.py` and the P7 / P9 / O2 inputs.
+- **C4 (reported, never ruled):** v10-C's clean-7 per-cell contrast is reported from both scorers, with their maximum
+  difference:
+  - the trainer's records, which T-C's rule reads;
+  - v9's `rowr_pred` on seed-averaged per-row r.
+  - On the stand-in run (v9's predictions through the trainer's `heldout_scores` and through `tc_gap`), the difference is
+    6e-17.
+- **C5 (the procedure):** a kernel that dies for a non-guard reason is logged with
+  `tc_ledger.py death <slot> --attempt k --reason … --kernel_dir …`.
+  - That also logs the kernel's earlier guard-failed attempts, from their FAILED files.
+  - The re-run is a new kernel `{slot}_d<j>`, with `--start_attempt k` at the same seed.
+  - The readers take the dead kernel's attempts from the ledger (tested end to end).
+- **Tests:** 22 reader tests pass. The repro runs every check end to end, and the stand-in scores identically to v9.
+
+**The references** (Ask 3; recomputations of predictions already read, nothing selected; the critic's own code, on the
+substrate's real `plate_id`, reproduces them):
+
+| | v9 (P7, 3 seeds) | XPert (O2) |
+|---|---|---|
+| unseen-cell contrast r, **clean 7** (16,113 rows) | **0.1597** | **0.1456** |
+| unseen-cell contrast r, all 8 (16,167; C2c) | 0.1602 | 0.1460 |
+| unseen-cell delta r, **clean 7** (21,097) | **0.4810** | **0.3863** |
+| unseen-cell delta r, all 8 (21,151; C2a) | 0.4812 | 0.3868 |
+| unseen-compound contrast r, clean rows (C1, 7,980) | 0.1094 | — |
+| unseen-compound delta r, clean rows (97.10) | 0.6417 | — |
+
+- **v9's gap** (unseen compound − unseen cell, clean 7):
+  - **contrast −0.050:** unseen compounds are *harder* than unseen cells on the within-plate contrast;
+  - **delta r +0.161:** they are easier on the field's target.
+  - The two targets disagree about which generalisation is harder.
+- **H1975:**
+  - v9 and XPert trained with its alias NCIH1975, which matters only for the 8-cell values;
+  - with only 54 rows, it moves the row-pooled values by ≤ 0.0005;
+  - it matters for the cell-cluster and per-cell figures.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

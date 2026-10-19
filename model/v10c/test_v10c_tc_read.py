@@ -199,3 +199,34 @@ def test_ledger_add_is_idempotent_and_logs_deaths(tmp_path):
     last = json.loads(open(led).read().splitlines()[-1])
     assert last['kind'] == 'non_guard_death' and 'same seed and attempt' in last['action']
     assert ('tc_on_s1', 0) in tc_ledger.ledger_sha1s(str(led))
+
+
+# --- review 092 C5: a kernel that dies for a non-guard reason after a guard-failed attempt --------------------------------
+def test_dead_kernel_after_a_guard_failure_is_read_from_the_ledger(tmp_path, monkeypatch):
+    runs, led = _world(tmp_path)
+    import shutil
+    shutil.rmtree(runs / 'tc_on_s0')
+    kd = runs / 'tc_on_s0'                                   # attempt 0 guard-fails, attempt 1 dies (no KERNEL_COMPLETE)
+    (kd / 'tc_on_s0').mkdir(parents=True)
+    (kd / 'tc_on_s0' / 'V10C_FAILED_x.json').write_text(json.dumps({'step': 1000, 'guard_level': 0.0, 'args': {'seed': 0}}))
+    (kd / 'tc_on_s0_retry1').mkdir()
+    lines = [l for l in open(led).read().splitlines() if json.loads(l).get('slot') != 'tc_on_s0']
+    open(led, 'w').write('\n'.join(lines) + '\n')
+    with pytest.raises(SystemExit, match='log its death'):
+        tc.slot_attempts(str(runs), 'on', 0, ledger=str(led))
+    tc_ledger.death('tc_on_s0', 1, 'OOM at step 900', kernel_dir=str(kd), ledger=str(led))
+    assert [(a, rc) for a, rc, _ in tc.slot_attempts(str(runs), 'on', 0, ledger=str(led))] == [(0, 3)]
+    # the re-run: a new kernel at the same seed (10) and attempt (1)
+    rk = runs / 'tc_on_s0_d1'
+    (rk / 'tc_on_s0_retry1').mkdir(parents=True)
+    on = {c: 0.21 for c in tc.CLEAN + tc.APART}
+    (rk / 'tc_on_s0_retry1' / 'V10C_COMPLETE_x.json').write_text(json.dumps(_record(on, 10, 'on')))
+    att = [{'attempt': 1, 'returncode': 0, 'out': '/kaggle/working/tc_on_s0_retry1', 'args': ['--seed', '10', '--guard']}]
+    (rk / 'V10C_KERNEL_COMPLETE.json').write_text(json.dumps({'attempts': {'tc_on_s0': att}}))
+    tc_ledger.add(str(rk), ledger=str(led))
+    a = tc.slot_attempts(str(runs), 'on', 0, ledger=str(led))
+    assert [(x[0], x[1]) for x in a] == [(0, 3), (1, 0)]
+    r = _read(runs, led, tmp_path / 'out.json', monkeypatch)
+    assert r['verdict'].startswith('cell-specific') and r['reported']['seeds_used']['on_s0'] == 10
+    deaths = [json.loads(l) for l in open(led) if json.loads(l).get('kind') == 'non_guard_death']
+    assert deaths and deaths[0]['kernel_dir'] == 'tc_on_s0'

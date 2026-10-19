@@ -14,20 +14,32 @@ REPO = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, HERE)
 sys.path.insert(0, os.path.join(REPO, 'model', 'v9'))
 import tc_gap  # noqa: E402
+import tc_ledger  # noqa: E402
 
 
-def write_kernel(root, slot, tag, sub_rows, bench_rows, deltas_by_seed):
-    """One kernel dir per seed slot with a completed attempt 0 holding a v10-C-format prediction file."""
+def trainer_scores(S, deltas):
+    """The trainer's own held-out scorer on each stand-in seed, so review 092 C4 is exercised against it."""
+    import train_v10c as tv
+    pert = np.unique(S['pert'], return_inverse=True)[1]
+    return [tv.heldout_scores(d, S['y'], S['plate'], pert, S['cell'])[0] for d in deltas]
+
+
+def write_kernel(root, slot, tag, sub_rows, bench_rows, deltas_by_seed, ledger, scores_by_seed):
+    """One kernel dir per seed slot with a completed attempt 0 holding a v10-C-format prediction file, logged in `ledger`."""
     for s, d in enumerate(deltas_by_seed):
         kd = os.path.join(root, f'{slot}_s{s}')
         sub = os.path.join(kd, f'{slot}_s{s}')
         os.makedirs(sub, exist_ok=True)
         t = f'{tag}_s{s}'
-        np.savez(os.path.join(sub, f'v10c_pred_{t}.npz'), sub_row=sub_rows, bench_row=bench_rows,
-                 delta=d, drug=np.zeros_like(d, np.float32))
-        json.dump({'tag': t}, open(os.path.join(sub, f'V10C_COMPLETE_{t}.json'), 'w'))
-        json.dump({'attempts': {f'{slot}_s{s}': [{'attempt': 0, 'returncode': 0, 'out': f'/kaggle/working/{slot}_s{s}'}]}},
+        pp = os.path.join(sub, f'v10c_pred_{t}.npz')
+        np.savez(pp, sub_row=sub_rows, bench_row=bench_rows, delta=d, drug=np.zeros_like(d, np.float32))
+        scores = scores_by_seed[s]
+        json.dump({'tag': t, 'pred_sha1': tc_gap.sha1_file(pp), 'scores': scores},
+                  open(os.path.join(sub, f'V10C_COMPLETE_{t}.json'), 'w'))
+        json.dump({'attempts': {f'{slot}_s{s}': [{'attempt': 0, 'returncode': 0, 'out': f'/kaggle/working/{slot}_s{s}',
+                                                   'args': ['--seed', str(s)]}]}},
                   open(os.path.join(kd, 'V10C_KERNEL_COMPLETE.json'), 'w'))
+        tc_ledger.add(kd, ledger=ledger)
 
 
 def main():
@@ -48,12 +60,17 @@ def main():
     # shuffle the stored row order so the alignment is exercised
     rng = np.random.default_rng(0)
     o7, o9 = rng.permutation(len(sub7)), rng.permutation(len(sub9))
-    write_kernel(a.work, 'tc_on', 'cold_cell_1_test_on_d256', sub7[o7], S['row_index'][o7], [d[o7] for d in S['v9']])
-    write_kernel(a.work, 'gap_on', 'cold_drug_1_test_on_d256', sub9[o9], p9['row_index'][o9], [d[o9] for d in v9_comp])
+    ledger = os.path.join(a.work, 'ledger.jsonl')
+    if os.path.exists(ledger):
+        os.remove(ledger)
+    write_kernel(a.work, 'tc_on', 'cold_cell_1_test_on_d256', sub7[o7], S['row_index'][o7], [d[o7] for d in S['v9']], ledger,
+                 trainer_scores(S, S['v9']))
+    write_kernel(a.work, 'gap_on', 'cold_drug_1_test_on_d256', sub9[o9], p9['row_index'][o9], [d[o9] for d in v9_comp], ledger,
+                 [{'per_cell': {}}] * len(v9_comp))
     out = os.path.join(a.work, 'tc_gap.json')
     if os.path.exists(out):
         os.remove(out)
-    sys.argv = ['tc_gap.py', '--runs_dir', a.work, '--out', out]
+    sys.argv = ['tc_gap.py', '--runs_dir', a.work, '--out', out, '--ledger', ledger]
     tc_gap.main()
     r = json.load(open(out))
     cell, comp = r['unseen_cell'], r['unseen_compound']
@@ -69,6 +86,8 @@ def main():
         'standin_equals_v9_cell': cell['v10c_full_release'] == cell['v9'],
         'standin_equals_v9_compound': comp['v10c_full_release'] == comp['v9'],
         'v9_gap_clean7': r['gap']['v9']['clean7'], 'v9_gap_all8': r['gap']['v9']['all8_labelled'],
+        'C4_two_scorers_max_abs_difference': r['clean7_contrast_two_scorers']['max_abs_difference'],
+        'C3_reference_self_check_passed': bool(r['reference_self_check']),
         'v9_clean7': {'contrast': cell['v9']['contrast']['clean7']['row_mean'], 'delta_r': cell['v9']['delta_r']['clean7']['row_mean']},
         'xpert_clean7': {'contrast': cell['xpert_o2']['contrast']['clean7']['row_mean'],
                          'delta_r': cell['xpert_o2']['delta_r']['clean7']['row_mean']}}

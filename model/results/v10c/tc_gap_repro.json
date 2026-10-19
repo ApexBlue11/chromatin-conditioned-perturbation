@@ -17,6 +17,8 @@
   "contrast": -0.0508416590485435,
   "delta_r": 0.16050236447401656
  },
+ "C4_two_scorers_max_abs_difference": 5.551115123125783e-17,
+ "C3_reference_self_check_passed": true,
  "v9_clean7": {
   "contrast": 0.15972099049606062,
   "delta_r": 0.4810409583745094
