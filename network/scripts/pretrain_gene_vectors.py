@@ -63,12 +63,16 @@ def main():
     ap_.add_argument('--holdout', type=float, default=0.05)
     ap_.add_argument('--use_dti', action='store_true')
     ap_.add_argument('--seed', type=int, default=0)
+    ap_.add_argument('--graph', default=None, help='default: v9 string_graph_v9.npz (v11: the exp+db graph)')
+    ap_.add_argument('--out_dir', default=None, help='default: network/outputs/v9')
     a = ap_.parse_args()
     torch.manual_seed(a.seed)
     rng = np.random.default_rng(a.seed)
     t0 = time.time()
 
-    g = np.load(os.path.join(V9, 'string_graph_v9.npz'), allow_pickle=True)
+    g = np.load(a.graph or os.path.join(V9, 'string_graph_v9.npz'), allow_pickle=True)
+    OUT = a.out_dir or V9
+    os.makedirs(OUT, exist_ok=True)
     nodes = [str(x) for x in g['nodes']]
     E = g['edge_index'].astype(np.int64)
     W = g['weight'].astype(np.float32)
@@ -151,8 +155,8 @@ def main():
     print('co-membership recovery (never trained on): cos same-pathway %.4f vs different %.4f, AUC %.4f'
           % (float(same.mean()), float(diff.mean()), auc_co))
 
-    np.save(os.path.join(V9, 'gene_vectors_full%s.npy' % tag), Zn.astype(np.float32))
-    np.save(os.path.join(V9, 'gene_vectors_978%s.npy' % tag), Zn[lm_idx].astype(np.float32))
+    np.save(os.path.join(OUT, 'gene_vectors_full%s.npy' % tag), Zn.astype(np.float32))
+    np.save(os.path.join(OUT, 'gene_vectors_978%s.npy' % tag), Zn[lm_idx].astype(np.float32))
     json.dump(dict(dim=a.dim, epochs=a.epochs, nodes=N, train_edges=int(Etr.shape[1]),
                    holdout_edges=int(Eho.shape[1]), use_dti=a.use_dti, seed=a.seed,
                    link_auc_uniform=round(auc_u, 4), link_ap_uniform=round(ap_u, 4),
@@ -160,8 +164,8 @@ def main():
                    comembership_auc=round(auc_co, 4),
                    note='both nulls reported; measured uniform 0.8934 < degree-matched 0.9198, the opposite of the prior expectation, because uniform negatives are undertrained low-degree nodes',
                    seconds=round(time.time() - t0, 1)),
-              open(os.path.join(V9, 'gene_vectors_provenance%s.json' % tag), 'w'), indent=2)
-    print('\nwrote gene_vectors_978%s.npy [%d, %d] -> %s' % (tag, len(lm_idx), a.dim, V9))
+              open(os.path.join(OUT, 'gene_vectors_provenance%s.json' % tag), 'w'), indent=2)
+    print('\nwrote gene_vectors_978%s.npy [%d, %d] -> %s' % (tag, len(lm_idx), a.dim, OUT))
 
 
 if __name__ == '__main__':

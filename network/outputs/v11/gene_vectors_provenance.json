@@ -1,0 +1,16 @@
+{
+  "dim": 128,
+  "epochs": 30,
+  "nodes": 19496,
+  "train_edges": 328664,
+  "holdout_edges": 17298,
+  "use_dti": false,
+  "seed": 0,
+  "link_auc_uniform": 0.9476,
+  "link_ap_uniform": 0.9554,
+  "link_auc_degree_matched": 0.9569,
+  "link_ap_degree_matched": 0.9582,
+  "comembership_auc": 0.5589,
+  "note": "both nulls reported; measured uniform 0.8934 < degree-matched 0.9198, the opposite of the prior expectation, because uniform negatives are undertrained low-degree nodes",
+  "seconds": 48.3
+}
