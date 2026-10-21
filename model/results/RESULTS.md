@@ -11751,6 +11751,40 @@ reported, never a claim):
 - **What a pass licenses:** *"on untouched cells, broad H3K27ac predicts repression by transcription inhibitors beyond
   RNA-seq expression"*. That would be the project's first chromatin information not replaceable by an expression baseline.
 
+### 101.9 🔒 AMENDMENT to B (the critic's pre-B flags), before any B row is read (PI, 2026-10-21)
+**1. H-E5's rule and power:**
+- **The problem:** with exactly 5 candidate cells, B's rule (≥ 5 negative with ≥ 5 eligible) would require all 5.
+  - THP1 has 9 rows and may fall below 5 after mate exclusion. That would mean no claim by construction.
+  - The post hoc −0.066 was the winner of 4 tests, so the true effect is likely smaller.
+- **The rule for H-E5 only, fixed now:** **≥ 4 eligible cells, all but at most one of them negative, and the mean r's one-sided
+  95 % cell-bootstrap bound < 0** (20,000 draws, `default_rng(0)`).
+  - So 4 of 4, or ≥ 4 of 5, must be negative.
+- **H-E2r, H-E4 and H-E4b keep B's rule** (6 candidate cells each).
+- **The expected power,** with a per-cell SD of 0.05 (BET A1(i)'s spread) and the bound condition left out:
+
+  | true mean | P(5 of 5) | P(≥ 4 of 5) | P(4 of 4) |
+  |---|---|---|---|
+  | −0.04 | 0.30 | 0.72 | 0.39 |
+  | −0.066 | 0.61 | 0.93 | 0.68 |
+
+  The bound lowers these further.
+- **The THP1 risk** is stated: if it drops out, 4 of 4 must be negative.
+
+**2. B's A1 covariates, pinned** (for H-E5, and for HDAC's A1 in B):
+- the U mean is fixed to **the class's** gene mean of U over T-E's training cells (here, the transcription-inhibitor profile),
+  as for H-E2r;
+- the CCLE mean is the gene mean of CCLE rank over all other CCLE cells;
+- the ACT mean is the gene mean of ACT over all other cells;
+- **the gene set** is finite ACT ∧ CCLE ∧ the covariates;
+- otherwise identical to `te2b_posthoc.py`'s A1.
+
+**3. The wording of a pass:**
+- *"broad H3K27ac predicts repression by transcription inhibitors **beyond RNA-seq steady-state expression**, on untouched
+  cells: information not replaceable by an expression baseline"*.
+- **Not** "a chromatin mechanism." H3K27ac tracks transcriptional activity (synthesis), while RNA-seq measures steady-state
+  level. Transcription inhibitors act through mRNA decay, so synthesis rate and turnover are a natural route.
+- Separating chromatin from synthesis would need nascent-transcription or half-life data.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
