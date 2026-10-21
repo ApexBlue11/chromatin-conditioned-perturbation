@@ -11632,14 +11632,22 @@ repression for H-E3):
 - **The registered reading: *"explained by expression"*.** (i)'s CI includes 0 and (ii)'s excludes it below.
 - So an independent RNA-seq measurement of the gene's expression in that cell predicts BET-inhibitor repression **twice as
   strongly** as the activation marks do.
-- Once it is in the model, the marks add nothing.
+- ~~Once it is in the model, the marks add nothing.~~ **(review 097 C1)** With an RNA-seq baseline, chromatin **adds nothing
+  detectable** on these 11 cells: ACT given CCLE is −0.005 [−0.034, +0.024]. So at least about half of the marks'
+  association, and over 90 % on the point estimate, is RNA-seq expression.
+- **Per cell** (descriptive, post hoc, no claim):
+  - 7 of 11 stay negative;
+  - the three B-lymphoid cells flip positive (OCI-LY3, MINO, NALM-6);
+  - the other 8 average −0.030, against their ACT-only −0.082.
 
 **A2, split-half L1000:**
 - the split-half reliability of the control-profile basal is ρ ≈ 0.999 in every cell;
 - b2 given b1 is −0.001 [−0.039, +0.040] (≈ −0.0007 scaled to the full basal);
 - H-E2 with b1 alone as basal is −0.0706.
-- **So the residual is not random L1000 noise.** L1000's control profile measures expression reproducibly but differently from
-  RNA-seq (bead readout, saturation, the landmark-only design), and what it misses is what predicts the repression.
+- ~~So the residual is not random L1000 noise.~~ **(review 097 C2)** Random L1000 noise doesn't drive it: halving the controls
+  leaves H-E2 unchanged (−0.0706 against −0.0709).
+  - The residual is systematic: L1000's cross-gene levels against RNA-seq (within-cell corr 0.62–0.71).
+  - A2(i)'s CI is too wide to exclude a small noise share, and ρ ≈ 0.999 is an across-gene reliability.
 
 **A3:** decile basal gives −0.068 [−0.087, −0.049]. It is not a non-linearity in the L1000 basal.
 
@@ -11660,8 +11668,9 @@ repression for H-E3):
 - plates with ≥ 5 allowed mates: −0.074 (14).
 
 **The reading:**
-- **H-E2 stands as registered,** but it means *"global transcription- and proteostasis-perturbing drugs, BET inhibitors among
-  them, repress the genes most highly expressed in that cell"*.
+- **H-E2 stands as registered,** but it means *"BET inhibitors repress the genes most highly expressed in that cell (RNA-seq),
+  and transcription- and proteostasis-perturbing drugs show the same ACT pattern more strongly"*.
+  - Whether the comparators' pattern is expression-driven too was untested (review 097 C3). It is tested post hoc in §101.7.
 - **The activation marks carry that because they track true expression better than L1000's own control profile does.** With
   an RNA-seq baseline they add nothing. "Chromatin is redundant with baseline expression" is **confirmed** here, with one
   refinement: the baseline that makes it redundant is RNA-seq, not L1000's landmark controls.
@@ -11674,6 +11683,35 @@ repression for H-E3):
 - **B (the replication)** still runs after T-C, as registered, but it now tests a pattern known to be expression-explained.
 - **The HDAC pattern (§101.3)** was not tested against CCLE. Given A1, the default reading is the same: expression, not
   chromatin.
+
+### 101.7 🔒 AMENDMENT, review 097 adopted (SOUND-WITH-CAVEATS): §101.6 reworded; B amended before any of its rows are read; A1 for HDAC and the comparators, POST HOC (PI, 2026-10-21)
+**Review 097:**
+- A1 reproduces exactly with the critic's own code (−0.0640, −0.0051, −0.1385);
+- C1–C3 are adopted in §101.6's wording above.
+
+**B, amended before any B row is read:**
+- **Added to B:** A1's statistics, ACT given CCLE and CCLE as m, on the B cells with CCLE, with §101.4's A1 rule.
+- **H-E4 / H-E4b (HDAC):** 5 of B's cells have CCLE (HT29, MCF7, MDAMB231, THP1, H1975), so the A1 rule applies. That is the
+  clean, untouched test of whether HDAC's pattern is expression too.
+- **H-E2r (BET):** only 4 of its 6 cells have CCLE, below B's 5-cell floor, so its A1 statistics are **reported only**.
+- B still runs only after T-C's reading.
+
+**A1 for HDAC and the comparators, on T-E's rows** (`model/v10c/te2b_posthoc.py`; **POST HOC**, motivated by A1's BET result,
+reported, never a claim):
+- **The construction:** A1's (ACT-only on (i)'s genes, (i), (ii), (iii)) for:
+  - HDAC inhibitors × ACT prom_1kb and × ACC prom_1kb;
+  - transcription inhibitors × ACT tss_50kb;
+  - proteostasis × ACT tss_50kb.
+- **The setting:** the cells of each with CCLE on > 50 % of genes, 95 % CIs.
+- **The reading:** §101.4's A1 rule is applied and labelled post hoc.
+- **A guard first:** BET's A1 must reproduce exactly.
+
+**For v11 (review 097 Ask 3):**
+- **What the data support:** the CCLE on / off arm with drug-class strata.
+- **A hard-coded class × expression route** needs its own justification, since drug-conditioned attention over
+  expression-bearing tokens can represent the interaction.
+- **Chromatin's proxy role covers 17 of 217 chromatin cells without CCLE,** including BJAB and CD34 among T-C's clean cells.
+  The marks are a weaker stand-in than RNA-seq where both exist.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
