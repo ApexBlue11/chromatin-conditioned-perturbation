@@ -12,6 +12,13 @@ those targets were never shown to the model? Reported, never a claim; run after 
   bins       each probe compound's maximum ECFP4 Tanimoto to the known (annotated, allowed) training compounds:
              < 0.3, 0.3-0.5, >= 0.5 (102.1 C6), so analogue transfer through the structure head is visible
   models     every completed slot of v11-full and v11-targets-off, and T-B's off arm (v10-C) for the same compounds
+  head       for v11 models, the structure head's own recall@k beside the attention's (review 099 C3): its predicted
+             probabilities on the landmark genes in its vocabulary, the rest ranked last; if the attention's recall is
+             no better than the head's, the attention restates the head (FG feeds the head's predictions to the genes).
+             In v11-targets-off the head is untrained (no loss) and keeps its init bias, the logit of each gene's prior
+             rate among the known compounds, so its recall there is a prior-rate (popularity) baseline, which can sit
+             above chance k / 978 (chance@k is reported beside it); it is also the baseline for v11-full's head and
+             attention recall (review 099 follow-up)
 
     python model/v11/v11_probe.py --ckpts external/kaggle_out/v11_ckpt --tb_ckpts external/kaggle_out/v10c_tb \
         --out model/results/v11/v11_probe.json
@@ -109,18 +116,28 @@ class AtomMass:
             h.remove()
 
 
+def head_on_landmarks(logits, D):
+    """[V] head logits -> [978] scores: sigmoid on the landmarks in the head's vocabulary, -inf elsewhere."""
+    vpos = {int(n): i for i, n in enumerate(D.vocab)}
+    p = 1.0 / (1.0 + np.exp(-np.asarray(logits, np.float64)))
+    return np.array([p[vpos[int(n)]] if int(n) in vpos else -np.inf for n in D.landmark_idx])
+
+
 def signals(model, D, rows_by_comp, device='cpu'):
+    """Per compound: the atom-attention mass per landmark gene and, for v11 models, the head's landmark scores."""
     model.eval()
     am = AtomMass(model)
-    out = {}
+    att, head = {}, {}
     try:
         with torch.no_grad():
             for p, rows in rows_by_comp.items():
-                model(D.batch(rows, device))
-                out[p] = am.take().mean(0).float().cpu().numpy()
+                out = model(D.batch(rows, device))
+                att[p] = am.take().mean(0).float().cpu().numpy()
+                if 'target_logits' in out:
+                    head[p] = head_on_landmarks(out['target_logits'][0].float().cpu().numpy(), D)
     finally:
         am.close()
-    return out
+    return att, head
 
 
 def score_model(sig, ref, bins):
@@ -190,7 +207,13 @@ def main(argv=None):
            'max_tanimoto': {p: float(t) for p, t in tmax.items()}, 'models': {}}
 
     def score_all(m, Dm):
-        return {s: score_model(signals(m, Dm, r), ref, bins) for s, r in settings.items()}
+        res = {}
+        for s, r in settings.items():
+            att, head = signals(m, Dm, r)
+            res[s] = score_model(att, ref, bins)
+            if head:
+                res[s + '_head'] = score_model(head, ref, bins)
+        return res
     cache = {'full': D}
     for path in sorted(glob.glob(os.path.join(a.ckpts, '**', 'v11_*.pt'), recursive=True)):
         tag = os.path.basename(path)[4:-3]

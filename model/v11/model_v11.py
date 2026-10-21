@@ -1,8 +1,10 @@
 """v11 (RESULTS 102 / 102.1): T-B's off arm (LincsV10C on training-mean chromatin, unchanged) plus a full-graph module FG.
 The base is constructed first, so under the same seed its initial weights are v10-C's; FG and the structure head are
-initialised under a forked RNG (seed + FG_SEED_OFFSET), so the global stream after construction, and with it every
-dropout mask of training, is the one T-B off's same-seed run draws; FG has no random op in its forward; FG's readout is
-zero at init, so v11 at init computes exactly what T-B off computes (tested with identical base weights, 102.1 C1 / C7).
+initialised under a forked CPU generator seeded seed + FG_SEED_OFFSET (the CPU generator only: torch.manual_seed would
+also re-seed every CUDA generator, which fork_rng(devices=[]) does not restore; review 099 C1), so the CPU and CUDA streams
+after construction are the ones T-B off's same-seed run starts training with; FG has no random op in its forward; FG's
+readout is zero at init, so v11 at init computes exactly what T-B off computes (tested with identical base weights,
+102.1 C1 / C7).
 
 FG, per unique cell in a batch (shared by that cell's rows), over the 19,496-gene experimental + database graph:
   x_v = [gene vector_v ; CCLE rank_v, mask_v ; chromatin_v (16) , axis masks (4)]  ->  MLP  ->  z_v  (d_g = 64)
@@ -139,7 +141,7 @@ class LincsV11(LincsV10C):
         super().__init__(cfg, M_pathway, ppi, gene_vectors)                      # the base first: v10-C's RNG stream
         seed = torch.initial_seed()
         with torch.random.fork_rng(devices=[]):                     # leaves the global stream where v10-C leaves it
-            torch.manual_seed((seed + FG_SEED_OFFSET) % 2 ** 63)
+            torch.default_generator.manual_seed((seed + FG_SEED_OFFSET) % 2 ** 63)     # CPU only (review 099 C1)
             self.fg = FullGraphModule(cfg.d_model, fg)
             self.target_head = nn.Linear(cfg.d_model, len(fg['vocab']))
         with torch.no_grad():                                       # each gene's prior rate among the known compounds

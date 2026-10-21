@@ -44,6 +44,8 @@ def test_strata_cover_cells_classes_sets_compounds_and_epigenetic_cells(tmp_path
     rec = ts.main(world(tmp_path, monkeypatch) + ['--out', str(tmp_path / 'o.json')])
     assert set(rec['per_cell']) == set(CELLS) and rec['per_cell']['H1975']['apart'] and not rec['per_cell']['MCF7']['apart']
     assert set(rec['per_class']) == {'epigenetic', 'kinase'}
+    assert set(rec['per_class_all8_labelled']) == {'label', 'epigenetic', 'kinase'}
+    assert rec['per_class_all8_labelled']['kinase']['n_rows'] > rec['per_class']['kinase']['n_rows']
     e = rec['per_class']['epigenetic']
     assert abs(e['delta'] - 0.05) < 0.005 and e['n_compounds'] == 3 and 36 <= e['n_rows'] <= 42     # 3 compounds x 2 rows x 7 cells, less NaN rows
     assert abs(rec['per_class']['kinase']['delta']) < 0.005

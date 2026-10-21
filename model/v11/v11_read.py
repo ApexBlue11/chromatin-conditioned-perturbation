@@ -217,13 +217,15 @@ def main(argv=None):
             continue
         A, B = arm_runs(x), arm_runs(y)
         res = read_rule([r for r, _ in A], [r for r, _ in B], ccle_cells=name == 'R2_ccle')
+        among = 'among runs whose drug path trained (100.8)'
         if name == 'R1':
-            res['verdict'] = ('v11\'s full-graph module (with its auxiliary target supervision) improves dev contrast r '
-                              'over T-B\'s off arm' if res['passes'] else 'no claim')
+            res['verdict'] = ("v11's full-graph module with its auxiliary target supervision improves dev contrast r over "
+                              f"T-B's off arm, {among}; the reference's 3 runs all trained, without the guard"
+                              if res['passes'] else 'no claim')
         else:
             what = {'R2_chromatin': 'cell-specific chromatin', 'R2_targets': 'drug-target knowledge (input and head)',
                     'R2_ccle': 'the CCLE baseline'}[name]
-            res['verdict'] = f'{what} contributes to v11-full on dev cells' if res['passes'] else 'no claim'
+            res['verdict'] = f'{what} contributes to v11-full on dev cells, {among}' if res['passes'] else 'no claim'
         res['comparison'] = f'{x} vs {y}'
         meta['status'] = A[0][1]['target_status'] if 'target_status' in A[0][1].files else None
         res['reported_strata'] = pair_strata([p for _, p in A], [p for _, p in B], meta, a.n_boot)

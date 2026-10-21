@@ -93,7 +93,9 @@ def test_r1_and_r2_follow_tb_reads_rule(tmp_path):
     rec = vr.main(args + ['--out', str(tmp_path / 'o.json')])
     R = rec['readings']
     assert R['R1']['passes'] and R['R2_chromatin']['passes'] and R['R2_targets']['passes'] and R['R2_ccle']['passes']
-    assert R['R1']['verdict'].startswith("v11's full-graph module") and R['R2_ccle']['verdict'].startswith('the CCLE')
+    assert R['R1']['verdict'].startswith("v11's full-graph module with its auxiliary target supervision")
+    assert 'among runs whose drug path trained (100.8)' in R['R1']['verdict'] and 'without the guard' in R['R1']['verdict']
+    assert R['R2_ccle']['verdict'].startswith('the CCLE') and R['R2_ccle']['verdict'].endswith('trained (100.8)')
     assert R['R1']['n_cells_favouring_on'] == 6 and abs(R['R1']['delta'] - 0.02) < 0.003
     st = R['R1']['reported_strata']
     assert set(st['per_cell']) == set(CELLS) and st['per_cell']['T47D']['ccle'] and not st['per_cell']['NPC']['ccle']

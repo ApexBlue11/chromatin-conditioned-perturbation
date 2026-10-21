@@ -146,4 +146,6 @@ def by_compound(R_a, R_b, comp, labels=None, min_rows=MIN_ROWS_COMPOUND, q=Q_BH)
         disc.append(e)
     return {'n_compounds_tested': int(keep.sum()), 'min_rows': min_rows, 'variance_fit': {'a': real['a'], 'b': real['b']},
             'discoveries': sorted(disc, key=lambda e: e['p']), 'n_discoveries': len(disc),
-            'relabelling_calibration': calib, 'df': DF, 'q': q}
+            'relabelling_calibration': calib, 'df': DF, 'q': q,
+            'note': ('t on 4 df with an SE pooled over all tested compounds is conservative (it loses some power); it is '
+                     'what 101.1 C3 registered (review 099 Ask 9)')}

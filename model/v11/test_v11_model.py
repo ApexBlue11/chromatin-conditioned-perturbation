@@ -118,6 +118,20 @@ def test_base_init_is_v10c_under_the_same_seed_and_the_global_stream_is_unchange
     assert all(k.startswith(('fg.', 'target_head.')) for k in set(s11) - set(sb))
 
 
+def test_constructing_v11_does_not_reseed_any_cuda_generator(tmp_path, monkeypatch):
+    """Review 099 C1: the FG fork must seed the CPU generator only; a CUDA re-seed would change training's dropout stream
+    on GPU, which fork_rng(devices=[]) does not restore."""
+    write_v11_fixture(tmp_path)
+    D = v11_data(tmp_path)
+    Mp, A, gv = priors()
+    torch.manual_seed(3)
+    calls = []
+    monkeypatch.setattr(torch.cuda, 'manual_seed_all', lambda s: calls.append(('all', s)))
+    monkeypatch.setattr(torch.cuda, 'manual_seed', lambda s: calls.append(('one', s)))
+    m11.LincsV11(tiny_cfg(), Mp, A, gv, D.fg_inputs())
+    assert calls == []
+
+
 @pytest.mark.parametrize('mode', ['eval', 'train'])
 def test_forward_equals_tb_off_at_init_with_identical_base_weights(tmp_path, mode):
     write_v11_fixture(tmp_path)

@@ -17,6 +17,19 @@ from test_v10c_model import tiny_cfg  # noqa: E402
 from test_v11_model import write_v11_fixture, built_pair  # noqa: E402
 
 
+def test_head_scores_rank_only_vocabulary_landmarks(tmp_path):
+    write_v11_fixture(tmp_path)
+    D, _, _ = built_pair(tmp_path)
+    logits = np.zeros(len(D.vocab))
+    logits[0] = 5.0
+    s = vp.head_on_landmarks(logits, D)
+    lm = list(D.landmark_idx)
+    in_vocab = [lm.index(int(n)) for n in D.vocab if int(n) in set(lm)]
+    assert s.shape == (978,) and np.isfinite(s).sum() == len(in_vocab)
+    if int(D.vocab[0]) in set(lm):
+        assert int(np.argmax(s)) == lm.index(int(D.vocab[0]))
+
+
 def test_recall_tanimoto_and_bins_by_hand():
     s = np.array([0.1, 0.9, 0.5, 0.7])
     assert vp.recall_at_k(s, {1, 2}, (1, 2, 3)) == {1: 0.5, 2: 0.5, 3: 1.0}
@@ -80,8 +93,9 @@ def test_probe_end_to_end_on_trained_tiny_models(tmp_path, monkeypatch):
     assert rec['n_by_subset']['heldout'] == {'all': 1, 'chembl': 1, 'both': 1}
     assert set(rec['models']) == {'cold_cell_1_dev_v11full_d32_s0', 'cold_cell_1_dev_v11no_targets_d32_s0',
                                   'reference_cold_cell_1_dev_off_d32_s0'}
-    for v in rec['models'].values():
-        assert set(v) == {'heldout', 'train'}
+    for t, v in rec['models'].items():
+        assert set(v) == ({'heldout', 'train'} if t.startswith('reference') else
+                          {'heldout', 'train', 'heldout_head', 'train_head'})
         for s in v.values():
             a = s['all']['all_bins']
             assert a['n_compounds'] == 1 and 0 <= a['recall@5'] <= 1 and np.isclose(a['chance@50'], 50 / 978)

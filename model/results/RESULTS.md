@@ -11872,7 +11872,9 @@ reported, never a claim):
   chromatin, CCLE and ChEMBL targets.
 - **A forward-equivalence test:** with FG's readout at its zero init and **identical base weights**, v11's output equals T-B
   off's model's output.
-- **So R1 against T-B's off arm measures FG alone.** No extra reference arm is needed.
+- ~~**So R1 against T-B's off arm measures FG alone.**~~ **(review 099 C2, option (a))** So R1 against T-B's off arm measures
+  **FG with its auxiliary target supervision**: the structure head's BCE also trains the base's drug token (`w_u`, `ln_u`)
+  in v11-full, −chromatin and −CCLE. Only −targets removes both, as C4 registers. No extra reference arm is needed.
 
 **C2 (MAJOR), the arms:**
 
@@ -11931,8 +11933,12 @@ reported, never a claim):
 
 **Choices the design left open, made here (outcome-free):**
 - **The RNG:** the base is built first. FG and the head are initialised under a forked RNG (seed + 7919), so v11's base
-  starts from T-B off's same-seed weights and draws its dropout masks. **The comparison with the reference is
-  seed-paired**, until FG changes the trajectory.
+  starts from T-B off's same-seed weights ~~and draws its dropout masks. **The comparison with the reference is
+  seed-paired**, until FG changes the trajectory.~~ **(review 099 C1)** As first written, the fork's `torch.manual_seed`
+  also re-seeded every CUDA generator, which `fork_rng(devices=[])` does not restore. So on GPU, training's dropout masks
+  would not have been T-B off's. Fixed before any run: only the CPU generator is seeded inside the fork, and a test asserts
+  that constructing v11 calls no CUDA seeding. Either way R1's rule is unpaired (§100.4), so pairing was never what it
+  relied on.
 - **Where FG enters:** after `h_basal` and before the perturb blocks, so the basal term stays drug-free (F6).
 - **The node MLP:** [gene vector (128, standardised per column) ; CCLE rank, mask ; chromatin 16 × mask, 4 axis masks]
   → 128 → GELU → 64.
@@ -12047,6 +12053,37 @@ the hook's weights):
   is over them. H1975 appears only as its own cell.
 - **A slot without a completed attempt** gives no strata (100.8).
 - Reported, exploratory, never a claim.
+
+### 102.5 🔒 AMENDMENT, review 099 adopted (SOUND-WITH-CAVEATS) before any v11 run (PI, 2026-10-21)
+**Review 099** ran all 49 tests itself (49 / 49 pass) and found the code faithful to §102 / §102.1. Three MINOR challenges and
+the asks are adopted as follows.
+
+- **C1, the RNG:** fixed (struck through in §102.2). Inside FG's fork, `torch.default_generator.manual_seed` seeds the CPU
+  generator only. The new test `test_constructing_v11_does_not_reseed_any_cuda_generator` asserts that no CUDA seeding is
+  called during construction.
+- **C2, what R1 measures:** **option (a).** The head keeps training the drug token, and §102.1 C1's sentence now reads
+  "FG with its auxiliary target supervision" (struck through above).
+  - **Why (a), not (b):** the principal's idea is for the molecule tokens to *learn* their targets, so that similar
+    molecules lean towards the same genes and pathways. Detaching the token (b) would turn the head into a linear probe on
+    a representation trained only for responses, which is not that idea.
+  - The cost is that R1 cannot separate FG from the supervision. −targets removes both (C4), and R2-targets measures them
+    together.
+- **C3, the probe:** v11_probe now reports the structure head's own recall@k beside the attention's, per setting and bin
+  (`<setting>_head`).
+  - The head's score is its probability on the landmark genes in its vocabulary; the others are ranked last.
+  - **If the attention is no better than the head, the attention restates the head.**
+  - ~~In −targets the head is untrained, so its recall there is a chance-level check.~~ **(critic, follow-up)** In −targets
+    the untrained head keeps its init bias (each gene's prior rate among known compounds), so its recall is a
+    **prior-rate (popularity) baseline**. It can sit above chance k / 978, which is reported beside it, and it is the
+    baseline for v11-full's head and attention recall.
+- **Ask 9:** the per-compound output now states that t on 4 df with a pooled SE is conservative, as registered.
+- **Ask 11:** R1's verdict now reads *"v11's full-graph module with its auxiliary target supervision improves dev contrast r
+  over T-B's off arm, among runs whose drug path trained (100.8); the reference's 3 runs all trained, without the guard"*.
+  The R2 verdicts carry the same clause.
+- **Ask 12:** T-C's strata add a labelled all-8-cell class stratum (`per_class_all8_labelled`), since H1975 is clean for
+  v10-C. The clean-7 strata stay primary.
+- **Ask 8, the order:** nothing had to change before the timing kernel. The fixes land now anyway, so the timing kernel and
+  the 12 arm kernels pin the same code.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

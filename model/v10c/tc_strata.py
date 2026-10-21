@@ -44,6 +44,8 @@ def compute(rows, Ra, Rb, cell, pert, cl, n_boot=strata.N_BOOT):
     out['per_cell'] = {c: dict(v, apart=c in tc_read.APART) for c, v in cells.items()}
     Ca, Cb, cc, cp, ccls = Ra[:, clean], Rb[:, clean], cell[clean], pert[clean], cls[clean]
     out['per_class'] = strata.by_class(Ca, Cb, ccls, cp, n_boot)
+    out['per_class_all8_labelled'] = {'label': 'all 8 test cells, H1975 included (clean for v10-C; review 099 Ask 12)',
+                                      **strata.by_class(Ra, Rb, cls, pert, n_boot)}
     ok = strata.finite_rows(Ca, Cb)
     dr = Ca.mean(0) - Cb.mean(0)
     sens = {}
