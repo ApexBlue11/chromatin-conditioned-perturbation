@@ -11448,6 +11448,66 @@ beyond baseline expression"*. A pass motivates a mechanism-keyed chromatin route
   - Cells with < 30 eligible genes are skipped.
 - **Tests:** 16; mutation 15 / 15 killed.
 
+### 101.3 RESULT, T-E read once: **H-E2 PASSES — broadly active chromatin predicts which genes BET inhibitors repress, beyond baseline expression**; H-E1 and H-E3 do not pass (PI, 2026-10-21)
+**The run:**
+- `model/v10c/te_tests.py` at 42e5e96, once, local CPU, → `model/results/v10c/te_reading.json`;
+- training rows of `split_cold_cell_1` only: 254,631 rows, 238,074 with a mate-excluding contrast;
+- **mate exclusion** (101.1 C1): BET inhibitors 348 of 506 rows lost epigenetic mates and 31 dropped below 2; DNMT 273 / 433
+  and 6; HDAC 1,473 / 2,431 and 43; JQ1(−) 79 / 87 and 16.
+
+**The three registered hypotheses** (98.33 % cell-cluster CIs; Δspec against the non-epigenetic reference, or against
+repression for H-E3):
+
+| | cells | mean partial r [98.33 % CI] | Δspec [98.33 % CI] | gene-permute / cell-swap rank of real | verdict |
+|---|---|---|---|---|---|
+| **H-E2** BET inhibitors × ACT tss_50kb (predicted −) | 19 | **−0.071** [−0.093, −0.049] | **−0.072** [−0.105, −0.037] | 0.00 / 0.00 (real below all 200 draws of each; cell-swap 5th pct −0.015) | **PASSES** |
+| H-E1 DNMT inhibitors × METH tss_1kb (predicted +) | 26 | +0.022 [−0.005, +0.048] | +0.026 [−0.006, +0.054] | 1.00 / 0.99 | no pass (CI) |
+| H-E3 silent-gene induction × ACC prom_1kb (predicted +) | 54 | +0.017 [−0.004, +0.038] | −0.007 [−0.018, +0.002] | 0.98 / 0.97 | no pass |
+
+**H-E2 in detail:**
+- **Per cell:** 18 of 19 cells are negative and 1 is zero. The range runs from −0.156 (HeLa) to 0.000 (OCI-LY3), with
+  SH-SY5Y −0.125, HUVEC −0.118, Jurkat −0.10, VCaP −0.096 and A375 −0.094.
+- **The reference** (non-epigenetic compounds, the same construction): +0.0006.
+- **Calibration:** the CI condition is met from β = 0.02 SD.
+- **The controls and sensitivities, reported:**
+  - JQ1(−), the inactive enantiomer, ACT broad: +0.023 [−0.003, +0.052], over **6 cells only**. It is not negative.
+  - BET inhibitors plus apabetalone: −0.068 [−0.084, −0.052].
+  - **Narrow window** (ACT prom_1kb): −0.066 [−0.086, −0.044]. Broad and narrow give about the same, so this test does not
+    tell the windows apart.
+- **What it licenses** (§101): *"at the landmark genes, in training cells, a cell's own activation marks (ACT axis, ±50 kb)
+  predict which genes BET inhibitors repress in that cell, beyond baseline expression and beyond the gene's average
+  response and mark"*.
+  - It is the first registered result in this project where chromatin carries response information that baseline expression
+    does not.
+  - **Not licensed:** that a model uses it, or that it improves prediction; nor anything about other cells, other drugs or
+    non-landmark genes.
+- **What the ACT axis is** (§100.1): direct activation marks with registered substitutes, not H3K27ac alone.
+
+**Reported, never read** (hypothesis-generating only):
+- **HDAC inhibitors show the same pattern, more strongly:**
+  - × ACT prom_1kb: **−0.162** [−0.194, −0.128], Δspec −0.172;
+  - × ACC prom_1kb: −0.097, Δspec −0.087;
+  - broad windows: −0.114 (ACT) and −0.083 (ACC);
+  - unchanged in `hdac_core`, without the HDAC6-selective compounds and valproate (ACT prom −0.167).
+  - So genes whose promoters are more active or accessible in this cell than expression and the gene average predict are
+    pushed **down** by HDAC inhibitors.
+  - This was registered only as two-sided and reported. It needs its own confirmatory test before it is claimed.
+- **Silent genes:**
+  - ACC broad +0.041 [+0.025, +0.057] on induction, but not specific to induction against repression (Δspec −0.005): accessible
+    silent genes respond more in **both** directions;
+  - PCG and METH show nothing on silent-gene induction (+0.000, −0.009). "Locked" marks do not mark which silent genes stay
+    off.
+- **H-E1's direction is as predicted:**
+  - beyond 99 % of cell-swap draws, but its cluster CI crosses 0, so there is no pass;
+  - per §101.1, a fail bounds an **early** (6–24 h) DNMT-inhibitor effect only.
+
+**What it means for the programme:**
+- **T-A and T-B were averaged over all drugs.** They bounded the drug-averaged, linear route at ≲ 0.003 SD and ≈ 0.0006. T-E
+  shows that, for drugs acting on chromatin readers and erasers, the cell's own marks carry information that expression does
+  not.
+- **That points v11 to a mechanism-keyed route:** chromatin that enters conditioned on the drug's mechanism, BET / HDAC first.
+  §100.13's strata on T-C, with the epigenetic class, are the first test in prediction.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
