@@ -11785,6 +11785,83 @@ reported, never a claim):
   level. Transcription inhibitors act through mRNA decay, so synthesis rate and turnover are a natural route.
 - Separating chromatin from synthesis would need nascent-transcription or half-life data.
 
+## 102. 🔒 PRE-REGISTERED (design, for review): v11 — the full STRING graph, CCLE baselines, a chromatin gate on every gene, and drug-target knowledge (principal's direction 2026-10-19 / 21; PI, 2026-10-21; before any v11 model code)
+**What the record says going in:**
+- **Chromatin:** at the landmark genes its cell-specific contribution is small, and where an RNA-seq baseline exists it is
+  mostly redundant with it (T-A, T-B, T-E2 §101.6). The one open exception is transcription inhibitors × broad H3K27ac (H-E5,
+  pending).
+- **An RNA-seq (CCLE) baseline** carries response information that L1000's control profile lacks, for transcription-,
+  proteostasis-, BET- and HDAC-class drugs (§101.6 / §101.8).
+- **Drug targets:** of the 1,363 compounds with ChEMBL mechanism targets (546 target genes), only 314 hit a landmark, so the
+  978 × 978 subgraph cannot carry most target effects.
+- **The prior is low:** fixed diffusion from targets over the full graph carried no drug-specific signal (§83).
+
+**1. Data (outcome-free; built unless marked):**
+- **The graph:** `network/outputs/v11/string_graph_v11_expdb.npz`, STRING experimental + database channels only, ≥ 0.400,
+  345,962 edges over 19,496 genes.
+- **Gene vectors:** re-pretrained on that graph by `pretrain_gene_vectors.py` (DTI excluded) — *to build*.
+- **Chromatin:** `external/v11_data/derived/v11_chromatin.npz`, 217 cells × 19,496 genes, v10-C's encoding, 18,658 genes with a
+  TSS.
+- **CCLE:** `ccle_expr_v11.npz`, log2(TPM + 1) for 131 LINCS cells on 18,273 genes. For 4 of the 6 dev cells (not HUVEC or
+  NPC) and 5 of the 7 clean T-C cells (not BJAB or CD34).
+- **Pathways:** Reactome plus GO-BP from the GAF, with IEP / HEP excluded and IEA kept, through v9's 800-node set-cover
+  procedure → `M_pathway_v11` — *to build*.
+
+**2. Knowledge rules** (review 093 C5 / C6):
+- **Sources:** ChEMBL mechanism targets (`chembl_dti_edges.tsv`), STRING experimental / database, evidence-filtered GO, Reactome.
+  **Nothing L1000-derived.**
+- **The DTI probe split:**
+  - 30 % of the annotated compounds are **probe-held-out**. They are drawn by same-molecule group (InChIKey first block,
+    `default_rng(0)`) from compounds that are **not test compounds of either split**;
+  - their targets never enter v11's inputs, graph or auxiliary labels;
+  - the atom → gene probe on `dti_reference.tsv` is scored only on them.
+- **The structure → target head** trains on the annotations of training compounds only, excluding probe compounds, the active
+  split's test compounds and their same-molecule duplicates (§96.6).
+- **Unseen compounds are reported in two settings:** known targets as input, and targets predicted from structure.
+
+**3. The model:** v10's base, as T-B's off arm, plus a full-graph module **FG**.
+- **Per unique cell in a batch, shared by its rows:**
+  - node input x_v = [gene vector_v ; CCLE rank_v, mask ; chromatin_v (16 + 4 mask)] → MLP → z_v (d_g 64);
+  - **chromatin / CCLE gate** a_v = σ(w · [chromatin, CCLE, masks] + b), with w = 0 and b = logit 0.95 at init;
+  - edges carry √(a_i a_j) Â_ij, with Â symmetric-normalised;
+  - **K = 2 rounds** of z ← z + W_k (Â_c z), with W_k = 0 at init.
+- **Per row, the drug's target signal t_d** over the 19,496 nodes, in two channels:
+  - any target (1);
+  - action sign (+1 agonist / activator, −1 inhibitor / antagonist / blocker, 0 otherwise).
+  - **The source:** known ChEMBL targets where allowed; otherwise the structure head's predicted probabilities.
+  - It is propagated K = 2 rounds over the cell's gated graph by sparse matmul, so the hops 0, 1, 2 × 2 channels give s_v.
+- **The readout:** h_g += U [z_g ; s_g ; z_g ⊙ P s_g] at the 978 landmark tokens before the perturb blocks, with U = 0 at init.
+  **v11 starts exactly as v10** (to be tested).
+- **The auxiliary head:** drug global token → 546 target logits, BCE with weight λ = 0.1, on allowed compounds only.
+- **Memory:** propagation is per cell (a handful per batch) and the per-row signal is 6-wide, so no per-row d-wide messages
+  over 692k directed edges are needed (review 093's 23 GB concern). **A timing kernel runs first.**
+- **The recipe:** §100.4's (4 epochs unless timing says otherwise, per §100.4's rule), with the 100.8 guard on.
+
+**4. The arms** (T-B's dev carve; 3 seeds each; guarded):
+
+| arm | gate | targets | CCLE |
+|---|---|---|---|
+| **v11-full** | on | on | on |
+| v11 − gate | off (cell-invariant: the gate from training-mean features, §100.4's convention) | on | on |
+| v11 − targets | on | off (t_d ≡ 0, the head off) | on |
+| v11 − CCLE | on | on | off (masked) |
+
+- **The reference:** T-B's existing off arm (v10-C off, 3 seeds, same carve and recipe). It costs no new GPU.
+- **The cost:** ≈ 4 × 3 × 4.5 GPU-h ≈ 54 h, two quota weeks after T-C.
+
+**5. The readings** (registered rules, read once):
+- **R1, does v11 help on dev:** v11-full against the reference by §100.4's rule on dev contrast r:
+  - the 3-seed mean Δ ≥ max(0.003, 2·SE);
+  - the mean of per-cell means > 0;
+  - ≥ 4 of 6 cells.
+- **R2, attribution:** v11-full against each ablation, by the same rule (gate, targets, CCLE).
+- **Reported:**
+  - strata per cell (split by CCLE availability), per mechanism class (`compound_classes.json`) and per compound (§101.1's
+    pooled-SE t, BH);
+  - permutations: CCLE cell-swap, chromatin gene-shuffle and cell-swap, targets shuffled across compounds;
+  - the DTI probe on the probe-held-out compounds.
+- **Test-set evaluation** (T-C-style, unseen cells and compounds) is registered after R1 / R2, not here.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
