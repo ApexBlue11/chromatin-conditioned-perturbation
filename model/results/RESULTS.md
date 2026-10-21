@@ -11713,6 +11713,44 @@ reported, never a claim):
 - **Chromatin's proxy role covers 17 of 217 chromatin cells without CCLE,** including BJAB and CD34 among T-C's clean cells.
   The marks are a weaker stand-in than RNA-seq where both exist.
 
+### 101.8 RESULT (POST HOC, §101.7), A1 for HDAC and the comparators — and H-E5 registered into B before any B row is read (PI, 2026-10-21)
+**The run:**
+- `model/v10c/te2b_posthoc.py` at 376247e, once, → `model/results/v10c/te2b_posthoc.json`;
+- the guard reproduced BET's A1 exactly.
+- Each class uses its own eligible cells that have CCLE, so these are not A4's 19 BET cells.
+- §101.4's A1 rule is applied **as a label only.**
+
+| class × mark | cells | mark only | mark given CCLE | CCLE as m | post hoc label |
+|---|---|---|---|---|---|
+| BET × ACT tss_50kb (guard) | 11 | −0.064 | −0.005 [−0.034, +0.024] | −0.139 | explained by expression |
+| HDAC × ACT prom_1kb | 25 | −0.178 | **−0.040** [−0.064, −0.016] | **−0.275** | inconclusive: a residual, but under half |
+| HDAC × ACC prom_1kb | 21 | −0.107 | +0.022 [−0.002, +0.045] | −0.289 | explained by expression |
+| **transcription inhibitors × ACT tss_50kb** | 20 | −0.106 | **−0.066** [−0.095, −0.038] | −0.110 | **beyond two expression measurements** |
+| proteostasis × ACT tss_50kb | 27 | −0.053 | −0.007 [−0.026, +0.013] | −0.093 | explained by expression |
+
+**The reading** (post hoc, four tests, so never a claim):
+- **Mostly an expression effect.** For BET, HDAC (accessibility) and proteostasis, the marks' association is RNA-seq
+  expression.
+- **HDAC:** CCLE expression predicts HDAC-inhibitor repression strongly (r −0.28 to −0.29). The promoter-ACT residual given
+  CCLE is small but non-zero.
+- **One exception: transcription inhibitors** (CDK7 / 9 inhibitors, triptolide, dactinomycin).
+  - Broad H3K27ac (±50 kb) predicts their repression **beyond both L1000 and RNA-seq expression**: −0.066 given CCLE, 62 % of
+    the mark-only value.
+  - That fits the known sensitivity of super-enhancer-driven genes to transcriptional-CDK inhibition. It came from a post hoc
+    look, so it needs confirmation.
+
+**H-E5, registered into B now** (B runs only after T-C's reading):
+- **The test:** transcription inhibitors (`te2_comparators.json`) × ACT tss_50kb **given CCLE**, A1 statistic (i), predicted
+  **−**.
+- **The rows:** the untouched B rows, 189 transcription-inhibitor rows over 5 cells, all with CCLE (HS578T 24, HT29 34,
+  MCF7 75, MDAMB231 47, THP1 9).
+- **The rule (B's):** ≥ 5 eligible cells negative, with at least 5 eligible, and the mean r's one-sided 95 % bound < 0.
+  - With exactly 5 candidate cells this is strict: every cell must be negative, and THP1's 9 rows may fall below 5 after mate
+    exclusion, which means no claim.
+- **Also reported:** the A1 decomposition on those cells.
+- **What a pass licenses:** *"on untouched cells, broad H3K27ac predicts repression by transcription inhibitors beyond
+  RNA-seq expression"*. That would be the project's first chromatin information not replaceable by an expression baseline.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
