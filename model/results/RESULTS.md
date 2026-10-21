@@ -11597,6 +11597,22 @@ repression for H-E3):
 - **B:** whether it holds beyond the training cells.
 - **Until then,** §101.3's licensed sentence stands as worded.
 
+### 101.5 Review 096 adopted (SOUND-WITH-CAVEATS, one BLOCKING) before T-E2's one run (PI, 2026-10-21)
+- **C1 (BLOCKING):** A2(i)'s mask is now `isfinite(b2)`.
+  - With "all true", the NaN b2 of the 53 chromatin cells without two distinct training controls made every gene's
+    leave-cell-out mean NaN, and A2(i) would have scored no cell.
+  - It is tested with a NaN row.
+- **C2:** A1's ACT-only baseline runs on (i)'s gene set (finite CCLE and its leave-cell-out mean), so the ½ rule compares
+  like with like.
+- **C3:** per cell, corr(CCLE rank, L1000 basal) is reported as a CCLE validity flag. The rule is unchanged.
+- **C4:** A4's reading is mechanical. *"Not BET-specific"* iff the comparator's mean r lies within BET's 95 % CI **over the
+  cells they share**, written into the JSON.
+- **Ask 1:**
+  - A2(i) uses half the controls, so it overstates the noise leakage into the full-control basal;
+  - it is reported raw **and** scaled by the Spearman–Brown leakage ratio 1 / (1 + ρ), with ρ the per-cell split-half
+    reliability corr(b1, b2) (from (1 − R_full) / (1 − ρ), R_full = 2ρ / (1 + ρ)). The scaling is approximate.
+- **Tests:** 21 pass.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

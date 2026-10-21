@@ -51,6 +51,29 @@ def a1_rule(i_sum, act_sum, ii_sum):
     return 'inconclusive'
 
 
+def a2_split_half(b1, b2, U, cells):
+    """A2 (review 096 C1): m = b2 over its FINITE genes (cells without two distinct controls carry NaN and must not enter
+    the leave-cell-out mean), basal = b1. Also the per-cell split-half reliability rho = corr(b1, b2) and the Spearman-Brown
+    leakage ratio (1 - R_full) / (1 - rho), R_full = 2 rho / (1 + rho), to scale A2(i) toward the full-control basal."""
+    k2 = np.isfinite(b2)
+    r = te.per_cell_r(np.nan_to_num(b2), k2, U, np.nan_to_num(b1), cells)
+    rho = {}
+    for i in r:
+        f = np.isfinite(b1[i]) & np.isfinite(b2[i])
+        rho[i] = float(np.corrcoef(b1[i, f], b2[i, f])[0, 1])
+    # (1 - R_full) / (1 - rho) with R_full = 2 rho / (1 + rho) simplifies to 1 / (1 + rho); undefined for rho <= 0
+    ratio = {i: 1.0 / (1.0 + q) for i, q in rho.items() if q > 0}
+    return r, rho, ratio
+
+
+def a4_reading(bet_common, comp):
+    """Review 096 C4: 'not BET-specific' iff the comparator's mean r lies within BET's 95 % CI over the cells they share."""
+    if bet_common.get('ci') is None or comp.get('mean_r') is None:
+        return 'inconclusive (fewer than 3 shared cells)'
+    lo, hi = bet_common['ci']
+    return 'not BET-specific' if lo <= comp['mean_r'] <= hi else 'differs from BET'
+
+
 def rank_rows_nan(A):
     """Within-row rank in [0, 1] over finite entries; NaN stays NaN."""
     out = np.full(A.shape, np.nan)
@@ -130,12 +153,18 @@ def main():
     Ebar = te.lco_mean(np.nan_to_num(E), kE)
     Abar = te.lco_mean(mACT, kACT)
     sub_cells = [i for i in cells if kE[i].mean() > 0.5]
-    act_only = te.per_cell_r(mACT, kACT, U_bet, basal, sub_cells)
+    gs = np.isfinite(E) & np.isfinite(Ebar)                    # review 096 C2: ACT-only on (i)'s gene set
+    act_only = te.per_cell_r(mACT, kACT, U_bet, basal, sub_cells, gene_sel=gs)
     i_ = te.per_cell_r(mACT, kACT, U_bet, basal, sub_cells, extra=[E, Ebar])
     ii_ = te.per_cell_r(E, kE, U_bet, basal, sub_cells)
     mask_both = kE & kACT
     iii_ = te.per_cell_r(E, mask_both, U_bet, basal, sub_cells, extra=[np.where(kACT, mACT, np.nan), Abar])
-    A1 = {'cells': [ccells[i] for i in sub_cells], 'act_only': summary(act_only), 'i_act_given_ccle': summary(i_),
+    validity = {}                                              # review 096 C3: CCLE against the L1000 basal, per cell
+    for i in sub_cells:
+        f = np.isfinite(E[i]) & np.isfinite(basal[i])
+        validity[ccells[i]] = float(np.corrcoef(E[i, f], basal[i, f])[0, 1])
+    A1 = {'cells': [ccells[i] for i in sub_cells], 'ccle_vs_l1000_basal_corr': validity,
+          'act_only': summary(act_only), 'i_act_given_ccle': summary(i_),
           'ii_ccle_as_m': summary(ii_), 'iii_ccle_given_act': summary(iii_)}
     if all('ci' in A1[k] for k in ('act_only', 'i_act_given_ccle', 'ii_ccle_as_m')):
         A1['reading'] = a1_rule(A1['i_act_given_ccle'], A1['act_only'], A1['ii_ccle_as_m'])
@@ -146,10 +175,15 @@ def main():
     # ---- A2: split-half L1000 ----
     ok12 = np.isfinite(b1).all(1) & np.isfinite(b2).all(1)
     c12 = [i for i in cells if ok12[i]]
-    allm = np.ones_like(kACT)
-    a2i = te.per_cell_r(b2, allm, U_bet, b1, c12)
-    a2ii = te.per_cell_r(mACT, kACT, U_bet, b1, c12)
-    res['A2'] = {'cells': [ccells[i] for i in c12], 'i_b2_given_b1': summary(a2i), 'ii_HE2_with_b1_basal': summary(a2ii),
+    a2i, rho, ratio = a2_split_half(b1, b2, U_bet, c12)
+    a2ii = te.per_cell_r(mACT, kACT, U_bet, np.nan_to_num(b1), c12)
+    s_a2i = summary(a2i)
+    res['A2'] = {'cells': [ccells[i] for i in c12], 'i_b2_given_b1': s_a2i,
+                 'split_half_reliability': {ccells[i]: v for i, v in rho.items()},
+                 'spearman_brown_leakage_ratio_mean': float(np.mean(list(ratio.values()))) if ratio else None,
+                 'i_scaled_to_full_basal': (s_a2i['mean_r'] * float(np.mean(list(ratio.values())))
+                                            if ratio and s_a2i.get('mean_r') is not None else None),
+                 'ii_HE2_with_b1_basal': summary(a2ii),
                  'HE2_full_basal_same_cells': summary({k: base[k] for k in c12})}
 
     # ---- A3: decile basal ----
@@ -184,8 +218,11 @@ def main():
     for nm, sel in (('transcription_inhibitor', tx), ('proteostasis', prot), ('magnitude_matched_ref', mm)):
         U = te.class_profiles(C, ci_row, nC, sel & keep)[0]
         r = te.per_cell_r(mACT, kACT, U, basal, cells)
-        A4[nm] = {'summary': summary(r), 'bet_minus_comparator': paired(base, r),
-                  'rows': int((sel & keep & finite).sum())}
+        common = sorted(set(base) & set(r))
+        bet_common = summary({k: base[k] for k in common})
+        sm = summary(r)
+        A4[nm] = {'summary': sm, 'bet_on_common_cells': bet_common, 'bet_minus_comparator': paired(base, r),
+                  'reading': a4_reading(bet_common, sm), 'rows': int((sel & keep & finite).sum())}
     res['A4'] = A4
 
     # ---- A5: provenance ----

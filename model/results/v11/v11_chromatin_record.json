@@ -1,0 +1,48 @@
+{
+ "rule": "v10-C's encoding over the STRING nodes (model/v11/assemble_chromatin_v11.py)",
+ "cells": 217,
+ "genes": 19496,
+ "genes_with_tss": 18658,
+ "features": [
+  "ACC:prom_1kb",
+  "ACC:tss_10kb",
+  "ACC:down_1_20kb",
+  "ACC:up_2_50kb",
+  "ACC:tss_50kb",
+  "ACT:prom_1kb",
+  "ACT:tss_10kb",
+  "ACT:down_1_20kb",
+  "ACT:up_2_50kb",
+  "ACT:tss_50kb",
+  "PCG:prom_1kb",
+  "PCG:tss_10kb",
+  "PCG:down_1_20kb",
+  "PCG:up_2_50kb",
+  "PCG:tss_50kb",
+  "METH:tss_1kb"
+ ],
+ "cells_with_axis": {
+  "ACC": 67,
+  "ACT": 82,
+  "PCG": 49,
+  "METH": 114
+ },
+ "mean_gene_coverage_when_present": {
+  "ACC": 0.95701682396389,
+  "ACT": 0.95701682396389,
+  "PCG": 0.95701682396389,
+  "METH": 0.6544077417589933
+ },
+ "inputs": {
+  "v11_signal_s0.npz": "242e09fd51ef0f01e445cb3c7f1d42affd4455d3",
+  "v11_signal_s1.npz": "10992ad103407047fbdd1b5177b5e78027d87726",
+  "v11_signal_s2.npz": "0556173bdf3e592741f18c8ccf3f7b0e43027eca",
+  "v11_signal_s3.npz": "1302ab05a865ce90eed590c8e191fcc80c278e95",
+  "v11_methyl.npz": "4371553e0c9d3621bc98d9587b95abb88d1b2c1b",
+  "chipatlas_selection.json": "70052ec4116ad4acc9df03a40a7cd084d87c53e4",
+  "full_cells.json": "71932be11415a12412128eaa9fd88dc5584eaace",
+  "tss_hg38_string.tsv": "67ac22c649396ef2a57de9f9f596badfe720aec1",
+  "string_graph_v9.npz": "34fbaad051a4101389b0d8697ba501f892e4136d"
+ },
+ "out_sha1": "6f4dcb7bb8d638bc5c8109593a2ef193b2ee762c"
+}
