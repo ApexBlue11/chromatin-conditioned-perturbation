@@ -1,0 +1,19 @@
+{
+ "rule": "RESULTS 101.1 C6: experimental + database channels, prior-corrected combination, c >= 0.400",
+ "inputs": {
+  "9606.protein.links.detailed.v12.0.txt.gz": "990c2feb6dfda2bf62a53d4446733a3d93ad4c6a",
+  "9606.protein.info.v12.0.txt": "a7ca8e1e384c5c48d94d7f442ef4f99ba6e8be37",
+  "string_graph_v9.npz": "34fbaad051a4101389b0d8697ba501f892e4136d"
+ },
+ "prior": 0.041,
+ "threshold": 0.4,
+ "pairs_in_file": 13715404,
+ "nodes": 19496,
+ "edges": 345962,
+ "isolated_nodes": 2943,
+ "isolated_landmarks": 31,
+ "edges_shared_with_v9_combined": 345960,
+ "v9_edges": 929472,
+ "landmark_landmark_edges": 4177,
+ "out_sha1": "b9b80d5717ab2698313867442eae6757eaf329a7"
+}
