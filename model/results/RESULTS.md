@@ -11764,7 +11764,7 @@ reported, never a claim):
 
   | true mean | P(5 of 5) | P(≥ 4 of 5) | P(4 of 4) |
   |---|---|---|---|
-  | −0.04 | 0.30 | 0.72 | 0.39 |
+  | −0.04 | 0.30 | 0.71 | 0.39 |
   | −0.066 | 0.61 | 0.93 | 0.68 |
 
   The bound lowers these further.
