@@ -11915,6 +11915,84 @@ reported, never a claim):
   (+0.0017) is the scale of chromatin's previous contribution.
 - **The cost:** 4 arms × 3 seeds ≈ 54 GPU-h.
 
+### 102.2 🔒 IMPLEMENTATION, v11's code as written, before any v11 GPU run (PI, 2026-10-21; for review in packet 099)
+**The code:** `model/v11/{model_v11, data_v11, train_v11}.py`, `orchestration/make_v11_kernels.py`, 28 tests in
+`model/v11/test_v11_model.py`.
+
+**The base is T-B off's (102.1 C1), tested three ways:**
+- **Inputs:** every base key of a v11 batch equals `V10CData(chrom_off=True)`'s, in every arm.
+- **Bytes:** `data_v10c.py`, `modules_v9.py` and `modules_v7.py` are T-B's pinned files. `model_v10c.py` differs from T-B's pin
+  only by 100.8's output key: undoing that one line recovers T-B's sha1 (8e7e509c).
+- **The forward pass:** with identical base weights, v11's delta, drug, basal and dose scale equal T-B off's **exactly**, in
+  eval and in train mode with dropout and stochastic depth on.
+- **The recipe:** with FG's readout frozen at zero and the targets off, `train_v11` reproduces `train_v10c --chrom_off`
+  step for step (predictions within 1e-6). So batches, optimiser, schedule, clipping, dropout stream and scorer are
+  v10-C's.
+
+**Choices the design left open, made here (outcome-free):**
+- **The RNG:** the base is built first. FG and the head are initialised under a forked RNG (seed + 7919), so v11's base
+  starts from T-B off's same-seed weights and draws its dropout masks. **The comparison with the reference is
+  seed-paired**, until FG changes the trajectory.
+- **Where FG enters:** after `h_basal` and before the perturb blocks, so the basal term stays drug-free (F6).
+- **The node MLP:** [gene vector (128, standardised per column) ; CCLE rank, mask ; chromatin 16 × mask, 4 axis masks]
+  → 128 → GELU → 64.
+- **The gate:** a linear map of [chromatin 16 × mask, 4 axis masks, CCLE rank, CCLE mask] (22 inputs), with w = 0 and
+  b = logit 0.95.
+- **The rounds:** z ← z + W_k √a ⊙ Â(√a ⊙ RMSNorm(z)), RMSNorm as v10-C's GatedPPI, W_k = 0.
+- **Â:** D^−½ A D^−½ on the exp+db weights. 2,943 isolated nodes stay at zero, among them 31 landmarks.
+- **CCLE:** the within-cell rank in [0, 1] over the genes CCLE measures (te2_tests' convention), and a mask.
+- **The targets:**
+  - only Homo sapiens rows with a gene in the graph enter: 864 genes over 1,149 compounds. §102's "546" was ChEMBL's
+    target-ID count. A compound whose only targets are non-human counts as unannotated.
+  - one sign per (compound, gene): all +1 → +1, all −1 → −1, anything else 0.
+- **"Known":** annotated, not a probe compound, not unseen (no training row), and not a same-molecule duplicate of an unseen
+  compound. Every other compound's signal is the head's prediction (sign 0).
+  - **On the dev carve,** by training rows: known 78,214, probe 4,432, duplicates of unseen compounds 195, unannotated
+    158,217.
+  - The held-out rows include 334 dev-only compounds, 6 of them annotated.
+  - The vocabulary (the head's outputs) is the 835 genes of the known compounds' targets.
+- **The structure head:**
+  - it reads the drug's global token **before** dose and time;
+  - its bias starts at the logit of each gene's prior rate among the known compounds;
+  - the probabilities it feeds FG are **detached**, so the response loss cannot turn the head into something other than a
+    target predictor;
+  - BCE is the mean over the known rows of a batch × the vocabulary.
+- **The hop scales:** fixed per channel, the RMS of the nonzero landmark entries over the known compounds on the ungated
+  graph.
+- **Precision and memory:** FG runs in fp32 (autocast off) around a COO sparse matmul. Its tables (about 200 MB) are a
+  per-device cache, not module buffers, so DataParallel does not broadcast them every step. 0.29 M new parameters at
+  d 256.
+- **The arms:**
+  - −chromatin: the training-row-weighted mean of F **and** M for every cell, in x_v and the gate;
+  - −CCLE: rank and mask zero for every cell, in both places;
+  - −targets: t ≡ 0 and no head loss (the head gets no gradient).
+- **Also written per run, reported only:**
+  - the unseen annotated compounds' held-out rows scored again with their known targets as input (102 item 2's second
+    setting);
+  - the permutations: CCLE cell-swap, chromatin cell-swap, chromatin gene-shuffle, and targets deranged across the known
+    compounds;
+  - each held-out row's target status, in the predictions file.
+- **The kernels:**
+  - `lincs-v11-src` carries all code and FG's files. FG's gene vectors are published as `gene_vectors_v11_full.npy`, since
+    v9 has a file named `gene_vectors_full.npy`.
+  - `lincs-v10c-src` is not mounted, so no base file has a second copy.
+  - The retry budget assumes 4.5 h per run until timing replaces it.
+
+**Checks run locally:**
+- **Real data on CPU at d 64:** 4 steps through every real table (19,496 nodes).
+- **The CUDA path:** 2 batches on one GPU at d 64. 1.46 GB peak; FG and the head receive gradients.
+- **At d 256 on this laptop's CPU, v10-C's own base also crashes** (an access violation in dropout on step 2), so the
+  full-width check is the timing kernel.
+
+**Not yet written** (each before any reading; Ask 6, nothing is read until every arm's runs exist):
+- the R1 / R2 reader with strata;
+- the DTI probe: v9's atom → gene top-k hit rate on the probe compounds, in Tanimoto bins.
+
+**Next:**
+- the timing kernel (arm full, 300 steps) at the quota reset, alongside T-C;
+- §100.4's epochs rule then fixes the epochs and the retry budget;
+- the 12 arm × seed kernels follow T-C.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
