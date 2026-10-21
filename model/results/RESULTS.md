@@ -11613,6 +11613,68 @@ repression for H-E3):
     reliability corr(b1, b2) (from (1 − R_full) / (1 − ρ), R_full = 2ρ / (1 + ρ)). The scaling is approximate.
 - **Tests:** 21 pass.
 
+### 101.6 RESULT, T-E2 read once (§101.4 A1–A5): **H-E2 is EXPLAINED BY EXPRESSION, and the pattern is not BET-specific** — the activation marks stood in for a better expression measurement than L1000's control profile (PI, 2026-10-21)
+**The run:**
+- `model/v10c/te2_tests.py` at 9af31b8, once, → `model/results/v10c/te2_reading.json`, 42 s;
+- the guard reproduced H-E2 exactly (−0.07087);
+- a summary print crashed **after** the JSON was written (fixed cosmetically; the JSON is complete).
+
+**A1, CCLE (the decisive test; 11 of H-E2's 19 cells have CCLE).** CCLE rank against L1000 basal, per cell: corr
+0.62–0.71.
+
+| statistic | mean partial r [95 % CI] | cells negative |
+|---|---|---|
+| ACT only, same cells and genes | −0.064 [−0.090, −0.038] | 10 / 11 |
+| **(i) ACT given CCLE** | **−0.005 [−0.034, +0.024]** | 7 / 11 |
+| (ii) CCLE as m | **−0.139** [−0.182, −0.093] | 11 / 11 |
+| (iii) CCLE given ACT | −0.124 [−0.166, −0.080] | 11 / 11 |
+
+- **The registered reading: *"explained by expression"*.** (i)'s CI includes 0 and (ii)'s excludes it below.
+- So an independent RNA-seq measurement of the gene's expression in that cell predicts BET-inhibitor repression **twice as
+  strongly** as the activation marks do.
+- Once it is in the model, the marks add nothing.
+
+**A2, split-half L1000:**
+- the split-half reliability of the control-profile basal is ρ ≈ 0.999 in every cell;
+- b2 given b1 is −0.001 [−0.039, +0.040] (≈ −0.0007 scaled to the full basal);
+- H-E2 with b1 alone as basal is −0.0706.
+- **So the residual is not random L1000 noise.** L1000's control profile measures expression reproducibly but differently from
+  RNA-seq (bead readout, saturation, the landmark-only design), and what it misses is what predicts the repression.
+
+**A3:** decile basal gives −0.068 [−0.087, −0.049]. It is not a non-linearity in the L1000 basal.
+
+**A4, the comparators** (× ACT tss_50kb; the mechanical reading of 101.5 C4):
+
+| comparator | cells | mean r [95 % CI] | BET on the shared cells | reading |
+|---|---|---|---|---|
+| transcription inhibitors (CDK7 / 9, triptolide, dactinomycin) | 8 | **−0.155** [−0.206, −0.098] | −0.079 | differs from BET: **stronger** |
+| proteostasis (HSP90 / proteasome) | 11 | **−0.106** [−0.146, −0.064] | −0.068 | differs from BET: stronger |
+| magnitude-matched non-epigenetic | 19 | +0.020 [−0.007, +0.046] | −0.071 | differs from BET |
+
+- **The pattern is not BET-specific.** Drugs that perturb transcription or proteostasis globally show it more strongly.
+- **It is not a response-magnitude artefact either:** compounds matched on response size don't show it.
+
+**A5, provenance** (all robust):
+- E / C-only cells, MINO out: −0.075 (14 cells);
+- B-lymphoid cells out: −0.082 (13);
+- plates with ≥ 5 allowed mates: −0.074 (14).
+
+**The reading:**
+- **H-E2 stands as registered,** but it means *"global transcription- and proteostasis-perturbing drugs, BET inhibitors among
+  them, repress the genes most highly expressed in that cell"*.
+- **The activation marks carry that because they track true expression better than L1000's own control profile does.** With
+  an RNA-seq baseline they add nothing. "Chromatin is redundant with baseline expression" is **confirmed** here, with one
+  refinement: the baseline that makes it redundant is RNA-seq, not L1000's landmark controls.
+- **What this changes for v11:**
+  - **CCLE baselines are the stronger input** (r −0.139 against −0.064 for the marks, on the same cells and genes);
+  - **chromatin's remaining role is as an expression proxy** where no RNA-seq exists. Of the 19 cells, HUVEC, NPC, SH-SY5Y and
+    others have no CCLE line;
+  - **the mechanism-keyed chromatin route of 101.3 is withdrawn.** A drug-class × expression-level interaction (global
+    transcription / proteostasis perturbation) is the supported form.
+- **B (the replication)** still runs after T-C, as registered, but it now tests a pattern known to be expression-explained.
+- **The HDAC pattern (§101.3)** was not tested against CCLE. Given A1, the default reading is the same: expression, not
+  chromatin.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

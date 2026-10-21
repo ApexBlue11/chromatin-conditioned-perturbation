@@ -243,7 +243,7 @@ def main():
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     json.dump(res, open(a.out, 'w', encoding='utf-8'), indent=1)
     show = {'A1': {k: (v.get('mean_r'), v.get('ci'), v.get('n_cells')) if isinstance(v, dict) else v for k, v in A1.items() if k != 'cells'},
-            'A2': {k: (v.get('mean_r'), v.get('ci')) for k, v in res['A2'].items() if k != 'cells'},
+            'A2': {k: (v.get('mean_r'), v.get('ci')) if isinstance(v, dict) else v for k, v in res['A2'].items() if k != 'cells'},
             'A3': {k: (v.get('mean_r'), v.get('ci')) for k, v in res['A3'].items()},
             'A4': {k: (v['summary'].get('mean_r'), v['summary'].get('ci'), v['bet_minus_comparator']) for k, v in A4.items()},
             'A5': {k: (v.get('mean_r'), v.get('ci'), v.get('n_cells')) for k, v in res['A5'].items()}}
