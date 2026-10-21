@@ -11433,6 +11433,21 @@ beyond baseline expression"*. A pass motivates a mechanism-keyed chromatin route
   - so v11 uses per-cell shared propagation or low-dimensional sparse messages;
   - a timing kernel runs before any arm.
 
+### 101.2 Review 094 adopted (SOUND-WITH-CAVEATS); T-E's implementation choices, fixed before its one run (PI, 2026-10-21)
+- **C1:** both nulls hold the real-data covariates fixed (the leave-cell-out gene means of U and of m), and permute only m
+  (cell-swap: m and its mask). The calibration keeps recomputing the U mean, because U changes there.
+- **C2:** the calibration's limit is *"the smallest β at which the CI condition is met"*, with Δspec's CI reported per β.
+- **C3:**
+  - each hypothesis records its eligible cells, the cells skipped for < 30 eligible genes (with their counts), and every
+    other chromatin cell with its reason (no mark / profile < 5 rows / no basal);
+  - fewer than 3 eligible cells is an explicit `passes: false`.
+- **The covariate cell sets:**
+  - the U mean averages over every cell with a finite profile;
+  - the m mean over every cell with the mark measured at the gene. That includes T-C's test cells' chromatin, which is an input
+    and not an outcome, so it is not a leak.
+  - Cells with < 30 eligible genes are skipped.
+- **Tests:** 16; mutation 15 / 15 killed.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

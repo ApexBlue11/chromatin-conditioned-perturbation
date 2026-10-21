@@ -88,16 +88,27 @@ def decile_dummies(b):
     return D[:, 1:]                                         # drop one level (the intercept carries it)
 
 
-def per_cell_r(M_feat, mask, U, basal, cells, gene_sel=None, flexible_basal=False):
-    """r_c for each eligible cell (rows of M_feat / U / basal index cells). gene_sel: optional [C, G] extra gene filter."""
+def covariates(M_feat, mask, U):
+    """The gene's leave-cell-out means of U (over cells with a finite profile) and of m (over cells with the mark)."""
+    return lco_mean(np.nan_to_num(U), np.isfinite(U)), lco_mean(M_feat, mask)
+
+
+def per_cell_r(M_feat, mask, U, basal, cells, gene_sel=None, flexible_basal=False, ubar=None, mbar=None, counts=None):
+    """r_c for each eligible cell (rows of M_feat / U / basal index cells). gene_sel: optional [C, G] extra gene filter.
+    ubar / mbar: fixed covariates (review 094 C1: the nulls hold the real-data ones); computed here when not given.
+    counts: optional dict filled with each candidate cell's eligible gene count."""
     valid_u = np.isfinite(U)
-    ubar = lco_mean(np.nan_to_num(U), valid_u)
-    mbar = lco_mean(M_feat, mask)
+    if ubar is None or mbar is None:
+        u0, m0 = covariates(M_feat, mask, U)
+        ubar = u0 if ubar is None else ubar
+        mbar = m0 if mbar is None else mbar
     out = {}
     for i in cells:
         g = mask[i] & valid_u[i] & np.isfinite(ubar[i]) & np.isfinite(mbar[i])
         if gene_sel is not None:
             g &= gene_sel[i]
+        if counts is not None:
+            counts[int(i)] = int(g.sum())
         if g.sum() < 30:
             continue
         cov = [decile_dummies(basal[i, g])] if flexible_basal else [basal[i, g][:, None]]
@@ -122,26 +133,32 @@ def derangement(n, rng):
 
 
 def nulls(M_feat, mask, U, basal, cells, gene_sel=None, flexible_basal=False, n=None, seed=1):
+    """Gene-permute and cell-swap nulls. Only m (and, for cell-swap, its mask) is permuted; the covariates are the
+    real-data ones, held fixed (review 094 C1)."""
     n = n or N_NULL
     rng = np.random.default_rng(seed)
     cells = np.asarray(cells)
+    ubar, mbar = covariates(M_feat, mask, U)
     gp, cs = [], []
     for _ in range(n):
         Mp = M_feat.copy()
         for i in cells:
             idx = np.flatnonzero(mask[i])
             Mp[i, idx] = M_feat[i, rng.permutation(idx)]
-        r = per_cell_r(Mp, mask, U, basal, cells, gene_sel, flexible_basal)
+        r = per_cell_r(Mp, mask, U, basal, cells, gene_sel, flexible_basal, ubar=ubar, mbar=mbar)
         gp.append(np.mean(list(r.values())))
         d = cells[derangement(len(cells), rng)]
         Ms, ms = M_feat.copy(), mask.copy()
         Ms[cells], ms[cells] = M_feat[d], mask[d] & mask[cells]
-        r = per_cell_r(Ms, ms, U, basal, cells, gene_sel, flexible_basal)
+        r = per_cell_r(Ms, ms, U, basal, cells, gene_sel, flexible_basal, ubar=ubar, mbar=mbar)
         cs.append(np.mean(list(r.values())))
     return np.array(gp), np.array(cs)
 
 
-def calibrate(M_feat, mask, U, basal, cells, sign, level, gene_sel=None, flexible_basal=False, betas=BETAS):
+def calibrate(M_feat, mask, U, basal, cells, sign, level, gene_sel=None, flexible_basal=False, betas=BETAS, U_ref=None):
+    """Planted U' = U + sign * beta * sd(U) * z(m). Reported: the smallest beta at which the CI condition is met (review 094
+    C2), and Delta_spec's CI per beta (planted U against the unplanted reference)."""
+    rr = per_cell_r(M_feat, mask, U_ref, basal, cells, gene_sel, flexible_basal) if U_ref is not None else None
     out = {}
     for b in betas:
         Up = U.copy()
@@ -152,8 +169,11 @@ def calibrate(M_feat, mask, U, basal, cells, sign, level, gene_sel=None, flexibl
         r = per_cell_r(M_feat, mask, Up, basal, cells, gene_sel, flexible_basal)
         lo, hi = boot_ci(list(r.values()), level, n_boot=4000)
         out[str(b)] = {'mean_r': float(np.mean(list(r.values()))), 'ci': [lo, hi],
-                       'detected': bool(lo > 0) if sign > 0 else bool(hi < 0)}
-    det = [float(b) for b in out if out[b]['detected']]
+                       'ci_condition_met': bool(lo > 0) if sign > 0 else bool(hi < 0)}
+        if rr is not None:
+            common = sorted(set(r) & set(rr))
+            out[str(b)]['delta_spec_ci'] = boot_ci([r[c] - rr[c] for c in common], level, n_boot=4000)
+    det = [float(b) for b in out if out[b]['ci_condition_met']]
     return out, (min(det) if det else None)
 
 
@@ -167,13 +187,17 @@ def decide(sign, ci, spec_ci, mean_r, cell_swap_p95):
 
 
 def evaluate(name, M_feat, mask, U, U_ref, basal, cells, sign, level, gene_sel=None, flexible_basal=False, do_null=True):
-    r = per_cell_r(M_feat, mask, U, basal, cells, gene_sel, flexible_basal)
+    counts = {}
+    r = per_cell_r(M_feat, mask, U, basal, cells, gene_sel, flexible_basal, counts=counts)
     rr = per_cell_r(M_feat, mask, U_ref, basal, cells, gene_sel, flexible_basal)
     common = sorted(set(r) & set(rr))
     res = {'name': name, 'n_cells': len(r), 'mean_r': float(np.mean(list(r.values()))) if r else None,
-           'per_cell_r': {str(k): v for k, v in r.items()}}
+           'per_cell_r': {str(k): v for k, v in r.items()},
+           'eligible_gene_counts': {str(k): v for k, v in counts.items()},
+           'skipped_lt30_genes': {str(k): v for k, v in counts.items() if k not in r}}
     if len(r) < 3:
         res['note'] = 'fewer than 3 eligible cells'
+        res['passes'] = False
         return res
     res['ci'] = boot_ci(list(r.values()), level)
     spec = [r[c] - rr[c] for c in common]
@@ -185,8 +209,8 @@ def evaluate(name, M_feat, mask, U, U_ref, basal, cells, sign, level, gene_sel=N
         res['gene_permute'] = {'mean': float(gp.mean()), 'rank_of_real': float((gp < res['mean_r']).mean())}
         res['cell_swap'] = {'mean': float(cs.mean()), 'p95_predicted_dir': float(np.quantile(cs, 0.95 if sign > 0 else 0.05)),
                             'rank_of_real': float((cs < res['mean_r']).mean())}
-        cal, mde = calibrate(M_feat, mask, U, basal, list(r), sign, level, gene_sel, flexible_basal)
-        res['calibration'], res['smallest_detected_beta'] = cal, mde
+        cal, mde = calibrate(M_feat, mask, U, basal, list(r), sign, level, gene_sel, flexible_basal, U_ref=U_ref)
+        res['calibration'], res['smallest_beta_ci_condition_met'] = cal, mde
         res['passes'] = decide(sign, res['ci'], res['delta_spec_ci'], res['mean_r'],
                                res['cell_swap']['p95_predicted_dir'])
     return res
@@ -256,6 +280,18 @@ def main():
     def cells_with(ax, U):
         return [i for i in range(nC) if has_axis[ax][i] and np.isfinite(U[i]).any() and ok_b[i]]
 
+    def why_not(ax, U):
+        """Review 094 C3: every chromatin cell that is not a candidate, with the reason."""
+        out = {}
+        for i in range(nC):
+            if not has_axis[ax][i]:
+                out[ccells[i]] = 'no mark'
+            elif not np.isfinite(U[i]).any():
+                out[ccells[i]] = f'profile < {MIN_ROWS} rows'
+            elif not ok_b[i]:
+                out[ccells[i]] = 'no basal (not a training cell)'
+        return out
+
     res = {'rule': 'RESULTS 101 / 101.1', 'mates': mate_report,
            'rows': {'training_rows': int(len(tr)), 'with_chromatin_cell': int(keep.sum()),
                     'with_contrast': int(np.isfinite(C[:, 0]).sum())}}
@@ -302,13 +338,18 @@ def main():
                                                          Mk[:, :, AXIS['ACT']], prof['bet_with_apabetalone'][0], U_ref, basal,
                                                          cells_with('ACT', prof['bet_with_apabetalone'][0]), -1, CI_REPORTED,
                                                          do_null=False)
+    for key, ax, U in (('H-E1', 'METH', prof['dnmt_inhibitor'][0]), ('H-E2', 'ACT', prof['bet_inhibitor'][0]),
+                       ('H-E3', 'ACC', I)):
+        prim[key]['not_candidates'] = why_not(ax, U)
+        prim[key]['eligible_cells'] = [ccells[int(k)] for k in prim[key]['per_cell_r']]
+        prim[key]['skipped_lt30_genes'] = {ccells[int(k)]: v for k, v in prim[key]['skipped_lt30_genes'].items()}
     res['primary'], res['reported'] = prim, rep
     res['cells'] = ccells
     res['wall_s'] = round(time.time() - t0, 1)
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
     json.dump(res, open(a.out, 'w', encoding='utf-8'), indent=1)
     print(json.dumps({k: {kk: v.get(kk) for kk in ('n_cells', 'mean_r', 'ci', 'delta_spec', 'delta_spec_ci', 'passes',
-                                                    'smallest_detected_beta')} for k, v in prim.items()}, indent=1))
+                                                    'smallest_beta_ci_condition_met')} for k, v in prim.items()}, indent=1))
 
 
 if __name__ == '__main__':

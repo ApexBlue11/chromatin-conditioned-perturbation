@@ -152,3 +152,32 @@ def test_cell_swap_threshold_is_the_95th_percentile_in_the_predicted_direction()
             assert rec['cell_swap']['p95_predicted_dir'] == pytest.approx(np.quantile(cs, 0.95 if sign > 0 else 0.05))
     finally:
         te.N_NULL = old
+
+
+def test_nulls_hold_the_real_covariates_fixed(monkeypatch):
+    """Review 094 C1: only m is permuted; ubar / mbar passed to per_cell_r are the real-data ones in every draw."""
+    F, mask, U, U_ref, basal, cells = _world(7, beta=0.3)
+    ub, mb = te.covariates(F, mask, U)
+    seen = []
+    real = te.per_cell_r
+
+    def spy(*a, **k):
+        seen.append((k.get('ubar'), k.get('mbar')))
+        return real(*a, **k)
+    monkeypatch.setattr(te, 'per_cell_r', spy)
+    te.nulls(F, mask, U, basal, cells, n=3)
+    assert len(seen) == 6 and all(u is not None and np.array_equal(u, ub, equal_nan=True) and
+                                  np.array_equal(m, mb, equal_nan=True) for u, m in seen)
+
+
+def test_fewer_than_three_cells_is_an_explicit_fail():
+    F, mask, U, U_ref, basal, cells = _world(8, beta=0.5, C=2)
+    rec = te.evaluate('tiny', F, mask, U, U_ref, basal, cells, +1, 0.95)
+    assert rec['passes'] is False and rec['note'] == 'fewer than 3 eligible cells'
+
+
+def test_calibration_reports_the_ci_condition_and_delta_spec():
+    F, mask, U, U_ref, basal, cells = _world(9, beta=0.0)
+    cal, mde = te.calibrate(F, mask, U, basal, cells, +1, 0.95, U_ref=U_ref)
+    assert all('ci_condition_met' in v and 'delta_spec_ci' in v for v in cal.values())
+    assert mde is None or mde in te.BETAS
