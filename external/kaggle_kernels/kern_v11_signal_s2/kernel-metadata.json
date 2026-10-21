@@ -1,0 +1,17 @@
+{
+ "id": "apexblue/lincs-v11-signal-s2",
+ "title": "lincs-v11-signal-s2",
+ "code_file": "lincs-v11-signal-s2.py",
+ "language": "python",
+ "kernel_type": "script",
+ "is_private": true,
+ "enable_gpu": false,
+ "enable_tpu": false,
+ "enable_internet": true,
+ "dataset_sources": [
+  "apexblue/lincs-v11-chromsrc"
+ ],
+ "kernel_sources": [],
+ "competition_sources": [],
+ "model_sources": []
+}

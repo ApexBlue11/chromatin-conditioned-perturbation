@@ -1,0 +1,17 @@
+{
+ "id": "apexblue/lincs-v11-methyl",
+ "title": "lincs-v11-methyl",
+ "code_file": "lincs-v11-methyl.py",
+ "language": "python",
+ "kernel_type": "script",
+ "is_private": true,
+ "enable_gpu": false,
+ "enable_tpu": false,
+ "enable_internet": true,
+ "dataset_sources": [
+  "apexblue/lincs-v11-chromsrc"
+ ],
+ "kernel_sources": [],
+ "competition_sources": [],
+ "model_sources": []
+}
