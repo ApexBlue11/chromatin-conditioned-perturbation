@@ -12035,6 +12035,19 @@ the hook's weights):
     too few for anything but a description, and the "all" subset is mostly STITCH co-occurrence. **The probe is
     descriptive.**
 
+### 102.4 IMPLEMENTATION, T-C's strata script (§100.13 / §101.1 C2, C3), before any T-C run (PI, 2026-10-21; added to packet 099)
+- **The script:** `model/v10c/tc_strata.py` on `strata.py`, with 3 tests.
+- **Its inputs:** each arm's first completed attempts, from `tc_gap.completed_preds` (ledger-checked).
+- **What it reports:**
+  - per test cell, with H1975 apart;
+  - per class, with the cluster CI, and with `hdac_core` and `bet_with_apabetalone` beside their classes;
+  - per compound with ≥ 10 rows (pooled-SE t, BH, the 9-relabelling calibration);
+  - the epigenetic class × each clean cell.
+- **A choice made here:** the class, compound and epigenetic × cell strata use the **7 clean cells' rows**, because T-C's rule
+  is over them. H1975 appears only as its own cell.
+- **A slot without a completed attempt** gives no strata (100.8).
+- Reported, exploratory, never a claim.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
