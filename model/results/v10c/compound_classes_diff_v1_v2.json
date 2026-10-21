@@ -1,0 +1,80 @@
+{
+ "class_changes": {
+  "BRD-A23747351": [
+   "epigenetic",
+   "sirtuin_or_natural_product",
+   "sirtinol"
+  ],
+  "BRD-A67788537": [
+   "epigenetic",
+   "sirtuin_or_natural_product",
+   "salermide"
+  ],
+  "BRD-A73908300": [
+   "unannotated",
+   "sirtuin_or_natural_product",
+   "EX-527"
+  ],
+  "BRD-A94543220": [
+   "epigenetic",
+   "other_annotated",
+   "bifonazole"
+  ],
+  "BRD-K05977823": [
+   "epigenetic",
+   "sirtuin_or_natural_product",
+   "tenovin-1"
+  ],
+  "BRD-K07572174": [
+   "epigenetic",
+   "sirtuin_or_natural_product",
+   "curcumin"
+  ],
+  "BRD-K10852020": [
+   "epigenetic",
+   "other_annotated",
+   "tolcapone"
+  ],
+  "BRD-K17588104": [
+   "epigenetic",
+   "bet_inactive_control",
+   "JQ1-(-)"
+  ],
+  "BRD-K25591257": [
+   "unannotated",
+   "sirtuin_or_natural_product",
+   "resveratrol"
+  ],
+  "BRD-K28912512": [
+   "epigenetic",
+   "sirtuin_or_natural_product",
+   "nicotinamide"
+  ],
+  "BRD-K69690935": [
+   "unannotated",
+   "sirtuin_or_natural_product",
+   "curcumin"
+  ],
+  "BRD-K74148702": [
+   "unannotated",
+   "sirtuin_or_natural_product",
+   "curcumin"
+  ],
+  "BRD-K76964878": [
+   "epigenetic",
+   "sirtuin_or_natural_product",
+   "EX-527"
+  ],
+  "BRD-K80738081": [
+   "epigenetic",
+   "sirtuin_or_natural_product",
+   "resveratrol"
+  ],
+  "BRD-K83636919": [
+   "epigenetic",
+   "other_annotated",
+   "entacapone"
+  ]
+ },
+ "sub_changes": {}
+}

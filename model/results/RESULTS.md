@@ -11369,6 +11369,70 @@ beyond baseline expression"*. A pass motivates a mechanism-keyed chromatin route
 - this section, then the critic, then the code with tests, then one run, then one read;
 - T-E is free (local CPU) and reads no T-C row.
 
+### 101.1 🔒 AMENDMENT, review 093 adopted (SOUND-WITH-CAVEATS) before any T-E code or T-C run (PI, 2026-10-21)
+**§100.13, T-C's strata:**
+- **C2, the classes are re-frozen** (`compound_classes.py` → `compound_classes.json`; the diff against the first freeze is in
+  `compound_classes_diff_v1_v2.json`, 15 compounds):
+  - **The epigenetic regex is narrowed** to histone / bromodomain / DNA (cytosine-5)-methyltransferase / lysine
+    (de)methylation. So bifonazole (CYP51), tolcapone and entacapone (COMT) move to *other annotated*.
+  - **Sirtuin modulators and promiscuous natural products** (resveratrol, curcumin, nicotinamide, EX-527, sirtinol, salermide,
+    tenovin-1) get their own class, *sirtuin_or_natural_product*, outside "epigenetic".
+  - **JQ1(−)** is its own class, *bet_inactive_control*.
+  - **Two sensitivity sets** are reported beside their class:
+    - `hdac_core`: the HDAC inhibitors without HDAC6-selective tubastatin-A and ACY-1215, and without valproate;
+    - `bet_with_apabetalone`: the BET inhibitors plus BD2-selective apabetalone.
+  - **On T-C's test rows** the epigenetic class is now **375 rows over 24 compounds** (was 470 / 30), and
+    sirtuin_or_natural_product is 70 / 4.
+  - **The stated limit:** *unannotated* is 11,067 of 21,151 rows (52 %), so the class strata describe under half of T-C.
+- **C3, the per-compound statistic:**
+  - **A pooled SE:** the variance of a compound's per-slot mean is fitted across all compounds as a + b / n_rows (weighted
+    least squares on the within-arm slot variances). That SE is used for every compound, with a **t reference on 4 df**,
+    and BH at q = 0.10.
+  - **A list-level calibration:** the whole BH procedure is rerun under each of the **9 other balanced 3 + 3 relabellings**
+    of the 6 slots, and the discovery count under each is reported beside the real list.
+  - **Both noise measures are reported, each labelled:**
+    - the class-level compound-cluster bootstrap CI (compound heterogeneity);
+    - z (seed noise).
+
+**§101, T-E:**
+- **C1, the plate-mates:** every T-E profile's signed contrast uses plate-mates that **exclude** the epigenetic,
+  bet_inactive_control and sirtuin_or_natural_product classes. That applies to class K, to JQ1(−) and to REF alike.
+  - Each row still needs ≥ 2 mates.
+  - The rows that lose mates and the rows that drop out are reported per class.
+  - So the JQ1(−) control no longer carries ≈ −0.22 × the BET response (77 of 81 rows shared plates with BET inhibitors). Same-
+    class mates no longer attenuate the profiles: BET inhibitors 278 / 506 rows, HDAC inhibitors 1,262 / 2,431.
+- **C4:**
+  - **(a)** The partial correlation also regresses out **the gene's leave-cell-out mean of m**. A hypothesis now passes only
+    if its 98.33 % CI excludes 0 in the predicted direction, Δspec does too, **and** the real mean r lies beyond the
+    cell-swap null's 95th percentile in the predicted direction.
+  - **(b)** Each cell's correlation runs over the genes with the matched mark measured (mask = 1), never over masked genes.
+  - **(c)** H-E3 adjusts basal flexibly, with decile indicators of b_cg within the cell's silent tercile.
+- **H-E1's wording:** DNMT inhibitors act through replication, so at L1000's 6–24 h a fail **bounds an early effect only**.
+
+**v11 (recorded for its registration; not registered yet):**
+- **C5, the DTI probe:** chosen is **(a), a compound split.**
+  - A held-out compound set's targets never enter v11's inputs, graph or auxiliary labels.
+  - The probe (`dti_reference.tsv`, ChEMBL + STITCH) is scored only on that set.
+- **C6, provenance:**
+  - STRING is rebuilt from `protein.links.detailed.v12.0` with the experimental and database channels only (a download,
+    pending approval);
+  - the gene vectors are re-pretrained on it;
+  - GO is taken from the GAF, with IEP / HEP excluded and IEA stated.
+  - **Disclosure:** v9 and v10-C used STRING's combined score, so they include its co-expression and text-mining channels.
+- **The arms:**
+  - chromatin gate on against off, with off cell-invariant (§100.4's convention);
+  - target signal on against off;
+  - CCLE on against off.
+  - "Known against predicted targets" is an evaluation setting, not an arm.
+  - The structure-only target model trains on ChEMBL bioactivity **excluding** the test compounds and their same-molecule
+    duplicates.
+- **CCLE:** missingness is pre-registered as for chromatin, with coverage per test cell (CD34, a primary population, won't be
+  in CCLE).
+- **Feasibility:**
+  - messages materialised per sample over 929k edges (batch 48, d 128) need ≈ 23 GB per round, over a T4's 16 GB;
+  - so v11 uses per-cell shared propagation or low-dimensional sparse messages;
+  - a timing kernel runs before any arm.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
