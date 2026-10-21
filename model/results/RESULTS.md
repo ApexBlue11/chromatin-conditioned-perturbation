@@ -11248,6 +11248,127 @@ substrate's real `plate_id`, reproduces them):
   - with only 54 rows, it moves the row-pooled values by ≤ 0.0005;
   - it matters for the cell-cluster and per-cell figures.
 
+### 100.13 🔒 REGISTERED: T-C's stratified readings — where chromatin helps, per cell, per mechanism class and per compound (principal's request, PI, 2026-10-21; before any T-C run; reported, never a claim)
+**Why:** an average over all compounds can hide an effect confined to a few mechanisms or cells. Epigenetic compounds are 2 %
+of T-C's test rows, so a +0.05 effect on them alone would move the average by ≈ 0.001.
+
+**A first look on T-B's dev rows** (`model/v10c/tb_strata.py` → `tb_strata_exploratory.json`, post hoc, exploratory):
+- nothing stood out beyond seed noise;
+- the dev carve is too small to answer: only 17 compounds have ≥ 20 dev rows;
+- the epigenetic compounds (256 rows) gave +0.004 against an off-seed null range of −0.004 to +0.008.
+
+**The classes, frozen now** (`model/v10c/compound_classes.py` → `model/results/v10c/compound_classes.json`):
+- **What decides a class:** ChEMBL mechanism text and the epigenetic name lists only. One class per compound, by priority:
+  epigenetic > nuclear receptor > kinase > DNA damage > cytoskeleton > proteostasis > receptor / channel / transporter >
+  other annotated > unannotated.
+- **On T-C's 21,151 test rows:**
+
+  | class | rows | compounds |
+  |---|---|---|
+  | kinase | 3,396 | 111 |
+  | receptor / channel / transporter | 2,781 | 212 |
+  | other annotated | 2,114 | 159 |
+  | DNA damage | 622 | 42 |
+  | nuclear receptor | 488 | 33 |
+  | epigenetic | 470 | 30 |
+  | cytoskeleton | 107 | 9 |
+  | proteostasis | 106 | 6 |
+  | unannotated | 11,067 | 789 |
+
+**The readings** (`tc_read.py`, coded before the last T-C run):
+- **The quantity:**
+  - the per-row contrast r saved by each completed slot's trainer (`r_contrast`, mates among the held-out rows, ≥ 2), read
+    from prediction files checked against the ledger;
+  - averaged over the 3 slots of each arm, then Δ_row = on − off.
+- **The noise yardstick for each stratum:**
+  - SE = √(s_on² / 3 + s_off² / 3), from the per-slot stratum means;
+  - z = Δ / SE.
+- **The strata:**
+  1. **per test cell:** the 7 clean cells, with H1975 apart;
+  2. **per mechanism class:** Δ, a compound-cluster bootstrap 95 % CI (compounds resampled within the class, 20,000 draws,
+     `default_rng(0)`), z, and n compounds / rows;
+  3. **per compound with ≥ 10 test rows** (1,014 compounds):
+     - Δ and z;
+     - Benjamini–Hochberg at q = 0.10 over two-sided normal p from z;
+     - the list that passes, with each compound's class and cells;
+  4. **epigenetic class × each clean cell.**
+- **The caveats, stated in advance:**
+  - with 3 slots per arm the seed SE is crude, and per-compound power is low (T-B's per-compound seed noise was ≈ 0.02 for
+    20-row compounds);
+  - classes and cells are the informative strata.
+- **The wording:**
+  - these are **reported, exploratory**, and never a claim;
+  - T-C's rule (100.5) is unchanged;
+  - every sentence carries *"among runs whose drug path trained (100.8)"*.
+
+## 101. 🔒 PRE-REGISTERED: T-E, three CPU tests of chromatin where baseline expression cannot stand in (principal's direction, PI, 2026-10-21; before any T-E code)
+**The question:**
+- At the landmark genes, a gene's promoter chromatin largely restates its expression (§44, §55, T-A, T-B).
+- T-E asks where it should not:
+  - (a) for drugs that act **on** a specific mark;
+  - (b) among genes that are **off** at baseline, where expression cannot tell "poised" from "locked".
+- All three tests run on CPU with local data, and need no download.
+
+**Data** (outcome-free counts measured 2026-10-21):
+- `split_cold_cell_1` **training** rows only, so T-C's 8 test cells are never read;
+- `v10c_chromatin.npz`: 978 landmark genes, 16 features, 4-channel mask;
+- a cell has a mark if its mask covers > 50 % of genes: ACC 67 cells, ACT 82, PCG 49, METH (CCLE RRBS) 114.
+- **The classes** (`compound_classes.json` sub-labels; training rows in cells with the matched mark):
+
+  | class | matched mark | rows | cells |
+  |---|---|---|---|
+  | DNMT inhibitors (azacitidine, decitabine, zebularine) | METH | 251 | 31 |
+  | BET inhibitors (JQ1(+), I-BET-762, I-BET-151, PFI-1) | ACT | 339 | 22 |
+  | JQ1(−), the inactive enantiomer | ACT | 55 | 11 |
+  | HDAC inhibitors (20 IDs) | ACC / ACT | ≈ 1,200 | 49 / 64 |
+
+**The profiles:**
+- **The signed contrast of a row:** its delta minus the mean delta of its other-compound plate-mates (≥ 2 mates, any compound),
+  as T-A.
+- **For cell c and class K:** U^K_cg is the mean signed contrast of gene g over K's rows in c. It needs ≥ 5 such rows and the
+  matched mark measured in c.
+- **The reference class REF:** every compound that is not epigenetic, built the same way.
+- **Basal:** b_cg is the rank-normalised mean control expression of g in c (T-A's basal).
+
+**The estimand, per cell, then over cells** (T-A's post hoc lesson: within-cell, never pooled):
+- **Per cell:** r_c(m, U) is the partial Pearson correlation across genes between the mark feature m(c, ·) and U(c, ·), after
+  regressing out:
+  - b_cg;
+  - the gene's leave-cell-out mean of U over the other eligible cells, the gene fixed effect estimated without c.
+- **Over cells:** the mean of r_c with equal cell weights, and a cell-cluster bootstrap CI (20,000 draws, `default_rng(0)`).
+- **Specificity:** Δspec = mean over c of (r_c(m, U^K) − r_c(m, U^REF)), paired by cell, with the same bootstrap.
+- **The nulls** (200 draws each; the real mean's rank is reported):
+  - gene-permute: m permuted across genes within each cell;
+  - cell-swap: m taken from another cell that has the mark.
+- **The calibration:** planted U' = U + β · z(m) at β ∈ {0.02, 0.05, 0.1} SD of U. The smallest β whose CI excludes 0 is
+  reported.
+
+**The three primary hypotheses** (Bonferroni over 3, so **98.33 % CIs**):
+
+| | class × mark (feature) | predicted sign of r | and Δspec |
+|---|---|---|---|
+| **H-E1** | DNMT inhibitors × METH (`METH:tss_1kb`) | **> 0**: methylated genes go up | > 0 |
+| **H-E2** | BET inhibitors × ACT, broad window (`ACT:tss_50kb`) | **< 0**: broadly acetylated / active genes go down | < 0 |
+| **H-E3** | all compounds, silent genes only (bottom tercile of b_cg in c) × ACC (`ACC:prom_1kb`) | **> 0** for induction I_cg | > 0 |
+
+- **For H-E3:** I_cg = the mean of max(contrast, 0) over all of c's rows. Its "Δspec" is r(ACC, I) − r(ACC, R), with
+  R_cg = the mean of max(−contrast, 0): induction, not repression.
+- **A hypothesis passes** iff r has the predicted sign with its 98.33 % CI excluding 0, **and** Δspec does too.
+
+**Reported, never read:**
+- JQ1(−) × ACT, the inactive control, beside H-E2;
+- HDAC inhibitors × ACC and × ACT, two-sided;
+- PCG and METH on the induction of silent genes (expected < 0, "locked");
+- **narrow against broad windows** (prom_1kb against tss_50kb) for every hypothesis, the principal's narrow / broad question;
+- every per-cell r_c, so it shows which cells carry an effect.
+
+**What a pass licenses:** *"at the landmark genes, in training cells, this mark predicts the response of its mechanism class
+beyond baseline expression"*. A pass motivates a mechanism-keyed chromatin route in v11. A fail is bounded by the calibration.
+
+**The order of work:**
+- this section, then the critic, then the code with tests, then one run, then one read;
+- T-E is free (local CPU) and reads no T-C row.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
