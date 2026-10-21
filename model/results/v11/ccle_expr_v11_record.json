@@ -1,0 +1,15 @@
+{
+ "cells": 131,
+ "nodes": 19496,
+ "nodes_with_expr": 18273,
+ "landmarks_with_expr": 971,
+ "inputs": {
+  "CCLE_RNAseq_rsem_genes_tpm_20180929.txt.gz": "025930e5921f21a1400d8c90d3849eaa14a3d78c",
+  "MANE.GRCh38.v1.5.summary.txt.gz": "6fe27fb896d1a20308ab80686b2bb8110615d1b1",
+  "tss_ccle_coverage.json": "76f4ca056e84f803ebfc5566699f19a5322e8d1e",
+  "tss_hg38_string.tsv": "67ac22c649396ef2a57de9f9f596badfe720aec1",
+  "string_graph_v9.npz": "34fbaad051a4101389b0d8697ba501f892e4136d",
+  "v10c_chromatin.npz": "00977d4080b45b98d436f99444fa20f763a6390d"
+ },
+ "out_sha1": "46f686870bb6587bfeee4a9fc9f99a1c140ebe4c"
+}
