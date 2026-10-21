@@ -11993,6 +11993,48 @@ reported, never a claim):
 - §100.4's epochs rule then fixes the epochs and the retry budget;
 - the 12 arm × seed kernels follow T-C.
 
+### 102.3 🔒 IMPLEMENTATION, v11's readers, before any v11 run (PI, 2026-10-21; added to packet 099)
+**`model/v11/v11_read.py`, R1 / R2 as registered** (8 tests on synthetic run directories):
+- **The rule:** `tb_read.rule`, §100.4's rule as T-B read it.
+- **The cell condition:** R2-CCLE counts only LNCAP, T47D, U2OS and U937 (≥ 3 of 4).
+- **Attempts:** each slot uses its first completed attempt (100.8). A slot whose three attempts all fail the guard gives
+  *no claim* for every R it enters.
+- **Nothing is read** while any slot is unresolved (102.1 Ask 6).
+- **Every input is checked:**
+  - every v11 record and prediction file against `model/results/v11/v11_ledger.jsonl` (`v11_ledger.py`, tc_ledger's rules);
+  - the reference against `tb_ledger.jsonl` and each record's own pred sha1;
+  - the real T-B off files pass: 12,995 dev rows per seed.
+
+**`model/v10c/strata.py`, §100.13 as amended by §101.1 C3** (7 tests). It is shared with T-C; T-C's strata script is still
+to write.
+- **Per group:** Δ, the seed SE √(s_a² / 3 + s_b² / 3), and z.
+- **Per class:** the compound-cluster bootstrap CI as well.
+- **Per compound with ≥ 10 rows:**
+  - the variance a + b / n is fitted by IRLS with weights 1 / v̂², a, b ≥ 0;
+  - SE = √(2 v(n) / 3), t on 4 df, BH at q = 0.10;
+  - the calibration is the 9 other balanced 3 + 3 relabellings.
+- **The weighting is a choice made here:** §101.1 says "weighted least squares" without naming the weights.
+- **v11 adds two strata:** CCLE versus non-CCLE dev cells, and target status.
+
+**`model/v11/v11_probe.py`, the DTI probe (102.1 C6)** (3 tests, one of which rebuilds the cross-attention's own output from
+the hook's weights):
+- **The signal:** eval.py's atom_attn, recomputed by a forward hook on each perturb block's cross-attention.
+- **The metric:** recall@5 / 10 / 20 / 50 against chance k / 978, on eval.py's three evidence subsets, in §102.1's Tanimoto
+  bins.
+- **The models:** each completed slot of v11-full and v11 − targets, and T-B's off checkpoints.
+- **Its n, counted now (outcome-free), of the 280 probe compounds:**
+
+  | setting | compounds | < 0.3 | 0.3–0.5 | ≥ 0.5 | with ChEMBL-evidence targets | ChEMBL + STITCH |
+  |---|---|---|---|---|---|---|
+  | held-out (dev-cell) rows | 114 | 47 | 47 | 20 | 12 | 1 |
+  | training rows | 172 | 64 | 73 | 35 | 20 | 4 |
+
+  - **The training-row setting is added here.** The model fitted those compounds' responses but never saw their targets, so
+    it asks the same attention question on more compounds.
+  - **The stated limit:** `dti_reference.tsv` indexes landmark targets only (§82). Its ChEMBL subset is 12–20 compounds,
+    too few for anything but a description, and the "all" subset is mostly STITCH co-occurrence. **The probe is
+    descriptive.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
