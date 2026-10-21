@@ -1,0 +1,26 @@
+{
+ "rule": "RESULTS 102.1 (review 098 C5): ChEMBL action_type -> sign, frozen before any v11 code; predicted targets carry sign 0",
+ "sign": {
+  "INHIBITOR": -1,
+  "BLOCKER": -1,
+  "ANTAGONIST": -1,
+  "ALLOSTERIC ANTAGONIST": -1,
+  "NEGATIVE ALLOSTERIC MODULATOR": -1,
+  "INVERSE AGONIST": -1,
+  "NEGATIVE MODULATOR": -1,
+  "DISRUPTING AGENT": -1,
+  "SEQUESTERING AGENT": -1,
+  "AGONIST": 1,
+  "POSITIVE ALLOSTERIC MODULATOR": 1,
+  "POSITIVE MODULATOR": 1,
+  "ACTIVATOR": 1,
+  "PARTIAL AGONIST": 1,
+  "OPENER": 1,
+  "STABILISER": 1,
+  "RELEASING AGENT": 1,
+  "MODULATOR": 0,
+  "BINDING AGENT": 0,
+  "SUBSTRATE": 0,
+  "CHELATING AGENT": 0
+ }
+}

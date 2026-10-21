@@ -11862,6 +11862,59 @@ reported, never a claim):
   - the DTI probe on the probe-held-out compounds.
 - **Test-set evaluation** (T-C-style, unseen cells and compounds) is registered after R1 / R2, not here.
 
+### 102.1 🔒 AMENDMENT, review 098 adopted (SOUND-WITH-CAVEATS) before any v11 code (PI, 2026-10-21)
+**C1 (MAJOR), the reference: option (a).**
+- **The v10 base stays byte-identical to T-B's off arm:** v9's gene vectors, `STRING_adj_978_v9` (combined score) and
+  `M_pathway_v9`.
+  - This is disclosed: the base keeps the combined-score priors.
+  - So M_pathway is **not** rebuilt (Ask 5).
+- **The new sources live only in FG:** the experimental + database graph, its re-pretrained gene vectors, genome-wide
+  chromatin, CCLE and ChEMBL targets.
+- **A forward-equivalence test:** with FG's readout at its zero init and **identical base weights**, v11's output equals T-B
+  off's model's output.
+- **So R1 against T-B's off arm measures FG alone.** No extra reference arm is needed.
+
+**C2 (MAJOR), the arms:**
+
+| arm | FG chromatin (in x_v **and** the gate) | targets (input **and** the auxiliary head) | CCLE (in x_v **and** the gate) |
+|---|---|---|---|
+| **v11-full** | the cell's own | on | the cell's own |
+| v11 − chromatin | the training-mean (cell-invariant, §100.4's convention) | on | the cell's own |
+| v11 − targets | the cell's own | **off: input and auxiliary supervision both removed** (C4) | the cell's own |
+| v11 − CCLE | the cell's own | on | **masked in both** |
+
+- The **gating mechanism** (a "− gate" arm) is optional, and not run unless budget allows.
+
+**The readings:**
+- **R2-CCLE's cell condition** is over the **4 dev cells that have CCLE** (T47D, U2OS, U937, LNCAP): ≥ 3 of 4 (C3).
+  Otherwise §100.4's rule applies to every R.
+- **Targets (C5):**
+  - the action_type → sign map is frozen in `model/results/v11/action_sign_map.json`:
+    - −1: inhibitor, blocker, antagonist, allosteric antagonist, NAM, inverse agonist, negative modulator, disrupting and
+      sequestering agents;
+    - +1: agonist, PAM, positive modulator, activator, partial agonist, opener, stabiliser, releasing agent;
+    - 0: modulator, binding agent, substrate, chelating agent;
+  - **predicted targets carry sign 0**;
+  - strata are reported by annotation status (known / predicted / none).
+- **The probe (C6):**
+  - the probe-held-out fraction is **20 %**;
+  - scores are reported by bins of maximum ECFP4 Tanimoto to the annotated training compounds (< 0.3 / 0.3–0.5 / ≥ 0.5);
+  - the probe's metric is v9's atom → gene attention top-k hit rate against `dti_reference.tsv`;
+  - its n and power are stated when the split is built.
+
+**C7, the implementation:**
+- the init no-op is tested with identical base weights, because FG's parameters shift the RNG stream;
+- the gating is factorised: √a ⊙ (Â (√a ⊙ z)), as v10-C's GatedPPI;
+- the timing kernel records unique cells per batch.
+
+**Ask 6:**
+- **nothing is read until every arm's runs exist;**
+- the 100.8 guard and retries, with first-completed attempts;
+- §100.4's epochs rule, from v11's timing kernel;
+- **the power statement:** dev seed SDs of 0.002–0.0035 put R1's threshold at ≈ 0.005. T-B's post hoc trained-runs gap
+  (+0.0017) is the scale of chromatin's previous contribution.
+- **The cost:** 4 arms × 3 seeds ≈ 54 GPU-h.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
