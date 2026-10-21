@@ -93,10 +93,12 @@ def covariates(M_feat, mask, U):
     return lco_mean(np.nan_to_num(U), np.isfinite(U)), lco_mean(M_feat, mask)
 
 
-def per_cell_r(M_feat, mask, U, basal, cells, gene_sel=None, flexible_basal=False, ubar=None, mbar=None, counts=None):
+def per_cell_r(M_feat, mask, U, basal, cells, gene_sel=None, flexible_basal=False, ubar=None, mbar=None, counts=None,
+               extra=None):
     """r_c for each eligible cell (rows of M_feat / U / basal index cells). gene_sel: optional [C, G] extra gene filter.
     ubar / mbar: fixed covariates (review 094 C1: the nulls hold the real-data ones); computed here when not given.
-    counts: optional dict filled with each candidate cell's eligible gene count."""
+    counts: optional dict filled with each candidate cell's eligible gene count.
+    extra: optional list of [C, G] covariates added to the design (RESULTS 101.4 A1); genes need them finite."""
     valid_u = np.isfinite(U)
     if ubar is None or mbar is None:
         u0, m0 = covariates(M_feat, mask, U)
@@ -107,12 +109,14 @@ def per_cell_r(M_feat, mask, U, basal, cells, gene_sel=None, flexible_basal=Fals
         g = mask[i] & valid_u[i] & np.isfinite(ubar[i]) & np.isfinite(mbar[i])
         if gene_sel is not None:
             g &= gene_sel[i]
+        for e in extra or ():
+            g &= np.isfinite(e[i])
         if counts is not None:
             counts[int(i)] = int(g.sum())
         if g.sum() < 30:
             continue
         cov = [decile_dummies(basal[i, g])] if flexible_basal else [basal[i, g][:, None]]
-        X = np.column_stack(cov + [ubar[i, g], mbar[i, g]])
+        X = np.column_stack(cov + [ubar[i, g], mbar[i, g]] + [e[i, g] for e in extra or ()])
         out[int(i)] = partial_r(M_feat[i, g], U[i, g], X)
     return out
 
