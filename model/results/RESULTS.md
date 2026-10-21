@@ -11448,7 +11448,7 @@ beyond baseline expression"*. A pass motivates a mechanism-keyed chromatin route
   - Cells with < 30 eligible genes are skipped.
 - **Tests:** 16; mutation 15 / 15 killed.
 
-### 101.3 RESULT, T-E read once: **H-E2 PASSES — broadly active chromatin predicts which genes BET inhibitors repress, beyond baseline expression**; H-E1 and H-E3 do not pass (PI, 2026-10-21)
+### 101.3 RESULT, T-E read once: **H-E2 PASSES — a cell's own activation marks (H3K27ac; ±50 kb and promoter alike) predict which genes BET inhibitors repress, beyond the L1000 control-profile baseline (linear in rank)**; H-E1 and H-E3 do not pass (PI, 2026-10-21; wording per review 095)
 **The run:**
 - `model/v10c/te_tests.py` at 42e5e96, once, local CPU, → `model/results/v10c/te_reading.json`;
 - training rows of `split_cold_cell_1` only: 254,631 rows, 238,074 with a mate-excluding contrast;
@@ -11474,11 +11474,15 @@ repression for H-E3):
   - BET inhibitors plus apabetalone: −0.068 [−0.084, −0.052].
   - **Narrow window** (ACT prom_1kb): −0.066 [−0.086, −0.044]. Broad and narrow give about the same, so this test does not
     tell the windows apart.
-- **What it licenses** (§101): *"at the landmark genes, in training cells, a cell's own activation marks (ACT axis, ±50 kb)
-  predict which genes BET inhibitors repress in that cell, beyond baseline expression and beyond the gene's average
-  response and mark"*.
-  - It is the first registered result in this project where chromatin carries response information that baseline expression
-    does not.
+- **What it licenses** (§101, as worded by review 095): *"at the landmark genes, in training cells, a cell's own activation
+  marks (ACT, ±50 kb) predict which genes BET inhibitors repress in that cell, beyond **the L1000 control-profile baseline
+  (linear in rank)** and beyond the gene's average response and mark"*.
+  - ~~It is the first registered result in this project where chromatin carries response information that baseline
+    expression does not.~~
+  - **(review 095 C1)** Whether chromatin adds to a *second, independent* expression measurement, rather than standing in for
+    a noisy first one, is not yet shown. §101.4's A1–A3 test it.
+  - **The magnitude:** r ≈ −0.071 is about a planted 0.08 SD effect, r² ≈ 0.5 % of the cell-specific residual variance.
+  - **The ACT tracks** of all 19 cells are H3K27ac itself, not a substitute mark (§101.4 A5).
   - **Not licensed:** that a model uses it, or that it improves prediction; nor anything about other cells, other drugs or
     non-landmark genes.
 - **What the ACT axis is** (§100.1): direct activation marks with registered substitutes, not H3K27ac alone.
@@ -11505,8 +11509,93 @@ repression for H-E3):
 - **T-A and T-B were averaged over all drugs.** They bounded the drug-averaged, linear route at ≲ 0.003 SD and ≈ 0.0006. T-E
   shows that, for drugs acting on chromatin readers and erasers, the cell's own marks carry information that expression does
   not.
-- **That points v11 to a mechanism-keyed route:** chromatin that enters conditioned on the drug's mechanism, BET / HDAC first.
-  §100.13's strata on T-C, with the epigenetic class, are the first test in prediction.
+- ~~That points v11 to a mechanism-keyed route~~ **(review 095 C3, C4)** It is shown **for BET inhibitors only** (H-E2).
+  HDAC inhibitors show a similar, stronger pattern that is reported, not confirmed (§101.4 B).
+  - Whether the pattern is BET-specific, or generic to strong / transcriptional perturbation, is §101.4 A4's question.
+  - It must be answered before v11's route is designed.
+
+### 101.4 🔒 REGISTERED: T-E2, what H-E2 means (A1–A5, on T-E's rows) and its replication (B, on untouched rows) — review 095 adopted (SOUND-WITH-CAVEATS) (PI, 2026-10-21; before any of it runs)
+**Review 095:**
+- the pass reproduces exactly with the critic's own code (19 cells, −0.0709, 18 / 19 negative);
+- C1–C3 are adopted in §101.3's wording above;
+- C4 becomes A4 below.
+- **The ranking of alternatives:** residual expression > generic perturbation > track provenance > untouched-cell
+  replication > HDAC confirmation > plate / batch.
+
+**The common setting for A1–A5:**
+- §101 / §101.1 / §101.2 unchanged: T-E's training rows, mates, profiles, mask = 1 genes, ≥ 30 genes, cell-cluster
+  bootstrap (20,000 draws, `default_rng(0)`);
+- **95 % CIs;** these are interpretation tests of a pass, not new hypotheses;
+- the code reuses `te_tests.py`'s functions; read once; reported.
+
+**A1, CCLE, the decisive test of "beyond expression".**
+- **The cells:** H-E2's cells that have CCLE RNA-seq (`ccle_expr_v11.npz`), with n reported. The ACT-only statistic is
+  recomputed on the same subset as the baseline.
+- **CCLE's feature:** the within-cell rank of log2(TPM + 1) over the landmark genes. As a covariate it enters with its own
+  leave-cell-out gene mean.
+- **The three statistics:**
+  - **(i)** ACT, with CCLE added as a covariate;
+  - **(ii)** CCLE as m, without ACT;
+  - **(iii)** CCLE as m, with ACT as a covariate.
+- **The rule, fixed now:**
+  - **"Beyond two expression measurements"** iff (i)'s 95 % CI excludes 0 below **and** |(i)| ≥ ½ |ACT-only on the subset|;
+  - **"Explained by expression"** iff (i)'s CI includes 0 **and** (ii)'s CI excludes 0 below;
+  - otherwise **inconclusive**.
+
+**A2, split-half L1000:**
+- each cell's distinct control profiles are split in two by `default_rng(0)`, giving b1 and b2 as basal;
+- cells with < 2 distinct controls are out;
+- **(i)** m = b2 with covariates [b1, the leave-cell-out gene mean of U, the leave-cell-out gene mean of b2]. That shows how
+  much residual expression L1000 noise leaves;
+- **(ii)** H-E2 with b1 alone as basal.
+
+**A3, flexible basal:** H-E2 with decile dummies of b in place of linear b.
+
+**A4, comparators** (classes frozen in `model/results/v10c/te2_comparators.json` before the read):
+- **transcription inhibitors:** BMS-387032, alvocidib, dinaciclib, roscovitine (ChEMBL CDK7 / CDK9 mechanisms), plus
+  triptolide and dactinomycin / actinomycin-D by name. 844 + named training rows;
+- **proteostasis:** §100.13's class (HSP90 / proteasome / ubiquitin);
+- **a magnitude-matched set:** per cell, the REF compounds whose mean row ‖contrast‖ in that cell falls within BET
+  inhibitors' inter-quartile range there, sampled to BET's row count with `default_rng(0)`.
+- **Each runs through the same pipeline × ACT tss_50kb.** Report r, CI and Δ(BET − comparator), paired by cell.
+- **The reading:** a comparator whose r is within the BET CI means the pattern is **not BET-specific**.
+
+**A5, provenance** (the metadata check was done now and is outcome-free):
+- **All 38 ACT tracks** of H-E2's 19 cells are H3K27ac.
+- **None** comes from a BET or HDAC treated arm. Its "DMSO" labels are vehicle controls.
+- **Two flags:**
+  - HBL1, TMD8 and OCI-LY10 (and one SK-MEL-5 track) are tier N;
+  - one MINO track is DLL1 (Notch-ligand) stimulated.
+- **The rerun:** H-E2 on the cells whose ACT tracks are all tier E / C, excluding MINO.
+- **Also reported:**
+  - a leave-lineage-out check (the six B-lymphoid cells out);
+  - plates with ≥ 5 allowed mates only.
+
+**B, replication on untouched rows.** It runs **only after T-C's registered reading is complete**.
+- **The rows:** the 8 T-C test cells (their benchmark test rows, their 38,142 `excluded_test_cell` rows, and NCIH1975 =
+  H1975). They are the only L1000 rows in ACT-measured cells that T-E did not read.
+- **The hypotheses** (directions fixed now):
+  - **H-E2r:** BET inhibitors × ACT tss_50kb, **−** (92 rows over 6 cells before exclusion);
+  - **H-E4:** HDAC inhibitors × ACT prom_1kb, **−** (427 rows over 6 usable cells);
+  - **H-E4b:** HDAC inhibitors × ACC prom_1kb, **−**.
+- **The covariates:**
+  - basal from those cells' own controls;
+  - **the U mean fixed** to the gene mean of U over T-E's training cells (6 cells are too few for a leave-cell-out mean);
+  - the m mean over all other cells.
+- **Mates and minimum rows:** as in §101.1.
+- **The rule:** a hypothesis replicates iff **≥ 5 of its eligible cells are negative, with at least 5 eligible**, **and** the
+  mean r's one-sided 95 % cell-bootstrap bound is < 0. Fewer than 5 eligible cells means no claim. Per-cell values are
+  reported.
+
+**C, external replication (optional):** an independent perturbation dataset with BET / HDAC inhibitors and RNA-seq baselines
+(e.g. sci-Plex). It needs the principal's approval, and its compound list checked first.
+
+**What each outcome licenses:**
+- **A1 "beyond two expression measurements" and A5 holding:** *"H3K27ac carries information about BET-inhibitor repression
+  beyond expression"*;
+- **A4:** whether it is BET-specific;
+- **B:** whether it holds beyond the training cells.
+- **Until then,** §101.3's licensed sentence stands as worded.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

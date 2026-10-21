@@ -1,0 +1,26 @@
+{
+ "rule": "RESULTS 101.4 A4 (frozen before the read)",
+ "transcription_inhibitor": [
+  "BRD-A13122391",
+  "BRD-A42383464",
+  "BRD-A73909368",
+  "BRD-K07691486",
+  "BRD-K13662825",
+  "BRD-K39484304",
+  "BRD-K43389698",
+  "BRD-K70578146",
+  "BRD-K81258678",
+  "BRD-K87909389"
+ ],
+ "transcription_inhibitor_names": [
+  "actinomycin-d",
+  "alvocidib",
+  "bms-387032",
+  "dactinomycin",
+  "dinaciclib",
+  "roscovitine",
+  "triptolide"
+ ],
+ "proteostasis": "compound_classes.json class \"proteostasis\"",
+ "magnitude_matched": "per cell, REF compounds with mean row ||contrast|| in BET inhibitors IQR there, sampled to BET row count, default_rng(0)"
+}
