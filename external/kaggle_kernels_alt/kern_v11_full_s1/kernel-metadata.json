@@ -1,0 +1,24 @@
+{
+ "id": "wwhhhhhhhh/lincs-v11-full-s1",
+ "title": "lincs-v11-full-s1",
+ "code_file": "lincs-v11-full-s1.py",
+ "language": "python",
+ "kernel_type": "script",
+ "is_private": true,
+ "enable_gpu": true,
+ "enable_tpu": false,
+ "enable_internet": false,
+ "keywords": [
+  "gpu"
+ ],
+ "dataset_sources": [
+  "wwhhhhhhhh/lincs-v11-src",
+  "wwhhhhhhhh/lincs-v10c-full",
+  "wwhhhhhhhh/lincs-v9-bundle"
+ ],
+ "kernel_sources": [],
+ "competition_sources": [],
+ "model_sources": [],
+ "docker_image": "gcr.io/kaggle-private-byod/python@sha256:37c64f7dd9c54116ecd1bcc88817c5469b88387388fade02bfa8bf3fc647d461",
+ "machine_shape": "NvidiaTeslaT4"
+}

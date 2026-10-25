@@ -1,0 +1,12 @@
+kern_v11_full_s0
+kern_v11_no_chrom_s0
+kern_v11_no_targets_s0
+kern_v11_no_ccle_s0
+kern_v11_full_s1
+kern_v11_no_chrom_s1
+kern_v11_no_targets_s1
+kern_v11_no_ccle_s1
+kern_v11_full_s2
+kern_v11_no_chrom_s2
+kern_v11_no_targets_s2
+kern_v11_no_ccle_s2

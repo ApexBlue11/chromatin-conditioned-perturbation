@@ -7,15 +7,3 @@ kern_v10c_tc_off_s2
 kern_v10c_gap_on_s0
 kern_v10c_gap_on_s1
 kern_v10c_gap_on_s2
-kern_v11_full_s0
-kern_v11_no_chrom_s0
-kern_v11_no_targets_s0
-kern_v11_no_ccle_s0
-kern_v11_full_s1
-kern_v11_no_chrom_s1
-kern_v11_no_targets_s1
-kern_v11_no_ccle_s1
-kern_v11_full_s2
-kern_v11_no_chrom_s2
-kern_v11_no_targets_s2
-kern_v11_no_ccle_s2
