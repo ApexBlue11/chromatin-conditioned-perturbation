@@ -1,0 +1,73 @@
+{
+ "pins": {
+  "model_v11.py": "524da72f468b68376bbdeb40fbc9af9d23e4f2c0",
+  "data_v11.py": "73f797c4ebffd31dc155e7e942a58a489a06d023",
+  "train_v11.py": "2356732fcec6fcb1f27ef65ab2047402bc91cbcc",
+  "model_v10c.py": "26a2d5dbe248a9643c6f7d08867515a3cffae0dd",
+  "data_v10c.py": "6efd1b4a2d545090616b05b81c416a3a7ad282bd",
+  "train_v10c.py": "c589ab80a022750cb92a8f4b994eefe13cd271f8",
+  "modules_v9.py": "4140bf702be5b1a75d1f767a53d9290d8d905d22",
+  "modules_v7.py": "8c7517e87fe9e3a29e807253095760b6ee40de1f",
+  "v10c_chromatin.npz": "00977d4080b45b98d436f99444fa20f763a6390d",
+  "cell_tissue.json": "978239b309ebd8bc95b088610be8bb74918dee3f",
+  "string_graph_v11_expdb.npz": "b9b80d5717ab2698313867442eae6757eaf329a7",
+  "gene_vectors_v11_full.npy": "e7a4cf169fd878af88e52a2131f14343ea61cf89",
+  "v11_chromatin.npz": "6f4dcb7bb8d638bc5c8109593a2ef193b2ee762c",
+  "ccle_expr_v11.npz": "46f686870bb6587bfeee4a9fc9f99a1c140ebe4c",
+  "chembl_dti_edges.tsv": "28b9e02f6a7f23fac27fd452cb0c745e4838c15d",
+  "drug_inchikeys.tsv": "f31a4cafa994607eeab9cac56e6b697b486fde01",
+  "action_sign_map.json": "21599e466b84ca9db880cc4534270dd99942d717",
+  "dti_probe_split.json": "a6d89d5b68d60c51e86ac05fca53ade1a016e72e",
+  "v10c_full_substrate.npz": "a276eda863d052214aa8d78afee1ab7c26a95c09",
+  "drug_feature_index.json": "0b812337aa4dfce1e00d5d86e2dba3cb3f9c0a32",
+  "drug_descriptors.npy": "a2f9c17d23d23568f25b27d92e6f74b975e36ebd",
+  "drug_fingerprints.npy": "8ba2da5982d67d8424b90e854086bad6b786d221",
+  "drug_unimol.npy": "750385b1f2aa6c65167fe3edd10aa1af919f9e7b",
+  "drug_atom_reprs.npy": "2f4985edf82abe1b8432bc551363423d8dee872a",
+  "drug_atom_offsets.npy": "b93654fc21a633a4ab2e757e9e9fe25d3762c374",
+  "M_pathway_v9.npy": "c752c9c25a066af63cbe9595a6565e026441765c",
+  "STRING_adj_978_v9.npy": "609e289227b4e96da09dcc347667deb5f3645a8a",
+  "gene_vectors_978.npy": "f13cc890deb0f8684602d7776828a9509d87f218"
+ },
+ "runs": [
+  [
+   "timing_full",
+   [
+    "--dev",
+    "--timing_steps",
+    "300",
+    "--d_model",
+    "256",
+    "--arm",
+    "full"
+   ]
+  ]
+ ],
+ "done": [
+  "timing_full"
+ ],
+ "attempts": {
+  "timing_full": [
+   {
+    "attempt": 0,
+    "args": [
+     "--dev",
+     "--timing_steps",
+     "300",
+     "--d_model",
+     "256",
+     "--arm",
+     "full"
+    ],
+    "out": "/kaggle/working/timing_full",
+    "returncode": 0,
+    "elapsed_h": 0.073
+   }
+  ]
+ },
+ "gpus": [
+  "Tesla T4",
+  "Tesla T4"
+ ],
+ "wall_s": 261.1
+}

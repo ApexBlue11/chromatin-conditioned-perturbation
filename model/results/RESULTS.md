@@ -12085,6 +12085,30 @@ the asks are adopted as follows.
 - **Ask 8, the order:** nothing had to change before the timing kernel. The fixes land now anyway, so the timing kernel and
   the 12 arm kernels pin the same code.
 
+### 102.6 v11's timing kernel, and the epochs fixed by §100.4's rule (PI, 2026-10-25; before any v11 arm run)
+**The run:** `lincs-v11-timing` v1 (2 × T4, arm full, d 256, 300 steps), pushed 25 Oct 09:36 UTC.
+- The weekly reset trigger had failed: the laptop rebooted, which killed the detached waiter, and the scheduled task
+  stalled on a permission prompt. So the kernel was pushed by hand, with T-C's kernels queued behind it.
+- **Speed:** 0.665 s per step, 5,650 steps per epoch, so 4 epochs project to **4.17 h**. T-B off measured 0.600 s
+  (3.77 h), so FG costs **+11 %**.
+- **Memory:** 6.8 / 6.7 GB peak on the two T4s.
+- **Cells per batch:** mean 4.6, p95 6, max 10; at most 7 cells on one replica.
+- **The two-GPU path works:** DataParallel with FG's shared per-device tables (review 099 Ask 7). The log has no error.
+- **Parameters:** 15.33 M in all, 0.286 M of them FG and the head.
+- **The status counts and vocabulary** match the local check: known 78,214 training rows; vocabulary 835.
+
+**§100.4's rule:** 4.17 h is under the 10 h ceiling, so **4 epochs for every arm.**
+
+**The retry budget:** RUN_H = 4.5 h, a projection of 4.17 h plus loading and scoring, as T-B's 3.77 h projection gave
+3.4–3.5 h wall. A retry runs in the same kernel while elapsed + 4.5 ≤ 11 h, otherwise in a new kernel (100.8).
+
+**The 12 arm kernels are rendered:**
+- `kern_v11_{full, no_chrom, no_targets, no_ccle}_s{0, 1, 2}`;
+- `--dev --seed s --epochs 4 --d_model 256 --arm <arm> --guard`;
+- they pin the same `lincs-v11-src` files as the timing kernel, which ran those exact bytes.
+
+They queue **after T-C's kernels**: about 12 × 4.4 ≈ 53 GPU-h, as §102.1 estimated.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

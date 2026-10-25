@@ -1,0 +1,25 @@
+{
+ "s_per_step": 0.664873993396759,
+ "steps_per_epoch": 5650,
+ "projected_h": 4.173931180768543,
+ "gpus": [
+  "Tesla T4",
+  "Tesla T4"
+ ],
+ "params": 15326771,
+ "params_fg_and_head": 285594,
+ "d_model": 256,
+ "batch": 48,
+ "train_rows": 241058,
+ "arm": "full",
+ "cells_per_batch": {
+  "mean": 4.593333333333334,
+  "max": 10,
+  "p95": 6.0
+ },
+ "cells_per_replica_max": 7,
+ "max_mem_gb": [
+  6.825486660003662,
+  6.705984592437744
+ ]
+}
