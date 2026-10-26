@@ -12109,7 +12109,7 @@ the asks are adopted as follows.
 
 They queue **after T-C's kernels**: about 12 × 4.4 ≈ 53 GPU-h, as §102.1 estimated.
 
-### 100.14 RESULT: T-C (§100.5's rule, read once) — **no claim**. Cell-specific chromatin does not contribute on unseen cells (PI, 2026-10-26)
+### 100.14 RESULT: T-C (§100.5's rule, read once) — **no claim: cell-specific chromatin adds nothing detectable on unseen cells** (mean Δ_c −0.0018; the cell-cluster CI bounds the mean gain at ≤ +0.0014) (PI, 2026-10-26; wording per review 100 C3)
 **The runs:**
 - 2 × T4, `split_cold_cell_1`, all 208 training cells, d 256, 4 epochs, guarded (100.8);
 - every slot's first completed attempt, ledger-checked (`tc_ledger.jsonl`);
@@ -12119,8 +12119,17 @@ They queue **after T-C's kernels**: about 12 × 4.4 ≈ 53 GPU-h, as §102.1 est
 - **on:** 6 attempts, 3 stopped by the guard (s0 at seeds 0 and 10, s1 at seed 1). Used: seeds 20, 11, 2.
 - **off:** 3 attempts, none stopped. Used: seeds 0, 1, 2.
 - **The 100.9 check** (`tc_trained_check.json`): all 6 used runs trained, median s 0.058–0.144 (floor 1e-4).
-- **Reported, not read:** the dose-scale collapse struck only the chromatin-on arm, here (3 of 6 attempts) as in T-B (on
-  s0).
+- **Reported, not read:** the dose-scale collapse struck only the chromatin-on arm.
+  - ~~here (3 of 6 attempts) as in T-B (on s0)~~ **(review 100 C2)** The full tally over T-B and T-C, runs and attempts:
+    **on 5 of 10 collapsed** (T-B d256 1 / 3, T-B's width-screen d384 1 / 1, T-C 3 / 6), **off 0 of 6**. Fisher one-sided
+    p ≈ 0.06; d256 only, 4 / 9 against 0 / 6, ≈ 0.09.
+  - **It shows in the runs that trained too.** At epoch 0 the mean batch-median s is 0.029 / 0.039 / 0.039 in the three
+    used on runs, against 0.045 / 0.049 / 0.051 off: every on run lower. By epoch 3 they overlap (on 0.058–0.136, off
+    0.067–0.090).
+  - **So chromatin through v10-C's routes depresses the early dose scale.**
+  - **The scope this sets:** T-C's no-claim is conditional on a trained drug path. It cannot separate *"cell-specific
+    chromatin carries no usable signal"* from *"v10-C does not use it in runs whose drug path trains"*. The on runs that
+    trained predict like the off runs (below), which is the evidence they behave alike.
 
 **The registered reading,** per clean test cell, the 3-seed mean of per-row contrast r:
 
@@ -12135,6 +12144,9 @@ They queue **after T-C's kernels**: about 12 × 4.4 ≈ 53 GPU-h, as §102.1 est
 | THP1 | 0.2132 | 0.2092 | +0.0040 |
 
 - **Mean Δ_c = −0.0018, cell-cluster 95 % CI [−0.0061, +0.0014].** On is better in 3 of 7 cells, off in 4.
+- **The negative mean is CD34's (review 100 C3).** Without CD34, the other 6 cells average +0.0001. In CD34 every off slot
+  (0.0985–0.1041) beats every on slot (0.0825–0.0911), seed t −4.1: an unconfirmed extreme, like the DNA-damage class
+  below.
 - **Neither rule holds**, nor its mirror. So **no claim**: among runs whose drug path trained (100.8), *cell-specific chromatin
   does not contribute on unseen cells*.
 
@@ -12145,14 +12157,29 @@ They queue **after T-C's kernels**: about 12 × 4.4 ≈ 53 GPU-h, as §102.1 est
   - gene-shuffle: 0.1773 / 0.1792 / 0.1768;
   - cell-swap: 0.1778 / 0.1797 / 0.1772;
   - against the real 0.1784 mean;
-  - so swapping a cell's chromatin for another cell's moves the score by under 0.002. The trained model barely uses which
-    cell's chromatin it is given.
+  - ~~so swapping a cell's chromatin for another cell's moves the score by under 0.002. The trained model barely uses which
+    cell's chromatin it is given.~~ **(review 100 C4, recomputed here)** Against each run's own row-pooled r, cell-swap moves
+    the score −0.00016 / −0.00020 / −0.00019 and gene-shuffle −0.00063 / −0.00073 / −0.00062. Both are under the seed SD of
+    row-pooled r (0.0013–0.0017). So which cell's chromatin the model is given barely matters to the score. The
+    gene-shuffle cost has one sign in every seed: a small gene-level use of chromatin, which the off arm matches without
+    it.
+  - **The predictions themselves:** the on runs' predicted contrasts agree with the off runs' at a mean per-row r of
+    **0.8053**, as closely as runs agree within an arm (on 0.8056, off 0.8035). Turning chromatin on changes the
+    predictions no more than changing the seed does.
+- **The gates against each test cell's own chromatin** (§100.5's registered item; review 100 C5; `tc_mechanism.py` →
+  `tc_mechanism.json`, 960 test rows, the 3 used on runs):
+  - **the drug gate γ** settled at 0.28 / 0.58 / 0.58 (it starts at 1.0). From the bottom to the top tercile of the cell's
+    own prom_1kb it rises by only +0.0009 to +0.0013 (ACC), +0.0008 to +0.0013 (ACT) and +0.0004 to +0.0007 (PCG, 4 cells),
+    about 0.2 % of γ;
+  - **the STRING gate a** closed from 0.95 to 0.10–0.12 in every run, for every cell alike. It differs by at most ±0.008
+    across terciles;
+  - **so both chromatin-driven gates learned cell- and gene-invariant settings.**
 
 **The strata (§100.13, `tc_strata.py` → `tc_strata.json`; exploratory, never a claim; on the 7 clean cells' rows):**
 - **Per compound:** 731 compounds with ≥ 10 rows; **0 BH discoveries** at q = 0.10, and 0 under each of the 9 relabellings.
 - **Per class** (Δ, seed z, compound-cluster CI, compounds / rows):
   - all classes within ±0.003 and |z| < 1.4, except two:
-    - **DNA damage: +0.0118, z 3.4, CI [+0.0042, +0.0204], 42 / 432**;
+    - **DNA damage: +0.0118, seed t 3.4, CI [+0.0042, +0.0204], 42 / 432**;
     - sirtuin_or_natural_product: +0.0092, z 1.2, CI [+0.0059, +0.0112], 4 / 36. The CI comes from 4 compounds.
   - epigenetic: +0.0031, z 1.35, CI [−0.0065, +0.0157], 24 / 200;
   - hdac_core −0.0001; bet_with_apabetalone +0.0030 (3 compounds).
@@ -12163,8 +12190,16 @@ They queue **after T-C's kernels**: about 12 × 4.4 ≈ 53 GPU-h, as §102.1 est
   - MDAMB231 3 rows.
 - **The reading of the strata** (post hoc, exploratory):
   - chromatin's null holds within almost every mechanism class;
-  - the one exception is DNA-damage compounds. With 10 classes, a |z| ≥ 3.4 has a family-wise chance of about 0.6 %, and its
-    compound-cluster CI excludes 0. It is a **hypothesis, not a finding**, and needs untouched rows.
+  - the one exception is DNA-damage compounds. ~~With 10 classes, a |z| ≥ 3.4 has a family-wise chance of about 0.6 %, and
+    its compound-cluster CI excludes 0.~~ **(review 100 C1, recomputed here)** The "z" is a Welch t on the 3 + 3 slot means
+    (df 3.99): **p ≈ 0.027 unadjusted, ≈ 0.24 over 10 classes.** The exact 3 + 3 relabelling floor is 0.10, and the real split
+    is the most extreme (on 0.2019–0.2101 against off 0.1890–0.1972).
+  - The compound-cluster CI excludes 0 but conditions on the six runs.
+  - **The class signal is MCF7's:** +0.0258 on 218 rows (42 compounds). HT29 is −0.0012 on 157 rows (31); THP1 −0.0106 (32);
+    the rest are under 11 rows each.
+  - **A weak, MCF7-specific hypothesis, not a finding.** It is tested once on untouched rows in §100.15.
+  - `strata.py` now reports each group's Welch df, the t p-value and whether every slot of one arm beats every slot of the
+    other, so a seed z is no longer read as normal.
 
 **What this closes:**
 - **At the landmarks, through v10-C's four chromatin routes,** cell-specific chromatin adds nothing detectable on unseen cells.
@@ -12172,6 +12207,48 @@ They queue **after T-C's kernels**: about 12 × 4.4 ≈ 53 GPU-h, as §102.1 est
 - **The remaining chromatin questions are v11's.** Its −chromatin arm tests chromatin on all 19,496 genes, beside CCLE
   expression.
 - **The gap and the head-to-head (§100.5) are pending** the three gap runs (`gap_on_s0–2`, queued on the main account).
+
+### 100.15 🔒 AMENDMENT, review 100 adopted (SOUND-WITH-CAVEATS); and H-DD registered before any of its rows are scored (PI, 2026-10-26)
+**Review 100** reproduced T-C's reading exactly with its own scorer:
+- per-row r to 1e-8;
+- the per-cell table, the mean, the CI and 3 / 7;
+- all 12 ledger sha1s.
+
+"No claim" stands. C1–C5 are adopted in §100.14, struck through with corrections:
+- C1, the DNA-damage statistics;
+- C2, the full collapse tally and the epoch-0 contrast, with the scope sentence;
+- C3, the heading and CD34;
+- C4, the score and prediction evidence;
+- C5, the gates by mark, now reported.
+
+I recomputed each of the critic's numbers before quoting it. **Ask 4:** the 100.9 check's rows are T-C training rows and
+the medians agree with the runs' own records to within 7 %, so they are kept.
+
+**H-DD, registered now** (the principal wants to know whether chromatin helps specific drugs or cells; one test, MCF7 only,
+where T-C's class signal sits):
+- **The rows** are untouched by T-C, which neither trained on nor scored them. They are MCF7's `excluded_test_cell` rows of
+  DNA-damage compounds (`compound_classes.json`), after v9's featureless drop.
+  - Each (cell, compound) pair is new relative to MCF7's test rows.
+  - **Mates are other-compound rows on the same plate within MCF7's excluded rows only, ≥ 2.** That leaves **78 rows over 28
+    compounds** (counted outcome-free).
+- **The models:** the six T-C checkpoints already used (on: seeds 20, 11, 2; off: 0, 1, 2). Nothing is retrained.
+  - Inputs follow T-C's loader, with the held-out set being these clean cells' excluded rows. So x_cell is
+    leave-own-plate-out over the cell's excluded plates, and dose and time are normalised over T-C's training rows.
+- **The statistic:** per slot, the mean per-row contrast r over the 78 rows; Δ = on − off.
+- **The rule.** *"In MCF7, chromatin improves the prediction of DNA-damage compounds on untouched rows"* iff both:
+  - **(i)** all three on slot means exceed all three off slot means. This is the one-sided relabelling floor, p = 0.05: the
+    best any test on these six checkpoints can give;
+  - **(ii)** the compound-cluster bootstrap one-sided 95 % lower bound of Δ is > 0 (28 compounds resampled, 20,000 draws,
+    `default_rng(0)`).
+  - Otherwise there is no claim. The mirror is reported.
+- **Reported, never read:** the same in HT29 (106 rows / 32 compounds), MDAMB231 (145 / 26), THP1 (109 / 21), and pooled over
+  the four cells.
+- **The order:**
+  - this section; then the scorer, with tests, to the critic; then one run, one read;
+  - B (§101.4–101.9) reads observed values on these same excluded rows. Its statistics differ and both are registered
+    before either runs, so there is no conflict (review 100 Ask 3).
+- **What a pass licenses:** a cell-specific, mechanism-specific statement, from six checkpoints and one cell. More seeds would
+  be needed for anything stronger.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

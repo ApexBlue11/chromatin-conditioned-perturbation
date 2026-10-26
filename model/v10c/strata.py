@@ -32,12 +32,18 @@ def finite_rows(R_a, R_b):
 
 
 def group_stats(R_a, R_b, sel):
-    """Delta, SE, z and n_rows over rows `sel` (boolean)."""
+    """Delta, SE, z and n_rows over rows `sel` (boolean). The 'z' is a Welch t on the 3 + 3 slot means (review 100 C1),
+    so its df (about 4) and two-sided t p are reported with it, and the exact 3 + 3 relabelling floor (0.10) applies."""
     ma, mb = R_a[:, sel].mean(1), R_b[:, sel].mean(1)
     d = float(ma.mean() - mb.mean())
-    se = float(np.sqrt(ma.var(ddof=1) / len(ma) + mb.var(ddof=1) / len(mb)))
-    return {'delta': d, 'se': se, 'z': d / se if se > 0 else None, 'n_rows': int(sel.sum()),
-            'slot_means_a': ma.tolist(), 'slot_means_b': mb.tolist()}
+    va, vb = ma.var(ddof=1) / len(ma), mb.var(ddof=1) / len(mb)
+    se = float(np.sqrt(va + vb))
+    df = float((va + vb) ** 2 / (va ** 2 / (len(ma) - 1) + vb ** 2 / (len(mb) - 1))) if va + vb > 0 else None
+    t = d / se if se > 0 else None
+    return {'delta': d, 'se': se, 'z': t, 'welch_df': df,
+            'p_t_two_sided': float(2 * stats.t.sf(abs(t), df)) if t is not None and df else None,
+            'all_a_above_all_b': bool(ma.min() > mb.max()), 'all_b_above_all_a': bool(mb.min() > ma.max()),
+            'n_rows': int(sel.sum()), 'slot_means_a': ma.tolist(), 'slot_means_b': mb.tolist()}
 
 
 def by_group(R_a, R_b, groups, min_rows=1):

@@ -14,6 +14,11 @@ def test_group_stats_by_hand():
     g = strata.group_stats(Ra, Rb, np.array([True, True]))
     assert g['slot_means_a'] == [2.0, 3.0, 4.0] and g['slot_means_b'] == [0.0, 1.0, 2.0]
     assert np.isclose(g['delta'], 2.0) and np.isclose(g['se'], np.sqrt(1 / 3 + 1 / 3)) and g['n_rows'] == 2
+    assert np.isclose(g['welch_df'], 4.0) and not g['all_a_above_all_b'] and not g['all_b_above_all_a']   # 2.0 ties
+    g2 = strata.group_stats(Ra + 0.5, Rb, np.array([True, True]))
+    assert g2['all_a_above_all_b'] and not g2['all_b_above_all_a']
+    from scipy import stats
+    assert np.isclose(g['p_t_two_sided'], 2 * stats.t.sf(2.0 / np.sqrt(2 / 3), 4.0))
 
 
 def test_finite_rows_refuses_a_mask_that_differs_between_slots():
