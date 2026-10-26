@@ -12109,6 +12109,70 @@ the asks are adopted as follows.
 
 They queue **after T-C's kernels**: about 12 × 4.4 ≈ 53 GPU-h, as §102.1 estimated.
 
+### 100.14 RESULT: T-C (§100.5's rule, read once) — **no claim**. Cell-specific chromatin does not contribute on unseen cells (PI, 2026-10-26)
+**The runs:**
+- 2 × T4, `split_cold_cell_1`, all 208 training cells, d 256, 4 epochs, guarded (100.8);
+- every slot's first completed attempt, ledger-checked (`tc_ledger.jsonl`);
+- read by `model/v10c/tc_read.py` → `model/results/v10c/tc_reading.json`.
+
+**Attempts (100.8):**
+- **on:** 6 attempts, 3 stopped by the guard (s0 at seeds 0 and 10, s1 at seed 1). Used: seeds 20, 11, 2.
+- **off:** 3 attempts, none stopped. Used: seeds 0, 1, 2.
+- **The 100.9 check** (`tc_trained_check.json`): all 6 used runs trained, median s 0.058–0.144 (floor 1e-4).
+- **Reported, not read:** the dose-scale collapse struck only the chromatin-on arm, here (3 of 6 attempts) as in T-B (on
+  s0).
+
+**The registered reading,** per clean test cell, the 3-seed mean of per-row contrast r:
+
+| cell | on | off | Δ_c |
+|---|---|---|---|
+| BJAB | 0.2899 | 0.2925 | −0.0026 |
+| CD34 | 0.0881 | 0.1012 | −0.0132 |
+| HS578T | 0.2780 | 0.2774 | +0.0007 |
+| HT29 | 0.1533 | 0.1545 | −0.0012 |
+| MCF7 | 0.1665 | 0.1644 | +0.0020 |
+| MDAMB231 | 0.2287 | 0.2309 | −0.0022 |
+| THP1 | 0.2132 | 0.2092 | +0.0040 |
+
+- **Mean Δ_c = −0.0018, cell-cluster 95 % CI [−0.0061, +0.0014].** On is better in 3 of 7 cells, off in 4.
+- **Neither rule holds**, nor its mirror. So **no claim**: among runs whose drug path trained (100.8), *cell-specific chromatin
+  does not contribute on unseen cells*.
+
+**Reported, never read:**
+- **row-pooled:** contrast r on 0.1784, off 0.1781; delta r on 0.4964, off 0.4922;
+- **H1975, apart:** on 0.2630, off 0.2595;
+- **the permutations of the on runs' test-cell chromatin:**
+  - gene-shuffle: 0.1773 / 0.1792 / 0.1768;
+  - cell-swap: 0.1778 / 0.1797 / 0.1772;
+  - against the real 0.1784 mean;
+  - so swapping a cell's chromatin for another cell's moves the score by under 0.002. The trained model barely uses which
+    cell's chromatin it is given.
+
+**The strata (§100.13, `tc_strata.py` → `tc_strata.json`; exploratory, never a claim; on the 7 clean cells' rows):**
+- **Per compound:** 731 compounds with ≥ 10 rows; **0 BH discoveries** at q = 0.10, and 0 under each of the 9 relabellings.
+- **Per class** (Δ, seed z, compound-cluster CI, compounds / rows):
+  - all classes within ±0.003 and |z| < 1.4, except two:
+    - **DNA damage: +0.0118, z 3.4, CI [+0.0042, +0.0204], 42 / 432**;
+    - sirtuin_or_natural_product: +0.0092, z 1.2, CI [+0.0059, +0.0112], 4 / 36. The CI comes from 4 compounds.
+  - epigenetic: +0.0031, z 1.35, CI [−0.0065, +0.0157], 24 / 200;
+  - hdac_core −0.0001; bet_with_apabetalone +0.0030 (3 compounds).
+- **Epigenetic × cell:**
+  - HT29 −0.008 (54 rows);
+  - MCF7 0.000 (112);
+  - THP1 +0.034 (31);
+  - MDAMB231 3 rows.
+- **The reading of the strata** (post hoc, exploratory):
+  - chromatin's null holds within almost every mechanism class;
+  - the one exception is DNA-damage compounds. With 10 classes, a |z| ≥ 3.4 has a family-wise chance of about 0.6 %, and its
+    compound-cluster CI excludes 0. It is a **hypothesis, not a finding**, and needs untouched rows.
+
+**What this closes:**
+- **At the landmarks, through v10-C's four chromatin routes,** cell-specific chromatin adds nothing detectable on unseen cells.
+  That matches T-B on dev cells (§100.7 / 100.9) and T-E2, where an RNA-seq baseline explains the marks' association (§101.6).
+- **The remaining chromatin questions are v11's.** Its −chromatin arm tests chromatin on all 19,496 genes, beside CCLE
+  expression.
+- **The gap and the head-to-head (§100.5) are pending** the three gap runs (`gap_on_s0–2`, queued on the main account).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

@@ -1,0 +1,89 @@
+{
+ "rule": "RESULTS 100.9: untrained iff median s over 480 training rows < 1e-4",
+ "runs": [
+  {
+   "checkpoint": "v10c_cold_cell_1_test_on_d256_s20.pt",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.14439279586076736,
+   "s_min": 0.02757512778043747,
+   "s_max": 0.6190590858459473,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -3.5628786087036133,
+   "z_max": 0.4855564832687378,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_cell_1_test_on_d256_s11.pt",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.0659349299967289,
+   "s_min": 0.018617019057273865,
+   "s_max": 0.3669604957103729,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -3.9648866653442383,
+   "z_max": -0.5452786684036255,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_cell_1_test_on_d256_s2.pt",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.0576346181333065,
+   "s_min": 0.008967150934040546,
+   "s_max": 0.2870371639728546,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -4.705179691314697,
+   "z_max": -0.909817636013031,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_cell_1_test_off_d256_s0.pt",
+   "arm": "off",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.09484311193227768,
+   "s_min": 0.02551937662065029,
+   "s_max": 0.45719707012176514,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -3.6424665451049805,
+   "z_max": -0.17163173854351044,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_cell_1_test_off_d256_s1.pt",
+   "arm": "off",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.06939788162708282,
+   "s_min": 0.016907555982470512,
+   "s_max": 0.29657042026519775,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -4.0629425048828125,
+   "z_max": -0.8636831641197205,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_cell_1_test_off_d256_s2.pt",
+   "arm": "off",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.08229674398899078,
+   "s_min": 0.014452707953751087,
+   "s_max": 0.42009007930755615,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -4.222315311431885,
+   "z_max": -0.3224036395549774,
+   "drug_path_trained": true
+  }
+ ]
+}
