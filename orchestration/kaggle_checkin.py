@@ -47,6 +47,20 @@ def done_file(slot):
     return 'V11_KERNEL_COMPLETE.json' if slot.startswith('v11_') else 'V10C_KERNEL_COMPLETE.json'
 
 
+def complete_download(slot, d):
+    """The kernel summary exists and every completed attempt's folder has its COMPLETE record (a download can stop early
+    and leave only the summary, as v11_no_targets_s0's first one did)."""
+    f = os.path.join(d, done_file(slot))
+    if not os.path.exists(f):
+        return False
+    rec = 'V11_COMPLETE_*.json' if slot.startswith('v11_') else 'V10C_COMPLETE_*.json'
+    for atts in json.load(open(f, encoding='utf-8'))['attempts'].values():
+        for x in atts:
+            if x['returncode'] == 0 and not glob.glob(os.path.join(d, os.path.basename(x['out'].rstrip('/')), rec)):
+                return False
+    return True
+
+
 def ledger_add(slot, d):
     tool = 'model/v11/v11_ledger.py' if slot.startswith('v11_') else 'model/v10c/tc_ledger.py'
     r = subprocess.run([PY, tool, 'add', d], capture_output=True, text=True, cwd=REPO)
@@ -75,15 +89,21 @@ def main():
             counts[st] = counts.get(st, 0) + 1
             slot = slot_of(k)
             d = out_dir(slot)
-            if st == 'COMPLETE' and not os.path.exists(os.path.join(d, done_file(slot))):
+            if st == 'COMPLETE' and not complete_download(slot, d):
                 os.makedirs(d, exist_ok=True)
-                kaggle(['kernels', 'output', kid, '-p', d], a['config'], 1800)
-                if os.path.exists(os.path.join(d, done_file(slot))):
-                    lines = [ln for ln in ledger_add(slot, d).splitlines() if ln.startswith('{')]
+                for _ in range(3):                                   # a download can stop early; retry it
+                    kaggle(['kernels', 'output', kid, '-p', d], a['config'], 1800)
+                    if complete_download(slot, d):
+                        break
+                if complete_download(slot, d):
+                    out = ledger_add(slot, d)
+                    lines = [ln for ln in out.splitlines() if ln.startswith('{')]
                     report.append(f'{acct} {slot}: downloaded + ledgered: ' + '; '.join(
                         f"attempt {e.get('attempt')} rc {e.get('returncode')} seed {e.get('seed')} guard {e.get('guard_level')}"
-                        for e in map(json.loads, lines)) if lines else f'{acct} {slot}: downloaded; nothing new to ledger')
+                        for e in map(json.loads, lines)) if lines else f'{acct} {slot}: downloaded; ledger said: {out[-300:]}')
                     changed.append(slot)
+                elif os.path.exists(os.path.join(d, done_file(slot))):
+                    report.append(f'{acct} {slot}: download still incomplete after 3 tries; retry next check-in')
                 else:
                     report.append(f'{acct} {slot}: COMPLETE but no {done_file(slot)} (kernel died?) -- log tail:\n'
                                   + log_tail(d))
