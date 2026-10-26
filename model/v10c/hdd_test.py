@@ -13,11 +13,14 @@ The rule (100.15), on MCF7's DNA-damage rows with a contrast:
   (i)  all three on slot means > all three off slot means, AND
   (ii) the compound-cluster bootstrap one-sided 95 % lower bound of delta > 0 (compounds resampled, 20,000 draws,
        default_rng(0)).
-Reported: the same per cell for HT29, MDAMB231, THP1, and pooled over the four.
+Reported: the same per cell for HT29, MDAMB231, THP1, and pooled over the four (neutral labels, never read).
+Before any checkpoint scores (review 101): the rows are counted from the held-out set alone and must equal 100.15's count;
+each checkpoint's sha1 is recorded, and with --identity each checkpoint first re-predicts one T-C test plate with T-C's
+own loader, which must agree with its ledgered predictions (mean per-row r > 0.999; GPU fp16 against CPU fp32).
 
     python model/v10c/hdd_test.py --tc_runs external/kaggle_out/v10c_tc --out model/results/v10c/hdd_reading.json
 """
-import argparse, contextlib, glob, json, os, sys
+import argparse, contextlib, glob, hashlib, json, os, sys
 
 import numpy as np
 import torch
@@ -106,6 +109,45 @@ def scored_rows(D, cls_of):
     return D.ev[np.isin(D.plate[D.ev], plates)]
 
 
+def heldout_counts(D, cls_of, cells=None):
+    """Outcome-free, from the held-out set alone: per cell, class rows with >= 2 other-compound held-out rows on the same
+    plate, and their compounds (review 101 C1: checked before any checkpoint scores)."""
+    cells = CELLS if cells is None else cells
+    ev = D.ev
+    cell, pert, plate = D.cell[ev], D.pert[ev], D.plate[ev]
+    is_cls = np.array([cls_of.get(p) == CLASS for p in pert])
+    out = {}
+    for c in cells:
+        n, comps = 0, set()
+        for i in np.flatnonzero(is_cls & (cell == c)):
+            if ((plate == plate[i]) & (pert != pert[i])).sum() >= 2:
+                n += 1
+                comps.add(pert[i])
+        out[c] = (n, len(comps))
+    return out
+
+
+def sha1_file(p):
+    h = hashlib.sha1()
+    with open(p, 'rb') as f:
+        for b in iter(lambda: f.read(1 << 22), b''):
+            h.update(b)
+    return h.hexdigest()
+
+
+def identity_check(m, D_tc, target, tol=0.999):
+    """Re-predict one T-C test plate with T-C's own loader and compare with the ledgered predictions of that run."""
+    pos = {int(r): i for i, r in enumerate(D_tc.sub_row)}
+    rows = np.array([pos[int(r)] for r in target['sub_row']])
+    pd, _ = predict_by_plate(m, D_tc, rows, 'cpu', 64)
+    a = pd - pd.mean(1, keepdims=True)
+    b = target['delta'] - target['delta'].mean(1, keepdims=True)
+    r = float(np.mean((a * b).sum(1) / np.sqrt((a * a).sum(1) * (b * b).sum(1))))
+    if r <= tol:
+        raise SystemExit(f'FATAL: the checkpoint does not reproduce its ledgered predictions (mean per-row r {r:.5f})')
+    return r
+
+
 def build(ck_path, D, roots):
     ck = torch.load(ck_path, map_location='cpu', weights_only=False)
     cfg = ck['cfg'] if isinstance(ck['cfg'], V10CConfig) else V10CConfig(**ck['cfg'])
@@ -132,16 +174,22 @@ def lower_bound(delta_row, comp, n_boot=N_BOOT, seed=0):
     return float(np.percentile(s[idx].sum(1) / n[idx].sum(1), 5))
 
 
-def rule(Ron, Roff, comp, n_boot=N_BOOT):
-    """Ron, Roff [3, n] per-row contrast r on the stratum's rows (finite); comp [n]."""
+def rule(Ron, Roff, comp, n_boot=N_BOOT, cell=None):
+    """Ron, Roff [3, n] per-row contrast r on the stratum's rows (finite); comp [n]. The verdict is worded for the primary
+    cell only; every other stratum is labelled 'reported, never read' (review 101 C3)."""
+    cell = PRIMARY if cell is None else cell
     a, b = Ron.mean(1), Roff.mean(1)
     d_row = Ron.mean(0) - Roff.mean(0)
     lb = lower_bound(d_row, comp, n_boot)
     up = -lower_bound(-d_row, comp, n_boot)
     i_, ii = bool(a.min() > b.max()), lb > 0
     mi, mii = bool(b.min() > a.max()), up < 0
-    verdict = ('in MCF7, chromatin improves the prediction of DNA-damage compounds on untouched rows' if i_ and ii else
-               'mirror: chromatin worsens it' if mi and mii else 'no claim')
+    if cell == PRIMARY:
+        verdict = (f'in {PRIMARY}, chromatin improves the prediction of DNA-damage compounds on untouched rows' if i_ and ii
+                   else 'mirror: chromatin worsens it' if mi and mii else 'no claim')
+    else:
+        verdict = 'reported, never read: ' + ('both conditions hold' if i_ and ii else 'mirror conditions hold' if mi and mii
+                                              else 'neither holds')
     return {'n_rows': int(Ron.shape[1]), 'n_compounds': int(len(np.unique(comp))), 'slot_means_on': a.tolist(),
             'slot_means_off': b.tolist(), 'delta': float(a.mean() - b.mean()), 'cluster_one_sided_lower_95': lb,
             'cluster_one_sided_upper_95': up, 'cond_i_all_on_above_all_off': i_, 'cond_ii_lower_bound_above_0': ii,
@@ -156,14 +204,22 @@ def main(argv=None):
     ap.add_argument('--classes', default='model/results/v10c/compound_classes.json')
     ap.add_argument('--n_boot', type=int, default=N_BOOT)
     ap.add_argument('--expected', default=json.dumps(EXPECTED))
+    ap.add_argument('--identity', help='npz from make_identity: one T-C test plate per checkpoint, ledgered predictions')
     a = ap.parse_args(argv)
     if os.path.exists(a.out):
         raise SystemExit(f'FATAL: {a.out} exists -- H-DD is read once')
     torch.set_num_threads(4)
     cls_of = json.load(open(a.classes, encoding='utf-8'))['class']
-    R, meta = {}, None
+    expected = json.loads(a.expected)
+    ident = np.load(a.identity, allow_pickle=True) if a.identity else None
+    R, meta, provenance = {}, None, {}
     for arm, slots in CKPTS.items():
         D = load_data(a.roots, chrom_off=arm == 'off')
+        pre = heldout_counts(D, cls_of)
+        for c, (n, k) in expected.items():                       # review 101 C1: before any checkpoint scores
+            if tuple(pre[c]) != (n, k):
+                raise SystemExit(f'FATAL: {c} has {pre[c]} rows / compounds, the registration counted {(n, k)}')
+        D_tc = V10CData(a.roots, split='cold_cell_1', dev=False, chrom_off=arm == 'off') if ident is not None else None
         rows = scored_rows(D, cls_of)
         if meta is None:
             meta = (rows, D.cell[rows], D.pert[rows], D.sub_row[rows])
@@ -174,26 +230,34 @@ def main(argv=None):
             hits = glob.glob(os.path.join(a.tc_runs, slot, sub, f'v10c_cold_cell_1_test_{arm}_d*_s{seed}.pt'))
             if len(hits) != 1:
                 raise SystemExit(f'FATAL: expected one checkpoint for {arm} seed {seed}, found {hits}')
-            R[arm].append(per_row_r(build(hits[0], D, a.roots), D, rows))
-            print('scored', os.path.basename(hits[0]), flush=True)
+            m = build(hits[0], D, a.roots)
+            prov = {'path': hits[0].replace('\\', '/'), 'sha1': sha1_file(hits[0])}
+            if ident is not None:
+                key = os.path.basename(hits[0])
+                prov['identity_mean_row_r'] = identity_check(m, D_tc, {'sub_row': ident[key + ':sub_row'],
+                                                                        'delta': ident[key + ':delta']})
+            provenance[f'{arm}_s{seed}'] = prov
+            R[arm].append(per_row_r(m, D, rows))
+            print('scored', os.path.basename(hits[0]), json.dumps({k: v for k, v in prov.items() if k != 'path'}), flush=True)
+        del D_tc
     R = {k: np.stack(v) for k, v in R.items()}
     _, cell, pert, sub_row = meta
     is_cls = np.array([cls_of.get(p) == CLASS for p in pert])
     ok = is_cls & np.isfinite(R['on']).all(0) & np.isfinite(R['off']).all(0)
     if not np.array_equal(np.isfinite(R['on'][0]), np.isfinite(R['off'][0])):
         raise SystemExit('FATAL: the contrast mask differs between arms')
-    expected = json.loads(a.expected)
     counts = {c: (int((ok & (cell == c)).sum()), int(len(np.unique(pert[ok & (cell == c)])))) for c in CELLS}
     for c, (n, k) in expected.items():
         if tuple(counts[c]) != (n, k):
             raise SystemExit(f'FATAL: {c} has {counts[c]} rows / compounds, the registration counted {(n, k)}')
     res = {'rule': 'RESULTS 100.15: (i) all 3 on slot means > all 3 off AND (ii) compound-cluster one-sided 95 % lower '
-                   'bound > 0, MCF7 DNA-damage rows of excluded_test_cell; read once', 'counts': counts}
+                   'bound > 0, MCF7 DNA-damage rows of excluded_test_cell; read once', 'counts': counts,
+           'checkpoints': provenance}
     for c in CELLS:
-        m = ok & (cell == c)
-        res[c] = rule(R['on'][:, m], R['off'][:, m], pert[m], a.n_boot) if m.any() else None
+        mk = ok & (cell == c)
+        res[c] = rule(R['on'][:, mk], R['off'][:, mk], pert[mk], a.n_boot, cell=c) if mk.any() else None
     res['pooled_reported'] = rule(R['on'][:, ok], R['off'][:, ok], np.char.add(cell[ok].astype(str), pert[ok].astype(str)),
-                                  a.n_boot)
+                                  a.n_boot, cell='pooled')
     res['primary'] = PRIMARY
     res['verdict'] = res[PRIMARY]['verdict']
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
@@ -201,6 +265,28 @@ def main(argv=None):
     print(json.dumps({'verdict': res['verdict'], **{k: res[PRIMARY][k] for k in ('delta', 'slot_means_on', 'slot_means_off',
                                                                                     'cluster_one_sided_lower_95')}}))
     return res
+
+
+def make_identity(tc_runs, out, ledger='model/results/v10c/tc_ledger.jsonl', substrate='external/v10c_full/v10c_full_substrate.npz'):
+    """Locally: for each used T-C checkpoint, the ledgered predictions (pred sha1 checked against the ledger) on one T-C
+    test plate (the lowest plate id), saved for identity_check."""
+    import tc_ledger
+    want = {v for v in tc_ledger.pred_sha1s(ledger).values()}
+    plate_of = np.load(substrate, allow_pickle=True)['plate_id']
+    arrays = {}
+    for arm, slots in CKPTS.items():
+        for slot, sub, seed in slots:
+            ck = glob.glob(os.path.join(tc_runs, slot, sub, f'v10c_cold_cell_1_test_{arm}_d*_s{seed}.pt'))
+            pr = glob.glob(os.path.join(tc_runs, slot, sub, f'v10c_pred_cold_cell_1_test_{arm}_d*_s{seed}.npz'))
+            if len(ck) != 1 or len(pr) != 1 or sha1_file(pr[0]) not in want:
+                raise SystemExit(f'FATAL: {slot}/{sub}: checkpoint or ledgered prediction missing or changed')
+            z = np.load(pr[0])
+            pl = plate_of[z['sub_row']]
+            sel = pl == pl.min()
+            key = os.path.basename(ck[0])
+            arrays[key + ':sub_row'], arrays[key + ':delta'] = z['sub_row'][sel], z['delta'][sel]
+    np.savez_compressed(out, **arrays)
+    return out
 
 
 if __name__ == '__main__':

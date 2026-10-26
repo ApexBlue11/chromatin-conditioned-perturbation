@@ -77,3 +77,18 @@ def test_end_to_end_scores_only_untouched_rows_and_checks_the_count(tmp_path, mo
         hd.main(common + ['--out', str(tmp_path / 'o.json')])
     with pytest.raises(SystemExit, match='registration counted'):
         hd.main(common + ['--out', str(tmp_path / 'o2.json'), '--expected', json.dumps({'C6': [counts['C6'][0] + 1, 1]})])
+
+
+def test_identity_check_accepts_its_own_predictions_and_refuses_others(tmp_path, monkeypatch):
+    runs, counts = make_world(tmp_path, monkeypatch)
+    D_tc = dv.V10CData([str(tmp_path)])
+    ck = next((runs / 'tc_on_s2' / 'tc_on_s2').glob('v10c_*.pt'))
+    m = hd.build(str(ck), D_tc, [str(tmp_path)])
+    rows = D_tc.ev[:12]
+    pd, _ = hd.predict_by_plate(m, D_tc, rows, 'cpu', 64)
+    target = {'sub_row': D_tc.sub_row[rows], 'delta': pd}
+    assert hd.identity_check(m, D_tc, target) > 0.999
+    rng = np.random.default_rng(0)
+    with pytest.raises(SystemExit, match='does not reproduce'):
+        hd.identity_check(m, D_tc, {'sub_row': target['sub_row'], 'delta': rng.normal(size=pd.shape).astype(np.float32)})
+    assert hd.rule(np.ones((3, 4)), np.zeros((3, 4)), np.arange(4), 100, cell='HT29')['verdict'].startswith('reported, never read')
