@@ -1,0 +1,155 @@
+{
+ "rule": "RESULTS 100.15: (i) all 3 on slot means > all 3 off AND (ii) compound-cluster one-sided 95 % lower bound > 0, MCF7 DNA-damage rows of excluded_test_cell; read once",
+ "counts": {
+  "MCF7": [
+   78,
+   28
+  ],
+  "HT29": [
+   106,
+   32
+  ],
+  "MDAMB231": [
+   145,
+   26
+  ],
+  "THP1": [
+   109,
+   21
+  ]
+ },
+ "checkpoints": {
+  "on_s20": {
+   "path": "/kaggle/working/tc_runs/tc_on_s0/tc_on_s0_retry2/v10c_cold_cell_1_test_on_d256_s20.pt",
+   "sha1": "54336c5f8207c58b128e80093591a60caa5fc5b9",
+   "identity_mean_row_r": 0.9999997615814209
+  },
+  "on_s11": {
+   "path": "/kaggle/working/tc_runs/tc_on_s1/tc_on_s1_retry1/v10c_cold_cell_1_test_on_d256_s11.pt",
+   "sha1": "ebcd0879be61ff0ebf80752a3b71dcac1f14d96b",
+   "identity_mean_row_r": 0.9999998807907104
+  },
+  "on_s2": {
+   "path": "/kaggle/working/tc_runs/tc_on_s2/tc_on_s2/v10c_cold_cell_1_test_on_d256_s2.pt",
+   "sha1": "93294ab74fc28614a4d143632b9a16f21d22c354",
+   "identity_mean_row_r": 0.9999998807907104
+  },
+  "off_s0": {
+   "path": "/kaggle/working/tc_runs/tc_off_s0/tc_off_s0/v10c_cold_cell_1_test_off_d256_s0.pt",
+   "sha1": "38148319efbf9efbeb10ec9e428ba19f2aa57587",
+   "identity_mean_row_r": 0.9999998807907104
+  },
+  "off_s1": {
+   "path": "/kaggle/working/tc_runs/tc_off_s1/tc_off_s1/v10c_cold_cell_1_test_off_d256_s1.pt",
+   "sha1": "22d70ae368b749f17edccbe77fd483bcc8d1e832",
+   "identity_mean_row_r": 0.9999998807907104
+  },
+  "off_s2": {
+   "path": "/kaggle/working/tc_runs/tc_off_s2/tc_off_s2/v10c_cold_cell_1_test_off_d256_s2.pt",
+   "sha1": "fdf05686a81e739bb8c775147e69d581a8255a0f",
+   "identity_mean_row_r": 0.9999997615814209
+  }
+ },
+ "MCF7": {
+  "n_rows": 78,
+  "n_compounds": 28,
+  "slot_means_on": [
+   0.2198478358739354,
+   0.21998457363737073,
+   0.23627946779939452
+  ],
+  "slot_means_off": [
+   0.2036113362652121,
+   0.20997297585225894,
+   0.22415061936798047
+  ],
+  "delta": 0.012792315275083066,
+  "cluster_one_sided_lower_95": -0.003449406209191151,
+  "cluster_one_sided_upper_95": 0.030378397982301537,
+  "cond_i_all_on_above_all_off": false,
+  "cond_ii_lower_bound_above_0": false,
+  "verdict": "no claim"
+ },
+ "HT29": {
+  "n_rows": 106,
+  "n_compounds": 32,
+  "slot_means_on": [
+   0.16666590576537,
+   0.1689444350507943,
+   0.16868583189372707
+  ],
+  "slot_means_off": [
+   0.17502358203753776,
+   0.17265680276767462,
+   0.16453466911073553
+  ],
+  "delta": -0.002639627068685535,
+  "cluster_one_sided_lower_95": -0.006386310075266482,
+  "cluster_one_sided_upper_95": 0.0012320298099796428,
+  "cond_i_all_on_above_all_off": false,
+  "cond_ii_lower_bound_above_0": false,
+  "verdict": "reported, never read: neither holds"
+ },
+ "MDAMB231": {
+  "n_rows": 145,
+  "n_compounds": 26,
+  "slot_means_on": [
+   0.1136104810964748,
+   0.11133962480256644,
+   0.10755045281620848
+  ],
+  "slot_means_off": [
+   0.11016916365787195,
+   0.11037389186619347,
+   0.10924196906402299
+  ],
+  "delta": 0.0009051780423871142,
+  "cluster_one_sided_lower_95": -0.004783070287662457,
+  "cluster_one_sided_upper_95": 0.00697471090168156,
+  "cond_i_all_on_above_all_off": false,
+  "cond_ii_lower_bound_above_0": false,
+  "verdict": "reported, never read: neither holds"
+ },
+ "THP1": {
+  "n_rows": 109,
+  "n_compounds": 21,
+  "slot_means_on": [
+   0.15268548630558657,
+   0.1422989143074012,
+   0.14887879020391503
+  ],
+  "slot_means_off": [
+   0.14337431515892404,
+   0.14295867083012742,
+   0.14625874188906998
+  ],
+  "delta": 0.0037571543129271134,
+  "cluster_one_sided_lower_95": -0.0048904235764000645,
+  "cluster_one_sided_upper_95": 0.013360509399555031,
+  "cond_i_all_on_above_all_off": false,
+  "cond_ii_lower_bound_above_0": false,
+  "verdict": "reported, never read: neither holds"
+ },
+ "pooled_reported": {
+  "n_rows": 438,
+  "n_compounds": 107,
+  "slot_means_on": [
+   0.15509350451048842,
+   0.15233272628990405,
+   0.15555502388051326
+  ],
+  "slot_means_off": [
+   0.15076829453739665,
+   0.15129274577838286,
+   0.15229842834847573
+  ],
+  "delta": 0.002873928672216808,
+  "cluster_one_sided_lower_95": -0.0014887120795496363,
+  "cluster_one_sided_upper_95": 0.007612759150042859,
+  "cond_i_all_on_above_all_off": true,
+  "cond_ii_lower_bound_above_0": false,
+  "verdict": "reported, never read: neither holds"
+ },
+ "primary": "MCF7",
+ "verdict": "no claim"
+}

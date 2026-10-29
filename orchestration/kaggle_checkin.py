@@ -11,7 +11,9 @@ PY = os.path.join(REPO, '.venv-cuda', 'Scripts', 'python.exe')
 ACCOUNTS = {'main': {'config': None, 'root': 'external/kaggle_kernels', 'list': 'external/reset_push_list.txt',
                      'log': 'external/v10c_tb_sequencer.log'},
             'alt': {'config': r'C:\Users\Surya\.kaggle_alt', 'root': 'external/kaggle_kernels_alt',
-                    'list': 'external/alt_push_list.txt', 'log': 'external/alt_sequencer.log'}}
+                    'list': 'external/alt_push_list.txt', 'log': 'external/alt_sequencer.log'},
+            'alt2': {'config': 'C:/Users/Surya/.kaggle_alt2', 'root': 'external/kaggle_kernels_alt2',
+                     'list': 'external/alt2_push_list.txt', 'log': 'external/alt2_sequencer.log'}}
 
 
 def env_for(config):

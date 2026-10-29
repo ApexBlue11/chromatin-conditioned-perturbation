@@ -12250,6 +12250,39 @@ where T-C's class signal sits):
 - **What a pass licenses:** a cell-specific, mechanism-specific statement, from six checkpoints and one cell. More seeds would
   be needed for anything stronger.
 
+### 100.16 RESULT: H-DD (§100.15's rule, read once) — **no claim**. T-C's MCF7 DNA-damage signal is not confirmed on untouched rows (PI, 2026-10-29)
+**The run:**
+- `apexblue/lincs-hdd` v1, a free Kaggle CPU kernel, internet off, every input sha1-pinned;
+- `model/v10c/hdd_test.py` → `model/results/v10c/hdd_reading.json`.
+
+**The checks before scoring passed:**
+- the held-out counts equal the registration (MCF7 78 / 28, HT29 106 / 32, MDAMB231 145 / 26, THP1 109 / 21);
+- each of the six checkpoints reproduced its ledgered T-C predictions on a T-C test plate (mean per-row r 0.9999998 /
+  0.9999999 ×4 / 0.9999998). Their sha1s are in the output.
+
+**MCF7, the registered test** (78 untouched DNA-damage rows, 28 compounds):
+- on slot means 0.2198 / 0.2200 / 0.2363; off 0.2036 / 0.2100 / 0.2242;
+- **Δ = +0.0128**;
+- **(i) fails:** off seed 2 (0.2242) is above on seeds 20 and 11;
+- **(ii) fails:** the compound-cluster one-sided lower bound is −0.0034;
+- **no claim.**
+
+**Reported, never read:**
+
+| cell | Δ | (i) | lower bound | rows / compounds |
+|---|---|---|---|---|
+| HT29 | −0.0026 | no | −0.0064 | 106 / 32 |
+| MDAMB231 | +0.0009 | no | −0.0048 | 145 / 26 |
+| THP1 | +0.0038 | no | −0.0049 | 109 / 21 |
+| pooled | +0.0029 | yes | −0.0015 | 438 / 107 |
+
+**The reading:**
+- The MCF7 effect keeps its sign on new (cell, compound) pairs, but at half its T-C size (+0.013 against +0.026). It no
+  longer separates the seeds, and the compound bound includes 0. So it is not confirmed.
+- With §100.14, **no chromatin effect specific to a drug class or a cell survives** at the landmarks in v10-C.
+- The remaining place for mechanism-specific chromatin is B (H-E5, transcription inhibitors × broad H3K27ac given RNA-seq,
+  on observed values) and v11's strata.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
