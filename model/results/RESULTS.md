@@ -12283,6 +12283,50 @@ where T-C's class signal sits):
 - The remaining place for mechanism-specific chromatin is B (H-E5, transcription inhibitors × broad H3K27ac given RNA-seq,
   on observed values) and v11's strata.
 
+### 100.17 RESULT: the gap and the head-to-head (§100.5 / §100.11, reported, no claim) — **full-release v10-C is better than v9 on unseen cells and worse on unseen compounds, so its gap is wider** (PI, 2026-10-30)
+**The runs:**
+- T-C's on arm (3 slots) and the gap arm (3 slots), every slot resolved;
+- gap seed 2 ran on the third Kaggle account (`suryababu179`), rc 0, no guard, ledgered at download (8bbb53e).
+- `model/v10c/tc_gap.py` → `model/results/v10c/tc_gap.json`, read once.
+
+**The checks passed:**
+- v9's and XPert's values reproduce the registered references (092 C3);
+- every record and prediction file matches the T-C ledger (092 C1);
+- C4: the trainer's per-cell clean-7 contrast and this reader's agree to 5.6e-11.
+- **The drug path trained in all three gap runs** (100.9, reported only): median s 0.087 / 0.057 / 0.070, floor 1e-4.
+  - `model/results/v10c/gap_trained_check.json`.
+  - `tb_trained_check.py` now reads each checkpoint's split from its name. It had hard-coded cold_cell_1, so the gap arm's
+    rows came from the wrong split.
+  - Re-run on tc_on_s2, it reproduces that checkpoint's earlier record exactly.
+
+**The numbers** (7 clean cells primary; row means, per-row r averaged over seeds; v9 and v10-C 3 seeds, XPert-O2 1):
+
+| | contrast r, unseen cell | contrast r, unseen compound | **gap** | delta r, unseen cell | delta r, unseen compound | **gap** |
+|---|---|---|---|---|---|---|
+| full-release v10-C | **0.1782** | 0.0850 | **−0.0931** | **0.4964** | 0.5993 | **+0.1029** |
+| v9 | 0.1597 | **0.1094** | −0.0503 | 0.4810 | **0.6417** | +0.1607 |
+| XPert (O2) | 0.1456 | — | — | 0.3863 | — | — |
+
+- The rows: unseen cell 16,113 rows for contrast and 21,097 for delta r. Unseen compound (P9, clean rows) 7,980 and 11,983.
+- All 8 cells, labelled (H1975 included): v10-C contrast 0.1784 (gap −0.0934); v9 0.1602 (gap −0.0508).
+
+**The head-to-head per clean cell** (reported, no claim):
+- **Against XPert-O2**, v10-C is higher in **7 / 7 cells on both targets**. The narrowest is CD34's contrast, 0.0881 against
+  0.0834.
+- **Against v9**, it is higher in 6 / 7 on each target. On contrast, CD34 is lower (0.0881 against 0.0960); on delta r,
+  HT29 is (0.5305 against 0.5486).
+- Wording (086 C1 / C3): *full-release v10-C trained on the substrate against XPert trained on the benchmark; nothing is
+  attributed to architecture; L6 leave-own-plate-out, input-transductive across a cell's plates; among runs whose drug
+  path trained (100.8).*
+
+**The reading:**
+- **The release moved v10-C in opposite directions on the two axes:**
+  - on unseen cells it is above v9: contrast +0.019, delta r +0.015;
+  - on unseen compounds it is below: contrast −0.024, delta r −0.042.
+- So **the unseen-compound side is now the larger gap**, nearly double v9's on contrast (−0.093 against −0.050).
+- This is reported, not tested. It is one more reason the drug-target knowledge in v11 (§102) is aimed at unseen compounds.
+- v11's own reading (v11_read, v11_probe) waits on its last three seed-2 runs.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

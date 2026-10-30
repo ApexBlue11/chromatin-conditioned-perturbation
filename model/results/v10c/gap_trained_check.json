@@ -1,0 +1,65 @@
+{
+ "rule": "RESULTS 100.9: untrained iff median s over 480 training rows < 1e-4",
+ "runs": [
+  {
+   "checkpoint": "v10c_cold_drug_1_test_on_d256_s0.pt",
+   "split": "cold_drug_1",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.08659561723470688,
+   "s_min": 0.023266389966011047,
+   "s_max": 0.44441646337509155,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -3.737204074859619,
+   "z_max": -0.2232569307088852,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_drug_1_test_on_d256_s11.pt",
+   "split": "cold_drug_1",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.056483929976820946,
+   "s_min": 0.011213372461497784,
+   "s_max": 0.3401559889316559,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -4.479371547698975,
+   "z_max": -0.6625991463661194,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_drug_1_test_on_d256_s2.pt",
+   "split": "cold_drug_1",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.06951015070080757,
+   "s_min": 0.013475564308464527,
+   "s_max": 0.43457692861557007,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -4.293310165405273,
+   "z_max": -0.2632012665271759,
+   "drug_path_trained": true
+  },
+  {
+   "checkpoint": "v10c_cold_cell_1_test_on_d256_s2.pt",
+   "split": "cold_cell_1",
+   "arm": "on",
+   "d_model": 256,
+   "n_rows": 480,
+   "s_median": 0.0576346181333065,
+   "s_min": 0.008967150934040546,
+   "s_max": 0.2870371639728546,
+   "frac_s_below_1e-6": 0.0,
+   "n_s_exactly_0": 0,
+   "z_min": -4.705179691314697,
+   "z_max": -0.909817636013031,
+   "drug_path_trained": true
+  }
+ ]
+}

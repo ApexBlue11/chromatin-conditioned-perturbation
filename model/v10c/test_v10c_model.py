@@ -556,6 +556,14 @@ def test_trained_check_verdict_and_dose_terms():
     assert torch.allclose(s, torch.sigmoid(z), atol=1e-6) and torch.equal(s, out['dose_scale'])
 
 
+def test_trained_check_reads_the_split_from_the_checkpoint_name():
+    import tb_trained_check as tc
+    assert tc.split_of('x/v10c_cold_drug_1_test_on_d256_s2.pt') == 'cold_drug_1'
+    assert tc.split_of('v10c_cold_cell_1_test_off_d256_s0.pt') == 'cold_cell_1'
+    with pytest.raises(SystemExit, match='cannot tell'):
+        tc.split_of('v10c_random_test_on_d256_s0.pt')
+
+
 def test_trained_check_draws_the_diagnostic_rows():
     import tb_trained_check as tc
 

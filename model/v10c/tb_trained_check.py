@@ -2,6 +2,8 @@
 median dose scale s over 480 training rows is below 1e-4 (100.8's floor). The rows are drawn by np.random.default_rng(0)
 exactly as in diag_dose_collapse.py (480 dev rows first, then 480 training rows); the training rows are the same in both
 arms. Also reported (review 090 C3): the min and max of a_d (ld - b_d), and how many rows have s < 1e-6 or s == 0.
+The rows come from the checkpoint's own split, read from its name (v10c_<split>_test_...): cold_cell_1 for T-C, cold_drug_1
+for the gap arm (100.11 C3b: the check runs on every T-C and gap checkpoint).
 
     python model/v10c/tb_trained_check.py --out model/results/v10c/tb_trained_check.json CKPT.pt [CKPT.pt ...]
 """
@@ -45,11 +47,20 @@ def verdict(s_all, z_all, floor=FLOOR):
             'z_min': float(z_all.min()), 'z_max': float(z_all.max()), 'drug_path_trained': bool(med >= floor)}
 
 
+def split_of(path):
+    name = os.path.basename(path)
+    hits = [s for s in ('cold_cell_1', 'cold_drug_1') if f'_{s}_' in name]
+    if len(hits) != 1:
+        raise SystemExit(f'FATAL: cannot tell the split of {name}')
+    return hits[0]
+
+
 def check(path, data_cache, roots=ROOTS):
     off = '_off_' in os.path.basename(path)
-    if off not in data_cache:
-        data_cache[off] = V10CData(roots, split='cold_cell_1', dev=True, chrom_off=off)
-    D = data_cache[off]
+    key = (split_of(path), off)
+    if key not in data_cache:
+        data_cache[key] = V10CData(roots, split=key[0], dev=True, chrom_off=off)
+    D = data_cache[key]
     ck = torch.load(path, map_location='cpu', weights_only=False)
     cfg = ck['cfg'] if isinstance(ck['cfg'], V10CConfig) else V10CConfig(**ck['cfg'])
     m = LincsV10C(cfg, np.load(find('M_pathway_v9.npy', roots)), np.load(find('STRING_adj_978_v9.npy', roots)),
@@ -65,7 +76,7 @@ def check(path, data_cache, roots=ROOTS):
             s, z = dose_terms(m, D.batch(rows[i:i + BATCH], 'cpu'))
             S.append(s.double().numpy())
             Z.append(z.double().numpy())
-    return {'checkpoint': os.path.basename(path), 'arm': 'off' if off else 'on', 'd_model': cfg.d_model,
+    return {'checkpoint': os.path.basename(path), 'split': key[0], 'arm': 'off' if off else 'on', 'd_model': cfg.d_model,
             **verdict(np.concatenate(S), np.concatenate(Z))}
 
 
