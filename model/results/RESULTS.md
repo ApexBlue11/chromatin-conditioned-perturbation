@@ -12603,7 +12603,7 @@ targets, and the attention is not. The head half waits on §102.8.
 - **Per-compound values are saved** (review 102 C3) in `model/results/v11/v11_probe_head.json`.
 - **The code:** `model/v11/v11_probe_head.py`, with tests, committed before its one run.
 
-### 102.9 RESULT: the head comparison (§102.8, read once) — **the head ranks held-out compounds' targets above popularity and transfers beyond nearest-neighbour lookup; the gain is in close analogues** (reported, never a claim; PI, 2026-11-01)
+### 102.9 RESULT: the head comparison (§102.8, read once) — **the head ranks held-out compounds' targets above popularity (narrowly) and beyond a nearest-neighbour lookup; its gain over the lookup is largest on close analogues** (reported, never a claim; PI, 2026-11-01; wording per review 105)
 **The run:**
 - `model/v11/v11_probe_head.py` (598b614, with the self-check fix b70f56b) → `model/results/v11/v11_probe_head.json` (sha1
   `9eca262e…`). Per-compound values are saved (review 102 C3).
@@ -12633,25 +12633,59 @@ targets, and the attention is not. The head half waits on §102.8.
 
 - **The head per seed:** 0.219 / 0.219 / 0.216. The untrained head per seed: 0.169 / 0.147 / 0.153.
 - **True popularity (0.167) is above the untrained head (0.156),** as review 104 C1 expected.
-- **Training-row compounds (172):** head 0.185, popularity 0.146, NN 0.152. Head − popularity is +0.039 [+0.008, +0.070],
-  and head − NN +0.033 [+0.009, +0.059]. By bin, the same pattern: only ≥ 0.5 excludes 0 against NN (+0.055 [+0.013, +0.109]).
+- ~~**Training-row compounds (172):** head 0.185, popularity 0.146, NN 0.152. Head − popularity is +0.039 [+0.008, +0.070],
+  and head − NN +0.033 [+0.009, +0.059]. By bin, the same pattern: only ≥ 0.5 excludes 0 against NN (+0.055 [+0.013, +0.109]).~~
+  **(review 105 C1)** **The head comparison doesn't depend on rows.** The head, popularity and NN are functions of the compound
+  alone.
+  - The training-row compound set overlaps the held-out set (100 of 172) and gives similar numbers (head 0.185, popularity
+    0.146, NN 0.152), so it is not independent.
+  - **The 72 training-only compounds** (post hoc, after review 105; reported, no verdict) are disjoint from the 114. Head
+    0.159, popularity 0.123, NN 0.120; head − popularity +0.036 [+0.008, +0.074], head − NN +0.039 [+0.011, +0.077]. By bin:
+    < 0.3 23 compounds, 0.3–0.5 33, ≥ 0.5 16.
 - **The ChEMBL subset (descriptive):** held-out 12 compounds, head 0.847, popularity 0.667, NN 0.833. Training-row 20
   compounds: 0.908 / 0.800 / 0.900. The head and NN are close here.
 
 **The registered verdicts** (held-out, recall@10, 'all'):
-- **"the head ranks held-out compounds' targets above popularity"**;
-- **"the head transfers beyond nearest-neighbour lookup"**.
+- **"the head ranks held-out compounds' targets above popularity"**, with a narrow margin: +0.051 [+0.007, +0.097];
+- ~~**"the head transfers beyond nearest-neighbour lookup"**~~ **(review 105 C3)** **"the head transfers beyond a
+  nearest-neighbour lookup (the most similar known compound targeting each gene)"**. That is one specific lookup; a
+  similarity-weighted k-NN vote was not registered and might do better.
 
 **The reading:**
 - **v11's structure head learned a molecule → target mapping that generalises to compounds whose targets it never saw.**
   It ranks those targets above both popularity and a copy of the nearest known compound's targets. Both CIs' lower bounds
   are close to 0 (+0.007, +0.010).
-- **The gain is concentrated in close analogues.** For compounds with maximum Tanimoto ≥ 0.5 (20 compounds) the head beats
+- ~~**The gain is concentrated in close analogues.** For compounds with maximum Tanimoto ≥ 0.5 (20 compounds) the head beats
   the nearest-neighbour lookup by +0.096 [+0.022, +0.183]. In the two dissimilar bins it is not distinguished from either
-  baseline. **So "present for dissimilar compounds too" remains not established** (review 104 C1).
+  baseline.~~ **(review 105 C2)** **The gain over NN is largest on close analogues** (≥ 0.5: +0.096 [+0.022, +0.183], 20
+  compounds), **the only bin whose CI excludes 0.**
+  - **The bins are not shown to differ.** Every method scores far higher on analogues (NN 0.403 against 0.110 below 0.3).
+  - The head's relative gain over NN is similar across bins (≈ 24 % against ≈ 19 %).
+  - **So "present for dissimilar compounds too" remains not established** (review 104 C1).
 - **Together with §102.7:** the head's predictions reach the response model through FG, yet R2-targets is null, the
   permutations cost ≤ 0.0019, and atom → gene attention is at chance. **The target knowledge exists in the head, but the
-  response model does not turn it into better responses (R2-targets) or into its attention.**
+  response model does not turn it into ~~better~~ detectably better responses (R2-targets, with the input and the
+  supervision removed together; review 105 C3) or into its attention.**
+
+### 102.10 Review 105 adopted (SOUND-WITH-CAVEATS): §102.9 reworded (PI, 2026-11-01)
+**Review 105** re-derived every mean and paired-bootstrap CI from the saved per-compound values, in every setting and bin:
+- head − popularity +0.0508 [+0.0068, +0.0966];
+- head − NN +0.0435 [+0.0103, +0.0796];
+- both registered verdicts fire.
+
+**The run, as checked by the review:**
+- **The NN is right as registered.** Status-0 compounds' `tgt_node` are exactly the head's labels, and probe compounds'
+  targets are never written.
+- **The self-check correction is acceptable.** §102.8 registers ranking equality, and no popularity or NN recall was computed
+  before the first run's stop.
+
+**Three MINOR wording challenges, all upheld (struck through in §102.9 and replaced):**
+- **C1:** the training-row setting is not independent; 100 of its 172 compounds are held-out compounds with identical values.
+  The 72 training-only compounds are reported separately (post hoc).
+- **C2:** "concentrated in close analogues" becomes "largest on close analogues, the only bin whose CI excludes 0"; the bins
+  are not shown to differ.
+- **C3:** verdict 2 names its lookup (the most similar known compound targeting each gene), verdict 1 carries its narrow
+  CI, and the closing sentence says "detectably", with R2-targets removing the input and the supervision together.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven

@@ -143,8 +143,8 @@ Geneformer, scGPT, GenePT, Enformer / Borzoi, Chemprop, gated graph networks, gr
 - **Start nodes for unseen drugs, from §102.9:**
   - v11's structure head ranks held-out compounds' targets above popularity and above a nearest-neighbour lookup (recall@10
     0.218 against 0.167 / 0.174);
-  - but it is strong only for close analogues: 0.499 at Tanimoto ≥ 0.5, against 0.131 below 0.3, where it is no better than
-    either baseline;
+  - its absolute recall is high only for close analogues (0.499 at Tanimoto ≥ 0.5, against 0.131 below 0.3, as every
+    method's is), and only the analogue bin's gain over the lookup excludes 0 (review 105 C2);
   - so predicted start nodes are informative for analogues and weak for dissimilar compounds. The route's confidence should
     carry the compound's similarity to the annotated training compounds (the objective's "confidence" requirement).
 
