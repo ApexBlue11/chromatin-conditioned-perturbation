@@ -12,6 +12,140 @@ tried, the answer was buried in §48.3 item 1 and the answer was *no*.
 Direction set by the principal, 2026-09-21: **pursue the mechanism/MoA line (A-group) while keeping the
 load-bearing dissection (B-group) and the cold-cell head-to-head (C-group) alive.** Do not drop B and C.
 
+**Direction set by the principal, 2026-11-01: the paper is framed around epigenetics, and section E (a cell representation
+first, chosen by fast tests, then the drug model) is the current programme.** The goal is unchanged: mechanistic
+interpretation through pathways, and the MoA of drugs the model has never seen.
+
+---
+
+## E. A cell representation first, then the drug — the principal's direction of 2026-11-01
+
+**The direction, as the principal gave it:**
+- **The paper is framed around epigenetics.**
+- **Epigenetics is not an isolated feature.** It is part of a combined representation of the cell, together with pathways and
+  baseline gene expression.
+- **The full STRING network over all genes,** not only the 978 landmarks. Add a radius (k-hop) or another method, so the
+  model learns how each landmark gene is connected through non-landmark genes.
+- **Non-landmark genes have no L1000 baseline, and many cells have no RNA-seq, but they have epigenetics.** Chromatin can fill
+  that gap.
+- **Non-coding RNAs** (lncRNAs, miRNAs and other non-coding elements, none of them measured by L1000) may interact with drugs.
+  Where they are part of Reactome or KEGG pathways, combine them with STRING, with epigenetics on them too.
+- **These interactions are the model's picture of the drug's mechanism of action.**
+- **Known knowledge seeds the graph:**
+  - a drug's targets as the place the signal starts ("start from here"), or known endpoints where it ends;
+  - knowledge gathered from the literature as well.
+- **Train with that knowledge on some drugs, then test on drugs the model has never seen.** Read what it attributes to each
+  molecule token: which pathways, genes or regulatory elements it reacts with.
+- **The method:**
+  - a full rerun per strategy is too slow;
+  - how to construct the full cell representation is an open question;
+  - so learn how others build similar representations, add novel ideas, compare them on a fast test, and put only the best
+    candidates into the full model.
+- **The fast test's target should check whether the model understands the cell.** Once the best representation is found, the
+  target switches to drug-perturbation prediction.
+- **Not attention everywhere:** CNNs, RNNs and other network types each have their own advantages. Combine them, weave them
+  together, and create a new architecture.
+
+**What the record already tested** (so it is not re-proposed, and so what is new is clear):
+
+| idea | tested? | where | result |
+|---|---|---|---|
+| full STRING over all genes, with a radius | yes: v11's FG module, 19,496 genes, 345,962 experimental / database edges, K = 2 propagation rounds (a 2-hop radius) | §102 | R1 no claim (+0.0036 against 0.0042) |
+| chromatin on every gene (the non-landmark gap) | yes, as an input: v11's node features and edge gate, 217 cells × 18,658 genes with a TSS | §102 | R2-chromatin no claim (+0.0024 against 0.0039). At inference, swapping chromatin between cells costs 0.0003–0.0004 and shuffling it across genes 0.0005–0.0008 |
+| baseline expression for every gene | yes where CCLE exists: 131 LINCS cells (not HUVEC, NPC, BJAB, CD34) | §102 | R2-CCLE no claim (+0.0014) |
+| a combined cell representation (graph + chromatin + expression + pathways) | yes, but only as inputs to a drug-response model (v11's FG on v9's pathway layer) | §102 | as above |
+| more assays and coverage | yes: ChIP-Atlas re-search (90 cells with any axis, 43 with all three; 40 / 16 before), property-matched substitutes, CCLE RRBS methylation as a fourth axis, bigWig signal in 5 windows | §100 | T-A, T-B, T-C no claim |
+| enhancers, TF-regulon accessibility | yes | §93.13, §101 | no gain over promoter accessibility. H3K27ac's BET signal is explained by expression |
+| chromatin-gated edges | yes: C7 (landmark graph), v10-C, v11 | §89, §100, §102 | not accepted (+0.0020) / no claim |
+| targets as the start of the signal | yes: zero-parameter diffusion (landmark graph, then the full graph), then trained in v11 (known or predicted signed targets, propagated 2 hops) | §82, §83, §102 | no signal / no claim |
+| fast screens before GPU runs | yes, for chromatin: the §91 funnel | §91 | nothing advanced, but its target was the drug response, not the cell |
+| train on some drugs' targets, test on unseen ones | yes: v11's DTI probe split | §102.3 | probe running 2026-11-01 |
+| a pathway readout as MoA | yes: v9's pathway layer | §86.4, §88.8 | null against calibrated untrained models |
+| non-coding RNAs | **no** | — | — |
+| KEGG | **no** (Reactome and GO-BP only) | — | — |
+| literature-derived knowledge | **no** (curated databases only: ChEMBL, STITCH, STRING, Reactome, GO) | — | — |
+| known endpoints ("ends here") | **no** | — | — |
+| a target that tests whether the model understands the cell | **no**: every test so far scored drug response | — | — |
+| the cell representation trained and evaluated on its own | **no** | — | — |
+| non-attention architectures (a CNN over chromatin profiles, recurrent / ODE propagation, a visible pathway network, a molecule GNN) | **no**: transformers plus 2 rounds of linear propagation | — | — |
+
+**Why this is not a retry.** Every chromatin test so far asked one question: does chromatin improve a drug-response model's
+predictions? That target's cell-specific drug signal is small next to its noise (§91.10; T-C bounds the gain at ≤ +0.0014).
+The new programme first asks whether a representation understands the cell, on targets where cells differ a lot and the
+truth is well measured. Only then does it ask whether that understanding transfers to drugs.
+
+### E1. The fast tests — proposed, to be registered before any is run
+**The interface:**
+- a candidate builds a per-(cell, gene) embedding;
+- the same small task heads score every candidate;
+- every score is cold-cell (leave-cell-out) and, where meaningful, cold-gene.
+
+**The proxy targets:**
+- **T1, state:** impute a gene's baseline expression (CCLE RNA-seq, all genes, non-landmark included) in a held-out cell, from
+  chromatin, the network and the other genes. This measures the gap-filling idea directly.
+- **T2, wiring (the primary candidate): genetic perturbations in L1000.**
+  - **The data:** 36,720 consensus shRNA knockdown signatures (`trt_sh.cgs`; 4,345 genes, 17 cells); 22,205 overexpression
+    (`trt_oe`; 3,114 genes, 10 cells); 8,256 ligand signatures (`trt_lig`, 14 cells); GSE92742 `sig_info`.
+  - **Why it fits:**
+    - the perturbed gene is a known start node;
+    - the readout is the same 978 landmarks as the drug task;
+    - cold-gene ↔ cold-drug and leave-cell-out ↔ unseen cell, so it is the drug task with the targets given.
+  - **Chromatin coverage:** 7 of the 9 core knockdown cells have chromatin and CCLE. PC3, MCF7, A375, VCAP, A549 and HEPG2 have
+    all three axes; HT29 has two. HA1E and HCC515 have none.
+- **T3, dependency:** DepMap CRISPR gene effect (which genes a cell needs to survive). H3K27ac super-enhancers are reported to
+  mark lineage dependencies (to verify in the literature scan).
+- **The control every candidate must beat:** the same heads on an expression-only representation. That is the control that
+  explained T-E's pass (§101.6).
+- **Data still to fetch, each needing the principal's approval:**
+  - the Level 5 GCTX was deleted on 2026-09-20. `GSE92742_Broad_LINCS_Level5_COMPZ.MODZ_n473647x12328.gctx` is 23.4 GB, so
+    the plan is to extract its landmark rows for `trt_sh.cgs` / `trt_oe` / `trt_lig` inside a Kaggle kernel;
+  - DepMap gene effect;
+  - ncRNA interaction tables.
+  - (LINCS 2020 reportedly holds many more CRISPR signatures; to verify.)
+
+### E2. Candidate representations (menu)
+- **expression only** (the control);
+- **+ chromatin** (3 axes + methylation);
+- **a full-STRING GNN** (relational, k-hop);
+- **+ Reactome / KEGG hierarchy** as a visible network (DrugCell / P-NET style);
+- **+ non-coding nodes** (lncRNA / miRNA):
+  - their activity from chromatin at their TSS;
+  - edges from ncRNA–target databases (miRTarBase, ENCORI / starBase, LncTarD, NPInter; licences to check);
+- **pretrained gene embeddings from others:**
+  - Geneformer / scGPT gene tokens;
+  - GenePT text embeddings (a cheap route to literature knowledge);
+  - ESM protein embeddings;
+- **CellOracle-style chromatin-derived gene-regulatory networks** (ATAC peaks + TF motifs);
+- **a 1D CNN over each gene's chromatin profile;**
+- **combinations of these.**
+
+Literature to read first (names, not verified claims): GEARS, CellOracle, SCENIC+, DrugCell, P-NET, TxPert (§48.1),
+Geneformer, scGPT, GenePT, Enformer / Borzoi, Chemprop, gated graph networks, graph neural diffusion.
+
+### E3. Architecture menu (not attention everywhere)
+- a **1D CNN** over per-gene chromatin or sequence windows: local regulatory shapes, the Basenji / Enformer inductive bias;
+- a **relational GNN** (R-GCN / GraphSAGE) over the heterogeneous gene–ncRNA–pathway graph;
+- **recurrent or neural-ODE propagation** on the graph:
+  - the drug perturbs its target nodes at t = 0;
+  - a gated recurrent cell or an ODE carries the signal step by step, read at 6 h / 24 h;
+  - the trajectory is the model's picture of the mechanism;
+- a **visible neural network**: named pathway units are the only route to the output, so it is interpretable by construction;
+- a **message-passing molecule encoder** (D-MPNN / Chemprop) instead of atom tokens (atom tokens hurt, §57 / §60);
+- a **mixture of experts** gated by the drug's predicted targets or class;
+- **hypernetworks**: the drug generates the cell graph's edge gates;
+- **deep ensembles or a GP head** for calibrated confidence (the interpretability objective asks for confidence).
+
+### E4. The MoA readout — the goal
+- **The question:** on drugs whose targets were held out, does the route the model uses (target nodes → pathway units →
+  landmark genes) match the annotation?
+- **The nulls:** untrained models and a cell-agnostic prior (the methods lessons of §86 / §88).
+- **Registered before it is read.**
+
+**Status:** proposed 2026-11-01; nothing registered or run. **Next:**
+1. a literature scan of how others build cell representations;
+2. the T1–T3 harness and its registration;
+3. the download approvals.
+
 ---
 
 ## A. Make chromatin and the drug atoms earn their place — the mechanism line
