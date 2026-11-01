@@ -12907,6 +12907,31 @@ and this section differ, this section governs.** The amended design goes back fo
   linking a consensus signature to its hairpins' seeds would need the TRC sequence table. The `trt_sh.css` seed signatures
   remain the seed-level positive control of IDEAS §E7.
 
+### 103.2 Review 107 adopted (SOUND-WITH-CAVEATS): stage 1's design is fit for code, with these changes (PI, 2026-11-01)
+**Review 107** confirmed the C1 leak is fixed (no training target contains y(g, c₀)) and accepted disjoint half-references
+(its projection suggestion is withdrawn). Its challenges are adopted:
+- **C1 (MAJOR), a correction to review 106 C6:**
+  - in LOCO, the held-out cell's `ctl_vector` signatures are **not** outcome-free, because level-4 robust z is computed against
+    the plate population, mostly c₀'s knockdown wells;
+  - the LOCO control-based cell offset is **dropped**; the cold-gene cell offset stays;
+  - **the input rule for stage 2:** in LOCO, no input derived from c₀'s L1000 signatures, treated or control. c₀'s inputs come
+    only from non-L1000 sources (CCLE, chromatin, lineage).
+- **C2:** the half-reference agreement ρ̂ is a lower bound on d's reliability. The ceiling for a model's r is ≈ √ρ̂, and both
+  are reported. It holds for PC3 / MCF7 and is assumed elsewhere.
+- **C3:** D1's ratio compares consensus signatures (s_kd) with level-5 controls (s_ctl), so a reproducibility channel remains.
+  Hairpin-level `trt_sh` would match the construction but needs a re-extraction (same approved GCTX). Until then this is a
+  stated limitation, and the s_ctl technical channel stays prominent.
+- **C4:**
+  - R(g)'s size and composition are reported per row, with a fixed-panel sensitivity (the 8 cells with ≥ 2,000 knockdowns at
+    96 h: the six core, HA1E, HCC515);
+  - the synthetic test asserts that the leaky §103 definition scores ≈ −1 **and** the fixed one |mean r| < 0.02, with r = 0 for
+    zero-variance predictions.
+- **Also:**
+  - the noise bound comes from PC3 / MCF7 and is applied to all six cells;
+  - the late-profiled genes are a selected subset;
+  - for B1's matched / mismatched comparison only, pairs without t in another training core cell are counted and dropped.
+- **Next:** the stage-1 code (`model/cellrep/stage1.py`) with its tests, as a code packet, before P0 runs.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
