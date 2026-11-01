@@ -140,6 +140,13 @@ Geneformer, scGPT, GenePT, Enformer / Borzoi, Chemprop, gated graph networks, gr
   landmark genes) match the annotation?
 - **The nulls:** untrained models and a cell-agnostic prior (the methods lessons of §86 / §88).
 - **Registered before it is read.**
+- **Start nodes for unseen drugs, from §102.9:**
+  - v11's structure head ranks held-out compounds' targets above popularity and above a nearest-neighbour lookup (recall@10
+    0.218 against 0.167 / 0.174);
+  - but it is strong only for close analogues: 0.499 at Tanimoto ≥ 0.5, against 0.131 below 0.3, where it is no better than
+    either baseline;
+  - so predicted start nodes are informative for analogues and weak for dissimilar compounds. The route's confidence should
+    carry the compound's similarity to the annotated training compounds (the objective's "confidence" requirement).
 
 ### E5. What others do — first literature pass (2026-11-01; abstracts and summaries, not yet read in full)
 
