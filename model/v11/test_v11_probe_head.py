@@ -48,6 +48,13 @@ def test_tanimoto_matrix_maxes_to_the_probes_tanimoto_max():
     assert np.allclose(M.max(1), vp.tanimoto_max(fp, [0, 3], [1, 2])) and np.allclose(M[0], [0.5, 0.0])
 
 
+def test_same_ranking_needs_the_same_order_and_the_same_ties():
+    p = np.array([-3.1, -3.4, -3.4, -6.9])
+    assert vh.same_ranking(p * 0.998, p)                    # a uniform shrink keeps order and ties
+    assert not vh.same_ranking(np.array([-3.1, -3.4, -3.41, -6.9]), p)      # a broken tie
+    assert not vh.same_ranking(np.array([-3.5, -3.4, -3.4, -6.9]), p)       # a swapped order
+
+
 def test_paired_bootstrap_is_reproducible_and_brackets_the_mean():
     a, b = np.linspace(0, 1, 40), np.linspace(0, 1, 40)[::-1] * 0.5
     r1, r2 = vh.paired_bootstrap(a, b, 2000), vh.paired_bootstrap(a, b, 2000)

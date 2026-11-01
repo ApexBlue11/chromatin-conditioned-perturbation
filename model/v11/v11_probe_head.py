@@ -101,6 +101,13 @@ def head_logits(model, D, rows_by_comp):
     return out
 
 
+def same_ranking(a, b):
+    """True iff a and b order their elements identically, ties included (equal dense ranks)."""
+    ra = np.unique(np.asarray(a), return_inverse=True)[1].reshape(-1)
+    rb = np.unique(np.asarray(b), return_inverse=True)[1].reshape(-1)
+    return bool(np.array_equal(ra, rb))
+
+
 def paired_bootstrap(a, b, n_boot=N_BOOT, seed=0):
     d = np.asarray(a, np.float64) - np.asarray(b, np.float64)
     m = d[np.random.default_rng(seed).integers(0, len(d), size=(n_boot, len(d)))].mean(1)
@@ -173,7 +180,9 @@ def main(argv=None):
             if Dnt is None:
                 Dnt = V11Data(roots, dev=True, arm='no_targets')
             bias = ck['model'].get('target_head.bias', ck['model'].get('module.target_head.bias')).double().numpy()
-            checks[f'popularity_equals_bias_{tag}'] = bool(np.allclose(bias, prior_logit, atol=1e-5))
+            # 102.8 registers the RANKING (the bias is the prior's logit shrunk <= 0.2 % by AdamW's decay, order kept)
+            checks[f'popularity_ranking_equals_bias_{tag}'] = same_ranking(bias, prior_logit)
+            checks[f'bias_minus_prior_logit_max_abs_{tag}'] = float(np.abs(bias - prior_logit).max())
             m = vp.build_model('v11', ck, Dnt, roots)
             heads[arm][tag] = {p: vp.head_on_landmarks(lg, Dnt) for p, lg in head_logits(m, Dnt, every).items()}
         else:
