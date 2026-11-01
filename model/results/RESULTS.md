@@ -12123,6 +12123,9 @@ They queue **after T-C's kernels**: about 12 × 4.4 ≈ 53 GPU-h, as §102.1 est
   - ~~here (3 of 6 attempts) as in T-B (on s0)~~ **(review 100 C2)** The full tally over T-B and T-C, runs and attempts:
     **on 5 of 10 collapsed** (T-B d256 1 / 3, T-B's width-screen d384 1 / 1, T-C 3 / 6), **off 0 of 6**. Fisher one-sided
     p ≈ 0.06; d256 only, 4 / 9 against 0 / 6, ≈ 0.09.
+  - **(review 103)** The gap arm (§100.11, chromatin-on, `split_cold_drug_1`) adds one more: its s1 first attempt (seed 1)
+    collapsed. So all widths and splits give **on 6 of 14, off 0 of 6**. The gap arm has no off counterpart, so it adds to
+    the on-arm rate only.
   - **It shows in the runs that trained too.** At epoch 0 the mean batch-median s is 0.029 / 0.039 / 0.039 in the three
     used on runs, against 0.045 / 0.049 / 0.051 off: every on run lower. By epoch 3 they overlap (on 0.058–0.136, off
     0.067–0.090).
@@ -12295,7 +12298,7 @@ read, and is not to be quoted as a pass of (i).
 - The remaining place for mechanism-specific chromatin is B (H-E5, transcription inhibitors × broad H3K27ac given RNA-seq,
   on observed values) and v11's strata.
 
-### 100.17 RESULT: the gap and the head-to-head (§100.5 / §100.11, reported, no claim) — **full-release v10-C is better than v9 on unseen cells and worse on unseen compounds, so its gap is wider** (PI, 2026-10-30)
+### 100.17 RESULT: the gap and the head-to-head (§100.5 / §100.11, reported, no claim) — **full-release v10-C is better than v9 on unseen cells and worse on unseen compounds; on the contrast its gap is wider, on delta r narrower** (PI, 2026-10-30; wording per review 103 C1 / C2)
 **The runs:**
 - T-C's on arm (3 slots) and the gap arm (3 slots), every slot resolved;
 - gap seed 2 ran on the third Kaggle account (`suryababu179`), rc 0, no guard, ledgered at download (8bbb53e).
@@ -12332,11 +12335,19 @@ read, and is not to be quoted as a pass of (i).
   path trained (100.8).*
 
 **The reading:**
-- **The release moved v10-C in opposite directions on the two axes:**
+- ~~**The release moved v10-C in opposite directions on the two axes:**~~ **(review 103 C1)** **Full-release v10-C, against
+  v9,** is above on unseen cells and below on unseen compounds. **Data scale and architecture are not separated (086 C1),
+  so neither is credited.**
   - on unseen cells it is above v9: contrast +0.019, delta r +0.015;
   - on unseen compounds it is below: contrast −0.024, delta r −0.042.
-- So **the unseen-compound side is now the larger gap**, nearly double v9's on contrast (−0.093 against −0.050).
-- This is reported, not tested. It is one more reason the drug-target knowledge in v11 (§102) is aimed at unseen compounds.
+- ~~So **the unseen-compound side is now the larger gap**, nearly double v9's on contrast (−0.093 against −0.050).~~
+  **(review 103 C2)** **On the contrast, unseen compounds are now the harder side by 0.093** (v9 0.050). **On delta r, unseen
+  compounds still score above unseen cells** (+0.103; v9 +0.161), so that gap narrowed. Delta r carries the cell's mean
+  response, which unseen-compound rows share with training.
+- ~~This is reported, not tested. It is one more reason the drug-target knowledge in v11 (§102) is aimed at unseen
+  compounds.~~ **(review 103 C3)** This is reported, not tested. **No registered v11 reading measures response prediction on
+  unseen compounds:** R1 and R2 are on the dev carve's cold cells, and the DTI probe scores attention, not responses. v11's
+  effect on this gap would need a cold-drug evaluation that is not registered.
 - v11's own reading (v11_read, v11_probe) waits on its last three seed-2 runs.
 
 ### 100.18 Review 102 adopted (SOUND-WITH-CAVEATS): §100.16 reworded (PI, 2026-11-01)
@@ -12359,6 +12370,35 @@ read, and is not to be quoted as a pass of (i).
   - Already met by v11_read: it scores the ledgered prediction files, so its per-row r can be recomputed from them.
   - v11_probe was already running when this review arrived. It is reported, never a claim, and is left as written.
 - **On the pool:** its (i) margin (0.00003) is now stated beside its row in §100.16.
+
+### 100.19 Review 103 adopted (SOUND-WITH-CAVEATS): §100.17 reworded; the collapse tally updated (PI, 2026-11-01)
+**Review 103** re-scored both sides and the head-to-head with its own scorer, on the substrate's plate IDs, and every number
+reproduced exactly:
+- unseen cells: v10-C 0.17816 / 0.49639, v9 0.15972 / 0.48104, XPert-O2 0.14564 / 0.38628 (contrast / delta r);
+- unseen compounds: v10-C 0.08505 / 0.59929, v9 0.10940 / 0.64171;
+- the head-to-head: 7 / 7 against XPert-O2 on both targets, 6 / 7 against v9.
+
+**Integrity, checked by the review:**
+- v9's plate proxy and the substrate's plates partition P9 identically (4,397 plates, one to one);
+- none of the 389 P9 compounds is in `split_cold_drug_1`'s training rows;
+- no clean P9 compound has ECFP4 Tanimoto ≥ 0.999 to any of the full release's 7,295 featured training compounds (4 have
+  ≥ 0.9), so 96.6's clean subset is also clean against the full release;
+- the gap slots' sha1s match `tc_ledger.jsonl`;
+- **the trained-check split fix is right.** The check agrees with the runs' own end-of-training dose scales to within 2 %,
+  and applying it after the runs is fine.
+
+**Three MINOR challenges, all upheld (struck through in §100.17 and replaced):**
+- **C1:** "the release moved v10-C" attributed the change to data. Data scale and architecture are confounded (086 C1), so
+  neither is credited.
+- **C2:** "the unseen-compound side is now the larger gap" holds for the contrast only. On delta r, unseen compounds still
+  score higher, and that gap narrowed. The heading now says both.
+- **C3:** the v11 sentence could not be checked by v11. Its registered readings are cold-cell, and a cold-drug evaluation
+  is not registered.
+
+**The collapse tally** (reported): with the gap arm's s1 first attempt, **on 6 of 14, off 0 of 6** (noted under §100.14).
+
+**Not adopted as a change:** the review notes that `dev=True` on the cold-drug split still drops the 6 dev-carve cells' rows
+from the trained-check pool. Those rows are still gap training rows and the medians agree, so it is harmless and left as is.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
