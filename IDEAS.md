@@ -159,9 +159,99 @@ Geneformer, scGPT, GenePT, Enformer / Borzoi, Chemprop, gated graph networks, gr
 | literature knowledge | **GenePT** (LLM embeddings of NCBI gene summaries). **GenePert** and **scGenePT** (preprints) use them for perturbation prediction; they help most for unseen genes | text embeddings as node features for genes (and lncRNAs that have summaries): the cheap route to the literature | preprints. **Never embed drug MoA text**: it would leak the MoA readout's labels |
 | chromatin defines the cell's network | **CellOracle** (Kamimoto et al. 2023, Nature): a base GRN from ATAC (bulk works) and TF motifs, refined by expression; TF knockouts propagated for n steps | cell-specific TF → gene edges from chromatin, and iterative propagation | a 2024 critique (distal regulation, benchmark issues) |
 | pathways as the route (the MoA readout) | **DrugCell** (Kuenzi et al. 2020, Cancer Cell): a visible network of 2,086 GO processes plus a drug-fingerprint branch, 1,235 cell lines × 684 drugs, reported without performance loss (follow-ups ParsVNN, SparseGO, MOViDA). **P-NET** (Elmarakeby et al. 2021, Nature): a Reactome-sparse network over 3,007 pathways; a reusability report credits the sparsification | pathway units as the only route to the output: interpretability by construction | trained on viability or patient labels, not transcriptional responses |
-| chromatin shows its value on the right target | **AACR 2024 abstract LB234:** MIX-seq + SHARE-seq profiled 500 cancer cell lines (110 lineages, 22 cancer types) for accessibility and RNA. It reportedly found that ATAC gene-activity scores improve dependency prediction beyond RNA-seq (from a search summary; the abstract page is paywalled, to verify). H3K27ac super-enhancers are linked to dependencies (primary effusion lymphoma, Nat Commun 2020; TNBC, PLoS One 2020) | T3 (dependency) as a proxy where chromatin plausibly adds to expression. **If the 500-line data is public, it multiplies our chromatin coverage** | preliminary; release status unknown |
+| chromatin shows its value on the right target | **AACR 2024 abstract LB234:** MIX-seq + SHARE-seq profiled 500 cancer cell lines (110 lineages, 22 cancer types) for accessibility and RNA. ~~It reportedly found that ATAC gene-activity scores improve dependency prediction beyond RNA-seq (from a search summary; the abstract page is paywalled, to verify).~~ **Checked 2026-11-01 (E6): no paper, preprint or data release exists, and no readable source confirms a dependency result.** The abstract computes an ATAC gene-activity score per line and frames the data as a basis for finding vulnerabilities. H3K27ac super-enhancers are linked to dependencies (primary effusion lymphoma, Nat Commun 2020; TNBC, PLoS One 2020) | T3 (dependency) as a proxy where chromatin plausibly adds to expression. **If the 500-line data is public, it multiplies our chromatin coverage** | preliminary; release status unknown |
 | non-coding RNAs | a pharmacogenomic study over 1,005 cell lines and 265 compounds found 27,341 lncRNA–drug predictive pairs (elastic net). Graph methods exist for ncRNA–drug resistance associations, on sparse bipartite networks | lncRNA expression exists in cell-line RNA-seq, so lncRNA nodes can get a baseline as well as chromatin | GNN-based lncRNA drug response in cell lines is sparsely explored: room for novelty, and risk |
 | knockdown data quality | **Smith et al. 2017** (PLoS Biol): shRNA seed effects outweigh on-target effects; consensus gene signatures recover on-target activity; CRISPR has negligible off-target activity | use `trt_sh.cgs`, never single hairpins; overexpression as an independent start-node set; CRISPR where available | — |
+
+### E6. Chromatin coverage: what exists (investigated 2026-11-01, the principal's request)
+- **The 500-line SHARE-seq atlas (AACR 2024 abstract LB234; DepMap-linked; MIX-seq pooling):**
+  - 500 lines, 110 lineages, 22 cancer types;
+  - "hundreds of thousands of peaks, a third unique to cancer lines".
+  - **Not usable:**
+    - no paper, preprint or data release was found, and DepMap's portal has no ATAC release;
+    - the dependency-prediction claim is unverified (above). Asking the DepMap team is the only route, and that is the
+      principal's message to send, not mine.
+- **GSE311521** (Xu et al. 2026, Nat Commun; Cao lab):
+  - **The data:** 60 cancer lines, single-nucleus RNA (240,957 nuclei) and ATAC (223,347 nuclei) from separate cells. Public
+    on GEO since 2026-03-02 (15 samples; CSV / H5AD / XLSX). Code: github.com/JunyueCaoLab/Cancer_atlas.
+  - **Overlap with LINCS:** A375, HT29, U2OS, SK-BR-3 and LNCaP, which ChIP-Atlas mostly covers already, plus metastatic
+    MDA-MB-231 derivatives. MCF7, PC3, VCaP, HepG2 and T47D are not in it.
+  - **The NCBI FTP folders are empty.** The files must come through GEO's web download (behind a browser check I won't bypass)
+    or the authors' repository.
+  - **Low priority** for coverage. Its value is single-cell resolution on a few lines.
+- **CCLE global chromatin profiling** (Ghandi et al. 2019):
+  - 42 histone-modification levels by mass spectrometry, about 900 lines, cell-level not per gene;
+  - `CCLE_GlobalChromatinProfiling_20181130.csv`, 0.49 MB, data.broadinstitute.org/ccle;
+  - a cheap cell-level epigenetic feature covering most LINCS cancer lines. **To download (approval needed).**
+- **Already in hand:** ChIP-Atlas over all 217 lines (§100.1; 90 with any axis), CCLE RRBS methylation (§100.1). EpiMap
+  imputation added no cells in 2026-07.
+
+### E7. Non-coding RNAs (investigated 2026-11-01, the principal's request)
+**The constraint:** L1000 does not measure ncRNAs. So ncRNA nodes are latent: their activity comes from baseline data and
+chromatin, and their effect has to show through the protein-coding landmarks they regulate.
+
+**Baselines:**
+- **lncRNA:** the CCLE RNA-seq RPKM matrix over all GENCODE 19 genes, lncRNAs included (`CCLE_RNAseq_genes_rpkm_20180929.gct.gz`,
+  143.5 MB, about 1,019 lines). DepMap's `OmicsExpressionAllGenesTPMLogp1Profile.csv` is the newer all-genes version.
+- **miRNA:** poly-A RNA-seq misses mature miRNAs, so use CCLE's miRNA profiling (`CCLE_miRNA_20181103.gct`, 9.1 MB).
+- **Chromatin at ncRNA promoters:** GENCODE lncRNA / miRNA-host TSSs, scored on our ChIP-Atlas tracks (one more signal
+  kernel).
+
+**Edges:**
+- miRTarBase 2025 (validated miRNA → target);
+- ENCORI / starBase (CLIP-supported miRNA–RNA and RBP–RNA);
+- NPInter v5 (about 2.6 M ncRNA interactions);
+- RNAInter (> 41 M entries, compounds included);
+- LncTarD (lncRNA regulation; status to check);
+- **licences to check for each.**
+
+**Pathways:** KEGG carries miRNAs as pathway genes (Non-coding RNAs BRITE; e.g. hsa05206 "MicroRNAs in cancer"). lncRNAs are
+mostly absent. Reactome is to check.
+
+**Drug → ncRNA, for validation only (never training input):** SM2miR (curated small-molecule effects on miRNA expression), D-lnc
+(drug–lncRNA from the literature, plus CMap-predicted), ncDR (ncRNAs in drug resistance).
+
+**How it would be tested (E9's ladder):**
+1. **A positive control first.** shRNA seed effects are miRNA-like, and L1000 has 24,368 consensus seed signatures
+   (`trt_sh.css`). A model with miRNA-seed → target edges should explain them, which shows the ncRNA-edge machinery works before
+   it is asked about real ncRNAs.
+2. **Data-level:** do a cell's baseline levels of an ncRNA explain the cell-specific responses of its validated landmark
+   targets, beyond those targets' own baseline?
+3. **Proxy gain (T1–T3) with ncRNA nodes against:**
+   - the same graph without them;
+   - a degree-matched random-edge control.
+
+### E8. Published models' predictions as features (the principal's direction, 2026-11-01; as Uni-Mol is used now)
+- **Gene-level:**
+  - Geneformer and scGPT gene embeddings (single-cell pretraining);
+  - GenePT (text);
+  - ESM-2 (protein sequence);
+  - Enformer / Borzoi (DNA sequence → regulatory tracks; per-gene regulatory embeddings, and cell-type predictions where a cell
+    type was in their training).
+- **Regulatory:**
+  - CellOracle base GRN (motif × accessible promoter / enhancer), made cell-specific with our ATAC;
+  - CollecTRI / DoRothEA regulons and PROGENy footprints (decoupler; open-source packages, per the principal's rule).
+- **Drug-level:**
+  - Uni-Mol and MolBERTa (in use);
+  - ChemBERTa-2, MolFormer, Chemprop;
+  - **published DTI predictors for start nodes,** where §102.9's head is weak (dissimilar compounds).
+- **The leakage rule, before any use:** check each model's training data against our test sets.
+  - A DTI model trained on ChEMBL has seen the probe compounds' targets, so it is barred from the MoA / target probe.
+  - Any embedding trained on L1000 or CMap responses is barred from drug-response evaluation.
+
+### E9. How every idea is tested: a diagnostic ladder (the principal, 2026-11-01: "find out why they work or why they don't")
+Every null is assigned to the first rung it fails, and each rung's rule is registered before it runs:
+1. **Data:** is the feature associated with the target, model-free?
+2. **Beyond the baseline:** does the association survive conditioning on expression? That control explained T-E (§101.6).
+3. **Learnability (positive control):**
+   - inject a synthetic effect of known size that depends on the feature, at our noise level;
+   - does the architecture recover it?
+   - if it doesn't, a null on the real target is uninformative.
+4. **Usage:** do ablations and permutations at inference, and prediction agreement against seed variation (review 104 C2),
+   show that the trained model reads it?
+5. **Gain:** on the cold-cell / cold-gene proxy (E1), then on drug response, under the registered rule.
+
+The critic reviews the design and each null's assignment.
 
 **What this changes in E1:**
 - add the published simple baselines (no change; additive; linear on gene embeddings) beside the expression-only control;
