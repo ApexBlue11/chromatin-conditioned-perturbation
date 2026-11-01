@@ -12687,7 +12687,7 @@ targets, and the attention is not. The head half waits on §102.8.
 - **C3:** verdict 2 names its lookup (the most similar known compound targeting each gene), verdict 1 carries its narrow
   CI, and the closing sentence says "detectably", with R2-targets removing the input and the supervision together.
 
-## 103. 🔒 PRE-REGISTERED (design, for review): the cell-representation programme, stage 1 — L1000 genetic perturbations as the cell-understanding proxy, its data-level rungs, and the drug ↔ target-knockdown bridge (principal's direction 2026-11-01, IDEAS §E; PI; before any genetic signature value is read)
+## 103. 🔒 PRE-REGISTERED (design, for review): the cell-representation programme, stage 1 — L1000 genetic perturbations as the cell-understanding proxy, its data-level rungs, and the drug ↔ target-knockdown bridge (principal's direction 2026-11-01, IDEAS §E; PI; before any genetic signature value is read) — **amended by §103.1 (review 106, NOT-SUPPORTED as registered) before any value is read; §103.1 governs where they differ**
 **Why this stage exists:**
 - Every chromatin test so far scored drug response, where cell-specific drug effects are small next to noise.
 - The principal's programme (IDEAS §E) first asks whether a cell representation understands the cell, on targets where cells
@@ -12814,6 +12814,98 @@ for "targets as start nodes", IDEAS §E4):
   - a synthetic-injection learnability curve (rung 3: a chromatin-dependent effect of known size added to d, recovered or not);
   - usage checks (rung 4);
   - a gain rule against its own expression-only twin and the three baselines (rung 5).
+
+### 103.1 🔒 AMENDMENT, review 106 adopted (NOT-SUPPORTED as registered: one BLOCKING, three MAJOR) before any genetic signature value is read (PI, 2026-11-01)
+**Review 106** confirmed every §103 count from the extract's metadata arrays alone, without reading `Y`. It found one
+blocking and three major design errors, all of them in the registration text. **All six challenges are adopted. Where §103
+and this section differ, this section governs.** The amended design goes back for review (packet 107) before any code.
+
+**C1 (BLOCKING) — the LOCO leak. Fixed with per-fold references.**
+- **The error:** with d(g, c) = y(g, c) − the mean over g's other core cells, Σ_c d(g, c) = 0. So in LOCO the held-out target
+  was exactly minus the sum of the training targets. Any gene-specific model (every stage-2 candidate) could recover it.
+- **The fix:** references come only from cells outside the row's own cell and outside the held-out cell.
+  - **The reference set R(g):** every knockdown cell with a 96 h signature of g. That is 15 cells: the 6 core plus HA1E,
+    HCC515, NPC, ASC, HEKTE, SKL, SW480, VCAP, HEK293T.
+  - **In the fold holding out c₀:**
+    - a training row (g, c′) has d = y(g, c′) − mean over R(g) \ {c₀, c′};
+    - the held-out row has d = y(g, c₀) − mean over R(g) \ {c₀}.
+  - **No training target contains y(g, c₀).**
+  - **Every reference needs ≥ 3 cells;** rows below that are dropped and counted.
+- **Cold-gene and "both":** a held-out gene has no training row. So their primary score is per-row r on **y** (full). d is
+  reported, with references from the held-out gene's other-cell signatures, used only on the target side and never as input.
+- **A test, required before any run:** on synthetic y with a gene effect plus pure noise (no cell-specific signal), a per-gene
+  model (gene intercept, or gene embedding → MLP) must score |mean r on d| < 0.02 in LOCO. The leaky §103 definition scores
+  about −1 on it.
+
+**C2 (MAJOR) — the noise ceiling. Disjoint references.**
+- **The error:** subtracting the same reference from the 96 h and the 120 / 144 h signature puts the reference's estimation
+  noise into both, which inflates their agreement.
+- **The fix:** split each pair's reference cells (R(g) \ {c}) into two disjoint halves, by sorted cell name, alternating.
+  - d₉₆ uses half A, and d_late uses half B;
+  - each half needs ≥ 2 cells;
+  - the ceiling is the mean per-row r of the two.
+- **It is now a lower bound:** half-references add independent noise, and time differs; both lower the agreement.
+  - Projecting the shared reference out of each signature was not chosen: the residual still carries β·e_ref, with e_ref the
+    reference's noise, in both.
+- **It covers PC3 (1,355 pairs) and MCF7 (1,415) only.** No other core cell has 120 / 144 h knockdowns.
+
+**C3 (MAJOR) — D1 was largely set by L1000's per-plate normalisation. Redefined.**
+- **(a) A knockdown-specific quantity:**
+  - s_kd(c, j) is the SD of y(g, c, j) over knockdowns; s_ctl(c, j) is the SD over the cell's `ctl_vector` signatures at 96 h
+    (503–592 per core cell, already in the extract);
+  - **primary:** r(c, j) = log(s_kd / s_ctl);
+  - **what it measures, stated plainly:** how much more landmark j varies across knockdowns than across vector controls in
+    the same cell, after per-plate robust z-scoring. It is a knockdown-specific responsiveness, not an absolute capacity to
+    move.
+  - **Reported:** chromatin against s_ctl alone, the technical channel. If it matches the knockdown association, the reading
+    says so.
+- **(b) Composition:** s_kd is computed over the **2,100 genes knocked down in all six core cells** (g ≠ j).
+- **(c) The statistic:** double-centred.
+  - Centre r and the features by landmark across the six cells.
+  - Take each cell's Spearman across landmarks (partial on centred CCLE expression).
+  - **The pooled statistic is the mean of the six within-cell values,** so a single cell's global shift cannot drive it.
+  - **The positive control** (expression ↔ centred r) and **the rule** (ACT:prom_1kb, mean within-cell partial Spearman > 0
+    with a landmark-cluster bootstrap 95 % CI excluding 0, and ≥ 5 of 6 cells positive) are otherwise as §103.
+- **The scope, stated:**
+  - six cells;
+  - the bootstrap is over landmarks, not cells, so it says nothing about cells beyond these six;
+  - the centring uses all six cells, so D1 is descriptive, not an unseen-cell quantity.
+
+**C4 (MAJOR) — B1's meaning. The cell-specific condition is registered.**
+- **A pass of the main rule** now means only: *"a gene-level drug ↔ target-knockdown correspondence"*.
+- **The cell-specific meaning** (*"a knockdown-trained cell representation has a cell-specific path to drugs"*) requires
+  **matched > mismatched**:
+  - p_match is the percentile of corr(y_cp(d, c), y_kd(t, c)) among cell c's knockdowns;
+  - p_mis is the percentile of corr(y_cp(d, c), y_kd(t, c′)) among cell c′'s knockdowns, averaged over the other core training
+    cells c′;
+  - it needs mean(p_mis − p_match) > 0 with a drug-cluster bootstrap 95 % CI excluding 0.
+
+**C5 (MINOR) — B1's details, fixed:**
+- **Percentile direction:** 0 = the most correlated knockdown.
+- **When t is a landmark,** its own coordinate is excluded from both vectors.
+- **Dose and time:** each drug's highest dose at 24 h in that cell; if it has no 24 h signature there, its highest dose at 6 h.
+  The all-signature average is reported.
+- **The row filter:** `split_cold_cell_1 == train` **and** `split_cold_drug_1 == train`, row by row.
+- **Also reported:** the fraction of pairs whose target knockdown is in the top 5 % (CMap-style).
+
+**C6 (MINOR) — diagnostics and baselines added to stage 1:**
+- **A variance decomposition, reported before any candidate:**
+  - on the 2,100 × 6 core matrix, per landmark, two-way shares: gene, cell, gene × cell;
+  - plus a noise bound from the PC3 / MCF7 pairs: half the variance of the 96 h − late difference, an upper bound on noise
+    because time adds to it.
+  - If gene × cell is not above that bound, no representation can show a cell-specific win, and the reading says so.
+- **A cell-offset baseline:**
+  - **cold-gene:** the mean d over the cell's training genes;
+  - **LOCO:** the held-out cell's mean `ctl_vector` signature minus the mean of its reference cells' (control measurements,
+    not outcomes).
+- **A k-nearest-cell baseline:** k = 3, weighted by CCLE similarity.
+- **P0 saves each gene's own-gene percentile,** the knockdown-efficacy stratum for later.
+- **Reproducibility strata** (distil_cc_q75, pct_self_rank_q25, distil_nsample):
+  - they need `GSE92742_Broad_LINCS_sig_metrics.txt.gz` (12.5 MB, GEO), a new download **asked of the principal**;
+  - if it is approved, they are reported strata; if not, they are unavailable.
+- **The seed diagnostic is unavailable.** GEO's `pert_info` lists hairpins (TRCN) and their target genes but no sequences, so
+  linking a consensus signature to its hairpins' seeds would need the TRC sequence table. The `trt_sh.css` seed signatures
+  remain the seed-level positive control of IDEAS §E7.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
