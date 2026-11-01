@@ -12276,10 +12276,22 @@ where T-C's class signal sits):
 | THP1 | +0.0038 | no | −0.0049 | 109 / 21 |
 | pooled | +0.0029 | yes | −0.0015 | 438 / 107 |
 
+**(review 102)** The pool's (i) holds by 0.00003 (on minimum 0.15233 against off maximum 0.15230). It is reported, never
+read, and is not to be quoted as a pass of (i).
+
 **The reading:**
-- The MCF7 effect keeps its sign on new (cell, compound) pairs, but at half its T-C size (+0.013 against +0.026). It no
-  longer separates the seeds, and the compound bound includes 0. So it is not confirmed.
-- With §100.14, **no chromatin effect specific to a drug class or a cell survives** at the landmarks in v10-C.
+- ~~The MCF7 effect keeps its sign on new (cell, compound) pairs, but at half its T-C size (+0.013 against +0.026). It no
+  longer separates the seeds, and the compound bound includes 0. So it is not confirmed.~~ **(review 102 C2)** The point
+  estimate keeps its sign (+0.013 against T-C's +0.026) but is not distinguishable from 0: the compound-cluster one-sided
+  bounds are −0.003 to +0.030, and the seed-level Welch t is 1.6 on ≈ 4 df (one-sided p ≈ 0.10). **Not confirmed.**
+  - Some regression toward 0 is expected for a stratum chosen as T-C's most extreme.
+  - Run noise is large in this 78-row stratum: the slot SD is ≈ 0.01 within each arm, and both arms' seed-2 runs are the
+    highest in their arm. Only seed 2 is seed-matched across arms (+0.012).
+- ~~With §100.14, **no chromatin effect specific to a drug class or a cell survives** at the landmarks in v10-C.~~
+  **(review 102 C1)** The one class signal tested on untouched rows (DNA damage in MCF7) was not confirmed. No other class
+  or compound stood out in T-C's strata (0 BH discoveries), though small classes cannot exclude effects of about 0.01.
+  **CD34's negative cell-level extreme (Δ_c −0.013, every off slot above every on slot) is untested**; 654 untouched
+  excluded rows exist for it.
 - The remaining place for mechanism-specific chromatin is B (H-E5, transcription inhibitors × broad H3K27ac given RNA-seq,
   on observed values) and v11's strata.
 
@@ -12326,6 +12338,27 @@ where T-C's class signal sits):
 - So **the unseen-compound side is now the larger gap**, nearly double v9's on contrast (−0.093 against −0.050).
 - This is reported, not tested. It is one more reason the drug-target knowledge in v11 (§102) is aimed at unseen compounds.
 - v11's own reading (v11_read, v11_probe) waits on its last three seed-2 runs.
+
+### 100.18 Review 102 adopted (SOUND-WITH-CAVEATS): §100.16 reworded (PI, 2026-11-01)
+**Review 102** recomputed the verdict from the stored slot means and confirmed the run's integrity:
+- the kernel ran the reviewed scorer (sha1 96921253…, `hdd_test.py` at 6f9a527);
+- every pinned input matches the local file;
+- `hdd_identity.npz` equals the ledgered T-C predictions exactly (plate 32, 54 rows, max |diff| 0), so the identity r
+  ties each checkpoint to its run.
+
+**"No claim" stands.** Three challenges, all upheld:
+- **C1 (MAJOR), the closing sentence:** struck through in §100.16 and replaced. "Survives" implied a test the cell half
+  never got. For classes, the supported form is "none detected".
+  - **The CD34 test the review describes is not registered now.** It would use T-C's six checkpoints on CD34's 654
+    untouched rows, with H-DD's rule mirrored (off above on), registered before any of those rows are scored. It is listed
+    for the write-up's chromatin section: if the paper says "no cell-specific chromatin effect", this test has to run
+    first. Otherwise CD34 is reported as untested.
+- **C2 (MINOR), "half the size":** replaced by the interval (one-sided bounds −0.003 to +0.030; seed t 1.6 on ≈ 4 df).
+- **C3 (MINOR), reproducibility:** adopted for every future read-once scorer. **Each saves its per-row values beside its
+  reading,** so every bound can be recomputed without re-running checkpoints.
+  - Already met by v11_read: it scores the ledgered prediction files, so its per-row r can be recomputed from them.
+  - v11_probe was already running when this review arrived. It is reported, never a claim, and is left as written.
+- **On the pool:** its (i) margin (0.00003) is now stated beside its row in §100.16.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
