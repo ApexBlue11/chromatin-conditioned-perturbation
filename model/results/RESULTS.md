@@ -12687,6 +12687,134 @@ targets, and the attention is not. The head half waits on §102.8.
 - **C3:** verdict 2 names its lookup (the most similar known compound targeting each gene), verdict 1 carries its narrow
   CI, and the closing sentence says "detectably", with R2-targets removing the input and the supervision together.
 
+## 103. 🔒 PRE-REGISTERED (design, for review): the cell-representation programme, stage 1 — L1000 genetic perturbations as the cell-understanding proxy, its data-level rungs, and the drug ↔ target-knockdown bridge (principal's direction 2026-11-01, IDEAS §E; PI; before any genetic signature value is read)
+**Why this stage exists:**
+- Every chromatin test so far scored drug response, where cell-specific drug effects are small next to noise.
+- The principal's programme (IDEAS §E) first asks whether a cell representation understands the cell, on targets where cells
+  differ and the truth is well measured. Only the winners go to drug response.
+- Every idea climbs E9's ladder, and each null is assigned to its first failed rung:
+  data → beyond the baseline → positive control → usage → gain.
+- **Stage 1 does three things:**
+  - it fixes the harness that every later stage uses: data, target, splits, scores, baselines, noise ceiling;
+  - it runs the model-free rungs 0–2;
+  - it runs the bridge, which asks whether a drug's response resembles its target's knockdown at all.
+- **Candidate representations,** their positive controls (rung 3) and gain rules are registered in stage 2, after this one is
+  reviewed.
+
+**Data (built, outcome-free; no signature value read):**
+- **The file:** `external/kaggle_out/genetic_extract/l1000_genetic_lm978.npz` (sha1 `5d26ca5d…`; record
+  `model/results/genetic/genetic_extract_record.json`).
+- **Its provenance:** kernel `apexblue/lincs-genetic-extract` v1, from the GEO file
+  `GSE92742_Broad_LINCS_Level5_COMPZ.MODZ_n473647x12328.gctx` (the principal approved the download on 2026-11-01).
+  - The decompressed size equals the recorded 23,380,287,022 bytes (sha1 `28d1e910…`).
+  - **50 trt_cp signatures re-extracted from it equal our `Y_target_level5_978.npy` rows exactly** (max |diff| 0.0), so it is
+    the same file in the same landmark order.
+- **The contents:** 99,197 signatures × 978 landmarks, with no NaN.
+  - `trt_sh.cgs`: 36,720 consensus knockdown signatures, 4,345 genes, 17 cells.
+  - `trt_sh.css`: 24,368 consensus seed signatures.
+  - `trt_oe`: 22,205 overexpression signatures, 3,114 genes, 10 cells.
+  - `trt_lig`: 8,256 ligand signatures, 14 cells.
+  - Vector and untreated controls.
+- **The core set:**
+  - `trt_sh.cgs` at 96 h in the six cells with chromatin on all three axes and CCLE: PC3, MCF7, A375, A549, HEPG2, HT29.
+  - That is 20,696 signatures and 3,927 genes, of which 3,271 are knocked down in ≥ 5 core cells and 2,100 in all six.
+  - VCAP is excluded: it has 28 knockdowns at 96 h.
+  - One consensus signature per (gene, cell) at 96 h.
+- **Bridges to the rest of the project:**
+  - 946 knocked-down genes are landmarks (their own readout is the on-target check);
+  - 397 are ChEMBL mechanism-target genes.
+
+**The harness (fixed here for every stage):**
+- **The target:** y(g, c) ∈ R^978, the consensus knockdown signature of gene g in cell c at 96 h.
+- **The cell-specific part:** d(g, c) = y(g, c) − ȳ₋c(g), where ȳ₋c(g) is the mean over the other core cells in which g was
+  knocked down. It needs ≥ 4 of them.
+- **The scores:** per-row Pearson r on d (cell-specific, primary) and on y (full), averaged over rows, reported per cell. A
+  knocked-down landmark's own coordinate is excluded from every score.
+- **The splits:**
+  - **LOCO:** each core cell held out in turn. Training may use every other cell's signatures (all 17 knockdown cells, with
+    chromatin masked where absent).
+  - **Cold-gene:** 20 % of genes held out, by gene, `default_rng(0)`, in every cell.
+  - **Both** together.
+- **The baselines** (adapted from Ahlmann-Eltze et al. 2025, review 104's lesson):
+  1. **gene mean** (d ≡ 0): no cell-specific change;
+  2. **nearest cell:** g's signature in the training cell whose CCLE profile is most similar (Pearson on log TPM);
+  3. **linear:** per landmark, a closed-form ridge from cell features to d, expression-only and expression + chromatin (λ by
+     inner LOCO).
+  - Every stage-2 candidate is reported against all three.
+- **The noise ceiling (a lower bound):** the cell-specific agreement, in the same cell, between g's 96 h signature and its 120 h
+  or 144 h signature. That is 2,770 (gene, cell) pairs; time differs, so the ceiling is conservative.
+- **The drug-test-cell rule:** MCF7 and HT29 are test cells of `split_cold_cell_1`.
+  - Their knockdown signatures may train and evaluate the proxy.
+  - But a representation trained on them is reported as **transductive** in any drug evaluation on those cells, never as
+    unseen-cell (L6, §99.8).
+
+**Rung 0 — the data's own positive control (P0; if it fails, nothing else is read):**
+- **The question:** for knocked-down landmark genes in the core cells, does the gene's own coordinate fall low in its own
+  signature?
+- **Passes if** the median ascending rank percentile of the own-gene z among the 978 is ≤ 0.10.
+- **Reported:** overexpression's own-gene descending percentile, and the per-cell medians.
+
+**Rung 1–2 — D1, "which genes can move here", with knockdowns** (S5 revisited; §91's T3 was not interpreted because its
+positive control failed):
+- **The quantity:** s(c, j) = SD over the knockdowns g ≠ j in cell c of y(g, c, j). That is landmark j's response spread over
+  about 3,300 perturbations in that cell.
+- **The cell-specific version:** s̃(c, j) = s(c, j) − mean over the six cells of s(·, j). Features are centred the same way.
+- **The covariates (the baseline):**
+  - CCLE log2(TPM + 1) of j in c;
+  - the substrate's mean L1000 control profile of j in c (secondary).
+- **D1's positive control** (must pass, or D1 is not interpreted): centred expression is associated with s̃. The pooled
+  Spearman over (c, j) must have a landmark-cluster bootstrap 95 % CI (10,000 resamples, `default_rng(0)`) excluding 0.
+- **D1's rule (rung 2, beyond the baseline):** the pooled partial Spearman of s̃ with centred **ACT:prom_1kb**, controlling for
+  centred expression. **Passes** if its landmark-cluster CI excludes 0 in the predicted sign (> 0) and the per-cell sign
+  agrees in ≥ 5 of 6 cells.
+- **Reported, never read:**
+  - ACC:prom_1kb (> 0 expected), PCG:prom_1kb (< 0 expected), METH:tss_1kb (< 0 expected), and the other windows;
+  - the uncentred (gene-generic) version per cell;
+  - rung 1 (the association without the covariate).
+- **Its meaning, fixed now:**
+  - a pass says chromatin carries a gene's cell-specific capacity to move, beyond expression, which a representation could
+    use;
+  - a fail with the positive control passing places chromatin's null at rung 2 for this question.
+
+**The bridge B1 — does a drug's response resemble its target's knockdown in the same cell?** (the measured-data premise
+for "targets as start nodes", IDEAS §E4):
+- **The pairs:** (drug d, ChEMBL mechanism target t with action sign −1, cell c), with t knocked down in c.
+- **The rows read:** drug signatures from the substrate's Level 5, limited to:
+  - `split_cold_cell_1` training cells among the core (PC3, A375, A549, HEPG2);
+  - training compounds of `split_cold_drug_1`.
+  - **No test row of either split is read.** A drug's signatures in c (all doses and times) are averaged.
+- **The statistic:** the rank percentile of corr(y_cp(d, c), y_kd(t, c)) among the drug's correlations with every knockdown
+  in c. The median is taken over pairs.
+- **Passes if** the median is < 0.45 and the drug-cluster bootstrap 95 % CI of the median excludes 0.5.
+- **Reported:**
+  - **cell-matched against mismatched:** the target's knockdown in another core cell, which tests the correspondence's cell
+    specificity;
+  - **a hub control:** knockdowns of degree-matched random STRING genes;
+  - agonists (sign +1) against overexpression;
+  - per cell.
+- **Its meaning, fixed now:**
+  - a pass says knockdown responses carry drug-relevant structure in measured data, so a knockdown-trained cell
+    representation has a path to drugs;
+  - a fail says the "start at the target" route cannot be validated by knockdown transfer, and the route model would need
+    another anchor.
+
+**The order:** P0, then D1's positive control, then D1, then B1. Each is read once, by code committed and tested before its run.
+- **The code:** `model/cellrep/stage1.py`, with tests on synthetic data where each answer is known.
+- **The compute:** local or free Kaggle CPU (99k × 978 floats).
+
+**Stage 2 (to be registered after review 106, not here):**
+- **The candidates on this harness:**
+  - expression-only;
+  - + chromatin;
+  - full-STRING propagation from the knocked-down gene;
+  - a pathway-visible network;
+  - published gene embeddings (E8);
+  - ncRNA nodes (E7).
+- **Each candidate gets:**
+  - a synthetic-injection learnability curve (rung 3: a chromatin-dependent effect of known size added to d, recovered or not);
+  - usage checks (rung 4);
+  - a gain rule against its own expression-only twin and the three baselines (rung 5).
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
