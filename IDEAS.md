@@ -141,8 +141,44 @@ Geneformer, scGPT, GenePT, Enformer / Borzoi, Chemprop, gated graph networks, gr
 - **The nulls:** untrained models and a cell-agnostic prior (the methods lessons of §86 / §88).
 - **Registered before it is read.**
 
+### E5. What others do — first literature pass (2026-11-01; abstracts and summaries, not yet read in full)
+
+| the principal's idea | closest precedent | what to borrow | caveat |
+|---|---|---|---|
+| start at the targets, end at the TFs | **CARNIVAL** (Liu et al. 2019, npj Syst Biol Appl): integer programming over a signed, directed prior network, from perturbation targets (optional) to TF activities inferred from expression (DoRothEA). Used for drug MoA, also with unknown targets | TF activities as the "ends here" layer; a signed, directed network (e.g. OmniPath) as the route, beside undirected STRING | a per-sample solver, not a learned predictor |
+| an RNN over the knowledge network | **LEMBAS** (Nilsson et al. 2022, Nat Commun): a sparse recurrent network whose connections are a prior signalling network. Ligands in, TF activities out at steady state; cross-validated r 0.8 on 59 macrophage ligands; knockout simulations. A 2026 extension predicts drug-induced phosphoproteomic responses zero-shot | recurrent, network-constrained propagation from a known start node. **L1000's 8,256 ligand signatures are the same kind of experiment, across 14 cells** | steady-state assumption; its outputs are TF activities, so a TF → landmark map is needed |
+| an ODE of the response | **CellBox** (Yuan et al. 2021, Cell Systems) | interpretable dynamics | a 2025 re-analysis found linear regression about as good on its benchmark |
+| predict perturbations of genes never perturbed | **GEARS** (Roohani et al. 2023, Nat Biotech): a GO-derived graph for perturbation embeddings, a co-expression graph for genes | the cold-gene setting, the analogue of cold-drug | **Ahlmann-Eltze et al. 2025 (Nat Methods):** five foundation models and two deep models did not beat no-change / additive / linear baselines. **So the harness must include those baselines, not only the expression-only control** |
+| literature knowledge | **GenePT** (LLM embeddings of NCBI gene summaries). **GenePert** and **scGenePT** (preprints) use them for perturbation prediction; they help most for unseen genes | text embeddings as node features for genes (and lncRNAs that have summaries): the cheap route to the literature | preprints. **Never embed drug MoA text**: it would leak the MoA readout's labels |
+| chromatin defines the cell's network | **CellOracle** (Kamimoto et al. 2023, Nature): a base GRN from ATAC (bulk works) and TF motifs, refined by expression; TF knockouts propagated for n steps | cell-specific TF → gene edges from chromatin, and iterative propagation | a 2024 critique (distal regulation, benchmark issues) |
+| pathways as the route (the MoA readout) | **DrugCell** (Kuenzi et al. 2020, Cancer Cell): a visible network of 2,086 GO processes plus a drug-fingerprint branch, 1,235 cell lines × 684 drugs, reported without performance loss (follow-ups ParsVNN, SparseGO, MOViDA). **P-NET** (Elmarakeby et al. 2021, Nature): a Reactome-sparse network over 3,007 pathways; a reusability report credits the sparsification | pathway units as the only route to the output: interpretability by construction | trained on viability or patient labels, not transcriptional responses |
+| chromatin shows its value on the right target | **AACR 2024 abstract LB234:** MIX-seq + SHARE-seq profiled 500 cancer cell lines (110 lineages, 22 cancer types) for accessibility and RNA. It reportedly found that ATAC gene-activity scores improve dependency prediction beyond RNA-seq (from a search summary; the abstract page is paywalled, to verify). H3K27ac super-enhancers are linked to dependencies (primary effusion lymphoma, Nat Commun 2020; TNBC, PLoS One 2020) | T3 (dependency) as a proxy where chromatin plausibly adds to expression. **If the 500-line data is public, it multiplies our chromatin coverage** | preliminary; release status unknown |
+| non-coding RNAs | a pharmacogenomic study over 1,005 cell lines and 265 compounds found 27,341 lncRNA–drug predictive pairs (elastic net). Graph methods exist for ncRNA–drug resistance associations, on sparse bipartite networks | lncRNA expression exists in cell-line RNA-seq, so lncRNA nodes can get a baseline as well as chromatin | GNN-based lncRNA drug response in cell lines is sparsely explored: room for novelty, and risk |
+| knockdown data quality | **Smith et al. 2017** (PLoS Biol): shRNA seed effects outweigh on-target effects; consensus gene signatures recover on-target activity; CRISPR has negligible off-target activity | use `trt_sh.cgs`, never single hairpins; overexpression as an independent start-node set; CRISPR where available | — |
+
+**What this changes in E1:**
+- add the published simple baselines (no change; additive; linear on gene embeddings) beside the expression-only control;
+- add ligand responses (LEMBAS's setting) as a second T2 dataset;
+- add TF activities (DoRothEA / decoupler) as an intermediate "ends here" layer;
+- look for the 500-line SHARE-seq release before building T3.
+
+**Sources:** CARNIVAL https://pmc.ncbi.nlm.nih.gov/articles/PMC6848167 · LEMBAS https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9163072/
+(extension https://ideas.repec.org/a/plo/pcbi00/1014100.html) · CellBox https://github.com/sanderlab/CellBox, re-analysis
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11707890/ · GEARS https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11180609/ ·
+Ahlmann-Eltze et al. https://pmc.ncbi.nlm.nih.gov/articles/PMC12328236/ · GenePert
+https://www.biorxiv.org/content/10.1101/2024.10.27.620513.full.pdf · scGenePT
+https://www.biorxiv.org/content/10.1101/2024.10.23.619972.full.pdf · CellOracle
+https://www.biorxiv.org/content/10.1101/2020.02.17.947416v1.full-text, critique
+https://bohrium.dp.tech/paper/arxiv/2024.10.16.618746 · DrugCell https://pmc.ncbi.nlm.nih.gov/articles/PMC7737474 · P-NET
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8514339/ · AACR LB234
+https://aacrjournals.org/cancerres/article/84/7_Supplement/LB234/742448/Abstract-LB234-Identifying-cancer-vulnerabilities ·
+PEL super-enhancers https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7726151/ · lncRNA pharmacogenomics (cited via
+https://jci.org/references/scholar/43915/B62; primary paper to fetch) · Smith et al.
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5726721/
+
 **Status:** proposed 2026-11-01; nothing registered or run. **Next:**
-1. a literature scan of how others build cell representations;
+1. ~~a literature scan of how others build cell representations;~~ first pass done (E5); full texts of CARNIVAL, LEMBAS,
+   GEARS, CellOracle and DrugCell to read before the registration;
 2. the T1–T3 harness and its registration;
 3. the download approvals.
 
