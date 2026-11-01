@@ -12400,6 +12400,121 @@ reproduced exactly:
 **Not adopted as a change:** the review notes that `dev=True` on the cold-drug split still drops the 6 dev-carve cells' rows
 from the trained-check pool. Those rows are still gap training rows and the medians agree, so it is harmless and left as is.
 
+### 102.7 RESULT: v11, R1 and R2 (§102 item 5 / §102.1, read once) — **no claim on any of the four.** The full STRING graph, CCLE, chromatin on every gene and drug-target knowledge together move dev contrast r by +0.0036, under the threshold of 0.0042. The DTI probe (reported): atom → gene attention is at chance; the structure head transfers to unseen compounds above the popularity baseline (PI, 2026-11-01)
+**The runs:**
+- 12 kernels: 4 arms × 3 seeds, 2 × T4, `split_cold_cell_1` dev carve, d 256, 4 epochs, guarded (100.8);
+- s0 and s1 ran on `wwhhhhhhhh`; every seed-2 run ran on `suryababu179`;
+- every slot was ledgered at download (`v11_ledger.jsonl`, last 5e34280);
+- read by `model/v11/v11_read.py` → `model/results/v11/v11_reading.json`, once, after every slot resolved (102.1 Ask 6).
+
+**Attempts (100.8):** **every slot completed on its first attempt; the guard stopped none of the 12.** The reference is T-B's
+three off runs, checked against `tb_ledger.jsonl`; they ran without the guard and all three trained (100.9).
+- Reported, not read: the end-of-training mean batch-median dose scale is 0.14–0.20 in every arm with targets, and
+  0.070–0.097 in −targets. The target head's BCE also trains the drug token (§102.5 C2), and those runs keep the larger scale.
+- v10-C's chromatin-on runs collapsed in 6 of 14 runs and attempts (§100.14 with review 103's note). v11 collapsed in 0 of
+  12, including the 9 runs with cell-specific chromatin.
+
+**The registered readings** (dev contrast r, 12,202 rows, the 3-seed mean of per-row r; §100.4's rule):
+
+| reading | comparison | full | other | Δ | threshold | cells favouring full | verdict |
+|---|---|---|---|---|---|---|---|
+| **R1** | v11-full vs T-B off | 0.16670 | 0.16309 | **+0.0036** | 0.0042 | **6 / 6** | **no claim** |
+| **R2-chromatin** | vs −chromatin | | 0.16433 | +0.0024 | 0.0039 | 6 / 6 | **no claim** |
+| **R2-targets** | vs −targets | | 0.16653 | +0.0002 | 0.0030 | 3 / 6 | **no claim** |
+| **R2-CCLE** | vs −CCLE | | 0.16527 | +0.0014 | 0.0030 | 4 / 4 CCLE cells | **no claim** |
+
+- **R1 fails on Δ alone.** Every other condition passes: the mean of per-cell means is +0.0049 and all 6 dev cells favour
+  full. The SE is dominated by the reference's seed SD, 0.0035 against full's 0.0010.
+- **R2-chromatin fails the same way.** All 6 cells favour full, but the mean is 0.0024 against 0.0039.
+- **R2-targets is null.** Δ is +0.0002 and only 3 cells favour full.
+- **R2-CCLE fails on Δ.** All 4 CCLE cells favour full, but the mean is 0.0014 against the 0.003 floor.
+- Delta r, reported: full 0.4382 / 0.4378 / 0.4370; reference 0.4301 / 0.4343 / 0.4380; −chromatin 0.4378 / 0.4311 / 0.4398;
+  −targets 0.4387 / 0.4366 / 0.4356; −CCLE 0.4336 / 0.4287 / 0.4350.
+
+**The permutations** (reported, §102 item 5; each run's own dev contrast r minus the permuted one):
+- In every run, swapping CCLE across cells, swapping chromatin across cells, shuffling chromatin across genes, or
+  shuffling targets across compounds moves dev contrast r by **at most 0.0019, and by ≤ 0.0011 in all but one case.**
+- In v11-full the costs are 0.0005–0.0008 (CCLE swap), 0.0003–0.0004 (chromatin cell swap), 0.0005–0.0008 (gene shuffle)
+  and 0.0001–0.0004 (targets).
+- **So at inference v11 barely reads the cell-specific inputs it was given.** This agrees with R2: what the arms differ in
+  is training, not what the trained model looks up.
+
+**The strata** (reported, never read; §100.13 / §101.1 C3):
+- **Per compound:** 281 compounds with ≥ 10 rows. **No discovery at BH q = 0.10 in any of the four pairs.** None of the 9
+  balanced relabellings gives a discovery either.
+- **Per target status, R1:** known +0.0036 (3,859 rows); probe +0.0034 (195); unannotated +0.0036 (8,129); unseen annotated
+  +0.011 (19 rows). They are flat, so the gain is not concentrated where the target knowledge applies.
+- **Per class, R1:** the largest z values are receptor / channel / transporter (+0.0036, z 2.75, 1,276 rows) and epigenetic
+  (+0.0084, z 2.67, 258 rows, 30 compounds). For epigenetic, every full seed is above every reference seed. Under
+  −chromatin the epigenetic gap falls to +0.0031 (z 0.74). **Reported only. Many classes were looked at, and nothing here is
+  corrected for that.**
+- **CCLE vs non-CCLE cells:** R1 +0.0049 against +0.0026; R2-CCLE +0.0025 against +0.0005. T47D alone has z 2.8 in R2-CCLE.
+- **Known-target setting** (unseen annotated compounds given their known targets instead of predicted ones, 20 rows): in
+  the 9 runs with targets, contrast r moves by −0.0002 to +0.0012. Giving the model the true targets barely changes what it
+  predicts.
+
+**The DTI probe** (reported, never a claim; §102.1 C6, §102.5 C3):
+- **The run:** `model/v11/v11_probe.py` → `model/results/v11/v11_probe.json`, once, on CPU. Its 29 inputs were checked
+  against the kernels' sha1 pins.
+- **Its n:**
+  - 280 probe compounds. 114 are scored on their held-out (dev-cell) rows, and 172 on their training rows (responses the
+    model fitted, targets it never saw);
+  - the ChEMBL-evidence subset is 12 / 20 compounds, and the rest is mostly STITCH co-occurrence;
+  - chance recall@10 is 0.010.
+
+**Atom → gene attention does not find the targets.**
+
+| recall@10 | v11-full | v11 − targets | T-B off (reference) |
+|---|---|---|---|
+| held-out rows | 0.013 | 0.023 | 0.015 |
+| training rows | 0.016 | 0.011 | 0.007 |
+
+- All of them are close to chance (0.010) in every Tanimoto bin. The largest is 0.030 (−targets' attention, one bin of 47
+  compounds), and v11-full is no better than the models that never saw a target.
+- This repeats the v5-era finding (median target rank 0.560), now on compounds whose targets were held out.
+
+**The structure head does find them, above the popularity baseline.** The baseline is −targets' untrained head, which keeps
+each gene's prior rate (§102.5 C3).
+
+| held-out compounds, recall@10 | v11-full head (3 seeds) | baseline | compounds |
+|---|---|---|---|
+| all | **0.218** (0.216–0.219) | 0.156 | 114 |
+| max Tanimoto < 0.3 | 0.131 | 0.093 | 47 |
+| 0.3–0.5 | 0.185 | 0.157 | 47 |
+| ≥ 0.5 | **0.499** | 0.303 | 20 |
+
+- **The gain is largest for close analogues,** but it is present for dissimilar compounds too.
+- On the training-row compounds the head scores 0.185 against 0.129.
+- On the ChEMBL subset it scores 0.847 against 0.611. That is 12 compounds, so it is descriptive only.
+
+**So the target knowledge lives in the head, not in the attention.**
+- The head's predicted targets do reach the response model, as FG's target signal. But R2-targets shows they do not improve
+  the responses, and the attention does not carry them.
+- §102.5 C3's check ("if the attention is no better than the head, it restates the head") comes out the other way. The
+  attention is far below the head and does not restate it.
+
+**The reading:**
+- **v11 gives no claim on anything it was built to test.** Its point estimates are all positive, and the direction is
+  consistent across cells for R1 and R2-chromatin. But at 3 seeds the registered rule cannot separate them from noise:
+  the reference's seed SD (0.0035) is as large as R1's Δ (0.0036).
+- **The permutations say why the arms are close.** The trained models barely use cell-specific chromatin, CCLE or targets at
+  inference. Only one ablation, −targets, changes training visibly: its end-of-training dose scale is 0.07–0.10 against
+  0.14–0.20, and its dev contrast r is the same as full's.
+- **The unseen-compound gap (§100.17) is not touched here.** R1 / R2 are on dev cells. v11's test-set evaluation was to be
+  registered after R1 / R2 (§102 item 5). With no R passing, the PI proposes not to spend test rows on it (for review).
+- **For the MoA goal:** a molecule → target predictor transfers to unseen compounds (above the popularity baseline, most for
+  analogues). But the response model does not route its predictions into better responses, and the attention is not where
+  target knowledge lives. Reading mechanism from attention has now failed on held-out compounds as well.
+- **What this adds up to:** as an input to a drug-response model, chromatin gives no detectable gain at this scale. That
+  holds through v10-C (T-B, T-C), through the T-E tests (explained by expression), and now through v11's gate on every gene,
+  with or without CCLE.
+  - At 3 seeds the dev rule's floor is about 0.004. An effect of v11's size (+0.0036) would need more seeds per arm to
+    resolve.
+  - The next programme changes the question rather than the inputs (IDEAS §E, the principal's direction of 2026-11-01).
+    It first trains the cell representation on targets that test the cell itself (genetic perturbations with a known start
+    node, expression imputation, dependency), against an expression-only control. Only the winners move to drug response.
+    The MoA route is made explicit by construction: targets as start nodes, and pathway units the signal must pass through.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
