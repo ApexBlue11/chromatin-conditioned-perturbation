@@ -12603,6 +12603,56 @@ targets, and the attention is not. The head half waits on §102.8.
 - **Per-compound values are saved** (review 102 C3) in `model/results/v11/v11_probe_head.json`.
 - **The code:** `model/v11/v11_probe_head.py`, with tests, committed before its one run.
 
+### 102.9 RESULT: the head comparison (§102.8, read once) — **the head ranks held-out compounds' targets above popularity and transfers beyond nearest-neighbour lookup; the gain is in close analogues** (reported, never a claim; PI, 2026-11-01)
+**The run:**
+- `model/v11/v11_probe_head.py` (598b614, with the self-check fix b70f56b) → `model/results/v11/v11_probe_head.json` (sha1
+  `9eca262e…`). Per-compound values are saved (review 102 C3).
+- **The first run stopped at a self-check, before anything was computed or written.**
+  - The code compared the −targets heads' bias with the prior logit **by value** (atol 1e-5). §102.8 registers **ranking**
+    equality.
+  - The bias is the prior logit shrunk by 0.1–0.2 % (at most 0.009 logits), consistent with AdamW's weight decay (1e-4) at
+    float32 resolution.
+  - The order and the ties are the same in all three seeds (835 vocabulary genes, 35 distinct prior values).
+  - The check was corrected to the registered ranking test (b70f56b, with a test) and re-run.
+
+**The self-checks passed:**
+- the head, ranked as the probe ranks, reproduces `v11_probe.json` for every model, setting, subset and bin, with a max
+  |diff| of 0.0;
+- the popularity ranking equals each −targets checkpoint's bias ranking;
+- the compound sets and bins equal the probe's counts;
+- the known pool is 1,023 fingerprint rows.
+
+**Held-out compounds, recall@10, the 'all' subset** (paired compound-bootstrap 95 % CIs):
+
+| compounds | head (3 seeds) | popularity | NN | untrained | head − popularity | head − NN |
+|---|---|---|---|---|---|---|
+| **all, 114** | **0.218** | 0.167 | 0.174 | 0.156 | **+0.051 [+0.007, +0.097]** | **+0.044 [+0.010, +0.080]** |
+| Tanimoto < 0.3, 47 | 0.131 | 0.114 | 0.110 | 0.093 | +0.017 [−0.049, +0.076] | +0.021 [−0.034, +0.077] |
+| 0.3–0.5, 47 | 0.185 | 0.158 | 0.141 | 0.157 | +0.027 [−0.046, +0.101] | +0.044 [−0.005, +0.098] |
+| ≥ 0.5, 20 | **0.499** | 0.312 | 0.403 | 0.303 | +0.187 [+0.085, +0.310] | **+0.096 [+0.022, +0.183]** |
+
+- **The head per seed:** 0.219 / 0.219 / 0.216. The untrained head per seed: 0.169 / 0.147 / 0.153.
+- **True popularity (0.167) is above the untrained head (0.156),** as review 104 C1 expected.
+- **Training-row compounds (172):** head 0.185, popularity 0.146, NN 0.152. Head − popularity is +0.039 [+0.008, +0.070],
+  and head − NN +0.033 [+0.009, +0.059]. By bin, the same pattern: only ≥ 0.5 excludes 0 against NN (+0.055 [+0.013, +0.109]).
+- **The ChEMBL subset (descriptive):** held-out 12 compounds, head 0.847, popularity 0.667, NN 0.833. Training-row 20
+  compounds: 0.908 / 0.800 / 0.900. The head and NN are close here.
+
+**The registered verdicts** (held-out, recall@10, 'all'):
+- **"the head ranks held-out compounds' targets above popularity"**;
+- **"the head transfers beyond nearest-neighbour lookup"**.
+
+**The reading:**
+- **v11's structure head learned a molecule → target mapping that generalises to compounds whose targets it never saw.**
+  It ranks those targets above both popularity and a copy of the nearest known compound's targets. Both CIs' lower bounds
+  are close to 0 (+0.007, +0.010).
+- **The gain is concentrated in close analogues.** For compounds with maximum Tanimoto ≥ 0.5 (20 compounds) the head beats
+  the nearest-neighbour lookup by +0.096 [+0.022, +0.183]. In the two dissimilar bins it is not distinguished from either
+  baseline. **So "present for dissimilar compounds too" remains not established** (review 104 C1).
+- **Together with §102.7:** the head's predictions reach the response model through FG, yet R2-targets is null, the
+  permutations cost ≤ 0.0019, and atom → gene attention is at chance. **The target knowledge exists in the head, but the
+  response model does not turn it into better responses (R2-targets) or into its attention.**
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
