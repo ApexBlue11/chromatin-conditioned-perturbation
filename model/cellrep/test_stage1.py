@@ -116,3 +116,57 @@ def test_percentile_zero_is_the_most_correlated_and_skip_applies():
 def test_cluster_bootstrap_is_reproducible():
     v, cl = np.linspace(0, 1, 40), np.repeat(np.arange(10), 4)
     assert s1.cluster_bootstrap_median(v, cl, 500) == s1.cluster_bootstrap_median(v, cl, 500)
+
+
+def test_corr_rows_own_matches_a_direct_computation():
+    rng = np.random.default_rng(5)
+    v, M = rng.normal(size=40), rng.normal(size=(12, 40))
+    own = np.array([-1, 3, 0, 39, -1, 7, 7, -1, 12, 1, 2, 5])
+    got = s1.corr_rows_own(v, M, own)
+    for k in range(12):
+        keep = np.ones(40, bool)
+        if own[k] >= 0:
+            keep[own[k]] = False
+        assert got[k] == pytest.approx(np.corrcoef(v[keep], M[k, keep])[0, 1])
+
+
+def test_own_exclusion_removes_the_dip_bias_the_one_set_ranking_has():
+    """Review 108 C2: with a shared generic component, competitors that keep a deep own-gene dip rank too low."""
+    rng = np.random.default_rng(6)
+    J, n = 200, 400
+    gen = rng.normal(size=J)
+    own = np.full(n, -1)
+    own[:120] = rng.integers(0, J, 120)                       # 30 % landmark knockdowns with their own dip
+    M = 0.5 * gen + rng.normal(size=(n, J))
+    M[np.arange(120), own[:120]] -= 15.0
+    fixed, old = [], []
+    for trial in range(60):
+        v = 0.5 * gen + rng.normal(size=J)
+        t = int(rng.integers(120, n))                         # a target with no dip and no specific relation
+        fixed.append(s1.percentile_of(s1.corr_rows_own(v, M, own), t))
+        old.append(s1.percentile_of(s1.corr_rows(v, M), t))
+    assert abs(np.mean(fixed) - 0.5) < 0.06 and np.mean(old) < np.mean(fixed) - 0.05
+
+
+def test_d1_gate_follows_the_primary_version():
+    rng = np.random.default_rng(7)
+    J = 300
+    E = rng.normal(size=(6, J))
+    feats = {'ACT:prom_1kb': (rng.normal(size=(6, J)), np.ones(6, bool))}
+    R_cons = E + 0.3 * rng.normal(size=(6, J))               # its positive control passes
+    R_prim = rng.normal(size=(6, J))                          # its positive control fails
+    p = s1.d1_analysis(R_prim, R_prim, E, feats, n_boot=200)
+    c = s1.d1_analysis(R_cons, R_cons, E, feats, n_boot=200)
+    assert p['positive_control']['passes'] is False and 'ACT:prom_1kb' not in p and p['verdict'].startswith('not interpreted')
+    assert c['positive_control']['passes'] is True and 'passes' in c['ACT:prom_1kb'] and 'reported' in c
+
+
+def test_partial_spearman_with_two_covariates_equals_the_precision_matrix_formula():
+    """The rank partial with several covariates is the partial correlation of the ranked variables."""
+    rng = np.random.default_rng(8)
+    z1, z2 = rng.normal(size=3000), rng.normal(size=3000)
+    x, y = z1 + z2 + rng.normal(size=3000), z1 - z2 + rng.normal(size=3000)
+    R = np.column_stack([s1.rank(v) for v in (x, y, z1, z2)])
+    P = np.linalg.inv(np.corrcoef(R, rowvar=False))
+    want = -P[0, 1] / np.sqrt(P[0, 0] * P[1, 1])
+    assert s1.partial_spearman(x, y, np.stack([z1, z2], 1)) == pytest.approx(want, abs=1e-9)

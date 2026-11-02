@@ -6,7 +6,8 @@ Read once each, in this order, with the registered gates:
   VD        2,100 genes knocked down in all six core cells x 6 cells, per landmark: two-way shares (gene, cell, gene x cell)
             and the gene x cell mean square against a noise upper bound from PC3 / MCF7 96 h vs late pairs. Reported.
   ceiling   PC3 / MCF7 pairs: d96 and d_late against disjoint half-references; rho-hat and sqrt(rho-hat). Reported.
-  D1        r(c, j) = log(s_kd / s_ctl) over the 2,100 genes; double-centred; the mean within-cell (partial) Spearman.
+  D1        r(c, j) = log(s_kd / s_ctl), s_kd from hairpin-level trt_sh (primary, review 108) over the 2,100 genes
+            (consensus reported); double-centred; the mean within-cell (partial) Spearman.
             Positive control first (expression), then ACT:prom_1kb partial on expression. Landmark-cluster bootstrap.
   B1        a drug's Level 5 signature against its targets' knockdowns in the same cell (PC3, A375, A549, HEPG2; cold-cell
             training cells, cold-drug training compounds; highest dose at 24 h, else 6 h). Percentile 0 = most correlated.
@@ -142,11 +143,12 @@ def rank(x):
 
 
 def partial_spearman(x, y, z=None):
-    """Spearman of x and y, partial on z (Pearson on ranks, z's rank regressed out of both)."""
+    """Spearman of x and y, partial on z ([n] or [n, k]; Pearson on ranks, z's ranks regressed out of both)."""
     rx, ry = rank(np.asarray(x, np.float64)), rank(np.asarray(y, np.float64))
     if z is not None:
-        rz = rank(np.asarray(z, np.float64))
-        Z = np.stack([np.ones_like(rz), rz], 1)
+        zz = np.asarray(z, np.float64)
+        zz = zz[:, None] if zz.ndim == 1 else zz
+        Z = np.column_stack([np.ones(len(rx))] + [rank(zz[:, k]) for k in range(zz.shape[1])])
         rx = rx - Z @ np.linalg.lstsq(Z, rx, rcond=None)[0]
         ry = ry - Z @ np.linalg.lstsq(Z, ry, rcond=None)[0]
     return row_r(rx, ry)
@@ -164,10 +166,41 @@ def mean_within_cell(R, F, E=None, cells_ok=None):
         if cells_ok is not None and not cells_ok[c]:
             vals.append(np.nan)
             continue
-        ok = np.isfinite(R[c]) & np.isfinite(F[c]) & (np.isfinite(E[c]) if E is not None else True)
+        ok = np.isfinite(R[c]) & np.isfinite(F[c])
+        if E is not None:
+            ok &= np.isfinite(E[c]) if E.ndim == 2 else np.isfinite(E[c]).all(-1)
         vals.append(partial_spearman(R[c][ok], F[c][ok], E[c][ok] if E is not None else None))
     vals = np.array(vals)
     return float(np.nanmean(vals)), vals
+
+
+def d1_analysis(R, R_tech, E, feats, n_boot, E2=None):
+    """D1 on one version of r (103.1 C3, review 108): the positive control (expression) gates; then ACT:prom_1kb partial on
+    expression, passes if the landmark-bootstrap CI excludes 0 (> 0) and >= 5 of 6 cells are positive; then the reported
+    items on the same r. feats: name -> (centred feature [6, J], cell availability [6])."""
+    pc_mean, pc_cells = mean_within_cell(R, E)
+    pc_ci = landmark_bootstrap(R, E, n_boot=n_boot)
+    out = {'positive_control': {'mean_within_cell_spearman': pc_mean, 'per_cell': dict(zip(CORE, map(float, pc_cells))),
+                                'ci95': pc_ci, 'passes': bool(pc_ci[0] > 0 or pc_ci[1] < 0)}}
+    if not out['positive_control']['passes']:
+        out['verdict'] = 'not interpreted: the positive control failed (103)'
+        return out
+    F, ok = feats['ACT:prom_1kb']
+    m, per = mean_within_cell(R, F, E, ok)
+    ci = landmark_bootstrap(R, F, E, ok, n_boot=n_boot)
+    npos = int(np.nansum(per > 0))
+    out['ACT:prom_1kb'] = {'mean_within_cell_partial_spearman': m, 'per_cell': dict(zip(CORE, map(float, per))),
+                           'ci95': ci, 'cells_positive': npos, 'passes': bool(ci[0] > 0 and npos >= 5)}
+    if E2 is not None:
+        EE = np.stack([E, E2], -1)
+        out['ACT:prom_1kb']['secondary_covariates_ccle_and_l1000_ctl'] = mean_within_cell(R, F, EE, ok)[0]
+    rep = {}
+    for name, (Fx, okx) in feats.items():
+        rep[name] = {'n_cells': int(okx.sum()), 'partial_on_expression': mean_within_cell(R, Fx, E, okx)[0],
+                     'rung1_no_covariate': mean_within_cell(R, Fx, None, okx)[0],
+                     'technical_channel_s_ctl': mean_within_cell(R_tech, Fx, E, okx)[0]}
+    out['reported'] = rep
+    return out
 
 
 def landmark_bootstrap(R, F, E=None, cells_ok=None, n_boot=N_BOOT, seed=0):
@@ -220,6 +253,22 @@ def corr_rows(v, M, skip=None):
     Mc = M - M.mean(1, keepdims=True)
     den = np.sqrt((v * v).sum() * (Mc * Mc).sum(1))
     return np.where(den > 0, Mc @ v / np.where(den > 0, den, 1), 0.0)
+
+
+def corr_rows_own(v, M, own):
+    """Pearson r of v with each row k of M over every coordinate except own[k] (own[k] < 0: all coordinates). Each
+    knockdown loses its own-gene coordinate, so no competitor keeps a dip the target lacks (review 108 C2)."""
+    v, M, own = np.asarray(v, np.float64), np.asarray(M, np.float64), np.asarray(own)
+    has = own >= 0
+    oi = np.where(has, own, 0)
+    vo = np.where(has, v[oi], 0.0)
+    mo = np.where(has, M[np.arange(len(M)), oi], 0.0)
+    nn = M.shape[1] - has
+    Sv, Svv = v.sum() - vo, (v * v).sum() - vo * vo
+    Sm, Smm, Smv = M.sum(1) - mo, (M * M).sum(1) - mo * mo, M @ v - mo * vo
+    cov = Smv - Sm * Sv / nn
+    den = np.sqrt(np.clip(Svv - Sv * Sv / nn, 0, None) * np.clip(Smm - Sm * Sm / nn, 0, None))
+    return np.where(den > 0, cov / np.where(den > 0, den, 1), 0.0)
 
 
 def cluster_bootstrap_median(values, clusters, n_boot=N_BOOT, seed=0):
@@ -388,63 +437,46 @@ def run(a):
     for ci, c in enumerate(CORE):
         S_ctl[ci] = Y[ctl96 & (cell == c)].std(0, ddof=1)
     rec['D1_n_ctl_vector'] = {c: int((ctl96 & (cell == c)).sum()) for c in CORE}
-    S_hp = None
-    if a.kd_hairpin and os.path.exists(a.kd_hairpin):          # review 107 C3: s_kd from hairpin-level signatures
-        h = np.load(a.kd_hairpin)
-        hm = (h['pert_type'] == 'trt_sh') & (h['pert_itime'] == '96 h') & np.isin(h['pert_iname'], g6)
-        S_hp = np.full((6, Y.shape[1]), np.nan)
-        rec['D1_n_hairpin_rows'] = {}
-        for ci, c in enumerate(CORE):
-            r = np.flatnonzero(hm & (h['cell_id'] == c))
-            Hc, tg_c = h['Y'][r].astype(np.float64), h['pert_iname'][r]
-            rec['D1_n_hairpin_rows'][c] = int(len(r))
-            for j in range(Y.shape[1]):
-                S_hp[ci, j] = Hc[tg_c != lm_sym[j], j].std(ddof=1)
-    Rr = centre_by_landmark(np.log(S_kd / S_ctl))
-    Rctl = centre_by_landmark(np.log(S_ctl))
+    # review 108 Ask 2: hairpin-level s_kd is D1's primary (the construction of ctl_vector); consensus is reported
+    if not (a.kd_hairpin and os.path.exists(a.kd_hairpin)):
+        raise SystemExit('FATAL: the hairpin-level extract (D1 primary, 103.3) is missing')
+    h = np.load(a.kd_hairpin)
+    hm = (h['pert_type'] == 'trt_sh') & (h['pert_itime'] == '96 h') & np.isin(h['pert_iname'], g6)
+    S_hp = np.full((6, Y.shape[1]), np.nan)
+    rec['D1_hairpins'] = {}
+    for ci, c in enumerate(CORE):
+        r = np.flatnonzero(hm & (h['cell_id'] == c))
+        Hc, tg_c = h['Y'][r].astype(np.float64), h['pert_iname'][r]
+        per_gene = np.unique(tg_c, return_counts=True)[1]
+        rec['D1_hairpins'][c] = {'rows': int(len(r)), 'genes': int(len(per_gene)), 'per_gene_mean': float(per_gene.mean()),
+                                 'per_gene_min': int(per_gene.min()), 'per_gene_max': int(per_gene.max())}
+        for j in range(Y.shape[1]):
+            S_hp[ci, j] = Hc[tg_c != lm_sym[j], j].std(ddof=1)
+    R_primary = centre_by_landmark(np.log(S_hp / S_ctl))
+    R_consensus = centre_by_landmark(np.log(S_kd / S_ctl))
+    R_tech = centre_by_landmark(np.log(S_ctl))
     E = centre_by_landmark(np.stack([ce['expr_landmarks'][epos[c]] for c in CORE]).astype(np.float64))
+    # the registered secondary covariate (review 108 C3): the substrate's mean L1000 control profile of j in c
+    sub = np.load(a.substrate, allow_pickle=True)
+    E2 = centre_by_landmark(np.stack([sub['ctl'][np.unique(sub['ctl_id'][sub['meta_cell_iname'] == c])].mean(0)
+                                      for c in CORE]).astype(np.float64))
 
     def feat(name):
         k = fn.index(name)
         X = np.stack([ch['F'][cpos[c], :, k] for c in CORE]).astype(np.float64)
-        axis = name.split(':')[0]
-        ai = {'ACC': 0, 'ACT': 1, 'PCG': 2, 'METH': 3}[axis]
+        ai = {'ACC': 0, 'ACT': 1, 'PCG': 2, 'METH': 3}[name.split(':')[0]]
         ok = np.array([bool(ch['M'][cpos[c], :, ai].any()) for c in CORE])
         X[~ok] = np.nan
         return centre_by_landmark(X), ok
 
-    pc_mean, pc_cells = mean_within_cell(Rr, E)
-    pc_ci = landmark_bootstrap(Rr, E, n_boot=a.n_boot)
-    d1 = {'positive_control': {'mean_within_cell_spearman': pc_mean, 'per_cell': dict(zip(CORE, map(float, pc_cells))),
-                               'ci95': pc_ci, 'passes': pc_ci[0] > 0 or pc_ci[1] < 0}}
-    if d1['positive_control']['passes']:
-        F, ok = feat('ACT:prom_1kb')
-        m, per = mean_within_cell(Rr, F, E, ok)
-        ci = landmark_bootstrap(Rr, F, E, ok, n_boot=a.n_boot)
-        npos = int(np.nansum(per > 0))
-        d1['ACT:prom_1kb'] = {'mean_within_cell_partial_spearman': m, 'per_cell': dict(zip(CORE, map(float, per))),
-                              'ci95': ci, 'cells_positive': npos, 'passes': ci[0] > 0 and npos >= 5}
-        rep = {}
-        for name in fn:
-            Fx, okx = feat(name)
-            rep[name] = {'partial_on_expression': mean_within_cell(Rr, Fx, E, okx)[0],
-                         'rung1_no_covariate': mean_within_cell(Rr, Fx, None, okx)[0],
-                         'technical_channel_s_ctl': mean_within_cell(Rctl, Fx, E, okx)[0]}
-        d1['reported'] = rep
-        if S_hp is not None:
-            Rh = centre_by_landmark(np.log(S_hp / S_ctl))
-            mh, perh = mean_within_cell(Rh, F, E, ok)
-            d1['hairpin_variant_ACT:prom_1kb'] = {
-                'mean_within_cell_partial_spearman': mh, 'per_cell': dict(zip(CORE, map(float, perh))),
-                'ci95': landmark_bootstrap(Rh, F, E, ok, n_boot=a.n_boot), 'cells_positive': int(np.nansum(perh > 0)),
-                'positive_control': mean_within_cell(Rh, E)[0],
-                'note': 's_kd from hairpin-level trt_sh (same construction as ctl_vector), review 107 C3'}
-        Ru = np.log(S_kd / S_ctl)
-        Fu = np.stack([ch['F'][cpos[c], :, fn.index('ACT:prom_1kb')] for c in CORE]).astype(np.float64)
-        d1['reported_uncentred_ACT_per_cell'] = {c: partial_spearman(Ru[i], Fu[i]) for i, c in enumerate(CORE)}
-    else:
-        d1['verdict'] = 'not interpreted: the positive control failed (103)'
-    rec['D1'] = d1
+    feats = {name: feat(name) for name in fn}
+    rec['D1'] = d1_analysis(R_primary, R_tech, E, feats, a.n_boot, E2)
+    rec['D1']['primary'] = 's_kd from hairpin-level trt_sh (review 108 Ask 2)'
+    rec['D1_consensus_reported'] = d1_analysis(R_consensus, R_tech, E, feats, a.n_boot, E2)
+    rec['D1_consensus_reported']['note'] = 'reported, never read: s_kd from consensus (CGS) signatures'
+    Fu = np.stack([ch['F'][cpos[c], :, fn.index('ACT:prom_1kb')] for c in CORE]).astype(np.float64)
+    Ru = np.log(S_hp / S_ctl)
+    rec['D1']['reported_uncentred_ACT_per_cell'] = {c: partial_spearman(Ru[i], Fu[i]) for i, c in enumerate(CORE)}
 
     # B1
     rec['B1'] = run_b1(a, Y, pt, cell, gene, itime, idx, lm_pos, sm)
@@ -477,9 +509,12 @@ def run_b1(a, Y, pt, cell, gene, itime, idx, lm_pos, sm=None):
     kd_by_cell = {c: sorted(gg for (gg, cc) in idx if cc == c) for c in train_cells}
     kd_mat = {c: np.stack([Y[idx[(gg, c)]] for gg in kd_by_cell[c]]) for c in train_cells}
     kd_pos = {c: {gg: k for k, gg in enumerate(kd_by_cell[c])} for c in train_cells}
+    kd_own = {c: np.array([lm_pos.get(gg, -1) for gg in kd_by_cell[c]]) for c in train_cells}
+    kd_graph = {c: [gg for gg in kd_by_cell[c] if gg in gdeg] for c in train_cells}      # review 108 choice 3
     oe96 = (pt == 'trt_oe') & (itime == '96 h')
     rng = np.random.default_rng(0)
     out, out_all, out_hub, mm, ag, out_tas = [], [], [], [], [], []
+    hub_skipped = 0
     for (d, c), rr in sorted(rows.items()):
         targets = tg.get(d, {}).get(-1, set())
         chosen = choose_rows(rr)
@@ -493,30 +528,32 @@ def run_b1(a, Y, pt, cell, gene, itime, idx, lm_pos, sm=None):
         for t in sorted(targets):
             if t not in kd_pos[c]:
                 continue
-            sk = lm_pos.get(t)
-            cr = corr_rows(v, kd_mat[c], sk)
+            cr = corr_rows_own(v, kd_mat[c], kd_own[c])
             p = percentile_of(cr, kd_pos[c][t])
             out.append((d, c, t, p))
             out_tas.append(tas_d)
-            out_all.append(percentile_of(corr_rows(v_all, kd_mat[c], sk), kd_pos[c][t]))
-            cand = sorted((abs(gdeg.get(x, 0) - gdeg.get(t, 0)), x) for x in kd_by_cell[c] if x != t)[:10]
-            h = cand[rng.integers(0, len(cand))][1]
-            out_hub.append(percentile_of(cr, kd_pos[c][h]))
+            out_all.append(percentile_of(corr_rows_own(v_all, kd_mat[c], kd_own[c]), kd_pos[c][t]))
+            if t in gdeg:
+                cand = sorted((abs(gdeg[x] - gdeg[t]), x) for x in kd_graph[c] if x != t)[:10]
+                h = cand[rng.integers(0, len(cand))][1]
+                out_hub.append(percentile_of(cr, kd_pos[c][h]))
+            else:
+                hub_skipped += 1
             pm = []
             for c2 in train_cells:
                 if c2 != c and t in kd_pos[c2]:
-                    pm.append(percentile_of(corr_rows(v, kd_mat[c2], sk), kd_pos[c2][t]))
+                    pm.append(percentile_of(corr_rows_own(v, kd_mat[c2], kd_own[c2]), kd_pos[c2][t]))
             mm.append((d, p, float(np.mean(pm)) if pm else None))
         for t in sorted(tg.get(d, {}).get(1, set())):
             oi = [i for i in np.flatnonzero(oe96 & (cell == c)) if gene[i] == t]
             if oi:
                 oset = np.flatnonzero(oe96 & (cell == c))
-                cr = corr_rows(v, Y[oset], lm_pos.get(t))
+                cr = corr_rows_own(v, Y[oset], np.array([lm_pos.get(gene[i], -1) for i in oset]))
                 ag.append(percentile_of(cr, int(np.flatnonzero(oset == oi[0])[0])))
     ps = np.array([p for *_, p in out])
     drugs = np.array([d for d, *_ in out])
     res = {'n_pairs': len(out), 'n_drugs': len(set(drugs.tolist())), 'cells': sorted(train_cells),
-           'unparseable_doses': int(bad_dose),
+           'unparseable_doses': int(bad_dose), 'hub_skipped_target_not_in_graph': int(hub_skipped),
            'median_percentile': float(np.median(ps)) if len(ps) else None}
     if len(ps):
         ci = cluster_bootstrap_median(ps, drugs, a.n_boot)

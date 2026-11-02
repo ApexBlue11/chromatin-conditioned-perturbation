@@ -12716,7 +12716,9 @@ targets, and the attention is not. The head half waits on §102.8.
   - `trt_lig`: 8,256 ligand signatures, 14 cells.
   - Vector and untreated controls.
 - **The core set:**
-  - `trt_sh.cgs` at 96 h in the six cells with chromatin on all three axes and CCLE: PC3, MCF7, A375, A549, HEPG2, HT29.
+  - ~~`trt_sh.cgs` at 96 h in the six cells with chromatin on all three axes and CCLE: PC3, MCF7, A375, A549, HEPG2, HT29.~~
+    **(review 108 C4)** `trt_sh.cgs` at 96 h in six cells with CCLE and chromatin on ACC and ACT: PC3, MCF7, A375, A549,
+    HEPG2, HT29. PCG and METH are in five of them (not HT29).
   - That is 20,696 signatures and 3,927 genes, of which 3,271 are knocked down in ≥ 5 core cells and 2,100 in all six.
   - VCAP is excluded: it has 28 knockdowns at 96 h.
   - One consensus signature per (gene, cell) at 96 h.
@@ -12931,6 +12933,27 @@ and this section differ, this section governs.** The amended design goes back fo
   - the late-profiled genes are a selected subset;
   - for B1's matched / mismatched comparison only, pairs without t in another training core cell are counted and dropped.
 - **Next:** the stage-1 code (`model/cellrep/stage1.py`) with its tests, as a code packet, before P0 runs.
+
+### 103.3 Review 108 adopted (SOUND-WITH-CAVEATS): stage-1 code changes before its one run (PI, 2026-11-02)
+**Review 108** found the code faithful, with the gates right: the leak test stops the run, P0 returns first, D1 runs only
+after its positive control, and B1 is not gated on D1. 12 / 12 tests passed on the critic's own run. Adopted:
+- **Ask 2 — D1's primary is the hairpin-level s_kd,** with the consensus version reported, decided before the run.
+  - Hairpins match `ctl_vector`'s construction (one perturbation, replicate MODZ).
+  - Their seed effects are still perturbations, and the expression partial handles their expression-dependent part.
+  - The source: hairpin-level `trt_sh` (154,993 signatures, re-extracted from the same approved GCTX, sha1 `28d1e910…`;
+    `l1000_trt_sh_hairpin_lm978.npz`, sha1 `46a1234d…`).
+- **C1:** D1 is one function, `d1_analysis`, run on the primary.
+  - Its positive control gates; its rule gives `passes` (landmark-bootstrap CI > 0 and ≥ 5 of 6 cells); the reported items
+    are computed on the same version.
+  - The consensus version goes through the same function and is reported, never read.
+  - A test shows the gate follows the primary. Hairpins per gene per cell are reported.
+- **C2:** in B1, **every** knockdown's correlation excludes its own coordinate (`corr_rows_own`), so no competitor keeps a dip
+  the target lacks. A test with a shared generic component shows the fix is unbiased and the old one-set ranking is not.
+- **C3:** D1's secondary covariate is computed: the substrate's mean L1000 control profile of j in c, partialled with CCLE.
+- **C4:** the HT29 sentence is corrected in §103; each reported feature carries its cell count.
+- **Choice 3:** hub candidates are graph genes only. Targets outside the graph are counted and skipped.
+- **The code:** `model/cellrep/stage1.py` with 16 tests. Dry runs on fake values stay calibrated (leaky −1, fixed < 0.001;
+  VD 1.0009; B1 no pass). **The one run follows this commit.**
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
