@@ -1,0 +1,16 @@
+{
+ "cells": 131,
+ "global_chromatin_cells": 127,
+ "global_marks": 42,
+ "mirna_cells": 129,
+ "mirnas": 734,
+ "rpkm_cells": 131,
+ "rpkm_genes": 56202,
+ "inputs": {
+  "CCLE_GlobalChromatinProfiling_20181130.csv": "516706c09c91b92d1da0412865703dbfc7d9c2a6",
+  "CCLE_miRNA_20181103.gct": "678760a8cddcf83107eed4b17a400300de15e409",
+  "CCLE_RNAseq_genes_rpkm_20180929.gct.gz": "62fe97c64406e6b66a6b0eac3f2a5029cb20d33c",
+  "tss_ccle_coverage.json": "76f4ca056e84f803ebfc5566699f19a5322e8d1e"
+ },
+ "out_sha1": "496a0e8add32a77d356cab55fe934446557bece9"
+}
