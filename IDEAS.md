@@ -273,7 +273,20 @@ PEL super-enhancers https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7726151/ · lnc
 https://jci.org/references/scholar/43915/B62; primary paper to fetch) · Smith et al.
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5726721/
 
-**Status:** proposed 2026-11-01; nothing registered or run. **Next:**
+**Status (2026-11-02): stage 1 done (RESULTS §103–103.5); stage 2 registered (§103.6, packet 110).**
+- **Stage 1** (every number reproduced by the critic):
+  - **the knockdown proxy is valid:** own-gene percentile 0.004;
+  - **a real, modest cell-specific signal:** gene × cell 1.17 × the noise bound; best achievable r ≥ 0.43;
+  - **D1, chromatin and a gene's cell-specific responsiveness:** null beyond expression (+0.001 [−0.028, 0.031]);
+  - **B1, a drug resembles its target's knockdown:** passes at the gene level (median percentile 0.429 [0.407, 0.457], top-5 %
+    2× chance, hub 0.490, driven by active drugs). This is the measured basis for targets as start nodes (E4). No detectable
+    cell specificity.
+- **Stage 2** (all 3 Kaggle accounts):
+  - M1 expression MLP and M2 + chromatin;
+  - M3 recurrent gated STRING propagation (E3), with its expression-only (M4) and rewired-graph (M5) controls;
+  - LOCO and cold-gene; the injection positive control first.
+
+**Status (2026-11-01):** proposed; nothing registered or run. **Next:**
 1. ~~a literature scan of how others build cell representations;~~ first pass done (E5); full texts of CARNIVAL, LEMBAS,
    GEARS, CellOracle and DrugCell to read before the registration;
 2. the T1–T3 harness and its registration;
