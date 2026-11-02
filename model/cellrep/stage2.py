@@ -12,9 +12,10 @@ knockdown proxy. One job = (model, setting, seed, injection, K); it trains, scor
              node over the binary STRING expdb graph, gates from each node's expression + chromatin; M4 = M3 with
              expression-only gates; M5 = M3 on the degree-preserving rewired graph. K = 3 (4 as a sensitivity run).
              The 31 landmarks with no graph edge are read from the mean-pooled node state.
-  injection  d' = d + s u; u = phi(c, j) psi(g) (dense) or phi psi [A^3 e_g]_j / SD (graph); phi = ACT:prom_1kb residualised on
-             CCLE expression within cell (raw ACT reported); psi ~ N(0, 1) per gene (default_rng(2)); s sets Var(s u) to a
-             share of Var(target) over training rows; train and test targets alike.
+  injection  d' = d + s u; u = phi(c, j) psi(g) (dense) or phi psi [sum_{k<=3} A^k e_g]_j (graph); phi = ACT:prom_1kb
+             residualised on CCLE expression within cell (raw ACT reported); psi ~ N(0, 1) per gene, keyed on the sorted
+             graph genes (default_rng(2)), or psi = 1 for the graph family, which has no gene-specific input (review 111
+             C1); s sets Var(s u) to a share of Var(target) over training rows; train and test targets alike.
 
     python model/cellrep/stage2.py --job '{"model": "M3", "setting": "loco:PC3", "seed": 0}' --roots ... --out_dir out/
 """
@@ -157,24 +158,26 @@ def phi_matrix(D, residualise=True):
     return {c: out[k] for k, c in enumerate(TRAIN_CELLS)}
 
 
-def graph_shape(D, A_norm, gene):
-    """[A^3 e_g] at the landmark nodes."""
+def graph_shape(D, A_norm, gene, K=3):
+    """[sum_{k=1..K} A^k e_g] at the landmark nodes: every walk of up to K steps from g (review 111 C3)."""
     v = np.zeros(len(D.nodes))
     v[D.node_of[gene]] = 1.0
-    for _ in range(3):
+    acc = np.zeros(len(D.nodes))
+    for _ in range(K):
         v = A_norm @ v
-    return v[D.lm_node]
+        acc += v
+    return acc[D.lm_node]
 
 
-def inject(D, train, test, share, shape, residualise=True, A_norm=None):
-    """Adds s u to every target (train and test); s puts Var(s u) at `share` of Var(target) over training rows."""
+def inject(D, train, test, share, shape, residualise=True, A_norm=None, use_psi=True):
+    """Adds s u to every target (train and test); s puts Var(s u) at `share` of Var(target) over training rows. psi is keyed
+    on the sorted graph genes, so a gene has one psi in every fold; use_psi=False sets psi = 1 (the graph family)."""
     phi = phi_matrix(D, residualise)
-    genes = sorted({g for g, _, _ in train + test})
-    psi = dict(zip(genes, np.random.default_rng(2).normal(size=len(genes))))
+    psi = dict(zip(D.genes, np.random.default_rng(2).normal(size=len(D.genes)))) if use_psi else None
     gs = {}
 
     def u(g, c):
-        base = phi[c] * psi[g]
+        base = phi[c] * (psi[g] if use_psi else 1.0)
         if shape == 'graph':
             if g not in gs:
                 gs[g] = graph_shape(D, A_norm, g)
@@ -360,7 +363,8 @@ def job_tag(job):
     inj = job.get('inject')
     parts = [job['model'], job['setting'].replace(':', '-'), f"s{job['seed']}", f"K{job.get('K', 3)}"]
     if inj:
-        parts.append(f"inj-{inj['shape']}-{inj['share']}" + ('' if inj.get('residualise', True) else '-raw'))
+        parts.append(f"inj-{inj['shape']}-{inj['share']}" + ('' if inj.get('residualise', True) else '-raw')
+                     + ('' if inj.get('psi', True) else '-nopsi'))
     return '_'.join(parts)
 
 
@@ -378,7 +382,8 @@ def run_job(job, roots, out_dir, device, D=None):
     inj, inj_te = job.get('inject'), None
     if inj:
         A_s = norm_adj_scipy(D.edges['real'], len(D.nodes)) if inj['shape'] == 'graph' else None
-        tr, te, inj_te = inject(D, tr, te, float(inj['share']), inj['shape'], inj.get('residualise', True), A_s)
+        tr, te, inj_te = inject(D, tr, te, float(inj['share']), inj['shape'], inj.get('residualise', True), A_s,
+                                inj.get('psi', True))
     m = inner_split(tr, 'rows' if loco else 'genes')
     va, tr2 = [r for r, x in zip(tr, m) if x], [r for r, x in zip(tr, m) if not x]
     torch.manual_seed(seed)
@@ -421,7 +426,8 @@ def main(argv=None):
     ap.add_argument('--out_dir', required=True)
     ap.add_argument('--device', default='cuda' if torch.cuda.is_available() else 'cpu')
     a = ap.parse_args(argv)
-    print(run_job(json.loads(a.job), a.roots, a.out_dir, a.device))
+    tag, _ = run_job(json.loads(a.job), a.roots, a.out_dir, a.device)
+    print(tag, 'done')                                                    # never a score (review 111 C2)
 
 
 if __name__ == '__main__':

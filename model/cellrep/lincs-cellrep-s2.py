@@ -33,8 +33,8 @@ def worker(gpu, jobs, src):
     for j in jobs:
         t0 = time.time()
         try:
-            tag, r = stage2.run_job(j, ROOTS, OUT, 'cuda', D=D)
-            print(f'[gpu{gpu}] {tag} mean_r {r:.4f} {time.time() - t0:.0f}s', flush=True)
+            tag, _ = stage2.run_job(j, ROOTS, OUT, 'cuda', D=D)
+            print(f'[gpu{gpu}] {tag} done {time.time() - t0:.0f}s', flush=True)       # never a score (review 111 C2)
         except Exception:
             err = traceback.format_exc()
             print(f'[gpu{gpu}] FAILED {j}\n{err}', flush=True)

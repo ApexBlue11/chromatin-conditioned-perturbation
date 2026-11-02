@@ -13231,6 +13231,31 @@ Var(d), about 11–55 % of the true cell-specific variance, is kept.
   - the kernel runner `lincs-cellrep-s2.py` (one worker per GPU);
   - the reader that applies these rules is committed before any output is opened.
 
+### 103.8 Review 111 adopted (SOUND-WITH-CAVEATS; C1 BLOCKING, C2 MAJOR) before any stage-2 session runs (PI, 2026-11-02)
+**Review 111** found the code otherwise faithful (14 / 14 new tests on its run). Adopted:
+- **C1 (BLOCKING) — the graph family's positive control was unlearnable by construction.**
+  - Every injection multiplied by a random per-gene ψ(g). M1 / M2 can memorise it through the gene vector, but M3–M5 start from
+    one shared vector and have no gene-specific input.
+  - **The graph family's injection is now u = φ(c, j) · [Σ_{k≤3} Âᵏ e_g]_j with ψ ≡ 1,** at 5 %: M3 and M4, plus M1 and M2 on
+    the same form for comparison.
+  - **The graph family's dense injection is dropped,** since it could only fail.
+  - **The MLP family keeps ψ:** dense and graph shapes, 2 / 5 / 10 %, and raw ACT at 5 %.
+  - **A learnability test:** on a toy graph, GraphProp recovers φ × reach in a held-out cell (r > 0.3) and fails the ψ-random
+    version (|r| < 0.15).
+- **C2 (MAJOR) — the logs would have exposed real scores before the injection reading.**
+  - The runner and `stage2.main` now print only the tag, the status and the time.
+  - The real-phase reader refuses to run unless the injection reading is committed (`git ls-files`) and its sha1 equals the
+    pinned `--inject_sha1`.
+- **C3 (MINOR):**
+  - the reach shape is Σ_{k≤3} Âᵏ (every walk of up to 3 steps), not exactly-3-step walks;
+  - ψ is keyed on the sorted graph genes, so a gene has one ψ in every fold;
+  - the docstring is corrected.
+- **Ask 2, the training cells' sizes at 96 h:** the six core cells (3,287–3,669 knockdowns each), HCC515 2,408, SW480 232,
+  VCAP 28.
+- **The jobs, regenerated:** 324 injection jobs (MLP family with ψ 252; φ × reach with ψ ≡ 1, 72) and 126 real ones over six
+  T4 × 2 sessions. **The sessions run after this commit;** the real-target outputs stay unopened until the injection reading
+  is committed.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction

@@ -19,9 +19,9 @@ def jobs():
                 inj += [{'model': name, 'setting': s, 'seed': k, 'inject': {'shape': shape, 'share': share}} for s in loco for k in SEEDS]
         inj += [{'model': name, 'setting': s, 'seed': k, 'inject': {'shape': 'dense', 'share': 0.05, 'residualise': False}}
                 for s in loco for k in SEEDS]                           # raw ACT, reported
-    for name in ('M3', 'M4'):                                           # rung 3, graph family: both shapes at 5 %
-        for shape in ('dense', 'graph'):
-            inj += [{'model': name, 'setting': s, 'seed': k, 'inject': {'shape': shape, 'share': 0.05}} for s in loco for k in SEEDS]
+    for name in ('M1', 'M2', 'M3', 'M4'):                               # rung 3, graph-expressible: phi x reach, psi = 1, 5 %
+        inj += [{'model': name, 'setting': s, 'seed': k, 'inject': {'shape': 'graph', 'share': 0.05, 'psi': False}}
+                for s in loco for k in SEEDS]                            # (review 111 C1: the graph family has no gene input)
     for name in ('M1', 'M2', 'M3', 'M4', 'M5'):                          # the real targets
         real += [{'model': name, 'setting': s, 'seed': k} for s in loco + ['cold'] for k in SEEDS]
     real += [{'model': 'M3', 'setting': s, 'seed': k, 'K': 4} for s in loco + ['cold'] for k in SEEDS]   # K = 4 sensitivity

@@ -143,3 +143,33 @@ def test_every_model_trains_one_epoch(name, monkeypatch):
     hist = s2.train(m, D, tr[:60], tr[60:80], 'cpu', 16, 0)
     P = s2.predict(m, D, te, 'cpu', 16)
     assert len(hist) == 1 and P.shape == (len(te), 978) and np.isfinite(P).all()
+
+
+def test_graph_family_learns_phi_times_reach_but_not_a_random_gene_factor(monkeypatch):
+    """Review 111 C1: GraphProp (shared start vector, chromatin gates) can learn u = phi(c, j) [sum A^k e_g]_j in a held-out
+    cell, but not u * psi(g) with a random per-gene factor, which it has no input to represent."""
+    monkeypatch.setattr(s2, 'MAX_EPOCHS', 25)
+    monkeypatch.setattr(s2, 'PATIENCE', 25)
+    D = fake(N=1100, n_genes=80, seed=5)
+    rng = np.random.default_rng(6)
+    nc = len(s2.TRAIN_CELLS)
+    phi = rng.normal(size=(nc, 978))
+    D.cellfeat['CNC'] = np.zeros_like(D.cellfeat['CNC'])
+    D.cellfeat['CNC'][:, :978, 0] = phi                                  # the landmark nodes carry phi in their chromatin
+    A = s2.norm_adj_scipy(D.edges['real'], len(D.nodes))
+    psi = {g: rng.normal() for g in D.genes}
+    genes = [g for g in D.genes if D.node_of[g] >= 978]
+    shape = {g: s2.graph_shape(D, A, g) for g in genes}
+
+    def rows(cells, with_psi):
+        return [(g, c, phi[D.cell_index[c]] * shape[g] * (psi[g] if with_psi else 1.0)) for g in genes for c in cells]
+    train_cells = [c for c in s2.TRAIN_CELLS if c != 'PC3']
+    out = {}
+    for with_psi in (False, True):
+        torch.manual_seed(0)
+        m = s2.build_model('M3', D)
+        tr, te = rows(train_cells, with_psi), rows(['PC3'], with_psi)
+        s2.train(m, D, tr, te[:20], 'cpu', 16, 0, lr=3e-3)
+        P = s2.predict(m, D, te, 'cpu', 16)
+        out[with_psi] = float(np.mean([np.corrcoef(p, t)[0, 1] for p, (_, _, t) in zip(P, te)]))
+    assert out[False] > 0.3 and abs(out[True]) < 0.15, out
