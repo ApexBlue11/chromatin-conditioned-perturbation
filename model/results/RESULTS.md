@@ -12978,12 +12978,16 @@ after its positive control, and B1 is not gated on D1. 12 / 12 tests passed on t
 
 **The noise ceiling (lower bounds, PC3 / MCF7):**
 - the reliability of d is ρ̂ = **0.18** (PC3 0.13, MCF7 0.23; 2,764 pairs);
-- **a model's cell-specific r is bounded below by about √ρ̂ = 0.43** (row-wise mean 0.39).
+- ~~**a model's cell-specific r is bounded below by about √ρ̂ = 0.43** (row-wise mean 0.39).~~ **(review 109 C1)** **the best
+  achievable cell-specific r (the ceiling) is at least about √ρ̂ = 0.43** (row-wise mean 0.39).
 
 **D1 — "which genes can move here" (primary: hairpin-level s_kd):**
 - **The composition:** 8,353–9,195 hairpin rows per core cell over the 2,100 genes, 2–40 hairpins per gene (mean 4.0–4.4).
 - **Its positive control passes:** centred expression is associated with centred log(s_kd / s_ctl).
   - The mean within-cell Spearman is **0.101 [0.071, 0.130]**, positive in all 6 cells (0.06–0.15).
+  - **(review 109 C2) The ratio is signal-to-noise-like, and part of this is its noise side.** Expression against −log s_ctl
+    is +0.053 (6 / 6 cells; L1000 noise falls with expression), and against log s_kd alone +0.032 (5 / 6). The ratio gives
+    0.101. D1's null is unaffected.
 - **D1's rule fails:** ACT:prom_1kb, partial on centred CCLE expression.
   - The mean within-cell partial Spearman is **+0.001 [−0.028, +0.031]**, positive in 3 of 6 cells.
   - With the L1000 control profile as a second covariate it is −0.004.
@@ -13011,7 +13015,8 @@ after its positive control, and B1 is not gated on D1. 12 / 12 tests passed on t
   - **by the drug signature's `tas` tertile: 0.474 / 0.471 / 0.343.** It is carried by transcriptionally active compounds
     (1,817 pairs with `tas`);
   - agonists against overexpression: 23 pairs, median 0.61, uninformative.
-- **Matched against mismatched:** mean(p_mis − p_match) = **+0.0005 [−0.008, +0.009]**, so not cell-specific. A drug resembles
+- **Matched against mismatched:** mean(p_mis − p_match) = **+0.0005 [−0.008, +0.009]**, ~~so not cell-specific~~ **(review 109
+  C3) no detectable cell specificity**, with limited sensitivity because the knockdowns' cell-specific part has ρ̂ ≈ 0.18. A drug resembles
   its target's knockdown as much in other cells as in its own.
 - **The registered meaning:** *a gene-level drug ↔ target-knockdown correspondence.* The cell-specific meaning is not shown.
 
@@ -13020,7 +13025,8 @@ after its positive control, and B1 is not gated on D1. 12 / 12 tests passed on t
   1.17, ρ̂ 0.18), so stage 2 has something to learn, and the ceiling for a model's cell-specific r is at least 0.43.
 - **D1 repeats T-E2's pattern on a new perturbation class.** Expression carries a gene's cell-specific responsiveness; the
   activation mark adds nothing beyond it. Chromatin's null for this question is at rung 2: the information is in the data,
-  but expression already holds it.
+  ~~but expression already holds it.~~ **(review 109 C2)** an association that expression accounts for. The positive control
+  is partly the noise side of the ratio.
 - **B1 gives the "start at the target" route a measured basis.** A drug's response resembles its target's knockdown well
   above chance, and above degree-matched genes, mostly for active compounds. But not cell-specifically. So a knockdown-trained
   model has a gene-level path to drugs, and the cell representation's added value for drugs has to come from elsewhere.
@@ -13030,6 +13036,135 @@ after its positive control, and B1 is not gated on D1. 12 / 12 tests passed on t
   2. whether the **full gene network** predicts **unseen** genes' knockdown responses (cold-gene), the gene-level route B1
      supports.
   - Given D1, chromatin is not expected to add on (1), but that is tested, with a positive control, not assumed.
+
+### 103.5 Review 109 adopted (SOUND-WITH-CAVEATS): §103.4 reworded (PI, 2026-11-02)
+**Review 109** reproduced every stage-1 number exactly with its own implementation:
+- P0 0.0041;
+- VD 0.336 / 0.026 / 0.637, ratio 1.168;
+- ρ̂ 0.1824, √ 0.427;
+- D1 hairpin PC 0.1005, ACT +0.0013, rung 1 +0.054; consensus PC 0.079, ACT −0.007;
+- B1 median 0.4294, top-5 % 0.099, matched / mismatched +0.00048.
+
+It also confirmed the 4e49ffa changes and the VD arithmetic (σ²_gxc ≥ 0.055, 14.5 % of MS_gxc).
+
+**Three MINOR wording challenges, all upheld (struck through in §103.4):**
+- **C1:** 0.43 is a lower bound on the ceiling, the best achievable r, not on a model's r.
+- **C2:** D1's ratio is signal-to-noise-like, so part of its positive control is the noise side. Expression against −log s_ctl
+  is +0.053, and against log s_kd +0.032. "The information is in the data" is softened.
+- **C3:** "not cell-specific" becomes "no detectable cell specificity" (limited sensitivity, ρ̂ ≈ 0.18). The hub comparison is
+  descriptive.
+
+**The stage-2 advice, folded into §103.6:**
+- LOCO gains are reported against **all** baselines, with 6-cell CIs and relative to the ceiling;
+- cold-gene is the drug-linked aim;
+- the synthetic-injection positive control is kept;
+- s_ctl is a covariate wherever chromatin is read (never a LOCO model input, §103.2 C1);
+- the drug bridge is gene-level only.
+
+### 103.6 🔒 PRE-REGISTERED (design, for review): stage 2 — candidate cell representations on the knockdown proxy (IDEAS §E1–E3, §E9 rungs 3–5; before any stage-2 model is trained)
+**What stage 1 fixed for this stage (§103.4 / 103.5):**
+- **LOCO:** the cell-specific target d carries a real, modest signal (VD 1.17; a model ceiling ≈ 0.43, a lower bound).
+- **Cold-gene:** the gene-level route B1 supports — predicting unseen genes' knockdown responses.
+- **Chromatin:** D1 places its responsiveness null at rung 2, so chromatin is tested here with a positive control, not assumed.
+
+**The settings (the harness of §103 / 103.1 / 103.2):**
+- **LOCO:** 6 folds, each holding out one core cell.
+  - Targets d come from per-fold references.
+  - Training rows are every 96 h knockdown in the other 14 cells.
+  - **Primary score:** per-row r on d in the held-out cell; y reported.
+- **Cold-gene:** 20 % of genes held out (`default_rng(0)`, by gene) in all 15 cells.
+  - **Primary score:** per-row r on y in the 6 core cells; d reported (target side only).
+- **Early stopping:** on 10 % of training genes (`default_rng(1)`), held out inside every run. Never on test rows.
+
+**Inputs — never an L1000-derived input from the held-out cell (§103.2 C1):**
+- **The perturbation g:**
+  - its STRING gene vector (`gene_vectors_v11_full.npy`, pretrained on the experimental + database graph, DTI excluded);
+  - its graph node, for propagation.
+  - 3,734 of the 3,927 core knockdown genes are graph nodes (128-d vectors). **The other 193 have neither, and are excluded
+    from every candidate and baseline comparison alike** (counted). So cold-gene genes are always featurised.
+- **The cell c:**
+  - CCLE log2 TPM on the 978 landmarks, plus 50 principal components of all-gene CCLE (fit on the 131 LINCS CCLE cells,
+    outcome-free);
+  - chromatin per landmark (`v10c_chromatin.npz`, 16 features, masked);
+  - CCLE global chromatin (42 marks).
+  - Cells without chromatin enter with it masked: zero, plus a mask channel.
+
+**The candidates** — same output (978), loss (MSE), optimiser (AdamW), ≤ 30 epochs with early stopping, 3 seeds (0 / 1 / 2):
+- **M1, expression MLP:** [gene vector(g); expression features(c)] → MLP (2 × 512) → 978.
+- **M2, expression + chromatin MLP:** M1 plus a perturbation-conditioned chromatin term per landmark.
+  - ŷ_j = a_j(h) + s_j · (b(h) · chrom(c, j)), where h is M1's hidden state, b(h) ∈ R^16 and s_j a per-landmark scale.
+  - That is, the knocked-down gene's effect on landmark j depends on j's chromatin in that cell (§91 S1's form, made
+    learnable).
+  - Global chromatin (42) is appended to the cell features.
+- **M3, recurrent graph propagation** (LEMBAS-style, IDEAS §E3):
+  - **The start:** node state X ∈ R^{19,496 × 32}, with a learned perturbation vector at the knocked-down node and 0
+    elsewhere.
+  - **K = 3 gated steps:** X ← X + σ(γ_v) ⊙ (Â X W_k).
+    - The gate γ_v = MLP([expression_v, chromatin_v, mask_v]) on each node's CCLE log TPM and its `v11_chromatin` features.
+    - Â is the symmetric-normalised STRING expdb graph.
+  - **The readout:** at the 978 landmark nodes, ŷ_j = w · X_{landmark j} + c_j.
+- **M4:** M3 with chromatin removed from the gates (expression only), the chromatin ablation inside the graph family.
+- **M5:** M3 on a degree-preserving rewired graph (double-edge swaps, `default_rng(3)`, 10 × |E| attempts), testing whether the
+  real network structure matters.
+- **Deferred to stage 2b** (separate registrations, when their inputs are approved and built):
+  - published gene embeddings (GenePT / Geneformer, E8);
+  - ncRNA nodes (E7; needs the GENCODE annotation);
+  - a pathway-visible network.
+
+**The baselines** (from the harness, all reported):
+- gene mean (d ≡ 0);
+- nearest cell by CCLE;
+- k = 3 nearest cells;
+- ridge (expression; expression + chromatin);
+- the cell offset (cold-gene).
+
+**Rung 3 — the positive control, run and read before any real comparison:**
+- **The injection:** d′ = d + s · φ(c, j) · ψ(g), in training and held-out targets alike.
+  - φ is centred, standardised ACT:prom_1kb at landmark j in cell c (0 where masked).
+  - ψ(g) ~ N(0, 1) per gene, `default_rng(2)`.
+  - s is set so the injected term's variance is **2 %, 5 % and 10 % of Var(d)** over training rows.
+- **What is trained:**
+  - M1 and M2 on d′ at all three levels;
+  - M4 and M3 at 5 % (compute).
+  - 6 folds × 3 seeds each.
+- **The readings:**
+  - the recovered correlation with the injected term on held-out rows;
+  - **the detectable level:** the smallest s at which (M2 − M1), and at 5 % (M3 − M4), passes the gain rule below.
+- **How the real nulls are read:** relative to that level.
+  - A chromatin null where the injection is detectable says "no chromatin effect of at least that size".
+  - Where it is undetectable, the null is uninformative (rung 3).
+
+**Rung 5 — the gain rules** (each a 3-seed mean per fold; across the 6 folds, mean Δ ≥ max(0.003, 2 · SD(Δ_f) / √6) and ≥ 5 of
+6 folds positive):
+- **R-chrom-MLP:** M2 against M1 on LOCO d;
+- **R-chrom-graph:** M3 against M4 on LOCO d;
+- **R-understand:** M1, M2 and M3 each against the best baseline (k = 3 nearest cells) on LOCO d;
+- **on cold-gene y** (3 seeds; the seed SE; and ≥ 5 of 6 core cells positive per cell):
+  - **R-graph-cold:** M3 against M1;
+  - **R-graph-real:** M3 against M5;
+  - **R-understand-cold:** each against ridge.
+
+**Reporting (review 109):**
+- every LOCO score is given against **all** baselines, with a 6-cell CI (the cell-level bootstrap over the 6 folds) and as a
+  fraction of the ceiling (≥ 0.43);
+- wherever chromatin is read in an association (rung-1 / 2 style, or an attribution), **s_ctl** (the cell's vector-control
+  spread) is a covariate;
+- s_ctl is never a LOCO model input, because it is derived from the held-out cell's L1000 plates (§103.2 C1).
+
+**Rung 4 — usage (reported, for every candidate that passes a rule):**
+- at inference, the held-out cell's chromatin is swapped with another core cell's, and shuffled across landmarks;
+- prediction agreement across arms against across seeds (review 104 C2).
+
+**The compute** (T4 × 2 sessions over the three Kaggle accounts):
+- **MLPs and baselines:** minutes each.
+- **Graph runs:**
+  - M3 / M4 / M5 × 7 settings × 3 seeds = 63 runs at about 15 min each, ≈ 16 GPU-h;
+  - the graph positive control is 36 runs, ≈ 9 GPU-h;
+  - in all ≈ 25–30 GPU-h, inside one week's quota across the three accounts.
+- **The data:** one private dataset per account — the knockdown extract, `ccle_extra`, and the existing `lincs-v11-src` files.
+
+**The code:** `model/cellrep/stage2.py` with tests (the LOCO input rule, the injection's variance share, the graph module on a
+toy graph, the rewiring's degree preservation), registered in a code packet before any run.
 
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
