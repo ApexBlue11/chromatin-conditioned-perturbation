@@ -12955,6 +12955,82 @@ after its positive control, and B1 is not gated on D1. 12 / 12 tests passed on t
 - **The code:** `model/cellrep/stage1.py` with 16 tests. Dry runs on fake values stay calibrated (leaky −1, fixed < 0.001;
   VD 1.0009; B1 no pass). **The one run follows this commit.**
 
+### 103.4 RESULT: stage 1, read once (§103 / 103.1–103.3) — **the knockdown data is valid and carries modest cell-specific signal; D1: chromatin does not explain a gene's cell-specific responsiveness beyond expression (null at rung 2); B1: a drug resembles its target's knockdown, at the gene level, not cell-specifically** (PI, 2026-11-02)
+**The run:**
+- `model/cellrep/stage1.py` at 4e49ffa (16 tests), once → `model/results/cellrep/stage1.json`.
+- **Inputs:** the knockdown extract (sha1 `5d26ca5d…`) and the hairpin extract (`46a1234d…`).
+- **The leak test on the real index structures:** fixed |r| ≤ 0.0008 and leaky −1.000 in all six folds, so the run went on.
+
+**P0, the data's positive control — passes.**
+- Over 4,918 knocked-down landmark genes in the core cells, the median ascending percentile of the gene's own coordinate in
+  its own signature is **0.004** (per cell 0.000–0.010; registered ≤ 0.10).
+- Reported:
+  - overexpression's own gene, descending, has a median of 0.237, a weaker on-target signal (3,868 rows);
+  - by the knockdown signature's `tas` tertile: 0.003 / 0.003 / 0.006.
+
+**VD, the variance decomposition (reported):** 2,100 genes × 6 cells, averaged over landmarks.
+- **The shares:** gene 0.336, cell 0.026, gene × cell 0.637.
+- **The gene × cell mean square is 1.17 × the noise upper bound** (0.380 against 0.325; noise from 2,770 PC3 / MCF7
+  96 h / late pairs).
+  - So true gene × cell variance is at least about 0.055, roughly 14 % of that mean square. The rest is noise.
+  - The bound comes from PC3 / MCF7 and a selected subset of genes, and it is assumed elsewhere.
+- **So a cell-specific signal exists to learn, and it is modest.**
+
+**The noise ceiling (lower bounds, PC3 / MCF7):**
+- the reliability of d is ρ̂ = **0.18** (PC3 0.13, MCF7 0.23; 2,764 pairs);
+- **a model's cell-specific r is bounded below by about √ρ̂ = 0.43** (row-wise mean 0.39).
+
+**D1 — "which genes can move here" (primary: hairpin-level s_kd):**
+- **The composition:** 8,353–9,195 hairpin rows per core cell over the 2,100 genes, 2–40 hairpins per gene (mean 4.0–4.4).
+- **Its positive control passes:** centred expression is associated with centred log(s_kd / s_ctl).
+  - The mean within-cell Spearman is **0.101 [0.071, 0.130]**, positive in all 6 cells (0.06–0.15).
+- **D1's rule fails:** ACT:prom_1kb, partial on centred CCLE expression.
+  - The mean within-cell partial Spearman is **+0.001 [−0.028, +0.031]**, positive in 3 of 6 cells.
+  - With the L1000 control profile as a second covariate it is −0.004.
+- **The rung:** without the covariate (rung 1) the association is +0.054. Expression accounts for it. **Chromatin's null is at
+  rung 2 (beyond the baseline).**
+- **Reported, never read:**
+  - the other ACT windows, partial: +0.001 to +0.014;
+  - ACC windows: +0.017 to +0.027;
+  - PCG: −0.025 to +0.013 (5 cells);
+  - METH: +0.003 (5 cells).
+  - **The technical channel** (chromatin against s_ctl alone) is near 0 for ACC / ACT. It is +0.04 to +0.06 for PCG: Polycomb
+    marks track the control signatures' spread, not the knockdown-specific part.
+  - **The consensus version agrees:** positive control 0.079 [0.049, 0.108]; ACT −0.007 [−0.036, +0.023], 2 of 6 cells.
+
+**B1 — does a drug resemble its target's knockdown in the same cell?**
+- **The pairs:** 3,312 (drug, inhibitory target, cell) pairs; 502 drugs; PC3, A375, A549, HEPG2. Train / train rows only; every
+  knockdown's own coordinate excluded; 0 unparseable doses.
+- **The main rule passes:** the median percentile of the target's knockdown among the cell's knockdowns is **0.429 [0.407,
+  0.457]** (registered < 0.45, with a CI excluding 0.5).
+  - The top-5 % fraction is **0.099**, twice the 0.05 expected.
+  - Per cell: 0.409–0.461.
+- **The reported controls:**
+  - **the degree-matched hub control is 0.490**, at chance, so the correspondence belongs to the target, not to hub genes;
+  - averaging all of a drug's signatures gives 0.401;
+  - **by the drug signature's `tas` tertile: 0.474 / 0.471 / 0.343.** It is carried by transcriptionally active compounds
+    (1,817 pairs with `tas`);
+  - agonists against overexpression: 23 pairs, median 0.61, uninformative.
+- **Matched against mismatched:** mean(p_mis − p_match) = **+0.0005 [−0.008, +0.009]**, so not cell-specific. A drug resembles
+  its target's knockdown as much in other cells as in its own.
+- **The registered meaning:** *a gene-level drug ↔ target-knockdown correspondence.* The cell-specific meaning is not shown.
+
+**The reading:**
+- **The proxy is usable.** Knockdowns visibly hit their targets (P0). There is a real, modest cell-specific component (VD
+  1.17, ρ̂ 0.18), so stage 2 has something to learn, and the ceiling for a model's cell-specific r is at least 0.43.
+- **D1 repeats T-E2's pattern on a new perturbation class.** Expression carries a gene's cell-specific responsiveness; the
+  activation mark adds nothing beyond it. Chromatin's null for this question is at rung 2: the information is in the data,
+  but expression already holds it.
+- **B1 gives the "start at the target" route a measured basis.** A drug's response resembles its target's knockdown well
+  above chance, and above degree-matched genes, mostly for active compounds. But not cell-specifically. So a knockdown-trained
+  model has a gene-level path to drugs, and the cell representation's added value for drugs has to come from elsewhere.
+- **What stage 2 is now for:**
+  1. whether any representation predicts the **cell-specific** part of knockdown responses (LOCO) beyond gene-mean and
+     nearest-cell, against a ceiling of about 0.43;
+  2. whether the **full gene network** predicts **unseen** genes' knockdown responses (cold-gene), the gene-level route B1
+     supports.
+  - Given D1, chromatin is not expected to add on (1), but that is tested, with a positive control, not assumed.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
