@@ -1,0 +1,20 @@
+{
+ "nodes": 19496,
+ "edges": 345962,
+ "edges_rewired": 345962,
+ "degree_preserved": true,
+ "kept_edge_fraction": 0.03507899711529012,
+ "kd_genes_in_graph": 3739,
+ "landmarks_within_k_hops_median": {
+  "1": 0.00408997955010225,
+  "2": 0.1329243353783231,
+  "3": 0.7586912065439673,
+  "4": 0.9519427402862985
+ },
+ "unreachable_pairs_within_6": 0.0714876794698669,
+ "inputs": {
+  "string_graph_v11_expdb.npz": "b9b80d5717ab2698313867442eae6757eaf329a7",
+  "l1000_genetic_lm978.npz": "5d26ca5de15ee599bb3897a9fbdb8817f6128d73"
+ },
+ "out_sha1": "1477cd89341c06fb9f2b255a6867116253ced2a9"
+}

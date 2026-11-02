@@ -13166,6 +13166,71 @@ It also confirmed the 4e49ffa changes and the VD arithmetic (σ²_gxc ≥ 0.055,
 **The code:** `model/cellrep/stage2.py` with tests (the LOCO input rule, the injection's variance share, the graph module on a
 toy graph, the rewiring's degree preservation), registered in a code packet before any run.
 
+### 103.7 🔒 AMENDMENT, review 110 adopted (SOUND-WITH-CAVEATS, three MAJOR) and stage 2's implementation, before any stage-2 run (PI, 2026-11-02)
+**Review 110** found no input that leaks outcomes. The CCLE principal components are fit on all 131 LINCS CCLE cells,
+which is transductive in feature space only (unsupervised, no targets), as stated here. **Every challenge is adopted; this
+section governs where §103.6 differs.**
+
+**C1 (MAJOR) — a graph-shaped positive control.**
+- The dense injection s · φ · ψ(g) is something only the MLPs can express. The graph family reaches landmarks only within K
+  hops.
+- **Measured outcome-free on the binary expdb graph**, for the median knocked-down gene, the share of landmarks within:
+  - 1 hop: 0.4 %;
+  - 2 hops: 13.3 %;
+  - 3 hops: 75.9 %;
+  - 4 hops: 95.2 %.
+  - 7.1 % of (gene, landmark) pairs are unreachable within 6 hops, and 31 landmarks have no edge.
+- **Added:** u = φ(c, j) ψ(g) [Â³ e_g]_j, at the same variance shares.
+  - Both shapes run for both families: MLPs at 2 / 5 / 10 %, the graph family at 5 %.
+- **A null where the injection is detectable reads:** "no chromatin effect of this form and at least this size".
+
+**C2 (MAJOR) — M3's start is one shared learned vector at the knocked-down node.** There is no gene-specific input.
+- So M5 (the rewired graph) receives nothing from the real graph.
+- R-graph-cold (M3 against M1) is worded **"propagation against embedding"**: the graph's propagation from a node against an MLP
+  on a STRING-pretrained gene vector.
+
+**C3 (MAJOR) — cold-gene uncertainty comes from a paired gene-cluster bootstrap.**
+- Held-out genes are resampled. Each gene's Δ is its 3-seed mean, averaged over the core cells.
+- The CI must exclude 0. "≥ 5 of 6 cells" is reported as a consistency check only.
+
+**C4 — the injected φ is ACT:prom_1kb residualised on centred CCLE expression within cell,** because the question is
+chromatin beyond expression. The raw-ACT injection (dense, 5 %) is reported for the MLP family. The range of 2 / 5 / 10 % of
+Var(d), about 11–55 % of the true cell-specific variance, is kept.
+
+**C5 — R-understand compares against the per-fold maximum over all baselines** (k-NN reported). In LOCO, early stopping uses
+10 % of training **rows**, so the genes stay seen. Cold-gene stops on 10 % of training genes.
+
+**Also adopted:**
+- **The K = 4 sensitivity run:** M3, 7 settings × 3 seeds.
+- **Distance strata:** per-row r over the landmarks ≤ 2, 3 and ≥ 4 hops from g, computed by the reader from saved predictions.
+- **The 31 landmarks with no graph edge** are read from the mean-pooled node state. Scores are reported over all 978 and over
+  the 947 reachable landmarks.
+- **The rewired graph** keeps 3.5 % of the real edges, with degrees preserved exactly.
+- **Strata by the knockdown signature's `tas` tertile.**
+- **Rung-4 checks for the graph family:** the gate mean and SD, plus chromatin swapped with another cell's and shuffled, at
+  inference.
+- **The six rules are separate questions,** read without a family-wise correction.
+
+**Implementation choices, disclosed:**
+- **Training rows** come from the **9 knockdown cells with CCLE expression** (the 6 core + HCC515, SW480, VCAP).
+  - HA1E, NPC, ASC, HEKTE, SKL and HEK293T have no CCLE and can't be featurised. They enter only the references of d.
+  - LOCO with PC3 held out has 18,809 training rows and 3,270 test rows (269 dropped for < 3 references). Cold-gene has
+    17,886 training rows and 3,903 test rows over 748 held-out genes.
+- **Â** is binary symmetric D^−1/2 A D^−1/2 for M3–M5 and for the injection's Â³.
+- **Models:**
+  - M1 / M2 are 1.36 / 1.39 M parameters (batch 256);
+  - M3–M5 are 37 k (batch 32), so the network's structure has to do the work;
+  - AdamW, lr 1e-3, weight decay 1e-4, ≤ 30 epochs, patience 3.
+- **The jobs:** 324 rung-3 injection jobs and 126 real-target jobs over six T4 × 2 sessions, two per account
+  (`model/cellrep/stage2_jobs.json`).
+  - Injection jobs are queued first in every session.
+  - **Real-target outputs are downloaded and ledgered but not opened until the injection reading is committed.**
+- **The code:**
+  - `model/cellrep/stage2.py` (14 tests), `stage2_graph_prep.py` (outcome-free graph inputs; `stage2_graph.npz`, sha1
+    `1477cd89…`), `stage2_jobs.py`;
+  - the kernel runner `lincs-cellrep-s2.py` (one worker per GPU);
+  - the reader that applies these rules is committed before any output is opened.
+
 ## Open program (gated on: accuracy must be comparable for the interpretability story to carry weight)
 1. **Diagnose interaction under-expression BEFORE any retrain** (`analyze.py`, running): is it noise-driven
    MSE shrinkage (→ correlation/rank loss) or dead cell-conditioning (→ architecture)? Test = does interaction
