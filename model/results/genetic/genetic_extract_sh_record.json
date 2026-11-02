@@ -1,0 +1,17 @@
+{
+ "url": "https://ftp.ncbi.nlm.nih.gov/geo/series/GSE92nnn/GSE92742/suppl/GSE92742_Broad_LINCS_Level5_COMPZ.MODZ_n473647x12328.gctx.gz",
+ "gctx_bytes": 23380287022,
+ "gctx_sha1": "28d1e910a847d3eb447ae903aca615a755802c12",
+ "integrity_max_abs_diff": 0.0,
+ "n_signatures": 154993,
+ "counts": {
+  "trt_sh": 154993
+ },
+ "nan": 0,
+ "shape": [
+  154993,
+  978
+ ],
+ "npz_sha1": "46a1234d554f8c5d6118ddce7a224f5218b03a24",
+ "elapsed_s": 898
+}
